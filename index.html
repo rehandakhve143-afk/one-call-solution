@@ -545,7 +545,8 @@ html += "<div style='padding:14px 8px;border-bottom:1px solid #ddd;display:flex;
           
 });
 
-document.getElementById("serviceDetails").innerHTML = html;
+html += "<div style='padding:14px 8px;font-weight:bold;'>Minimum Visit Charge — ₹199.00<br><small style='font-weight:normal;'>Only if no work is done.</small></div>";
+          document.getElementById("serviceDetails").innerHTML = html;
 document.getElementById("serviceDetails").scrollIntoView({behavior:"smooth"});
 });
 });
