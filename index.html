@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+sw<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -143,6 +143,273 @@
 <p>💳 Wallet Recharge: ₹249 | ₹349 | ₹699 | ₹999</p>
 
 <p>⭐ Ratings | 🎁 Gifts | 🏆 Rewards</p>
+    <script>
+      const serviceData = {
+        electrician: {
+          name: "Electrician",
+          items: [
+            { name: "Fan Fitting / Capacitor Change", price: 200 },
+{ name: "Fan Hook (Anchor Fastener) Fitting", price: 300 },
+{ name: "Fan + Anchor Fastener Fitting", price: 450 },
+{ name: "Regulator Fitting (Concealed Board)", price: 200 },
+{ name: "Regulator Fitting (Normal Board)", price: 200 },
+{ name: "Switch Change (Normal Board - 1 nos)", price: 200 },
+{ name: "1 Switch & 1 Socket Changer", price: 250 },
+{ name: "Geyser Fitting (Normal)", price: 300 },
+{ name: "Geyser + Angle Cock", price: 350 },
+{ name: "15 Amp Board Fitting (Only Board)", price: 200 },
+{ name: "Inverter Wiring (1 BHK Casing / Patti)", price: 500 },
+{ name: "Inverter Wiring (1 BHK Concealed)", price: 700 },
+{ name: "Normal Inverter Fitting", price: 300 },
+{ name: "Inverter Fitting + Overhead Battery Load", price: 500 },
+{ name: "MCB (Single / Double Pole) Fitting", price: 300 },
+{ name: "Electric Man Visit Charge", price: 200 },
+{ name: "Tube Light Fitting", price: 200 },
+{ name: "Holder Fitting", price: 200 },
+{ name: "Electric Board Change", price: 300 },
+{ name: "Bulb Fitting", price: 200 },
+{ name: "Building Street Light Fitting (1 nos)", price: 350 },
+{ name: "Earthing Maintenance / Check", price: 500 },
+{ name: "New Earthing Installation Wiring (1 BHK)", price: 700 }
+            ],
+visitCharge: 200
+  }
+          ,plumber: {
+name: "Plumber",
+items: [
+{ name: "Tap/Faucet Installation or Repair", price: 250 },
+{ name: "Tap Washer Change/Leakage Fix", price: 150 },
+{ name: "Wash Basin/Sink Mixture Tap Fitting", price: 400 },
+{ name: "Basin Waste Pipe/Connection Pipe Change", price: 200 },
+{ name: "Kitchen Sink Blockage Clearing", price: 350 },
+{ name: "Bathroom Floor Drain/Chokage Cleaning", price: 400 },
+{ name: "PVC/CPVC Pipe Leakage Repair (Surface/Open)", price: 400 },
+{ name: "Concealed Pipe Leakage Repair (Wall Breaking/Fixing)", price: 800 },
+{ name: "Flush Tank Internal Parts/Siphon Repair or Replacement", price: 350 },
+{ name: "Western Commode/Indian Seat Installation", price: 1000 },
+{ name: "Flush Tank/Commode Leakage Fix", price: 300 },
+{ name: "Overhead Shower/Hand Shower Fitting", price: 250 },
+{ name: "Bathroom Diverter Repair/Change", price: 600 },
+{ name: "Geyser Inlet/Outlet Connection & Pipe Fitting", price: 350 },
+{ name: "Water Motor/Pump Installation/Check", price: 600 },
+{ name: "Water Tank Cleaning & Maintenance", price: 1500 }
+],
+visitCharge: 200
+  }
+            ,carpenter: {
+name: "Carpenter",
+items: [
+{ name: "Door Repair / Alignment", price: 350 },
+{ name: "Door Hinge", price: 200 },
+{ name: "Door Lock / Latch / Handle", price: 400 },
+{ name: "New Door Installation (Including Hardware Fitting)", price: 1000 },
+{ name: "Door Closer", price: 500 },
+{ name: "Wardrobe / Cupboard Hinge / Channel", price: 300 },
+{ name: "Bed Repair", price: 500 },
+{ name: "Window Latch / Channel / Glass Beading", price: 300 },
+{ name: "Small Prefabricated Furniture Assembly", price: 650 },
+{ name: "Heavy / Large Furniture Assembly", price: 1400 },
+{ name: "Modular Kitchen Cabinet Adjustment / Hinge", price: 500 }
+],
+visitCharge: 200
+      }
+              ,acService: {
+name: "AC Service & Repair",
+items: [
+{ name: "AC General Servicing / Water Jet", price: 450 },
+{ name: "AC Gas Filling R32 / R410", price: 2200 },
+{ name: "AC Gas Filling R22", price: 1800 },
+{ name: "AC Leakage / Chokage Check", price: 350 },
+{ name: "AC Capacitor Change", price: 750 },
+{ name: "Split AC Installation", price: 1100 },
+{ name: "Split AC Uninstallation", price: 450 },
+{ name: "Copper Piping (Material + Labour)", price: 400, unit: "ft" },
+{ name: "Copper Piping (Labour Only)", price: 150, unit: "ft" },
+{ name: "AC PCB / Electronic Repair", price: 1000 }
+],
+visitCharge: 200
+ }
+                ,refrigerator: {
+name: "Refrigerator / Fridge Repair",
+items: [
+{ name: "Fridge Gas / Leakage Repair", price: 1500 },
+{ name: "Relay / Overload Change", price: 400 },
+{ name: "Defrost Timer / Sensor", price: 600 },
+{ name: "Thermostat / Controller", price: 500 },
+{ name: "Freezer Fan Motor", price: 650 },
+{ name: "Compressor Replacement", price: 5500 }
+],
+visitCharge: 200
+                }
+                  ,washingMachine: {
+name: "Washing Machine Repair",
+items: [
+{ name: "General Service / Deep Cleaning", price: 500 },
+{ name: "Drum Cleaning / Descaling", price: 600 },
+{ name: "Inlet / Outlet Pipe Change", price: 250 },
+{ name: "Spin / Wash Motor (Semi-Automatic)", price: 1200 },
+{ name: "Drain Pump Change", price: 600 },
+{ name: "Inlet Valve Change", price: 500 },
+{ name: "PCB / Electronic Repair", price: 1000 }
+],
+visitCharge: 200
+                  }
+                    ,waterPurifier: {
+name: "RO / Water Purifier",
+items: [
+{ name: "RO Installation / Reinstallation", price: 400 },
+{ name: "RO Uninstallation", price: 250 },
+{ name: "RO General Service", price: 350 },
+{ name: "RO Repair / Leakage / Filter Labour", price: 300 },
+{ name: "Complete Filter / Full Overhaul", price: null, priceLabel: "Discuss on Call" }
+],
+visitCharge: 200,
+materialExtra: true
+ }
+                      ,cctv: {
+name: "CCTV Installation & Service",
+items: [
+{ name: "CCTV Camera Installation", price: 350, unit: "camera" },
+{ name: "CCTV Camera Uninstallation", price: 200, unit: "camera" },
+{ name: "DVR / NVR Setup", price: 450 },
+{ name: "CCTV Wiring Labour", price: 20, unit: "meter" },
+{ name: "CCTV General Service", price: 300 }
+],
+visitCharge: 200,
+materialExtra: true
+  }
+                        ,pestControl: {
+name: "Pest Control",
+items: [
+{ name: "Pest Control - 1 BHK", price: 850 },
+{ name: "Pest Control - 2 BHK", price: 1200 },
+{ name: "Pest Control - 3 BHK", price: 1600 },
+{ name: "Office Pest Control", price: 1500 },
+{ name: "Society Common Area / Compound / Wing", price: 2500 },
+{ name: "Termite Treatment", price: 3500 },
+{ name: "Custom / Heavy Pest Treatment", price: null, priceLabel: "Discuss on Call" }
+],
+visitCharge: 200
+                        }
+                          ,maidService: {
+name: "Maid / Domestic Help",
+items: [
+{ name: "Half Day Maid Service (4 Hours)", price: 500 },
+{ name: "Full Day Maid Service (8 Hours)", price: 1000 },
+{ name: "Jhadu / Pocha", price: 350 },
+{ name: "Bhandi / Utensil Cleaning", price: 300 },
+{ name: "Kapde Dhona / Clothes Washing", price: 350 },
+{ name: "Cooking Assistance", price: 400 },
+{ name: "Custom / Combined / Monthly Service", price: null, priceLabel: "Discuss on Call" }
+],
+visitCharge: 200
+                          }
+                            ,painting: {
+name: "Painting / Wall Care",
+items: [
+{ name: "Interior Repainting", price: null, priceLabel: "Discuss on Call" },
+{ name: "Interior Fresh Painting", price: null, priceLabel: "Discuss on Call" },
+{ name: "Exterior Weatherproof Painting", price: null, priceLabel: "Discuss on Call" },
+{ name: "Door / Window Painting", price: null, priceLabel: "Discuss on Call" },
+{ name: "Grill / Gate Painting", price: null, priceLabel: "Discuss on Call" }
+],
+visitCharge: 200,
+visitChargeAdjustable: true
+                            }
+                              ,salonSpa: {
+name: "Salon / Beauty / Spa",
+items: [
+{ name: "Women - Basic Facial", price: 450 },
+{ name: "Women - Gold / Diamond Facial", price: 999 },
+{ name: "Women - Full Arms + Legs + Underarms Waxing", price: 599 },
+{ name: "Women - Haircut / Blow Dry", price: 350 },
+{ name: "Women - Bridal / Party Service", price: null, priceLabel: "Discuss on Call" },
+{ name: "Men - Face Cleanup / De-Tan", price: 300 },
+{ name: "Men - Haircut / Head Massage", price: 300 },
+{ name: "Men - Beard / Special Grooming / Hair Color", price: null, priceLabel: "Discuss on Call" },
+{ name: "Full Body Massage", price: 999 },
+{ name: "Head / Neck / Shoulder Massage", price: 400 },
+{ name: "Foot Reflexology", price: 500 },
+{ name: "Pain Relief / Custom Spa", price: null, priceLabel: "Discuss on Call" }
+],
+minimumOrder: 300
+                              }
+                                ,gasStove: {
+name: "Gas Stove / Sigdi Repair",
+items: [
+{ name: "Inspection / Visiting", price: 250, priceLabel: "₹250–₹300" },
+{ name: "Standard Servicing / Cleaning", price: 399, priceLabel: "₹399–₹499" },
+{ name: "Deep Chemical Overhaul", price: 699 },
+{ name: "Burner Replacement / Alignment Labour", price: 250, materialExtra: true },
+{ name: "Valve / Knob Repair", price: 300, priceLabel: "₹300–₹400" },
+{ name: "Gas Pipe / Regulator Installation", price: 200 },
+{ name: "Auto-Ignition Repair", price: 350 },
+{ name: "Single Burner Service", price: 299 },
+{ name: "Double Burner Service", price: 399 },
+{ name: "3 / 4 Burner or Glass Top Service", price: 599, priceLabel: "₹599–₹799" }
+],
+materialExtra: true
+                                }
+                                  ,kitchenChimney: {
+name: "Kitchen Chimney",
+items: [
+{ name: "Chimney Installation / Wall Mounting", price: null, priceLabel: "Discuss on Call" },
+{ name: "Chimney Deep Cleaning / Service", price: null, priceLabel: "Discuss on Call" },
+{ name: "Chimney Repair / Motor Troubleshooting", price: null, priceLabel: "Discuss on Call" },
+{ name: "Ducting Pipe Alignment / Fitting", price: null, priceLabel: "Discuss on Call" }
+]
+                                  }
+                                    ,packersMovers: {
+name: "Packers & Movers",
+items: [
+{ name: "Local House Shifting - 1RK / 1BHK / 2BHK", price: null, priceLabel: "Discuss on Call" },
+{ name: "Office / Shop Relocation", price: null, priceLabel: "Discuss on Call" },
+{ name: "Heavy Furniture / Appliance Packing & Loading", price: null, priceLabel: "Discuss on Call" },
+{ name: "Inter-City Shifting", price: null, priceLabel: "Discuss on Call" }
+]
+                                    }
+                                      ,punctureRoadside: {
+name: "Puncture / Roadside Assistance",
+items: [
+{ name: "2-Wheeler Puncture Service", price: null, priceLabel: "Discuss on Call" },
+{ name: "4-Wheeler Puncture Service", price: null, priceLabel: "Discuss on Call" },
+{ name: "Emergency Roadside / Doorstep Assistance", price: null, priceLabel: "Discuss on Call" }
+]
+                                      }
+                                        ,popWork: {
+name: "POP / Ceiling & Wall Work",
+items: [
+{ name: "Wall & Ceiling POP Design", price: null, priceLabel: "Discuss on Call" },
+{ name: "Wall POP Bottom Work", price: null, priceLabel: "Discuss on Call" },
+{ name: "Patra Punning / Wall Punning", price: null, priceLabel: "Discuss on Call" }
+]
+                                        }
+                                          ,wifiTv: {
+name: "WiFi / Router & TV Services",
+items: [
+{ name: "WiFi Router Installation / Setup", price: null, priceLabel: "Discuss on Call" },
+{ name: "LAN Cable Wiring / Extension", price: null, priceLabel: "Discuss on Call" },
+{ name: "WiFi Range Extender / Mesh Setup", price: null, priceLabel: "Discuss on Call" },
+{ name: "WiFi Troubleshooting", price: null, priceLabel: "Discuss on Call" },
+{ name: "LED / Smart TV Wall Mount / Installation", price: null, priceLabel: "Discuss on Call" },
+{ name: "Set-Top Box Setup", price: null, priceLabel: "Discuss on Call" },
+{ name: "Smart TV Configuration / Apps", price: null, priceLabel: "Discuss on Call" },
+{ name: "TV Uninstallation / Reinstallation / Shifting", price: null, priceLabel: "Discuss on Call" }
+]
+                                          }
+                                            ,tilesCivil: {
+name: "Tiles / Civil Work",
+items: [
+{ name: "Floor Tiles Fitting", price: null, priceLabel: "Discuss on Call" },
+{ name: "Bathroom Wall / Floor Tiles", price: null, priceLabel: "Discuss on Call" },
+{ name: "Kitchen Otta Tiles Fitting", price: null, priceLabel: "Discuss on Call" },
+{ name: "Kitchen Sink Change / Fitting", price: null, priceLabel: "Discuss on Call" },
+{ name: "Window Frame Tiles / Patti", price: null, priceLabel: "Discuss on Call" },
+{ name: "Door Frame Tiles / Patti", price: null, priceLabel: "Discuss on Call" }
+]
+                                            }
+                                              };
+      </script>
   </div>
 <script>
 document.getElementById("workerRegisterBtn").addEventListener("click", function() {
