@@ -555,6 +555,7 @@ html += "<label style='padding:14px 8px;border-bottom:1px solid #ddd;display:fle
 html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
         "<b>Total — ₹<span id='serviceTotal'>0.00</span></b>" +
         "</div>";
+          html += "<button id='continueBookingBtn' type='button' style='width:100%;padding:15px;margin-top:12px;font-size:18px;font-weight:bold;'>Continue Booking</button>";
           
   
     
@@ -568,6 +569,20 @@ html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
 
           html += "<div style='padding:14px 8px;font-weight:bold;'>Minimum Visit Charge — ₹199.00<br><small style='font-weight:normal;'>Only if no work is done.</small></div>";
           document.getElementById("serviceDetails").innerHTML = html;
+          document.getElementById("continueBookingBtn").addEventListener("click", function() {
+  const selectedItems = document.querySelectorAll(".serviceItemCheck:checked");
+
+  if (selectedItems.length === 0) {
+    alert("Please select at least one service.");
+    return;
+  }
+
+  document.getElementById("serviceDetails").innerHTML =
+    "<div style='text-align:center;padding:40px 15px;'>" +
+    "<h2>Searching Service Provider...</h2>" +
+    "<p>Please wait while we find a Service Provider near you.</p>" +
+    "</div>";
+});
           document.querySelectorAll(".serviceItemCheck").forEach(function(check) {
   check.addEventListener("change", function() {
     let total = 0;
