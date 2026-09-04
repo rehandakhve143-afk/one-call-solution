@@ -529,13 +529,20 @@ let html = "<h2>" + service.name + "</h2>";
 
 service.items.forEach(function(item) {
   const rate = item.priceLabel
-    ? item.priceLabel
-    : "₹" + item.price + (item.unit ? " / " + item.unit : "");
+  ? item.priceLabel
+  : "₹" + Number(item.price).toFixed(2) + (item.unit ? " / " + item.unit : "");
 
-  html += "<div style='padding:12px;border-bottom:1px solid #ddd;'>" +
-          "<b>" + item.name + "</b><br>" +
-          "<span>" + rate + "</span>" +
-          "</div>";
+html += "<div style='padding:14px 8px;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center;gap:15px;'>" +
+        "<b style='text-align:left;'>" + item.name + "</b>" +
+        "<span style='white-space:nowrap;font-weight:bold;'>— " + rate + "</span>" +
+        "</div>";
+    
+    
+
+  
+          
+          
+          
 });
 
 document.getElementById("serviceDetails").innerHTML = html;
