@@ -582,6 +582,18 @@ html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
     "<h2>Searching Service Provider...</h2>" +
     "<p>Please wait while we find a Service Provider near you.</p>" +
     "</div>";
+            setTimeout(function() {
+  document.getElementById("serviceDetails").innerHTML =
+    "<div style='text-align:center;padding:30px 15px;'>" +
+    "<h2>✅ Service Provider Assigned</h2>" +
+    "<p>Your Service Provider is on the way.</p>" +
+    "<button type='button' style='margin:6px;padding:12px;'>📞 Call</button>" +
+    "<button type='button' style='margin:6px;padding:12px;'>💬 Chat</button>" +
+    "<button type='button' style='margin:6px;padding:12px;'>🟢 WhatsApp</button>" +
+    "<button type='button' style='margin:6px;padding:12px;'>📍 Share Location</button><br>" +
+    "<button id='providerReachedBtn' type='button' style='width:100%;padding:15px;margin-top:20px;font-weight:bold;'>Service Provider Reached</button>" +
+    "</div>";
+}, 2000);
 });
           document.querySelectorAll(".serviceItemCheck").forEach(function(check) {
   check.addEventListener("change", function() {
