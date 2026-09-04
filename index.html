@@ -126,7 +126,7 @@
 
 <input type="number" placeholder="Years of Experience">
 <input type="text" placeholder="ID / Aadhaar Number">
-<button type="button">Register as Worker</button>
+<button type="button" id="workerRegisterBtn">Register as Worker</button>
 
 <p>🎁 Joining Bonus: ₹50</p>
 
@@ -136,10 +136,8 @@
 <p>⭐ Ratings | 🎁 Gifts | 🏆 Rewards</p>
   </div>
 <script>
-document.querySelectorAll("button").forEach(function(button) {
-  button.addEventListener("click", function() {
-    window.location.href = "#booking";
-  });
+document.getElementById("workerRegisterBtn").addEventListener("click", function() {
+  alert("Worker Registration received. OTP verification will be added next.");
 });
 </script>
 </body>
