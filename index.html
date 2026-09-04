@@ -107,6 +107,34 @@
   <textarea placeholder="Describe your problem"></textarea>
   <button type="button">Confirm Booking</button>
   </div>
+  <div id="worker-registration">
+    <h2>Join as Service Provider</h2>
+<input type="text" placeholder="Worker Name">
+<input type="tel" placeholder="Worker Mobile Number">
+<input type="text" placeholder="Area / Location">
+
+<label>Select Your Service:</label>
+<select id="workerService">
+<option value="">Select Service</option>
+<option value="Plumber">Plumber</option>
+<option value="Electrician">Electrician</option>
+<option value="Carpenter">Carpenter</option>
+<option value="AC Repair">AC Repair</option>
+<option value="Cleaning">Cleaning</option>
+<option value="Appliance Repair">Appliance Repair</option>
+</select>
+
+<input type="number" placeholder="Years of Experience">
+<input type="text" placeholder="ID / Aadhaar Number">
+<button type="button">Register as Worker</button>
+
+<p>🎁 Joining Bonus: ₹50</p>
+<p>⭐ First 10 Workers: First 3 Jobs with ₹0 Wallet Balance</p>
+<p>💰 Minimum Wallet Balance after 3 Jobs: ₹200</p>
+<p>💳 Wallet Recharge: ₹249 | ₹349 | ₹699 | ₹999</p>
+<p>📊 Platform Commission: 15% - 20%</p>
+<p>⭐ Ratings | 🎁 Gifts | 🏆 Rewards</p>
+  </div>
 <script>
 document.querySelectorAll("button").forEach(function(button) {
   button.addEventListener("click", function() {
