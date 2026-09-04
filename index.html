@@ -489,5 +489,60 @@ document.getElementById("workerRegisterBtn").addEventListener("click", function(
   alert("Service Provider Registration received. OTP verification will be added next.");
 });
 </script>
+<div id="serviceDetails"></div>
+  <script>
+    document.querySelectorAll(".service button").forEach(function(button) {
+      document.querySelectorAll(".service button").forEach(function(button) {
+        button.addEventListener("click", function() {
+          const serviceName = button.parentElement.querySelector("b").innerText;
+
+const serviceMap = {
+  "Plumber": "plumber",
+  "Electrician": "electrician",
+  "Carpenter": "carpenter",
+  "AC Repair": "acService",
+  "RO / Water Purifier": "waterPurifier",
+  "CCTV Service": "cctv",
+  "Pest Control": "pestControl",
+  "Maid Service": "maidService",
+  "Painting": "painting",
+  "Salon / Spa": "salonSpa",
+  "Gas Stove Repair": "gasStove",
+  "Kitchen Chimney": "kitchenChimney",
+  "Packers & Movers": "packersMovers",
+  "Roadside Assistance": "punctureRoadside",
+  "POP Work": "popWork",
+  "WiFi / TV Service": "wifiTv",
+  "Tiles / Civil Work": "tilesCivil"
+};
+
+const key = serviceMap[serviceName];
+
+if (!key || !serviceData[key]) {
+  alert("Service details coming soon.");
+  return;
+}
+
+const service = serviceData[key];
+
+let html = "<h2>" + service.name + "</h2>";
+
+service.items.forEach(function(item) {
+  const rate = item.priceLabel
+    ? item.priceLabel
+    : "₹" + item.price + (item.unit ? " / " + item.unit : "");
+
+  html += "<div style='padding:12px;border-bottom:1px solid #ddd;'>" +
+          "<b>" + item.name + "</b><br>" +
+          "<span>" + rate + "</span>" +
+          "</div>";
+});
+
+document.getElementById("serviceDetails").innerHTML = html;
+document.getElementById("serviceDetails").scrollIntoView({behavior:"smooth"});
+});
+});
+</script>
+  
 </body>
 </html>
