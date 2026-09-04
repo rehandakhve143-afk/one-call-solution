@@ -83,10 +83,34 @@
   </div>
 
 </div>
+  <div id="booking">
+  <h2>Book Your Service</h2>
+  <input type="text" placeholder="Your Name">
+  <input type="tel" placeholder="Mobile Number">
+  <input type="text" placeholder="Address">
+  <input type="date">
+  <input type="time">
+
+  <label>Add-on Service:</label>
+  <select id="addonService">
+    <option value="">Select Add-on Service</option>
+    <option value="Plumber">Plumber</option>
+    <option value="Electrician">Electrician</option>
+    <option value="Carpenter">Carpenter</option>
+    <option value="AC Repair">AC Repair</option>
+    <option value="Cleaning">Cleaning</option>
+    <option value="Appliance Repair">Appliance Repair</option>
+  </select>
+
+  <label>Other Service:</label>
+  <input type="text" placeholder="Type any other service">
+  <textarea placeholder="Describe your problem"></textarea>
+  <button type="button">Confirm Booking</button>
+  </div>
 <script>
 document.querySelectorAll("button").forEach(function(button) {
   button.addEventListener("click", function() {
-    alert("Booking form opening...");
+    window.location.href = "#booking";
   });
 });
 </script>
