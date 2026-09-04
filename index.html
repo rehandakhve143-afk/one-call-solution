@@ -593,6 +593,16 @@ html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
     "<button type='button' style='margin:6px;padding:12px;'>📍 Share Location</button><br>" +
     "<button id='providerReachedBtn' type='button' style='width:100%;padding:15px;margin-top:20px;font-weight:bold;'>Service Provider Reached</button>" +
     "</div>";
+              document.getElementById("providerReachedBtn").addEventListener("click", function() {
+  document.getElementById("serviceDetails").innerHTML =
+    "<div style='text-align:center;padding:30px 15px;'>" +
+    "<h2>🔐 Start OTP</h2>" +
+    "<p>Service Provider has reached your location.</p>" +
+    "<p>Share this OTP only when the Service Provider is with you.</p>" +
+    "<h1 style='font-size:42px;'>4826</h1>" +
+    "<p><b>OTP confirms arrival and start of inspection/work only.</b></p>" +
+    "</div>";
+});
 }, 2000);
 });
           document.querySelectorAll(".serviceItemCheck").forEach(function(check) {
