@@ -531,11 +531,18 @@ service.items.forEach(function(item) {
   const rate = item.priceLabel
   ? item.priceLabel
   : "₹" + Number(item.price).toFixed(2) + (item.unit ? " / " + item.unit : "");
+        const numericPrice = typeof item.price === "number" ? item.price : 0;
 
-html += "<div style='padding:14px 8px;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center;gap:15px;'>" +
-        "<b style='text-align:left;'>" + item.name + "</b>" +
+html += "<label style='padding:14px 8px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:10px;'>" +
+        "<input type='checkbox' class='serviceItemCheck' data-price='" + numericPrice + "' style='width:20px;height:20px;'>" +
+        "<b style='text-align:left;flex:1;'>" + item.name + "</b>" +
         "<span style='white-space:nowrap;font-weight:bold;'>— " + rate + "</span>" +
-        "</div>";
+        "</label>";
+         
+  
+        
+        
+      
     
     
 
@@ -545,8 +552,33 @@ html += "<div style='padding:14px 8px;border-bottom:1px solid #ddd;display:flex;
           
 });
 
-html += "<div style='padding:14px 8px;font-weight:bold;'>Minimum Visit Charge — ₹199.00<br><small style='font-weight:normal;'>Only if no work is done.</small></div>";
+html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
+        "<b>Total — ₹<span id='serviceTotal'>0.00</span></b>" +
+        "</div>";
+          
+  
+    
+
+    
+      
+    
+
+    
+  
+
+          html += "<div style='padding:14px 8px;font-weight:bold;'>Minimum Visit Charge — ₹199.00<br><small style='font-weight:normal;'>Only if no work is done.</small></div>";
           document.getElementById("serviceDetails").innerHTML = html;
+          document.querySelectorAll(".serviceItemCheck").forEach(function(check) {
+  check.addEventListener("change", function() {
+    let total = 0;
+
+    document.querySelectorAll(".serviceItemCheck:checked").forEach(function(selected) {
+      total += Number(selected.dataset.price);
+    });
+
+    document.getElementById("serviceTotal").innerText = total.toFixed(2);
+  });
+});
 document.getElementById("serviceDetails").scrollIntoView({behavior:"smooth"});
 });
 });
