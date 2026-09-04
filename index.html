@@ -38,6 +38,13 @@
       border-radius: 8px;
       margin-top: 10px;
     }
+    #worker-registration input,
+#worker-registration select,
+#worker-registration textarea,
+#worker-registration button {
+  width: 100%;
+  box-sizing: border-box;
+}
   </style>
 </head>
 
@@ -110,8 +117,8 @@
   <div id="worker-registration">
     <h2>Join as Service Provider</h2>
     <p>Grow your business with One Call Solution</p>
-<input type="text" placeholder="Worker Name">
-<input type="tel" placeholder="Worker Mobile Number">
+<input type="text" placeholder="Full Name">
+<input type="tel" placeholder="Mobile Number">
 <input type="text" placeholder="Area / Location">
 
 <label>Select Your Service:</label>
@@ -127,7 +134,7 @@
 
 <input type="number" placeholder="Years of Experience">
 <input type="text" placeholder="ID / Aadhaar Number">
-<button type="button" id="workerRegisterBtn">Register as Worker</button>
+<button type="button" id="workerRegisterBtn">Register as Service Provider</button>
 
 <p>🎁 Joining Bonus: ₹50</p>
 
@@ -138,7 +145,7 @@
   </div>
 <script>
 document.getElementById("workerRegisterBtn").addEventListener("click", function() {
-  alert("Worker Registration received. OTP verification will be added next.");
+  alert("Service Provider Registration received. OTP verification will be added next.");
 });
 </script>
 </body>
