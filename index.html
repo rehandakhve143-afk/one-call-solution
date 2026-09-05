@@ -610,7 +610,13 @@ html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
   "</div>";
 
 document.getElementById("workCompletedBtn").addEventListener("click", function() {
+  const customerConfirm = confirm("Customer: Do you confirm the work is completed?");
+
+if (customerConfirm) {
   alert("Work Completed successfully.");
+} else {
+  alert("Customer did not confirm. Please contact support.");
+}
 });
 
 document.getElementById("workNotCompletedBtn").addEventListener("click", function() {
