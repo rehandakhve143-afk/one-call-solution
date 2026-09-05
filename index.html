@@ -762,17 +762,7 @@ availableForWork.addEventListener("change", function() {
 function generateTicketNumber() {
   return "OCS-" + Date.now().toString().slice(-8);
     }
-    document.getElementById("customerSupportSubmit").addEventListener("click", function() {
-  const issue = document.getElementById("customerIssue").value.trim();
-
-  if (!issue) {
-    alert("Please describe your problem first.");
-    return;
-  }
-
-  const ticketNumber = generateTicketNumber();
-  alert("Support Request Submitted!\nTicket Number: " + ticketNumber);
-});
+    
   </script>
 <div id="customer-support">
   <h2>Customer Support</h2>
@@ -792,5 +782,18 @@ function generateTicketNumber() {
   <button type="button">Submit Support Request</button>
   <button type="button">📞 Request Callback</button>
   </div>
+  <script>
+document.getElementById("customerSupportSubmit").addEventListener("click", function() {
+  const issue = document.getElementById("customerIssue").value.trim();
+
+  if (!issue) {
+    alert("Please describe your problem first.");
+    return;
+  }
+
+  const ticketNumber = generateTicketNumber();
+  alert("Support Request Submitted!\nTicket Number: " + ticketNumber);
+});
+  </script>
 </body>
 </html>
