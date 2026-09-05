@@ -614,14 +614,13 @@ document.getElementById("workCompletedBtn").addEventListener("click", function()
 
 if (customerConfirm) {
   
-  
   document.getElementById("serviceDetails").innerHTML =
   "<div style='text-align:center;padding:30px;'>" +
   "<h2>✅ Work Completed</h2>" +
   "<p>Final Amount</p>" +
   "<h1>₹" + finalServiceTotal + "</h1>" +
   "<p>No separate visit charge.</p>" +
-  "<button id='payNowBtn' type='button' style='padding:14px 25px;'>💳 Pay Now</button>" +
+  "<button id='payNowBtn' type='button' style='padding:14px 25px;font-size:18px;'>💳 Pay Now</button>" +
   "</div>";
 
 document.getElementById("payNowBtn").addEventListener("click", function() {
