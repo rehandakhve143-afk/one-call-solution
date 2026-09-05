@@ -591,23 +591,31 @@ html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
          html += "<div style='padding:14px 8px;text-align:center;'><b>Visit Charge (Only if no work is done)</b><br>1–6 km — ₹199<br>Over 6 km up to 12 km — ₹249</div>"; 
           document.getElementById("serviceDetails").innerHTML = html;
           document.getElementById("continueBookingBtn").addEventListener("click", function() {
-  const selectedItems = document.querySelectorAll(".serviceItemCheck:checked");
+  const customerLocation = prompt("Enter your Area / Location:");
+            if (!customerLocation || !customerLocation.trim()) {
+  alert("Please enter your Area / Location to continue booking.");
+  return;
+            }
+            const selectedItems = document.querySelectorAll(".serviceItemCheck:checked");
 
   if (selectedItems.length === 0) {
     alert("Please select at least one service.");
     return;
   }
 const finalServiceTotal = Array.from(selectedItems).reduce((sum, item) => sum + Number(item.dataset.price || 0), 0);
-  document.getElementById("serviceDetails").innerHTML =
+  const searchStartTime = Date.now();
+            document.getElementById("serviceDetails").innerHTML =
     "<div style='text-align:center;padding:40px 15px;'>" +
     "<h2>Searching Service Provider...</h2>" +
     "<p>Please wait while we find a Service Provider near you.</p>" +
     "</div>";
+       const searchElapsedTime = Date.now() - searchStartTime;     
             setTimeout(function() {
   document.getElementById("serviceDetails").innerHTML =
     "<div style='text-align:center;padding:30px 15px;'>" +
     "<h2>✅ Service Provider Assigned</h2>" +
     "<p>Your Service Provider is on the way.</p>" +
+    "<p>📍 Customer Location: " + customerLocation + "</p>" +
     "<button type='button' style='margin:6px;padding:12px;'>📞 Call</button>" +
     "<button type='button' style='margin:6px;padding:12px;'>💬 Chat</button>" +
     "<button type='button' style='margin:6px;padding:12px;'>🟢 WhatsApp</button>" +
