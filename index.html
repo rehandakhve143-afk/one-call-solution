@@ -576,7 +576,7 @@ html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
     alert("Please select at least one service.");
     return;
   }
-const finalServiceTotal = selectedItems.reduce((sum, item) => sum + Number(item.dataset.price || 0), 0);
+const finalServiceTotal = Array.from(selectedItems).reduce((sum, item) => sum + Number(item.dataset.price || 0), 0);
   document.getElementById("serviceDetails").innerHTML =
     "<div style='text-align:center;padding:40px 15px;'>" +
     "<h2>Searching Service Provider...</h2>" +
