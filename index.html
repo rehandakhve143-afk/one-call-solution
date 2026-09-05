@@ -615,16 +615,27 @@ document.getElementById("workCompletedBtn").addEventListener("click", function()
 if (customerConfirm) {
   document.getElementById("serviceDetails").innerHTML =
   "<div style='text-align:center;padding:30px;'>" +
+  document.getElementById("serviceDetails").innerHTML =
+  "<div style='text-align:center;padding:30px;'>" +
   "<h2>✅ Work Completed</h2>" +
   "<p>Final Amount</p>" +
   "<h1>₹" + finalServiceTotal + "</h1>" +
   "<p>No separate visit charge.</p>" +
-  "<button id='payNowBtn' type='button'>💳 Pay Now</button>" +
+  "<button id='payNowBtn' type='button' style='padding:12px 25px;'>💳 Pay Now</button>" +
   "</div>";
 
 document.getElementById("payNowBtn").addEventListener("click", function() {
   alert("Payment options: UPI / Card / Cash");
 });
+  
+  
+  
+  
+  
+
+
+  
+
 } else {
   alert("Customer did not confirm. Please contact support.");
 }
