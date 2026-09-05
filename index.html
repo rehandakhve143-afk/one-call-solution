@@ -749,7 +749,16 @@ document.getElementById("workNotCompletedBtn").addEventListener("click", functio
 document.getElementById("serviceDetails").scrollIntoView({behavior:"smooth"});
 });
 });
-</script>
+const availableForWork = document.getElementById("availableForWork");
+const availabilityText = document.getElementById("availabilityText");
+
+availableForWork.addEventListener("change", function() {
+  if (this.checked) {
+    availabilityText.textContent = "ON";
+  } else {
+    availabilityText.textContent = "OFF";
+  }
+});</script>
   
 </body>
 </html>
