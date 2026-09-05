@@ -780,7 +780,20 @@ function generateTicketNumber() {
   <textarea id="providerIssue" placeholder="Describe your problem"></textarea>
 
   <button type="button">Submit Support Request</button>
-  <button type="button">📞 Request Callback</button>
+   <script> 
+    document.getElementById("providerSupportSubmit").addEventListener("click", function() {
+  const issue = document.getElementById("providerIssue").value.trim();
+
+  if (!issue) {
+    alert("Please describe your problem first.");
+    return;
+  }
+
+  const ticketNumber = generateTicketNumber();
+  alert("Support Request Submitted!\nTicket Number: " + ticketNumber);
+});
+ </script> 
+     <button type="button">📞 Request Callback</button>
   </div>
   <script>
 document.getElementById("customerSupportSubmit").addEventListener("click", function() {
