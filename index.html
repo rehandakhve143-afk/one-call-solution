@@ -605,6 +605,47 @@ html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
 });
 }, 2000);
 });
+
+// Work status after Start OTP
+document.getElementById("serviceDetails").innerHTML +=
+  "<div style='text-align:center;padding:20px;'>" +
+  "<h3>Work Status</h3>" +
+  "<button id='workCompletedBtn' type='button'>✅ Work Completed</button>" +
+  "<button id='workNotCompletedBtn' type='button'>❌ Work Not Completed</button>" +
+  "</div>";
+
+          document.getElementById("workCompletedBtn").addEventListener("click", function() {
+  alert("Work Completed successfully.");
+});
+
+
+
+          document.getElementById("workNotCompletedBtn").addEventListener("click", function() {
+  const reason = prompt("Why was the work not completed?");
+
+  if (!reason) {
+    alert("Please enter a reason.");
+    return;
+  }
+
+  const customerConfirm = confirm(
+    "Work Not Completed\n\nReason: " + reason +
+    "\n\nCustomer: Do you confirm?"
+  );
+
+  if (customerConfirm) {
+    alert("Confirmed. Only applicable visit charge will be payable.");
+  } else {
+    alert("Customer disagreed. Case sent to Admin Review.");
+  }
+});
+
+
+
+          // Customer & Service Provider Help / Issue Support
+          // Customer & Service Provider Help / Issue Support
+
+          
           document.querySelectorAll(".serviceItemCheck").forEach(function(check) {
   check.addEventListener("change", function() {
     let total = 0;
