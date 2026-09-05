@@ -620,6 +620,7 @@ const finalServiceTotal = Array.from(selectedItems).reduce((sum, item) => sum + 
     "<button type='button' style='margin:6px;padding:12px;'>💬 Chat</button>" +
     "<button type='button' style='margin:6px;padding:12px;'>🟢 WhatsApp</button>" +
     "<button type='button' style='margin:6px;padding:12px;'>📍 Share Location</button><br>" +
+    "<button id='navigateBtn' type='button' style='margin:6px;padding:12px;'>🗺️ Open in Google Maps</button>" +
     "<button id='providerReachedBtn' type='button' style='width:100%;padding:15px;margin-top:20px;font-weight:bold;'>Service Provider Reached</button>" +
     "</div>";
               document.getElementById("providerReachedBtn").addEventListener("click", function() {
@@ -656,7 +657,9 @@ document.getElementById("payNowBtn").addEventListener("click", function() {
   alert("Payment options: UPI / Card / Cash");
 });
   
-  
+document.getElementById("navigateBtn").addEventListener("click", function() {
+  window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(customerLocation), "_blank");
+});  
   
   
   
