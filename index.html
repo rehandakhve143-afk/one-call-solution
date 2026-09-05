@@ -591,7 +591,7 @@ html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
          html += "<div style='padding:14px 8px;text-align:center;'><b>Visit Charge (Only if no work is done)</b><br>1–6 km — ₹199<br>Over 6 km up to 12 km — ₹249</div>"; 
           document.getElementById("serviceDetails").innerHTML = html;
           document.getElementById("continueBookingBtn").addEventListener("click", function() {
-  const customerLocation = prompt("Enter your Area / Location:");
+  const customerLocation = prompt("Enter Full Service Address:\nHouse / Flat No., Building / Street, Area, Landmark, PIN Code");
             if (!customerLocation || !customerLocation.trim()) {
   alert("Please enter your Area / Location to continue booking.");
   return;
