@@ -613,7 +613,18 @@ document.getElementById("workCompletedBtn").addEventListener("click", function()
   const customerConfirm = confirm("Customer: Do you confirm the work is completed?");
 
 if (customerConfirm) {
-  alert("Work Completed successfully.");
+  document.getElementById("serviceDetails").innerHTML =
+  "<div style='text-align:center;padding:30px;'>" +
+  "<h2>✅ Work Completed</h2>" +
+  "<p>Final Amount</p>" +
+  "<h1>₹" + finalServiceTotal + "</h1>" +
+  "<p>No separate visit charge.</p>" +
+  "<button id='payNowBtn' type='button'>💳 Pay Now</button>" +
+  "</div>";
+
+document.getElementById("payNowBtn").addEventListener("click", function() {
+  alert("Payment options: UPI / Card / Cash");
+});
 } else {
   alert("Customer did not confirm. Please contact support.");
 }
