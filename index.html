@@ -771,7 +771,7 @@ function generateTicketNumber() {
   <textarea id="customerIssue" placeholder="Describe your problem or special situation"></textarea>
 
   <button type="button" id="customerSupportSubmit">Submit Support Request</button>
-  <button type="button">📞 Request Callback</button>
+  <button type="button" id="customerCallbackBtn">📞 Request Callback</button>
 </div>
   <div id="provider-support">
   <h2>Service Provider Support</h2>
@@ -781,7 +781,7 @@ function generateTicketNumber() {
 
   <button type="button" id="providerSupportSubmit">Submit Support Request</button>
 
-     <button type="button">📞 Request Callback</button>
+     <button type="button" id="providerCallbackBtn">📞 Request Callback</button>
   </div>
   <script>
 document.getElementById("customerSupportSubmit").addEventListener("click", function() {
@@ -795,6 +795,15 @@ document.getElementById("customerSupportSubmit").addEventListener("click", funct
   const ticketNumber = generateTicketNumber();
   alert("Support Request Submitted!\nTicket Number: " + ticketNumber);
 });
+    document.getElementById("customerCallbackBtn").addEventListener("click", function() {
+  const ticketNumber = generateTicketNumber();
+  alert("Callback Request Submitted!\nTicket Number: " + ticketNumber + "\nOur support team will contact you.");
+});
+    document.getElementById("providerCallbackBtn").addEventListener("click", function() {
+  const ticketNumber = generateTicketNumber();
+  alert("Callback Request Created (Prototype)\nTicket Number: " + ticketNumber);
+});
+    
 document.getElementById("providerSupportSubmit").addEventListener("click", function() {
   const issue = document.getElementById("providerIssue").value.trim();
 
