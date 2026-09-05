@@ -795,6 +795,17 @@ document.getElementById("customerSupportSubmit").addEventListener("click", funct
   const ticketNumber = generateTicketNumber();
   alert("Support Request Submitted!\nTicket Number: " + ticketNumber);
 });
+document.getElementById("providerSupportSubmit").addEventListener("click", function() {
+  const issue = document.getElementById("providerIssue").value.trim();
+
+  if (!issue) {
+    alert("Please describe your problem first.");
+    return;
+  }
+
+  const ticketNumber = generateTicketNumber();
+  alert("Service Provider Support Request Submitted!\nTicket Number: " + ticketNumber);
+});  
   </script>
 </body>
 </html>
