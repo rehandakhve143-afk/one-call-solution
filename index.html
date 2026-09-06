@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+sy<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -658,7 +658,7 @@ document.getElementById("payNowBtn").addEventListener("click", function() {
 });
   
 document.getElementById("navigateBtn").addEventListener("click", function() {
-  window.location.href = "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(customerLocation);
+  window.location.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(customerLocation.trim());
 });  
   
   
