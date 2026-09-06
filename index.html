@@ -611,7 +611,9 @@ service.items.forEach(function(item) {
     : "₹" + Number(item.price).toFixed(2) + (item.unit ? " / " + item.unit : "");
 
   const numericPrice = typeof item.price === "number" ? item.price : 0;
-
+if (item.name === "Any Other Electrical Work") {
+  html += "<textarea id='otherElectricalWork' placeholder='Describe your electrical work' style='width:100%;padding:12px;margin:8px 0;box-sizing:border-box;'></textarea>";
+}
   html += "<label style='padding:14px 8px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:10px;'>" +
     "<input type='checkbox' class='serviceItemCheck' data-price='" + numericPrice + "' style='width:20px;height:20px;'>" +
     "<b style='text-align:left;flex:1;'>" + item.name + "</b>" +
