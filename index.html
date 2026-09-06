@@ -774,8 +774,37 @@ document.getElementById("workNotCompletedBtn").addEventListener("click", functio
 });
 }, 2000);
 });
+// OTHER WORK FLOW
+const otherWorkRequest = {
+  description: "",
+  service: "",
+    category: "Electrician",
+  status: "waiting"
+};
+          function saveOtherWork(description, service) {
+  otherWorkRequest.description = description;
+  otherWorkRequest.service = service;
+  otherWorkRequest.status = "waiting";
+          }
+          function sendOtherWorkRequest() {
+  if (!otherWorkRequest.description.trim()) {
+    alert("Please describe your work first.");
+    return;
+  }
 
+  alert("Searching for an available Electrician...");
+          }
+          function showOtherWorkBox() {
+  const description = prompt("Describe Your Work");
 
+  if (!description || !description.trim()) {
+    alert("Please describe your work first.");
+    return;
+  }
+
+  saveOtherWork(description, "Any Other Electrical Work");
+  sendOtherWorkRequest();
+          }
           
           
 
