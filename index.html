@@ -639,7 +639,17 @@ html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
   
 
          html += "<div style='padding:14px 8px;text-align:center;'><b>Visit Charge (Only if no work is done)</b><br>1–6 km — ₹199<br>Over 6 km up to 12 km — ₹249</div>"; 
-          document.getElementById("serviceDetails").innerHTML = html;
+document.getElementById("serviceDetails").innerHTML = html;
+          document.querySelector(".findProviderBtn").addEventListener("click", function() {
+  const problemText = document.querySelector(".otherWorkDescription").value.trim();
+
+  if (!problemText) {
+    alert("Please describe your work first.");
+    return;
+  }
+
+  alert("Finding an available service provider...\n\nYour Work: " + problemText);
+          
           document.getElementById("continueBookingBtn").addEventListener("click", function() {
   const customerLocation = prompt("Enter Full Service Address:\nHouse / Flat No., Building / Street, Area, Landmark, PIN Code");
 
@@ -650,7 +660,7 @@ if (!customerLocation || !customerLocation.trim()) {
             
             const selectedItems = document.querySelectorAll(".serviceItemCheck:checked");
 
-  const problemText = document.getElementById("serviceProblem").value.trim();
+  const problemText = document.querySelector(".otherWorkDescription").value.trim();
             if (selectedItems.length === 0 && !problemText) {
   alert("Please select a service or describe your problem.");
   return;
