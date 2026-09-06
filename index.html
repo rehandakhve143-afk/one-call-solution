@@ -658,7 +658,7 @@ document.getElementById("payNowBtn").addEventListener("click", function() {
 });
   
 document.getElementById("navigateBtn").addEventListener("click", function() {
-  window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(customerLocation), "_blank");
+  window.location.href = "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(customerLocation);
 });  
   
   
