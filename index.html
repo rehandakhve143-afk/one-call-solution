@@ -650,10 +650,11 @@ if (!customerLocation || !customerLocation.trim()) {
             
             const selectedItems = document.querySelectorAll(".serviceItemCheck:checked");
 
-  if (selectedItems.length === 0) {
-    alert("Please select at least one service.");
-    return;
-  }
+  const problemText = document.getElementById("serviceProblem").value.trim();
+            if (selectedItems.length === 0 && !problemText) {
+  alert("Please select a service or describe your problem.");
+  return;
+    }
             const quoteItems = Array.from(selectedItems).filter(function(item) {
   return Number(item.dataset.price || 0) === 0;
 });
