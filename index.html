@@ -637,10 +637,12 @@ html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
           document.getElementById("serviceDetails").innerHTML = html;
           document.getElementById("continueBookingBtn").addEventListener("click", function() {
   const customerLocation = prompt("Enter Full Service Address:\nHouse / Flat No., Building / Street, Area, Landmark, PIN Code");
-            if (!customerLocation || !customerLocation.trim()) {
+
+if (!customerLocation || !customerLocation.trim()) {
   alert("Please enter your Area / Location to continue booking.");
   return;
-            }
+    }
+            
             const selectedItems = document.querySelectorAll(".serviceItemCheck:checked");
 
   if (selectedItems.length === 0) {
