@@ -108,12 +108,12 @@ sy<!DOCTYPE html>
 
   <div class="service">
     🧹<br><b>Cleaning</b><br>
-    <button>Book Now</button>
+    <button onclick="openService('cleaning')">Book Now</button>
   </div>
 
   <div class="service">
     🔧<br><b>Appliance Repair</b><br>
-    <button>Book Now</button>
+    <button onclick="openService('appliance')">Book Now</button>
   </div>
 
 
@@ -657,9 +657,7 @@ document.getElementById("payNowBtn").addEventListener("click", function() {
   alert("Payment options: UPI / Card / Cash");
 });
   
-document.getElementById("navigateBtn").addEventListener("click", function() {
-  window.location.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(customerLocation);
-});  
+
   
   
   
