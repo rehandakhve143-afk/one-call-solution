@@ -572,29 +572,50 @@ const service = serviceData[key];
 let html = "<h2>" + service.name + "</h2>";
 
 service.items.forEach(function(item) {
-  const rate = item.priceLabel
-  ? item.priceLabel
-  : "₹" + Number(item.price).toFixed(2) + (item.unit ? " / " + item.unit : "");
-        const numericPrice = typeof item.price === "number" ? item.price : 0;
 
-html += "<label style='padding:14px 8px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:10px;'>" +
-        "<input type='checkbox' class='serviceItemCheck' data-price='" + numericPrice + "' style='width:20px;height:20px;'>" +
-        "<b style='text-align:left;flex:1;'>" + item.name + "</b>" +
-        "<span style='white-space:nowrap;font-weight:bold;'>— " + rate + "</span>" +
+  if (key === "applianceRepair" && item.name === "Refrigerator / Fridge Repair") {
+    html += "<details style='border-bottom:1px solid #ddd;text-align:left;padding:12px 8px;'>" +
+      "<summary style='font-size:18px;font-weight:bold;cursor:pointer;'>🧊 Refrigerator / Fridge Repair — Select Service & Rate</summary>";
+
+    serviceData.refrigerator.items.forEach(function(subItem) {
+      html += "<label style='padding:12px 8px;display:flex;align-items:center;gap:10px;border-top:1px solid #eee;'>" +
+        "<input type='checkbox' class='serviceItemCheck' data-price='" + subItem.price + "' style='width:20px;height:20px;'>" +
+        "<b style='flex:1;'>" + subItem.name + "</b>" +
+        "<span style='font-weight:bold;'>₹" + Number(subItem.price).toFixed(2) + "</span>" +
         "</label>";
-  
-         
-  
-        
-        
-      
-    
-    
+    });
 
-  
-          
-          
-          
+    html += "</details>";
+    return;
+  }
+
+  if (key === "applianceRepair" && item.name === "Washing Machine Repair") {
+    html += "<details style='border-bottom:1px solid #ddd;text-align:left;padding:12px 8px;'>" +
+      "<summary style='font-size:18px;font-weight:bold;cursor:pointer;'>🧺 Washing Machine Repair — Select Service & Rate</summary>";
+
+    serviceData.washingMachine.items.forEach(function(subItem) {
+      html += "<label style='padding:12px 8px;display:flex;align-items:center;gap:10px;border-top:1px solid #eee;'>" +
+        "<input type='checkbox' class='serviceItemCheck' data-price='" + subItem.price + "' style='width:20px;height:20px;'>" +
+        "<b style='flex:1;'>" + subItem.name + "</b>" +
+        "<span style='font-weight:bold;'>₹" + Number(subItem.price).toFixed(2) + "</span>" +
+        "</label>";
+    });
+
+    html += "</details>";
+    return;
+  }
+
+  const rate = item.priceLabel
+    ? item.priceLabel
+    : "₹" + Number(item.price).toFixed(2) + (item.unit ? " / " + item.unit : "");
+
+  const numericPrice = typeof item.price === "number" ? item.price : 0;
+
+  html += "<label style='padding:14px 8px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:10px;'>" +
+    "<input type='checkbox' class='serviceItemCheck' data-price='" + numericPrice + "' style='width:20px;height:20px;'>" +
+    "<b style='text-align:left;flex:1;'>" + item.name + "</b>" +
+    "<span style='white-space:nowrap;font-weight:bold;'>— " + rate + "</span>" +
+    "</label>";
 });
 
 html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
