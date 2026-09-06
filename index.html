@@ -657,33 +657,11 @@ if (!customerLocation || !customerLocation.trim()) {
 let approvedQuoteTotal = 0;
 
 if (quoteItems.length > 0) {
-  for (const quoteItem of quoteItems) {
-    const quotedAmount = prompt(
-      "Service Provider Quote Amount (₹)\n\nEnter agreed amount for selected custom / inspection service:"
-    );
-
-    if (!quotedAmount || Number(quotedAmount) <= 0) {
-      alert("Please enter a valid quote amount.");
-      return;
+  alert(
+    "Your work request will be shared with an available service provider.\n\n" +
+    "Please explain your work to the provider. The service provider will send the final quote after understanding the work."
+  );
     }
-
-    const quoteValue = Number(quotedAmount);
-
-    const customerApproved = confirm(
-      "Customer Approval Required\n\nQuoted Amount: ₹" +
-      quoteValue.toFixed(2) +
-      "\n\nDo you accept this quote?"
-    );
-
-    if (!customerApproved) {
-      alert("Quote rejected. Booking has not continued.");
-      return;
-    }
-
-    quoteItem.dataset.price = quoteValue;
-    approvedQuoteTotal += quoteValue;
-  }
-}
 const finalServiceTotal = Array.from(selectedItems).reduce((sum, item) => sum + Number(item.dataset.price || 0), 0);
   const searchStartTime = Date.now();
             document.getElementById("serviceDetails").innerHTML =
