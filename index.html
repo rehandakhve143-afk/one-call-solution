@@ -647,6 +647,12 @@ const finalServiceTotal = Array.from(selectedItems).reduce((sum, item) => sum + 
     "<button id='navigateBtn' type='button' style='margin:6px;padding:12px;'>🗺️ Open in Google Maps</button>" +
     "<button id='providerReachedBtn' type='button' style='width:100%;padding:15px;margin-top:20px;font-weight:bold;'>Service Provider Reached</button>" +
     "</div>";
+       document.getElementById("navigateBtn").addEventListener("click", function() {
+  window.open(
+    "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(customerLocation),
+    "_blank"
+  );
+});       
               document.getElementById("providerReachedBtn").addEventListener("click", function() {
   document.getElementById("serviceDetails").innerHTML =
     "<div style='text-align:center;padding:30px 15px;'>" +
