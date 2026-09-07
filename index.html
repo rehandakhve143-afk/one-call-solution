@@ -649,11 +649,9 @@ document.querySelector(".findProviderBtn").addEventListener("click", function() 
     return;
   }
 
-  document.querySelectorAll(".serviceItemCheck:checked").forEach(function(item) {
-    item.checked = false;
-  });
+  
 
-  document.getElementById("serviceTotal").innerText = "0.00";
+  
 
   alert(
     "Finding an available service provider...\n\nYour Work: " + problemText
