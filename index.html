@@ -804,16 +804,23 @@ const otherWorkRequest = {
   alert("Searching for an available Electrician...");
           }
           function showOtherWorkBox() {
-  const description = prompt("Describe Your Work");
+  const description = document.querySelector(".otherWorkDescription").value.trim();
 
-  if (!description || !description.trim()) {
+  if (!description) {
     alert("Please describe your work first.");
     return;
   }
 
-  saveOtherWork(description, "Any Other Electrical Work");
+  const customerLocation = prompt("Enter Full Service Address:\nHouse / Flat No., Building / Street, Area, Landmark, PIN Code");
+
+  if (!customerLocation || !customerLocation.trim()) {
+    alert("Please enter your Area / Location.");
+    return;
+  }
+
+  saveOtherWork(description, "Any Other Work");
   sendOtherWorkRequest();
-          }
+    }
           
           
 
