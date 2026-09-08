@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0f172a" />
+<title>One Call Solution</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--primary:#0f766e;--primary2:#115e59;--accent:#f59e0b;--danger:#dc2626;--ok:#16a34a;--shadow:0 10px 28px rgba(15,23,42,.08);--r:18px}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer}.app{max-width:720px;margin:auto;min-height:100vh;padding-bottom:86px}.topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}.brand{font-weight:900;letter-spacing:.5px}.brand span{color:var(--primary)}.tag{font-size:12px;color:var(--muted)}.iconbtn{border:0;background:#eef2f7;border-radius:12px;padding:10px 12px}.screen{display:none;padding:16px}.screen.active{display:block}.hero{background:linear-gradient(135deg,#0f766e,#0f172a);color:white;border-radius:24px;padding:22px;box-shadow:var(--shadow)}.hero h1{margin:2px 0 8px;font-size:28px}.hero p{margin:0;opacity:.9}.section-title{display:flex;align-items:center;justify-content:space-between;margin:22px 2px 10px}.section-title h3{margin:0}.muted{color:var(--muted);font-size:13px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.module{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:16px;text-align:left;box-shadow:var(--shadow);min-height:110px}.module .emoji{font-size:28px;display:block;margin-bottom:8px}.module b{display:block;font-size:16px}.module small{color:var(--muted)}.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);margin-bottom:12px}.row{display:flex;gap:10px;align-items:center}.between{display:flex;justify-content:space-between;gap:10px;align-items:center}.wrap{flex-wrap:wrap}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#ecfeff;color:#155e75;font-size:12px;font-weight:700}.pill.warn{background:#fff7ed;color:#9a3412}.pill.ok{background:#f0fdf4;color:#166534}.pill.gray{background:#f1f5f9;color:#475569}.btn{width:100%;border:0;border-radius:14px;padding:13px 15px;font-weight:800;background:var(--primary);color:white}.btn:hover{background:var(--primary2)}.btn.secondary{background:#eef2f7;color:var(--text)}.btn.outline{background:white;color:var(--primary);border:1px solid var(--primary)}.btn.danger{background:var(--danger)}.btn.small{width:auto;padding:9px 12px;border-radius:10px;font-size:13px}.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.back{border:0;background:transparent;font-weight:800;color:var(--primary);padding:8px 0;margin-bottom:8px}.field{margin:12px 0}.field label{display:block;font-size:13px;font-weight:800;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;border:1px solid #cbd5e1;background:white;border-radius:12px;padding:12px;outline:none}.field textarea{min-height:90px;resize:vertical}.task{width:100%;background:white;border:1px solid var(--line);padding:14px;border-radius:14px;margin:7px 0;display:flex;justify-content:space-between;gap:10px;text-align:left}.task:hover{border-color:var(--primary)}.task .price{font-weight:900;color:var(--primary)}.task small{display:block;color:var(--muted);margin-top:4px}.notice{border-left:4px solid var(--accent);background:#fffbeb;padding:12px;border-radius:12px;font-size:13px;margin:12px 0}.success{width:64px;height:64px;border-radius:50%;background:#dcfce7;color:var(--ok);display:grid;place-items:center;font-size:34px;font-weight:900;margin:20px auto}.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(720px,100%);background:white;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:7px 6px calc(7px + env(safe-area-inset-bottom));z-index:30}.bottomnav button{border:0;background:transparent;padding:7px 2px;font-size:11px;color:#475569}.bottomnav button span{display:block;font-size:20px;margin-bottom:2px}.list{display:grid;gap:10px}.service-chip{border:1px solid var(--line);background:white;border-radius:14px;padding:12px;text-align:left}.price-big{font-size:28px;font-weight:900}.divider{height:1px;background:var(--line);margin:14px 0}.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:5px}.tabs button{white-space:nowrap;border:1px solid var(--line);background:white;border-radius:999px;padding:8px 12px}.tabs button.active{background:var(--text);color:white}.switch{position:relative;width:52px;height:30px;background:#cbd5e1;border-radius:999px;border:0}.switch.on{background:var(--ok)}.switch:after{content:"";position:absolute;top:4px;left:4px;width:22px;height:22px;background:white;border-radius:50%;transition:.2s}.switch.on:after{left:26px}.ticket{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800}.statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px}.stat b{font-size:21px;display:block}.hide{display:none!important}@media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}.module{min-height:130px}.statgrid{grid-template-columns:repeat(4,1fr)}}
+
+/* Premium UI upgrades */
+body{background:linear-gradient(180deg,#f8fbfb 0%,#f5f7fb 45%,#eef4f3 100%)}
+.topbar{padding:14px 16px}.brand{font-size:17px}.tag{margin-top:2px}.hero{position:relative;overflow:hidden;padding:26px 22px;background:linear-gradient(135deg,#0f766e 0%,#115e59 48%,#0f172a 100%)}
+.hero:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-65px;top:-70px;background:rgba(255,255,255,.08)}
+.hero h1{font-size:30px;line-height:1.05;max-width:420px}.hero p{font-size:14px;max-width:480px}.module{transition:.18s ease;position:relative;overflow:hidden}.module:active{transform:scale(.985)}
+.module .emoji{width:46px;height:46px;display:grid;place-items:center;border-radius:14px;background:#f0fdfa;margin-bottom:12px}.module b{font-size:16px}.section-title{margin-top:24px}.card{backdrop-filter:blur(4px)}
+.searchbox{display:flex;gap:10px;margin:14px 0 0;background:white;border-radius:15px;padding:8px 10px;box-shadow:0 8px 22px rgba(15,23,42,.12)}.searchbox input{border:0;outline:0;flex:1;padding:8px;background:transparent}.searchbox button{border:0;background:#0f766e;color:white;border-radius:10px;padding:8px 12px;font-weight:800}
+.trustgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.trustitem{background:white;border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center;font-size:12px;box-shadow:var(--shadow)}.trustitem b{display:block;font-size:13px;margin-top:4px}
+.rolebar{display:flex;gap:8px;overflow:auto;padding:4px 0 2px}.rolebar .pill{white-space:nowrap}.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 16px}.step{font-size:11px;text-align:center;padding:8px 4px;border-radius:10px;background:#f1f5f9;color:#64748b}.step.active{background:#ccfbf1;color:#115e59;font-weight:900}.profilebox{border:1px dashed #99f6e4;background:#f0fdfa;border-radius:16px;padding:14px}.soft{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px}.bottomnav button.active{color:var(--primary);font-weight:900}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div><div class="brand">ONE CALL <span>SOLUTION</span></div><div class="tag">One for All • All for One</div></div>
+    <button class="iconbtn" onclick="go('account')">☰</button>
+  </header>
+
+  <main>
+    <section id="home" class="screen active">
+      <div class="hero"><div class="pill">One Account • Multiple Roles</div><h1>All your needs. One trusted platform.</h1><p>Book services, explore property, shop locally, or grow your own work/business — from the same account.</p><div class="searchbox"><input placeholder="Search service, property or product" /><button onclick="go('services')">Search</button></div></div>
+      <div class="section-title"><h3>Main Services</h3><span class="muted">Future-ready modules</span></div>
+      <div class="grid">
+        <button class="module" onclick="go('property')"><span class="emoji">🏠</span><b>Property</b><small>Buy • Rent • Post</small></button>
+        <button class="module" onclick="go('services')"><span class="emoji">🛠️</span><b>Home Services</b><small>Book trusted work</small></button>
+        <button class="module" onclick="go('shop')"><span class="emoji">🛒</span><b>Local Shops</b><small>Appliances & material</small></button>
+        <button class="module" onclick="go('work')"><span class="emoji">💼</span><b>Work With Us</b><small>Provider / Seller</small></button>
+      </div>
+      <div class="section-title"><h3>Why One Call Solution?</h3></div>
+      <div class="trustgrid"><div class="trustitem">✅<b>Verified Profiles</b><span class="muted">KYC based roles</span></div><div class="trustitem">🧾<b>Recorded Work</b><span class="muted">Quote & payment</span></div><div class="trustitem">🎫<b>Real Support</b><span class="muted">Ticket & callback</span></div></div>
+      <div class="card" style="margin-top:12px"><div class="between"><div><b>Everything important stays recorded</b><div class="muted">Work • Accepted price • Payment • Support ticket</div></div><span class="pill ok">Transparent</span></div></div>
+      <div class="btnrow"><button class="btn outline" onclick="openSupport('customer')">Customer Support</button><button class="btn outline" onclick="openSupport('provider')">Provider Support</button></div>
+    </section>
+
+    <section id="services" class="screen">
+      <button class="back" onclick="go('home')">← Home</button><h2>Home Services</h2><p class="muted">Choose a category. Listed work may have a fixed price; custom work uses Get Quote.</p>
+      <div id="serviceCategories" class="list"></div>
+    </section>
+
+    <section id="serviceDetail" class="screen">
+      <button class="back" onclick="go('services')">← Services</button><h2 id="serviceTitle">Service</h2><div id="serviceTasks"></div>
+      <div class="notice"><b>Any Other Work / Get Quote:</b> describe the problem and the provider must send the quote inside the app. Customer acceptance locks the official booking amount.</div>
+    </section>
+
+    <section id="booking" class="screen">
+      <button class="back" onclick="go('serviceDetail')">← Back</button><h2>Booking Details</h2>
+      <div class="card" id="bookingSummary"></div>
+      <div class="field"><label>Describe your problem</label><textarea id="problemText" placeholder="Tell us what work is needed"></textarea></div>
+      <div class="field"><label>Photo (prototype)</label><input type="file" id="problemPhoto" accept="image/*" /></div>
+      <div class="field"><label>Address</label><textarea id="bookingAddress" placeholder="Full address"></textarea></div>
+      <div class="field"><label>Distance to provider (km) — demo</label><input id="distanceKm" type="number" min="0" max="12" value="3" /></div>
+      <div class="field"><label>Preferred time</label><select id="bookingTime"><option>As soon as possible</option><option>Today evening</option><option>Tomorrow morning</option></select></div>
+      <button class="btn" onclick="createBooking()">Find Service Provider</button>
+    </section>
+
+    <section id="job" class="screen">
+      <button class="back" onclick="go('services')">← Services</button><h2>Booking / Job</h2><div id="jobCard" class="card"></div><div id="jobActions"></div>
+    </section>
+
+    <section id="property" class="screen">
+      <button class="back" onclick="go('home')">← Home</button><h2>Property</h2>
+      <div class="card"><b>Search anywhere</b><div class="field"><label>City</label><input id="propCity" placeholder="e.g. Panvel" /></div><div class="field"><label>Locality / Area</label><input id="propArea" placeholder="e.g. Kharghar" /></div><div class="btnrow"><button class="btn" onclick="demoPropertySearch()">Search Property</button><button class="btn secondary" onclick="showPropertyPlans()">Post Property</button></div></div>
+      <div id="propertyResults"></div>
+      <div id="propertyPlans" class="hide">
+        <div class="card"><div class="between"><div><b>Single Property Listing</b><div class="muted">Basic details • Photos • Visible contact • Direct call</div></div><div class="price-big">₹<span id="singlePlanPrice">199</span></div></div><button class="btn" onclick="openPropertyForm('Single Property')">Choose ₹<span id="singlePlanBtnPrice">199</span></button></div>
+        <div class="card"><div class="between"><div><b>Builder Plan</b><div class="muted">Builder profile • Multiple listings • Chat • Enquiries • Lead dashboard • Likes/interest analytics</div></div><div class="price-big">₹<span id="builderPlanPrice">1,449</span></div></div><div class="notice">Listing limit and validity are intentionally Admin-configurable and not hard-coded.</div><button class="btn" onclick="openPropertyForm('Builder Plan')">Choose Builder Plan</button></div>
+      </div>
+    </section>
+
+    <section id="propertyForm" class="screen">
+      <button class="back" onclick="go('property')">← Property</button><h2>Post Property</h2><div id="propertyPlanLabel" class="pill"></div>
+      <div class="field"><label>I am</label><select id="posterRole"><option>Owner</option><option>Agent</option><option>Builder</option></select></div>
+      <div class="field"><label>Purpose</label><select><option>Sale</option><option>Rent</option></select></div>
+      <div class="field"><label>Property Type</label><select><option>Flat</option><option>House</option><option>Shop</option><option>Plot</option><option>Builder Project</option></select></div>
+      <div class="field"><label>City</label><input placeholder="City" /></div><div class="field"><label>Locality</label><input placeholder="Area / Locality" /></div><div class="field"><label>Price / Rent</label><input type="number" placeholder="₹" /></div><div class="field"><label>Photos</label><input type="file" accept="image/*" multiple /></div><div class="field"><label>Contact Number</label><input inputmode="tel" placeholder="Mobile number" /></div>
+      <button class="btn" onclick="propertySubmit()">Pay & Submit for Verification</button>
+    </section>
+
+    <section id="shop" class="screen">
+      <button class="back" onclick="go('home')">← Home</button><h2>Local Shops</h2><p class="muted">Local seller marketplace. Shop subscription is the primary platform charge.</p>
+      <div class="card"><div class="between"><div><b>Seller plan</b><div class="muted">Products stay saved if recharge expires; listings become temporarily hidden until recharge.</div></div><div class="price-big">₹<span id="shopPlanPrice">199</span><span class="muted">/mo</span></div></div></div>
+      <div id="productList" class="list"></div><button class="btn outline" onclick="go('seller')">Register / Manage My Shop</button>
+    </section>
+
+    <section id="seller" class="screen">
+      <button class="back" onclick="go('shop')">← Shop</button><h2>Seller Dashboard</h2>
+      <div class="statgrid"><div class="stat"><span class="muted">Recharge</span><b id="sellerRecharge">Active</b></div><div class="stat"><span class="muted">Products</span><b id="sellerProductsCount">2</b></div><div class="stat"><span class="muted">Enquiries</span><b>6</b></div><div class="stat"><span class="muted">Plan</span><b>₹199</b></div></div>
+      <div class="card"><b>Shop Profile</b><div class="muted">Rehan Electricals • Khopoli (demo)</div></div>
+      <button class="btn" onclick="toggleAddProduct()">+ Add Product / Material</button>
+      <div id="addProduct" class="card hide"><div class="field"><label>Category</label><input id="pCat" placeholder="Fan / TV / Fridge / Material" /></div><div class="field"><label>Product name</label><input id="pName" /></div><div class="field"><label>Brand / Model</label><input id="pBrand" /></div><div class="field"><label>Selling Price</label><input id="pPrice" type="number" /></div><div class="field"><label>Stock</label><input id="pStock" type="number" value="1" /></div><div class="field"><label>Warranty</label><input id="pWarranty" placeholder="e.g. 2 years" /></div><div class="field"><label>Photo</label><input type="file" accept="image/*" /></div><button class="btn" onclick="addProduct()">Publish Product</button></div>
+      <div class="notice">Future: Admin can create/edit products for a seller under Assisted Setup, with an audit trail.</div>
+    </section>
+
+    <section id="work" class="screen">
+      <button class="back" onclick="go('home')">← Home</button><h2>Work / Sell With Us</h2>
+      <div class="grid"><button class="module" onclick="go('providerRegister')"><span class="emoji">🧰</span><b>Join as Service Provider</b><small>Full profile • KYC • Skills • Area • Bank</small></button><button class="module" onclick="go('seller')"><span class="emoji">🏪</span><b>Register Your Shop</b><small>Basic plan ₹199/month</small></button></div>
+      <div class="card" style="margin-top:12px"><b>Same account, more possibilities</b><div class="muted">A customer can later become a Service Provider, Seller, Owner, Agent or Builder. No need to create a separate account.</div></div>
+    </section>
+
+    <section id="customerRegister" class="screen">
+      <button class="back" onclick="go('account')">← Account</button><h2>Customer Registration</h2>
+      <div class="card"><span class="pill ok">Free Registration</span><p class="muted">Create one One Call Solution account and use it as a customer today. You can add more roles later.</p>
+        <div class="field"><label>Full Name</label><input id="custName" placeholder="Your name" /></div>
+        <div class="field"><label>Mobile Number</label><input id="custMobile" inputmode="tel" placeholder="10-digit mobile number" /></div>
+        <div class="field"><label>Email ID</label><input id="custEmail" type="email" placeholder="name@example.com" /></div>
+        <button class="btn" onclick="registerCustomer()">Send OTP & Create Account</button>
+      </div>
+      <div class="soft"><b>One account • Multiple roles</b><div class="muted">After registration you can book services, shop, search property and later join as a provider/seller/property poster.</div></div>
+    </section>
+
+    <section id="providerRegister" class="screen">
+      <button class="back" onclick="go('work')">← Work With Us</button><h2>Service Provider Registration</h2>
+      <div class="steps"><div class="step active">1 Basic</div><div class="step">2 Work</div><div class="step">3 KYC</div><div class="step">4 Payment</div></div>
+      <div class="profilebox"><b>Create your professional profile</b><div class="muted">Only matching service requests will be sent to your verified skills. Example: electrician jobs go to eligible electricians, not carpenters.</div></div>
+      <div class="card" style="margin-top:12px">
+        <div class="field"><label>Full Name</label><input id="spName" placeholder="Full name" /></div>
+        <div class="field"><label>Mobile Number</label><input id="spMobile" inputmode="tel" placeholder="Mobile number" /></div>
+        <div class="field"><label>Email ID</label><input id="spEmail" type="email" placeholder="Email ID" /></div>
+        <div class="field"><label>City / Area</label><input id="spArea" placeholder="City and work area" /></div>
+        <div class="field"><label>Primary Skill</label><select id="spSkill"><option>Electrical</option><option>Plumbing</option><option>AC Service</option><option>Cleaning</option><option>Carpenter</option><option>Appliance Repair</option><option>Pest Control</option><option>Maid Service</option></select></div>
+        <div class="field"><label>Other Skills (optional)</label><input id="spOtherSkill" placeholder="e.g. Plumbing, Appliance Repair" /></div>
+        <div class="field"><label>Experience</label><input id="spExperience" placeholder="e.g. 5 years" /></div>
+        <div class="field"><label>Service Radius</label><select id="spRadius"><option>Up to 6 km</option><option>Up to 12 km</option></select></div>
+        <div class="field"><label>Profile Photo</label><input type="file" accept="image/*" /></div>
+        <div class="field"><label>KYC Documents</label><input type="file" accept="image/*,.pdf" multiple /></div>
+        <div class="field"><label>Bank / Settlement Details</label><input id="spBank" placeholder="Account / UPI details (prototype)" /></div>
+        <button class="btn" onclick="submitProviderProfile()">Submit Profile for Verification</button>
+      </div>
+      <div class="notice"><b>Job queue rule:</b> A provider may receive another matching nearby job while one job is running and accept it as <b>Next Job</b>. Only one job can be Running / On the Way at a time.</div>
+    </section>
+
+    <section id="provider" class="screen">
+      <button class="back" onclick="go('work')">← Back</button><h2>Service Provider Dashboard</h2>
+      <div class="card between"><div><b>Available for Work</b><div class="muted">OFF stops new jobs only; accepted/ongoing jobs continue.</div></div><button id="availabilitySwitch" class="switch on" onclick="toggleAvailability()" aria-label="Available for work"></button></div>
+      <div class="statgrid"><div class="stat"><span class="muted">Company Due</span><b id="dueAmount">₹0</b></div><div class="stat"><span class="muted">Threshold</span><b>₹500</b></div><div class="stat"><span class="muted">Commission</span><b>15%</b></div><div class="stat"><span class="muted">Jobs</span><b>4</b></div></div>
+      <div id="providerAlert" class="notice hide"></div>
+      <div class="card"><b>Onboarding checklist</b><div class="muted">Mobile OTP • Email • Full profile • KYC • Verified skills/services • Area/radius • Bank/payment details • Verification</div></div>
+      <div class="card"><div class="between"><div><b>Current Job</b><div class="muted">Only one job can be Running / On the Way at a time.</div></div><span class="pill warn">1 Active</span></div><div class="divider"></div><div class="between"><div><b>Next Job Queue</b><div class="muted">Matching nearby jobs accepted while current work is running.</div></div><span class="pill ok">Allowed</span></div></div>
+      <div class="btnrow"><button class="btn secondary" onclick="simulateCashJob()">Demo Cash Job ₹1,000</button><button class="btn outline" onclick="clearDue()">Clear Full Due</button></div>
+      <br><button class="btn outline" onclick="openSupport('provider')">Provider Support / Callback</button>
+    </section>
+
+    <section id="support" class="screen">
+      <button class="back" onclick="go('home')">← Home</button><h2 id="supportTitle">Support</h2><div class="card"><div class="field"><label>Problem / unusual situation</label><textarea id="supportText" placeholder="Describe what happened"></textarea></div><div class="field"><label><input id="callbackReq" type="checkbox" /> Request callback from One Call Solution</label></div><button class="btn" onclick="submitTicket()">Submit Support Request</button></div><div id="ticketResult"></div>
+    </section>
+
+    <section id="account" class="screen">
+      <button class="back" onclick="go('home')">← Home</button><h2>Account & Roles</h2>
+      <div class="card"><b>One Account • Multiple Roles</b><div class="muted">Use the app as Customer, Service Provider, Shop Seller, Property Owner/Agent/Builder — roles can be added later to the same account.</div><div class="rolebar" style="margin-top:10px"><span class="pill ok">Customer</span><span class="pill gray">Provider</span><span class="pill gray">Seller</span><span class="pill gray">Property</span></div></div>
+      <div class="btnrow"><button class="btn" onclick="go('customerRegister')">Register Customer</button><button class="btn outline" onclick="go('providerRegister')">Join as Provider</button></div><br>
+      <div class="card"><div class="between"><div><b>Future customer lifetime access fee</b><div class="muted">Not active now. Admin can decide later.</div></div><span class="pill warn" id="customerFeeLabel">OFF</span></div></div>
+      <div class="card"><b>Welcome Bonus</b><div class="muted">₹100 once after verified mobile; usable on first completed service online payment only; not withdrawable and does not reduce provider's agreed service amount.</div></div>
+      <button class="btn outline" onclick="go('admin')">Open Admin Demo</button>
+    </section>
+
+    <section id="admin" class="screen">
+      <button class="back" onclick="go('account')">← Account</button><h2>Admin Control Center</h2><p class="muted">Prototype controls show the intended future architecture: normal business changes should be possible from mobile without editing code.</p>
+      <div class="card"><h3>Business Settings</h3>
+        <div class="field"><label>Home service commission %</label><input id="adminCommission" type="number" min="0" max="100" /></div>
+        <div class="field"><label>Company Due pause threshold ₹</label><input id="adminThreshold" type="number" min="0" /></div>
+        <div class="field"><label>Visit charge 1–6 km ₹</label><input id="adminVisit1" type="number" /></div>
+        <div class="field"><label>Visit charge >6–12 km ₹</label><input id="adminVisit2" type="number" /></div>
+        <div class="field"><label>Customer lifetime fee ₹ (0 = OFF)</label><input id="adminCustomerFee" type="number" /></div>
+        <div class="field"><label>Welcome bonus ₹</label><input id="adminBonus" type="number" /></div>
+        <div class="field"><label>Single property plan ₹</label><input id="adminPropertySingle" type="number" /></div>
+        <div class="field"><label>Builder plan ₹</label><input id="adminPropertyBuilder" type="number" /></div>
+        <div class="field"><label>Shop monthly plan ₹</label><input id="adminShopPlan" type="number" /></div>
+        <button class="btn" onclick="saveAdminSettings()">Save Settings</button>
+      </div>
+      <div class="card"><b>Future Admin Modules</b><div class="muted">Services & prices • Fixed/Get Quote • Providers/KYC • Customers • Bookings • Complaints/tickets • Not-completed jobs • Ratings • Property approvals/plans • Seller approvals • Product categories • Payments/settlements • Support number • Banners/offers.</div></div>
+    </section>
+  </main>
+</div>
+
+<nav class="bottomnav"><button onclick="go('home')"><span>🏠</span>Home</button><button onclick="go('property')"><span>🏢</span>Property</button><button onclick="go('services')"><span>🛠️</span>Services</button><button onclick="go('shop')"><span>🛒</span>Shop</button><button onclick="go('account')"><span>👤</span>Account</button></nav>
+
+<script>
+const DEFAULTS={commission:15,dueThreshold:500,visit1:199,visit2:249,customerFee:0,welcomeBonus:100,propertySingle:199,propertyBuilder:1449,shopPlan:199};
+let savedSettings={};try{savedSettings=JSON.parse(localStorage.getItem('ocsSettings')||'{}')}catch(e){savedSettings={}}
+let settings={...DEFAULTS,...savedSettings};
+let selectedService='',selectedTask=null,currentBooking=null,supportRole='customer',providerAvailable=true,companyDue=Number(localStorage.getItem('ocsCompanyDue')||0);
+// Explicit DOM references so buttons work reliably across mobile browsers/GitHub Pages.
+const serviceCategories=document.getElementById('serviceCategories');
+const serviceTitle=document.getElementById('serviceTitle');
+const serviceTasks=document.getElementById('serviceTasks');
+const bookingSummary=document.getElementById('bookingSummary');
+const bookingAddress=document.getElementById('bookingAddress');
+const distanceKm=document.getElementById('distanceKm');
+const jobCard=document.getElementById('jobCard');
+const jobActions=document.getElementById('jobActions');
+const propCity=document.getElementById('propCity');
+const propArea=document.getElementById('propArea');
+const propertyResults=document.getElementById('propertyResults');
+const propertyPlans=document.getElementById('propertyPlans');
+const propertyPlanLabel=document.getElementById('propertyPlanLabel');
+const productList=document.getElementById('productList');
+const addProductBox=document.getElementById('addProduct');
+const pName=document.getElementById('pName');
+const pPrice=document.getElementById('pPrice');
+const pWarranty=document.getElementById('pWarranty');
+const sellerProductsCount=document.getElementById('sellerProductsCount');
+const availabilitySwitch=document.getElementById('availabilitySwitch');
+const dueAmount=document.getElementById('dueAmount');
+const providerAlert=document.getElementById('providerAlert');
+const supportTitle=document.getElementById('supportTitle');
+const supportText=document.getElementById('supportText');
+const callbackReq=document.getElementById('callbackReq');
+const ticketResult=document.getElementById('ticketResult');
+const customerFeeLabel=document.getElementById('customerFeeLabel');
+const adminCommission=document.getElementById('adminCommission');
+const adminThreshold=document.getElementById('adminThreshold');
+const adminVisit1=document.getElementById('adminVisit1');
+const adminVisit2=document.getElementById('adminVisit2');
+const adminCustomerFee=document.getElementById('adminCustomerFee');
+const adminBonus=document.getElementById('adminBonus');
+const adminPropertySingle=document.getElementById('adminPropertySingle');
+const adminPropertyBuilder=document.getElementById('adminPropertyBuilder');
+const adminShopPlan=document.getElementById('adminShopPlan');
+const services={
+ 'Electrical':{icon:'⚡',items:[{name:'Fan installation / repair',type:'quote'},{name:'Switch / socket work',type:'quote'},{name:'MCB / fuse work',type:'quote'},{name:'Wiring / troubleshooting',type:'quote'},{name:'Any Other Electrical Work',type:'quote'}]},
+ 'Plumbing':{icon:'🚰',items:[{name:'Tap leakage / repair',type:'quote'},{name:'Pipe fitting / leakage',type:'quote'},{name:'Basin / sink fitting',type:'quote'},{name:'Blockage removal',type:'quote'},{name:'Any Other Plumbing Work',type:'quote'}]},
+ 'AC Service':{icon:'❄️',items:[{name:'AC service',type:'quote'},{name:'AC repair',type:'quote'},{name:'Installation / uninstallation',type:'quote'},{name:'Gas / cooling issue',type:'quote'},{name:'Any Other AC Work',type:'quote'}]},
+ 'Cleaning':{icon:'🧹',items:[{name:'Full home cleaning',type:'quote'},{name:'Bathroom cleaning',type:'quote'},{name:'Kitchen cleaning',type:'quote'},{name:'Sofa / carpet cleaning',type:'quote'},{name:'Any Other Cleaning Work',type:'quote'}]},
+ 'Carpenter':{icon:'🪚',items:[{name:'Door / hinge / lock work',type:'quote'},{name:'Furniture assembly',type:'quote'},{name:'Drawer / channel repair',type:'quote'},{name:'Custom woodwork',type:'quote'},{name:'Any Other Carpentry Work',type:'quote'}]},
+ 'Appliance Repair':{icon:'🔧',items:[{name:'Washing machine',type:'quote'},{name:'Refrigerator',type:'quote'},{name:'Microwave / chimney',type:'quote'},{name:'TV / RO',type:'quote'},{name:'Any Other Appliance Work',type:'quote'}]},
+ 'Pest Control':{icon:'🐜',items:[{name:'General pest control',type:'quote'},{name:'Cockroach',type:'quote'},{name:'Ant',type:'quote'},{name:'Bedbugs',type:'quote'},{name:'Any Other Pest Control',type:'quote'}]},
+ 'Maid Service':{icon:'🧼',items:[{name:'Hourly / daily maid',type:'quote'},{name:'Jhadu / Pocha',type:'quote'},{name:'Utensils / clothes',type:'quote'},{name:'Cooking assistance',type:'quote'},{name:'Any Other Maid Work',type:'quote'}]}
+};
+const products=[{name:'Ceiling Fan',price:2850,shop:'Rehan Electricals',area:'Khopoli',warranty:'2 Year Warranty'},{name:'LED TV 43 inch',price:24999,shop:'City Electronics',area:'Panvel',warranty:'1 Year Warranty'}];
+function go(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));const target=document.getElementById(id);if(!target)return;target.classList.add('active');document.querySelectorAll('.bottomnav button').forEach(b=>b.classList.remove('active'));const map={home:0,property:1,services:2,shop:3,account:4};if(map[id]!==undefined)document.querySelectorAll('.bottomnav button')[map[id]].classList.add('active');window.scrollTo({top:0,behavior:'smooth'});if(id==='services')renderServices();if(id==='shop')renderProducts();if(id==='provider')renderProvider();if(id==='admin')loadAdmin();if(id==='account')refreshAccount();refreshPlanPrices();}
+function renderServices(){serviceCategories.innerHTML=Object.entries(services).map(([n,s])=>`<button class="service-chip" onclick="openService('${n.replace(/'/g,"\\'")}')"><div class="between"><div><b>${s.icon} ${n}</b><div class="muted">Listed work + Any Other Work / Get Quote</div></div><span>›</span></div></button>`).join('');}
+function openService(name){selectedService=name;serviceTitle.textContent=services[name].icon+' '+name;serviceTasks.innerHTML=services[name].items.map((x,i)=>`<button class="task" onclick="chooseTask(${i})"><div><b>${x.name}</b><small>Provider sends quote in app • Customer accepts</small></div><span class="price">Get Quote</span></button>`).join('');go('serviceDetail');}
+function chooseTask(i){selectedTask=services[selectedService].items[i];bookingSummary.innerHTML=`<b>${services[selectedService].icon} ${selectedService}</b><div>${selectedTask.name}</div><div class="pill warn" style="margin-top:8px">Get Quote</div>`;go('booking');}
+function createBooking(){const addr=bookingAddress.value.trim();if(!addr){alert('Please enter address.');return}const km=Math.max(0,Number(distanceKm.value||0));currentBooking={id:'OCS'+Date.now().toString().slice(-7),service:selectedService,task:selectedTask.name,address:addr,km,quote:null,status:'Matching nearby '+selectedService+' provider',startOtp:'4826'};currentBooking.status='Provider assigned';renderJob();go('job');}
+function renderJob(){if(!currentBooking)return;jobCard.innerHTML=`<div class="between"><b>${currentBooking.id}</b><span class="pill">${currentBooking.status}</span></div><div class="divider"></div><b>${currentBooking.service}</b><div>${currentBooking.task}</div><div class="muted">${currentBooking.address} • ${currentBooking.km} km (demo)</div>${currentBooking.quote?`<div class="divider"></div><b>Official accepted amount: ₹${currentBooking.quote}</b>`:''}`;let h='';if(currentBooking.status==='Provider assigned'){h=`<div class="notice"><b>Smart matching:</b> This request is sent only to nearby eligible providers whose verified skill matches <b>${currentBooking.service}</b>.</div><div class="btnrow"><button class="btn outline" onclick="alert('Call provider – connect real calling later')">📞 Call</button><button class="btn outline" onclick="alert('Chat / WhatsApp – connect later')">💬 Chat</button></div><br><button class="btn" onclick="providerSendQuote()">Provider: Send Quote</button>`;}else if(currentBooking.status==='Quote sent'){h=`<div class="card"><b>Provider quote: ₹${currentBooking.pendingQuote}</b><div class="muted">This becomes official only after customer accepts.</div></div><div class="btnrow"><button class="btn" onclick="acceptQuote()">Accept Quote</button><button class="btn secondary" onclick="providerSendQuote()">Revise</button></div>`;}else if(currentBooking.status==='Quote accepted'){h=`<div class="notice"><b>Start OTP rule:</b> OTP only proves provider reached customer and job/inspection started. It does NOT mean work is completed.</div><button class="btn" onclick="startWork()">Enter Start OTP / Start Work</button>`;}else if(currentBooking.status==='Work started'){h=`<div class="btnrow"><button class="btn" onclick="completeWork()">Work Completed</button><button class="btn danger" onclick="notCompleted()">Work Not Completed</button></div>`;}else if(currentBooking.status==='Completed'){h=`<div class="card"><b>Customer completion confirmed</b><div class="price-big">₹${currentBooking.quote}</div><div class="muted">Online payment can apply welcome bonus if eligible. Cash is recorded and provider commission becomes Company Due.</div></div><div class="btnrow"><button class="btn" onclick="payOnline()">Pay Online</button><button class="btn secondary" onclick="payCash()">Pay Cash</button></div>`;}else if(currentBooking.status==='Not completed'){const vc=currentBooking.visitCharge;h=`<div class="card"><b>Work not completed</b><div>Reason: ${currentBooking.reason}</div><div class="divider"></div><b>Applicable visit charge: ₹${vc}</b><div class="muted">Completed work would not have a separate visit charge.</div></div>`;}else{h=`<div class="success">✓</div><div class="card"><b>${currentBooking.status}</b></div>`;}jobActions.innerHTML=h;}
+function providerSendQuote(){const q=Number(prompt('Provider: enter quote amount ₹'));if(!q||q<1)return;currentBooking.pendingQuote=Math.round(q);currentBooking.status='Quote sent';renderJob();}
+function acceptQuote(){currentBooking.quote=currentBooking.pendingQuote;currentBooking.status='Quote accepted';renderJob();}
+function startWork(){const otp=prompt('Enter Start OTP (demo: 4826)');if(otp!==currentBooking.startOtp){alert('Incorrect OTP');return}currentBooking.status='Work started';renderJob();}
+function completeWork(){if(!confirm('Customer confirms the work is completed?'))return;currentBooking.status='Completed';renderJob();}
+function notCompleted(){const reason=prompt('Reason work could not be completed');if(!reason)return;if(!confirm('Customer confirms Work Not Completed?'))return;currentBooking.reason=reason;currentBooking.visitCharge=currentBooking.km<=6?settings.visit1:settings.visit2;currentBooking.status='Not completed';renderJob();}
+function payOnline(){const bonus=settings.welcomeBonus;const payable=Math.max(0,currentBooking.quote-bonus);alert(`Demo online payment: service ₹${currentBooking.quote}. Welcome bonus ₹${bonus} may apply once to eligible verified customer. Customer payable demo ₹${payable}. Provider settlement remains based on ₹${currentBooking.quote}.`);currentBooking.status='Paid online';renderJob();}
+function payCash(){const commission=Math.round(currentBooking.quote*settings.commission/100);companyDue+=commission;localStorage.setItem('ocsCompanyDue',companyDue);alert(`Cash ₹${currentBooking.quote} paid directly to provider. Company Due added: ₹${commission}.`);currentBooking.status='Cash paid / Company Due recorded';renderJob();}
+function demoPropertySearch(){const city=propCity.value.trim()||'Selected city',area=propArea.value.trim()||'All areas';propertyResults.innerHTML=`<div class="card"><b>Search ready: ${city} • ${area}</b><div class="muted">Real listings will come from database after backend is connected. Customer search is city/locality based and not locked to current GPS.</div></div>`;}
+function showPropertyPlans(){propertyPlans.classList.remove('hide');propertyPlans.scrollIntoView({behavior:'smooth'});}
+function openPropertyForm(plan){const amount=plan==='Builder Plan'?settings.propertyBuilder:settings.propertySingle;propertyPlanLabel.textContent=plan+' ₹'+Number(amount).toLocaleString('en-IN');go('propertyForm');}
+function propertySubmit(){alert('Prototype: payment gateway + Admin verification will be connected later. Listing becomes Live only after required payment and approval.');}
+function renderProducts(){productList.innerHTML=products.map(p=>`<div class="card"><div class="between"><div><b>${p.name}</b><div class="muted">In Stock • ${p.warranty}</div></div><b>₹${p.price.toLocaleString('en-IN')}</b></div><div class="divider"></div><b>Sold by: ${p.shop}</b><div class="muted">${p.area}</div><div class="btnrow" style="margin-top:10px"><button class="btn outline" onclick="alert('Call Shop')">Call Shop</button><button class="btn outline" onclick="alert('Chat with Shop')">Chat</button></div><button class="btn secondary" style="margin-top:10px" onclick="alert('Need Installation? Connect to Home Services')">Need Installation?</button></div>`).join('');}
+function toggleAddProduct(){addProductBox.classList.toggle('hide');}
+function addProduct(){const name=pName.value.trim(),price=Number(pPrice.value);if(!name||!price){alert('Enter product name and price');return}products.unshift({name,price,shop:'Rehan Electricals',area:'Khopoli',warranty:pWarranty.value||'Warranty as per seller'});addProductBox.classList.add('hide');sellerProductsCount.textContent=products.length;alert('Product published in prototype.');}
+function toggleAvailability(){providerAvailable=!providerAvailable;availabilitySwitch.classList.toggle('on',providerAvailable);renderProvider();}
+function renderProvider(){dueAmount.textContent='₹'+companyDue;availabilitySwitch.classList.toggle('on',providerAvailable);if(companyDue>=settings.dueThreshold){providerAlert.classList.remove('hide');providerAlert.innerHTML=`<b>New job alerts paused.</b> Company Due is ₹${companyDue}, which is at/above ₹${settings.dueThreshold}. Already accepted/ongoing jobs are not cancelled. Clear the <b>full outstanding</b> to resume new alerts.`;}else if(!providerAvailable){providerAlert.classList.remove('hide');providerAlert.innerHTML='<b>Available for Work is OFF.</b> No new jobs will be sent. Existing accepted/ongoing jobs continue.';}else{providerAlert.classList.add('hide');}}
+function simulateCashJob(){const commission=Math.round(1000*settings.commission/100);companyDue+=commission;localStorage.setItem('ocsCompanyDue',companyDue);renderProvider();}
+function clearDue(){if(companyDue===0){alert('No Company Due');return}if(!confirm(`Clear full outstanding ₹${companyDue}?`))return;companyDue=0;localStorage.setItem('ocsCompanyDue','0');renderProvider();}
+function openSupport(role){supportRole=role;supportTitle.textContent=role==='provider'?'Service Provider Support':'Customer Support';supportText.value='';ticketResult.innerHTML='';go('support');}
+function submitTicket(){const txt=supportText.value.trim();if(!txt){alert('Please describe the issue');return}const no='OCST'+Date.now().toString().slice(-8);ticketResult.innerHTML=`<div class="card"><span class="pill ok">Submitted</span><h3>Ticket <span class="ticket">${no}</span></h3><div>${callbackReq.checked?'Callback requested.':'No callback requested.'}</div></div>`;}
+function registerCustomer(){const n=document.getElementById('custName').value.trim(),m=document.getElementById('custMobile').value.trim(),e=document.getElementById('custEmail').value.trim();if(!n||m.length<10||!e){alert('Please enter name, valid mobile number and email ID.');return}alert('Prototype: OTP will be sent to '+m+'. Customer account can later add Provider, Seller or Property roles.');go('account');}
+function submitProviderProfile(){const n=document.getElementById('spName').value.trim(),m=document.getElementById('spMobile').value.trim(),a=document.getElementById('spArea').value.trim(),b=document.getElementById('spBank').value.trim();if(!n||m.length<10||!a||!b){alert('Please complete name, mobile, area and bank/payment details.');return}alert('Service Provider profile submitted for verification. Only jobs matching verified skills and service area will be eligible.');go('provider');}
+function loadAdmin(){adminCommission.value=settings.commission;adminThreshold.value=settings.dueThreshold;adminVisit1.value=settings.visit1;adminVisit2.value=settings.visit2;adminCustomerFee.value=settings.customerFee;adminBonus.value=settings.welcomeBonus;adminPropertySingle.value=settings.propertySingle;adminPropertyBuilder.value=settings.propertyBuilder;adminShopPlan.value=settings.shopPlan;}
+function saveAdminSettings(){settings={commission:Number(adminCommission.value),dueThreshold:Number(adminThreshold.value),visit1:Number(adminVisit1.value),visit2:Number(adminVisit2.value),customerFee:Number(adminCustomerFee.value),welcomeBonus:Number(adminBonus.value),propertySingle:Number(adminPropertySingle.value),propertyBuilder:Number(adminPropertyBuilder.value),shopPlan:Number(adminShopPlan.value)};localStorage.setItem('ocsSettings',JSON.stringify(settings));alert('Admin settings saved on this device (prototype).');refreshAccount();}
+function refreshAccount(){customerFeeLabel.textContent=settings.customerFee>0?'₹'+settings.customerFee+' LIFETIME':'OFF';}
+function refreshPlanPrices(){const s1=document.getElementById('singlePlanPrice'),s2=document.getElementById('singlePlanBtnPrice'),b=document.getElementById('builderPlanPrice'),sh=document.getElementById('shopPlanPrice');if(s1)s1.textContent=Number(settings.propertySingle).toLocaleString('en-IN');if(s2)s2.textContent=Number(settings.propertySingle).toLocaleString('en-IN');if(b)b.textContent=Number(settings.propertyBuilder).toLocaleString('en-IN');if(sh)sh.textContent=Number(settings.shopPlan).toLocaleString('en-IN');}
+renderServices();renderProducts();refreshAccount();refreshPlanPrices();go('home');
+</script>
+</body>
+</html>
