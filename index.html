@@ -640,7 +640,8 @@ html += "<div style='padding:14px 8px;border-top:2px solid #1565c0;'>" +
 
          html += "<div style='padding:14px 8px;text-align:center;'><b>Visit Charge (Only if no work is done)</b><br>1–6 km — ₹199<br>Over 6 km up to 12 km — ₹249</div>"; 
 document.getElementById("serviceDetails").innerHTML = html;
-
+document.getElementById("serviceDetails").style.display = "block";
+document.getElementById("serviceDetails").scrollIntoView({ behavior: "smooth" });
   
 });              
           document.getElementById("continueBookingBtn").addEventListener("click", function() {
