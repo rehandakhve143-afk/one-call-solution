@@ -527,9 +527,13 @@ items: [
       </script>
   </div>
 <script>
-document.getElementById("workerRegisterBtn").addEventListener("click", function() {
-  alert("Service Provider Registration received. OTP verification will be added next.");
-});
+const workerRegisterBtn = document.getElementById("workerRegisterBtn");
+
+if (workerRegisterBtn) {
+  workerRegisterBtn.addEventListener("click", function() {
+    alert("Service Provider Registration received. OTP verification will be added next.");
+  });
+}
 </script>
 <div id="serviceDetails"></div>
   <script>
