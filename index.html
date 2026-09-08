@@ -644,7 +644,7 @@ document.getElementById("serviceDetails").style.display = "block";
 document.getElementById("serviceDetails").scrollIntoView({ behavior: "smooth" });
   
 });              
-          document.getElementById("continueBookingBtn").addEventListener("click", function() {
+});          document.getElementById("continueBookingBtn").addEventListener("click", function() {
   const customerLocation = prompt("Enter Full Service Address:\nHouse / Flat No., Building / Street, Area, Landmark, PIN Code");
 
 if (!customerLocation || !customerLocation.trim()) {
