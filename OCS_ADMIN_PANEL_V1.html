@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OCS Admin Panel</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f4f7fb;
+  color:#172033;
+}
+header{
+  background:#0b2a4a;
+  color:white;
+  padding:18px 16px;
+}
+header h1{margin:0;font-size:22px}
+header p{margin:5px 0 0;font-size:13px;opacity:.85}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:14px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.card{
+  background:white;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 2px 9px rgba(0,0,0,.07);
+}
+
+.stat{
+  text-align:center;
+}
+.stat b{
+  display:block;
+  font-size:24px;
+  color:#0b2a4a;
+}
+.stat span{
+  font-size:12px;
+  color:#687386;
+}
+
+h2{
+  font-size:17px;
+  margin:0 0 12px;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  border-bottom:1px solid #eee;
+  padding:9px 0;
+  font-size:14px;
+}
+.row:last-child{border-bottom:0}
+
+.badge{
+  padding:5px 9px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+}
+.green{background:#dff7e8;color:#17753a}
+.orange{background:#fff0d5;color:#a76200}
+.red{background:#ffe0e0;color:#b42318}
+.blue{background:#dcecff;color:#175ea8}
+
+button{
+  width:100%;
+  border:0;
+  border-radius:10px;
+  padding:11px;
+  margin-top:8px;
+  font-weight:bold;
+  font-size:14px;
+  cursor:pointer;
+}
+.primary{background:#0b2a4a;color:white}
+.success{background:#168a45;color:white}
+.warning{background:#f0a000;color:white}
+.danger{background:#d92d20;color:white}
+.light{background:#e9eef5;color:#172033}
+
+input{
+  width:100%;
+  padding:11px;
+  border:1px solid #ccd5df;
+  border-radius:9px;
+  margin-top:7px;
+  font-size:15px;
+}
+
+.notice{
+  background:#fff8db;
+  border-left:4px solid #e5a100;
+  padding:10px;
+  font-size:13px;
+  margin-bottom:12px;
+}
+
+.small{
+  font-size:12px;
+  color:#697586;
+}
+
+@media(min-width:700px){
+  .grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>One Call Solution</h1>
+  <p>Admin Control Panel</p>
+</header>
+
+<div class="container">
+
+<div class="grid">
+  <div class="card stat">
+    <b id="totalBookings">1</b>
+    <span>Total Bookings</span>
+  </div>
+
+  <div class="card stat">
+    <b>1</b>
+    <span>Active Providers</span>
+  </div>
+
+  <div class="card stat">
+    <b id="tickets">0</b>
+    <span>Open Support</span>
+  </div>
+
+  <div class="card stat">
+    <b>9%</b>
+    <span>Platform Charge</span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Current Booking</h2>
+
+  <div class="row">
+    <span>Booking ID</span>
+    <b>OCS-BK-05001</b>
+  </div>
+
+  <div class="row">
+    <span>Service</span>
+    <b>Electrical Service</b>
+  </div>
+
+  <div class="row">
+    <span>Customer</span>
+    <b>Customer 1</b>
+  </div>
+
+  <div class="row">
+    <span>Assigned SP</span>
+    <b id="assignedProvider">SP1</b>
+  </div>
+
+  <div class="row">
+    <span>Status</span>
+    <span id="bookingStatus" class="badge green">WORKING</span>
+  </div>
+
+  <div class="row">
+    <span>Visit Charge</span>
+    <b>₹0</b>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Reschedule Control</h2>
+
+  <div class="notice">
+    Working job me Customer reschedule time decline kare to booking
+    SP2 ko automatic nahi jayegi.
+  </div>
+
+  <div class="row">
+    <span>Current Provider</span>
+    <b>SP1</b>
+  </div>
+
+  <div class="row">
+    <span>Customer Decision</span>
+    <b id="rescheduleDecision">—</b>
+  </div>
+
+  <button class="warning" onclick="holdBooking()">
+    Customer Declined → Hold + Support
+  </button>
+
+  <button class="success" onclick="approveReschedule()">
+    Customer Accepted → Same SP
+  </button>
+</div>
+
+<div class="card">
+  <h2>Service Provider Control</h2>
+
+  <div class="row">
+    <span>Provider</span>
+    <b>SP1</b>
+  </div>
+
+  <div class="row">
+    <span>Available for Work</span>
+    <span class="badge green">ON</span>
+  </div>
+
+  <div class="row">
+    <span>New Jobs</span>
+    <span id="jobAccess" class="badge green">ACTIVE</span>
+  </div>
+
+  <div class="row">
+    <span>Platform Charge Due</span>
+    <b>₹0.00</b>
+  </div>
+
+  <button class="danger" onclick="pauseJobs()">Pause New Jobs</button>
+  <button class="success" onclick="resumeJobs()">Resume New Jobs</button>
+</div>
+
+<div class="card">
+  <h2>Platform Charge Setting</h2>
+
+  <label class="small">Current OCS Platform Charge %</label>
+  <input id="chargeInput" type="number" value="9">
+
+  <button class="primary" onclick="saveCharge()">Save Platform Charge</button>
+
+  <p id="chargeMessage" class="small">
+    Current setting: 9%
+  </p>
+</div>
+
+<div class="card">
+  <h2>Customer Support</h2>
+
+  <div class="row">
+    <span>Ticket Status</span>
+    <span id="ticketStatus" class="badge blue">NO OPEN TICKET</span>
+  </div>
+
+  <div class="row">
+    <span>Reason</span>
+    <b id="ticketReason">—</b>
+  </div>
+
+  <button class="primary" onclick="createTicket()">Create Support Ticket</button>
+  <button class="success" onclick="closeTicket()">Close Ticket</button>
+</div>
+
+<div class="card">
+  <h2>Admin Provider Reassign</h2>
+
+  <p class="small">
+    Provider change automatic nahi hoga. Sirf Admin/OCS Support zarurat par karega.
+  </p>
+
+  <button class="light" onclick="reassignProvider()">
+    Reassign to SP2
+  </button>
+</div>
+
+</div>
+
+<script>
+
+function holdBooking(){
+  document.getElementById("bookingStatus").textContent="HOLD / SUPPORT";
+  document.getElementById("bookingStatus").className="badge orange";
+
+  document.getElementById("rescheduleDecision").textContent="DECLINED";
+
+  createTicket();
+
+  alert("Booking HOLD par hai. SP1 assigned rahega. SP2 ko automatic request nahi gayi.");
+}
+
+function approveReschedule(){
+  document.getElementById("bookingStatus").textContent="RESCHEDULED";
+  document.getElementById("bookingStatus").className="badge blue";
+
+  document.getElementById("rescheduleDecision").textContent="ACCEPTED";
+
+  alert("Same SP1 ke saath booking rescheduled.");
+}
+
+function pauseJobs(){
+  document.getElementById("jobAccess").textContent="NEW JOBS PAUSED";
+  document.getElementById("jobAccess").className="badge red";
+}
+
+function resumeJobs(){
+  document.getElementById("jobAccess").textContent="ACTIVE";
+  document.getElementById("jobAccess").className="badge green";
+}
+
+function saveCharge(){
+  let value=document.getElementById("chargeInput").value;
+
+  if(value==="" || Number(value)<0){
+    alert("Valid percentage enter karo");
+    return;
+  }
+
+  document.getElementById("chargeMessage").textContent=
+    "Current setting: "+value+"%";
+
+  alert("Platform Charge updated to "+value+"%");
+}
+
+function createTicket(){
+  document.getElementById("ticketStatus").textContent="OPEN";
+  document.getElementById("ticketStatus").className="badge orange";
+  document.getElementById("ticketReason").textContent=
+    "Reschedule time not suitable";
+
+  document.getElementById("tickets").textContent="1";
+}
+
+function closeTicket(){
+  document.getElementById("ticketStatus").textContent="CLOSED";
+  document.getElementById("ticketStatus").className="badge green";
+  document.getElementById("tickets").textContent="0";
+}
+
+function reassignProvider(){
+  let ok=confirm("SP1 ko release karke SP2 assign karna hai?");
+
+  if(ok){
+    document.getElementById("assignedProvider").textContent="SP2";
+    document.getElementById("bookingStatus").textContent="REASSIGNED";
+    document.getElementById("bookingStatus").className="badge blue";
+
+    alert("Admin ne SP2 assign kiya.");
+  }
+}
+
+</script>
+
+</body>
+  </html>
