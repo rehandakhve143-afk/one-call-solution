@@ -1,0 +1,1657 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OCS Final Customer + Service Provider Flow</title>
+
+<style>
+:root{
+  --p:#0f766e;
+  --d:#dc2626;
+  --ok:#16a34a;
+  --bg:#f5f7fb;
+  --card:#fff;
+  --mut:#64748b;
+  --line:#dbe2ea
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:system-ui,Arial,sans-serif;
+  background:var(--bg);
+  color:#0f172a
+}
+
+.app{
+  max-width:760px;
+  margin:auto;
+  padding-bottom:30px
+}
+
+.top{
+  position:sticky;
+  top:0;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  padding:12px 14px;
+  z-index:3
+}
+
+.brand{
+  font-weight:900
+}
+
+.brand span{
+  color:var(--p)
+}
+
+.tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:10px
+}
+
+.tabs button,.btn{
+  border:0;
+  border-radius:12px;
+  padding:12px;
+  font-weight:800
+}
+
+.tabs button{
+  background:#e2e8f0
+}
+
+.tabs button.active{
+  background:var(--p);
+  color:#fff
+}
+
+.screen{
+  padding:14px
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 8px 20px rgba(15,23,42,.05)
+}
+
+h2,h3{
+  margin:0 0 10px
+}
+
+.muted{
+  color:var(--mut);
+  font-size:13px
+}
+
+.status{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#ecfeff;
+  color:#155e75;
+  font-size:12px;
+  font-weight:800
+}
+
+.btn{
+  width:100%;
+  background:var(--p);
+  color:#fff;
+  margin-top:8px
+}
+
+.btn.alt{background:#334155}
+.btn.red{background:var(--d)}
+.btn.gray{background:#64748b}
+.btn.ok{background:var(--ok)}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px
+}
+
+.field{
+  margin:10px 0
+}
+
+.field label{
+  display:block;
+  font-size:13px;
+  font-weight:800;
+  margin-bottom:5px
+}
+
+.field input,
+.field textarea,
+.field select{
+  width:100%;
+  padding:11px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  background:#fff
+}
+
+.notice{
+  padding:10px;
+  border-radius:10px;
+  background:#fff7ed;
+  border-left:4px solid #f59e0b;
+  margin:8px 0;
+  font-size:13px
+}
+
+.okbox{
+  background:#f0fdf4;
+  border-left-color:#16a34a
+}
+
+.dangerbox{
+  background:#fef2f2;
+  border-left-color:#dc2626
+}
+
+.hide{display:none}
+
+.money{
+  font-size:24px;
+  font-weight:900
+}
+
+.log{
+  font-size:12px;
+  max-height:180px;
+  overflow:auto;
+  background:#f8fafc;
+  padding:10px;
+  border-radius:10px
+}
+
+.log div{
+  margin:4px 0
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="top">
+
+<div class="brand">
+ONE CALL <span>SOLUTION</span>
+</div>
+
+<div class="muted">
+Customer + Service Provider Final Core Flow
+</div>
+
+<div class="tabs">
+
+<button id="ctab"
+class="active"
+onclick="showTab('customer')">
+Customer
+</button>
+
+<button id="ptab"
+onclick="showTab('provider')">
+Service Provider
+</button>
+
+</div>
+</div>
+
+
+<section id="customer" class="screen">
+
+<div class="card">
+
+<h2>Customer</h2>
+
+<div>
+Status:
+<span class="status" id="cStatus">
+READY
+</span>
+</div>
+
+<div id="cBody"></div>
+
+</div>
+
+<div class="card">
+
+<h3>Booking History</h3>
+
+<div id="cLog" class="log"></div>
+
+</div>
+
+</section>
+
+
+<section id="provider" class="screen hide">
+
+<div class="card">
+
+<h2>Service Provider</h2>
+
+<div class="row">
+
+<div>
+<b id="providerName">SP1</b>
+<div class="muted">
+Verified Electrician
+</div>
+</div>
+
+<div>
+
+<button class="btn gray"
+id="availabilityBtn"
+onclick="toggleAvailability()">
+Available: ON
+</button>
+
+</div>
+
+</div>
+
+<div>
+Status:
+<span class="status" id="pStatus">
+WAITING
+</span>
+</div>
+
+<div id="pBody"></div>
+
+</div>
+
+<div class="card">
+
+<h3>Provider History</h3>
+
+<div id="pLog" class="log"></div>
+
+</div>
+
+</section>
+
+</div>
+
+
+<script>
+
+const S = {
+
+status:"READY",
+
+provider:"SP1",
+
+available:true,
+
+base:539,
+
+total:539,
+
+service:"Electrician • Fan + Switch Work",
+
+address:"Customer Address",
+
+startOtp:null,
+
+quote:null,
+
+quoteDecision:null,
+
+reschedule:null,
+
+rescheduleBy:null,
+
+reassigned:false,
+
+cancelReason:null,
+
+payment:null,
+
+logs:[]
+
+};
+
+
+const $ = id =>
+document.getElementById(id);
+
+
+function hist(text){
+
+S.logs.unshift(
+new Date().toLocaleTimeString([],{
+hour:"2-digit",
+minute:"2-digit"
+})
++" • "+text
+);
+
+render();
+
+}
+
+
+function showTab(tab){
+
+$("customer").classList.toggle(
+"hide",
+tab!=="customer"
+);
+
+$("provider").classList.toggle(
+"hide",
+tab!=="provider"
+);
+
+$("ctab").classList.toggle(
+"active",
+tab==="customer"
+);
+
+$("ptab").classList.toggle(
+"active",
+tab==="provider"
+);
+
+}
+
+
+function toggleAvailability(){
+
+S.available=!S.available;
+
+render();
+
+}
+
+
+function booking(){
+
+if(!S.available){
+
+alert(
+"Service Provider OFF hai. New jobs paused."
+);
+
+return;
+
+}
+
+S.status="REQUESTED";
+
+hist(
+"Customer created booking • ₹"+S.base
+);
+
+}
+
+
+function providerDecision(decision){
+
+if(decision==="accept"){
+
+S.status="ASSIGNED";
+
+hist(
+S.provider+" accepted booking"
+);
+
+}
+
+else{
+
+let old=S.provider;
+
+S.provider=
+old==="SP1" ? "SP2" : "SP1";
+
+S.status="REQUESTED";
+
+S.reassigned=true;
+
+hist(
+old+" rejected • Request sent to "+S.provider
+);
+
+}
+
+}
+
+
+function onWay(){
+
+S.status="ON_WAY";
+
+hist(
+S.provider+" is On the Way"
+);
+
+}
+
+
+function reached(){
+
+S.status="REACHED";
+
+S.startOtp=
+String(
+Math.floor(
+1000+
+Math.random()*9000
+)
+);
+
+hist(
+S.provider+
+" reached customer • Start OTP generated"
+);
+
+}
+
+
+function startWork(){
+
+let entered=
+prompt(
+"Customer Start OTP enter kare"
+);
+
+if(entered===S.startOtp){
+
+S.status="WORKING";
+
+hist(
+"Start OTP verified • Work started"
+);
+
+}
+
+else{
+
+alert(
+"Wrong OTP"
+);
+
+}
+
+}
+
+
+function openAddWork(){
+
+let desc=
+prompt(
+"Extra work description"
+);
+
+if(!desc)
+return;
+
+let amount=
+Number(
+prompt(
+"Extra work quote ₹"
+)
+);
+
+if(!amount || amount<=0)
+return;
+
+S.quote={
+desc:desc,
+amount:amount
+};
+
+S.quoteDecision="PENDING";
+
+hist(
+S.provider+
+" sent Add Work quote ₹"+
+amount
+);
+
+}
+
+
+function quoteDecide(decision){
+
+S.quoteDecision=decision;
+
+if(decision==="APPROVED"){
+
+S.total+=
+S.quote.amount;
+
+hist(
+"Customer approved extra work • New total ₹"+
+S.total
+);
+
+}
+
+else{
+
+hist(
+"Customer rejected extra work • Total remains ₹"+
+S.total
+);
+
+}
+
+}
+
+
+function openReschedule(by){
+
+let date=
+prompt(
+"New Date"
+);
+
+if(!date)
+return;
+
+let time=
+prompt(
+"New Time"
+);
+
+if(!time)
+return;
+
+S.reschedule={
+date:date,
+time:time
+};
+
+S.rescheduleBy=by;
+
+S.status=
+"RESCHEDULE_PENDING";
+
+hist(
+(by==="customer"
+?"Customer"
+:S.provider)
++
+" proposed reschedule • "+
+date+
+" • "+
+time
+);
+
+}
+
+
+function rescheduleDecision(decision){
+
+if(decision==="APPROVED"){
+
+S.status="RESCHEDULED";
+
+hist(
+"Reschedule accepted • Same Service Provider "+
+S.provider
+);
+
+}
+
+else{
+
+S.status="WORKING";
+
+S.reschedule=null;
+
+hist(
+"Reschedule rejected • Same Provider stays • Work remains open"
+);
+
+}
+
+}
+
+
+function resumeVisit(){
+
+S.status="REACHED";
+
+S.startOtp=
+String(
+Math.floor(
+1000+
+Math.random()*9000
+)
+);
+
+hist(
+"Rescheduled visit • Fresh Start OTP generated"
+);
+
+}
+
+
+function changeProvider(){
+
+let reason=
+prompt(
+"Change Provider reason"
+);
+
+if(!reason)
+return;
+
+let old=
+S.provider;
+
+S.provider=
+old==="SP1"
+?"SP2"
+:"SP1";
+
+S.status=
+"REQUESTED";
+
+S.startOtp=null;
+
+S.reassigned=true;
+
+hist(
+"Customer requested Change Provider • "+
+old+
+" detached • Reason: "+
+reason+
+" • Request sent to "+
+S.provider
+);
+
+}
+
+
+function cancelJob(by){
+
+let reason=
+prompt(
+"Cancel reason mandatory"
+);
+
+if(!reason)
+return;
+
+S.cancelReason=
+reason;
+
+S.status=
+"CANCELLED";
+
+hist(
+(by==="customer"
+?"Customer"
+:S.provider)
++
+" cancelled job • "+
+reason
+);
+
+}
+
+
+function finish(){
+
+S.status="PAYMENT";
+
+hist(
+S.provider+
+" finished job • Customer payment opened"
+);
+
+}
+
+
+function payOnline(){
+
+S.payment="ONLINE";
+
+S.status="DONE";
+
+hist(
+"Online payment success • ₹"+
+S.total
+);
+
+}
+
+
+function payCash(){
+
+S.payment="CASH";
+
+S.status="CASH_WAIT";
+
+hist(
+"Customer marked Cash Paid"
+);
+
+}
+
+
+function cashReceived(){
+
+S.status="DONE";
+
+hist(
+S.provider+
+" confirmed Cash Received • ₹"+
+S.total
+);
+
+}
+
+
+function resetAll(){
+
+S.status="READY";
+
+S.provider="SP1";
+
+S.available=true;
+
+S.total=S.base;
+
+S.startOtp=null;
+
+S.quote=null;
+
+S.quoteDecision=null;
+
+S.reschedule=null;
+
+S.rescheduleBy=null;
+
+S.reassigned=false;
+
+S.cancelReason=null;
+
+S.payment=null;
+
+S.logs=[];
+
+render();
+
+}
+
+
+function customerHTML(){
+
+let h="";
+
+
+if(S.status==="READY"){
+
+h=`
+
+<div class="card">
+
+<b>${S.service}</b>
+
+<div class="muted">
+${S.address}
+</div>
+
+<div class="money">
+₹${S.base}
+</div>
+
+<button class="btn"
+onclick="booking()">
+Book Service
+</button>
+
+</div>
+
+`;
+
+}
+
+
+if(S.status==="REQUESTED"){
+
+h=`
+
+<div class="notice">
+
+Searching / request sent to
+
+<b>${S.provider}</b>
+
+</div>
+
+`;
+
+}
+
+
+if(
+S.status==="ASSIGNED" ||
+S.status==="ON_WAY"
+){
+
+h=`
+
+<div class="notice okbox">
+
+<b>${S.provider}</b>
+assigned
+
+<br>
+
+${S.status==="ON_WAY"
+?"Service Provider On the Way"
+:"Waiting for Provider"}
+
+</div>
+
+`;
+
+}
+
+
+if(S.status==="REACHED"){
+
+h=`
+
+<div class="notice okbox">
+
+<b>${S.provider} Reached</b>
+
+<br>
+
+Start OTP:
+
+<b style="font-size:26px">
+${S.startOtp}
+</b>
+
+<br>
+
+<span class="muted">
+OTP only after Provider reaches.
+</span>
+
+</div>
+
+`;
+
+}
+
+
+if(S.status==="WORKING"){
+
+h=`
+
+<div class="notice okbox">
+
+<b>Work In Progress</b>
+
+<br>
+
+Provider:
+${S.provider}
+
+<br>
+
+Current Total:
+₹${S.total}
+
+</div>
+
+`;
+
+
+if(
+S.quote &&
+S.quoteDecision==="PENDING"
+){
+
+h+=`
+
+<div class="card">
+
+<h3>
+Extra Work Quote
+</h3>
+
+<p>
+${S.quote.desc}
+</p>
+
+<div class="money">
+₹${S.quote.amount}
+</div>
+
+<div class="row">
+
+<button class="btn ok"
+onclick="quoteDecide('APPROVED')">
+Approve
+</button>
+
+<button class="btn red"
+onclick="quoteDecide('REJECTED')">
+Reject
+</button>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+h+=`
+
+<button class="btn alt"
+onclick="openReschedule('customer')">
+Pause & Reschedule
+</button>
+
+<button class="btn red"
+onclick="changeProvider()">
+Change Service Provider
+</button>
+
+<button class="btn gray"
+onclick="cancelJob('customer')">
+Cancel Job
+</button>
+
+`;
+
+}
+
+
+if(
+S.status==="RESCHEDULE_PENDING"
+){
+
+h=`
+
+<div class="card">
+
+<h3>
+Reschedule Request
+</h3>
+
+<p>
+<b>
+${S.reschedule.date}
+•
+${S.reschedule.time}
+</b>
+</p>
+
+<p class="muted">
+Requested by:
+${S.rescheduleBy==="customer"
+?"Customer"
+:S.provider}
+</p>
+
+`;
+
+
+if(
+S.rescheduleBy==="provider"
+){
+
+h+=`
+
+<div class="row">
+
+<button class="btn ok"
+onclick="rescheduleDecision('APPROVED')">
+Accept
+</button>
+
+<button class="btn red"
+onclick="rescheduleDecision('REJECTED')">
+Reject
+</button>
+
+</div>
+
+`;
+
+}
+
+else{
+
+h+=`
+
+<div class="notice">
+Waiting for ${S.provider} response.
+</div>
+
+`;
+
+}
+
+h+="</div>";
+
+}
+
+
+if(S.status==="RESCHEDULED"){
+
+h=`
+
+<div class="notice okbox">
+
+<b>
+Rescheduled ✓
+</b>
+
+<br>
+
+Same Provider:
+${S.provider}
+
+<br>
+
+${S.reschedule.date}
+•
+${S.reschedule.time}
+
+<br>
+
+<span class="muted">
+New visit requires fresh Start OTP.
+</span>
+
+</div>
+
+<button class="btn"
+onclick="resumeVisit()">
+
+Simulate New Visit / Provider Reached
+
+</button>
+
+`;
+
+}
+
+
+if(S.status==="PAYMENT"){
+
+h=`
+
+<div class="card">
+
+<h3>
+Payment
+</h3>
+
+<div class="money">
+₹${S.total}
+</div>
+
+<button class="btn"
+onclick="payOnline()">
+Online • Simulate Payment Success
+</button>
+
+<button class="btn alt"
+onclick="payCash()">
+Cash Paid
+</button>
+
+</div>
+
+`;
+
+}
+
+
+if(S.status==="CASH_WAIT"){
+
+h=`
+
+<div class="notice">
+
+Cash marked paid.
+
+<br>
+
+Waiting for
+${S.provider}
+to confirm Cash Received.
+
+</div>
+
+`;
+
+}
+
+
+if(S.status==="DONE"){
+
+h=`
+
+<div class="notice okbox">
+
+<b>
+Booking Completed ✓
+</b>
+
+<br>
+
+Paid:
+₹${S.total}
+
+<br>
+
+Payment:
+${S.payment}
+
+</div>
+
+<button class="btn gray"
+onclick="resetAll()">
+Start New Test
+</button>
+
+`;
+
+}
+
+
+if(S.status==="CANCELLED"){
+
+h=`
+
+<div class="notice dangerbox">
+
+<b>
+Job Cancelled
+</b>
+
+<br>
+
+${S.cancelReason}
+
+</div>
+
+<button class="btn gray"
+onclick="resetAll()">
+Start New Test
+</button>
+
+`;
+
+}
+
+
+return h;
+
+}
+
+
+function providerHTML(){
+
+let h="";
+
+
+if(S.status==="READY"){
+
+h=`
+
+<p class="muted">
+No active job.
+</p>
+
+`;
+
+}
+
+
+if(S.status==="REQUESTED"){
+
+h=`
+
+<div class="card">
+
+<h3>
+Incoming Request
+</h3>
+
+<b>
+${S.service}
+</b>
+
+<div class="muted">
+${S.address}
+</div>
+
+<div class="money">
+₹${S.base}
+</div>
+
+<div class="row">
+
+<button class="btn ok"
+onclick="providerDecision('accept')">
+Accept
+</button>
+
+<button class="btn red"
+onclick="providerDecision('reject')">
+Reject
+</button>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+if(S.status==="ASSIGNED"){
+
+h=`
+
+<div class="notice okbox">
+Booking accepted.
+</div>
+
+<button class="btn"
+onclick="onWay()">
+On the Way
+</button>
+
+`;
+
+}
+
+
+if(S.status==="ON_WAY"){
+
+h=`
+
+<div class="notice">
+Going to customer.
+</div>
+
+<button class="btn"
+onclick="reached()">
+Reached Customer
+</button>
+
+`;
+
+}
+
+
+if(S.status==="REACHED"){
+
+h=`
+
+<div class="card">
+
+<h3>
+Start Job
+</h3>
+
+<div class="muted">
+Ask Customer for Start OTP.
+</div>
+
+<button class="btn"
+onclick="startWork()">
+Enter Start OTP
+</button>
+
+</div>
+
+`;
+
+}
+
+
+if(S.status==="WORKING"){
+
+h=`
+
+<div class="notice okbox">
+
+<b>
+Work In Progress
+</b>
+
+<br>
+
+Current Total:
+₹${S.total}
+
+</div>
+
+`;
+
+
+if(S.quote){
+
+h+=`
+
+<div class="notice">
+
+Add Work Quote:
+
+₹${S.quote.amount}
+
+•
+
+${S.quoteDecision}
+
+</div>
+
+`;
+
+}
+
+
+h+=`
+
+<button class="btn"
+onclick="openAddWork()">
++ Add Work / Send Quote
+</button>
+
+<button class="btn alt"
+onclick="openReschedule('provider')">
+Pause & Reschedule
+</button>
+
+<button class="btn ok"
+onclick="finish()">
+Finish Job
+</button>
+
+<button class="btn gray"
+onclick="cancelJob('provider')">
+Cancel Job
+</button>
+
+`;
+
+}
+
+
+if(
+S.status==="RESCHEDULE_PENDING"
+){
+
+h=`
+
+<div class="card">
+
+<h3>
+Reschedule Request
+</h3>
+
+<p>
+<b>
+${S.reschedule.date}
+•
+${S.reschedule.time}
+</b>
+</p>
+
+<p class="muted">
+
+Requested by:
+
+${S.rescheduleBy==="customer"
+?"Customer"
+:S.provider}
+
+</p>
+
+`;
+
+
+if(
+S.rescheduleBy==="customer"
+){
+
+h+=`
+
+<div class="row">
+
+<button class="btn ok"
+onclick="rescheduleDecision('APPROVED')">
+Accept
+</button>
+
+<button class="btn red"
+onclick="rescheduleDecision('REJECTED')">
+Reject
+</button>
+
+</div>
+
+`;
+
+}
+
+else{
+
+h+=`
+
+<div class="notice">
+Waiting for Customer response.
+</div>
+
+`;
+
+}
+
+h+="</div>";
+
+}
+
+
+if(S.status==="RESCHEDULED"){
+
+h=`
+
+<div class="notice okbox">
+
+<b>
+Rescheduled ✓
+</b>
+
+<br>
+
+Same Provider stays assigned.
+
+<br>
+
+${S.reschedule.date}
+
+•
+
+${S.reschedule.time}
+
+</div>
+
+`;
+
+}
+
+
+if(S.status==="PAYMENT"){
+
+h=`
+
+<div class="notice">
+
+Job finished.
+
+<br>
+
+Waiting for Customer payment.
+
+</div>
+
+`;
+
+}
+
+
+if(S.status==="CASH_WAIT"){
+
+h=`
+
+<div class="notice">
+
+Customer marked Cash Paid.
+
+</div>
+
+<button class="btn ok"
+onclick="cashReceived()">
+Cash Received
+</button>
+
+`;
+
+}
+
+
+if(S.status==="DONE"){
+
+h=`
+
+<div class="notice okbox">
+
+<b>
+Job Completed ✓
+</b>
+
+<br>
+
+Final Amount:
+₹${S.total}
+
+</div>
+
+`;
+
+}
+
+
+if(S.status==="CANCELLED"){
+
+h=`
+
+<div class="notice dangerbox">
+
+<b>
+Job Cancelled
+</b>
+
+<br>
+
+${S.cancelReason}
+
+</div>
+
+`;
+
+}
+
+
+return h;
+
+}
+
+
+function render(){
+
+$("cStatus").textContent=
+S.status;
+
+$("pStatus").textContent=
+S.status;
+
+$("providerName").textContent=
+S.provider;
+
+$("availabilityBtn").textContent=
+"Available: "+
+(S.available
+?"ON"
+:"OFF");
+
+$("availabilityBtn").style.background=
+S.available
+?"#16a34a"
+:"#64748b";
+
+$("cBody").innerHTML=
+customerHTML();
+
+$("pBody").innerHTML=
+providerHTML();
+
+
+let logs=
+S.logs.length
+
+?S.logs
+.map(
+x=>"<div>"+x+"</div>"
+)
+.join("")
+
+:'<div class="muted">No activity yet.</div>';
+
+
+$("cLog").innerHTML=
+logs;
+
+$("pLog").innerHTML=
+logs;
+
+}
+
+
+render();
+
+</script>
+
+</body>
+</html>
