@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OCS Final V2</title>
+<style>
+:root{--p:#0f766e;--red:#dc2626;--ok:#16a34a;--bg:#f5f7fb;--mut:#64748b;--line:#dbe2ea}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Arial;background:var(--bg);color:#0f172a}
+.app{max-width:760px;margin:auto;padding-bottom:30px}
+.top{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px 14px;z-index:3}
+.brand{font-weight:900}.brand span{color:var(--p)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+button{border:0;border-radius:12px;padding:12px;font-weight:800}
+.tabs button{background:#e2e8f0}.tabs button.active{background:var(--p);color:#fff}
+.screen{padding:14px}.hide{display:none}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+h2,h3{margin:0 0 10px}
+.muted{color:var(--mut);font-size:13px}
+.status{display:inline-block;padding:5px 9px;border-radius:999px;background:#ecfeff;color:#155e75;font-size:12px;font-weight:800}
+.btn{width:100%;background:var(--p);color:#fff;margin-top:8px}
+.alt{background:#334155}.red{background:var(--red)}.gray{background:#64748b}.ok{background:var(--ok)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.notice{padding:10px;border-radius:10px;background:#fff7ed;border-left:4px solid #f59e0b;margin:8px 0;font-size:13px}
+.good{background:#f0fdf4;border-left-color:#16a34a}
+.bad{background:#fef2f2;border-left-color:#dc2626}
+.money{font-size:24px;font-weight:900}
+.log{font-size:12px;max-height:180px;overflow:auto;background:#f8fafc;padding:10px;border-radius:10px}
+.qr{width:190px;height:190px;margin:12px auto;background:
+linear-gradient(90deg,#111 10px,transparent 10px) 0 0/20px 20px,
+linear-gradient(#111 10px,transparent 10px) 0 0/20px 20px;
+border:10px solid #fff;outline:2px solid #111}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top">
+<div class="brand">ONE CALL <span>SOLUTION</span></div>
+<div class="muted">Customer + Service Provider Final Core Flow V2</div>
+<div class="tabs">
+<button id="ctab" class="active" onclick="showTab('customer')">Customer</button>
+<button id="ptab" onclick="showTab('provider')">Service Provider</button>
+</div>
+</div>
+
+<section id="customer" class="screen">
+<div class="card">
+<h2>Customer</h2>
+Status: <span class="status" id="cStatus">READY</span>
+<div id="cBody"></div>
+</div>
+<div class="card">
+<h3>Customer Support</h3>
+<button class="btn alt" onclick="openSupport('customer')">Customer Support / Request Callback</button>
+</div>
+<div class="card"><h3>Booking History</h3><div id="cLog" class="log"></div></div>
+</section>
+
+<section id="provider" class="screen hide">
+<div class="card">
+<h2>Service Provider</h2>
+<div class="row">
+<div><b id="providerName">SP1</b><div class="muted">Verified Service Provider</div></div>
+<button class="btn gray" id="availabilityBtn" onclick="toggleAvailability()">Available: ON</button>
+</div>
+Status: <span class="status" id="pStatus">WAITING</span>
+<div class="card" style="margin-top:12px">
+  <h3>OCS Wallet & Job Queue</h3>
+  <div class="row"><span>Wallet Balance</span><b id="walletBalance">₹100.00</b></div>
+    <div class="row"><span>Current Job</span><b id="currentJob">None</b></div>
+  <div class="row"><span>Next Job</span><b id="nextJob">None</b></div>
+  <div id="walletWarning" class="notice hide"></div>
+  <button class="btn alt" onclick="rechargeWallet()">Recharge Wallet (Demo)</button>
+</div>
+<div id="pBody"></div>
+</div>
+<div class="card">
+<h3>Service Provider Support</h3>
+<button class="btn alt" onclick="openSupport('provider')">SP Support / Request Callback</button>
+<button class="btn gray" onclick="askExpert()">Ask to Expert</button>
+</div>
+<div class="card"><h3>Provider History</h3><div id="pLog" class="log"></div></div>
+</section>
+</div>
+
+<script>
+const S={
+status:"READY",provider:"SP1",available:true,base:539,total:539,
+service:"Electrician • Fan + Switch Work",address:"Customer Address",
+startOtp:null,quote:null,quoteDecision:null,reschedule:null,rescheduleBy:null,
+cancelReason:null,cancelBy:null,visitCharge:0,distanceSlab:null,
+payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",supportTickets:[],logs:[],
+wallet:100,welcomeBonus:100,platformCharge:9,commissionDue:0,jobAccess:true,
+currentJob:null,nextJob:null,completionRequested:false
+};
+
+const $=id=>document.getElementById(id);
+
+function hist(t){
+S.logs.unshift(new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})+" • "+t);
+render();
+}
+
+function showTab(t){
+$("customer").classList.toggle("hide",t!=="customer");
+$("provider").classList.toggle("hide",t!=="provider");
+$("ctab").classList.toggle("active",t==="customer");
+$("ptab").classList.toggle("active",t==="provider");
+}
+
+function toggleAvailability(){
+if(!S.jobAccess && !S.available){alert("Wallet commission due clear/recharge hone ke baad new jobs ON honge.");return}
+S.available=!S.available;render()
+}
+
+function choosePayment(v){S.paymentChoice=v;render()}
+
+function rechargeWallet(){
+let a=Number(prompt("Recharge amount ₹"));if(!a||a<=0)return;
+S.wallet+=a;
+if(S.commissionDue>0){
+  let paid=Math.min(S.wallet,S.commissionDue);
+  S.wallet-=paid;S.commissionDue-=paid;
+}
+if(S.commissionDue<=0){S.commissionDue=0;S.jobAccess=true}
+hist("OCS Wallet recharged • New balance ₹"+S.wallet.toFixed(2))
+}
+
+function applyCommission(amount){
+let commission=Math.round((amount*S.platformCharge/100)*100)/100;
+if(S.wallet>=commission){
+  S.wallet-=commission;
+  hist("OCS company charge ₹"+commission.toFixed(2)+" deducted from Wallet");
+}else{
+  let available=S.wallet;
+  S.wallet=0;
+  S.commissionDue=Math.round((commission-available)*100)/100;
+  S.jobAccess=false;
+  S.available=false;
+  hist("Wallet insufficient • OCS company charge due ₹"+S.commissionDue.toFixed(2)+" • New jobs paused until recharge");
+}
+}
+
+function booking(){
+if(!S.available || !S.jobAccess){alert("Eligible Service Provider abhi new jobs receive nahi kar raha.");return}
+S.status="REQUESTED";S.currentJob="Booking Request";
+hist("Customer created booking • ₹"+S.base+" • Payment choice: "+S.paymentChoice)
+}
+
+function providerDecision(d){
+if(d==="accept"){S.status="ASSIGNED";hist(S.provider+" accepted booking")}
+else{
+let old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";
+S.status="REQUESTED";hist(old+" rejected • Request sent to "+S.provider)
+}
+}
+
+function onWay(){S.status="ON_WAY";hist(S.provider+" is On the Way")}
+
+function reached(){
+S.status="REACHED";
+S.startOtp=String(Math.floor(1000+Math.random()*9000));
+hist(S.provider+" reached customer • Start OTP generated")
+}
+
+function startWork(){
+let x=prompt("Customer Start OTP enter kare");
+if(x===S.startOtp){S.status="WORKING";hist("Start OTP verified • Work started")}
+else alert("Wrong OTP");
+}
+
+function openAddWork(){
+let d=prompt("Extra work description");if(!d)return;
+let a=Number(prompt("Extra work quote ₹"));if(!a||a<=0)return;
+S.quote={desc:d,amount:a};S.quoteDecision="PENDING";
+hist(S.provider+" sent Add Work quote ₹"+a)
+}
+
+function quoteDecide(d){
+S.quoteDecision=d;
+if(d==="APPROVED"){S.total+=S.quote.amount;hist("Customer approved extra work • New total ₹"+S.total)}
+else hist("Customer rejected extra work • Total remains ₹"+S.total)
+}
+
+function openReschedule(by){
+let d=prompt("New Date");if(!d)return;
+let t=prompt("New Time");if(!t)return;
+S.reschedule={date:d,time:t};S.rescheduleBy=by;S.status="RESCHEDULE_PENDING";
+hist((by==="customer"?"Customer":S.provider)+" proposed reschedule • "+d+" • "+t)
+}
+
+function rescheduleDecision(d){
+if(d==="APPROVED"){S.status="RESCHEDULED";hist("Reschedule accepted • Same Provider "+S.provider)}
+else{S.status="WORKING";S.reschedule=null;hist("Reschedule rejected • Same Provider stays")}
+}
+
+function resumeVisit(){
+S.status="REACHED";
+S.startOtp=String(Math.floor(1000+Math.random()*9000));
+hist("Rescheduled visit • Fresh Start OTP generated")
+}
+
+function changeProvider(){
+let r=prompt("Change Provider reason");if(!r)return;
+let old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";
+S.status="REQUESTED";S.startOtp=null;
+hist("Customer changed Provider • "+old+" detached • Reason: "+r+" • Sent to "+S.provider)
+}
+
+function cancelJob(by){
+let r=prompt("Work Not Completed / Cancel reason mandatory");if(!r)return;
+S.cancelReason=r;S.cancelBy=by;
+if(S.status==="WORKING"){
+S.status="VISIT_REVIEW";
+hist((by==="customer"?"Customer":S.provider)+" requested Work Not Completed • "+r)
+}else{
+S.status="CANCELLED";
+hist((by==="customer"?"Customer":S.provider)+" cancelled job • "+r)
+}
+}
+
+function setVisitCharge(amount,slab){
+S.visitCharge=amount;S.distanceSlab=slab;S.status="VISIT_PAYMENT";
+hist("Visit Charge selected • "+slab+" • ₹"+amount)
+}
+
+function disputeVisit(){
+S.status="SUPPORT_REVIEW";
+let id=createTicket("customer","Visit Charge Dispute",false);
+hist("Visit Charge disputed • Support Ticket "+id)
+}
+
+function finish(){
+S.status="COMPLETION_CONFIRM";
+S.completionRequested=true;
+hist(S.provider+" marked Work Completed • Waiting for Customer confirmation")
+}
+
+function confirmCompletion(ok){
+if(ok){
+  S.status="PAYMENT";S.completionRequested=false;
+  hist("Customer confirmed Work Completed • Payment opened")
+}else{
+  S.status="SUPPORT_REVIEW";S.completionRequested=false;
+  let id=createTicket("customer","Work Completion Dispute",true);
+  hist("Customer did not confirm completion • Support Ticket "+id)
+}
+}
+
+function openOnline(purpose){
+S.payPurpose=purpose;
+S.payment="ONLINE";
+S.status="ONLINE_PAY";
+hist("Online payment screen opened • "+(purpose==="VISIT"?"Visit Charge":"Job Payment"))
+}
+
+function onlineSuccess(){
+let amt=S.payPurpose==="VISIT"?S.visitCharge:S.total;
+S.status=S.payPurpose==="VISIT"?"CANCELLED_SETTLED":"DONE";
+if(S.payPurpose==="JOB"){applyCommission(amt);S.currentJob=null}
+hist("Online payment success • ₹"+amt)
+}
+
+function payCash(purpose){
+S.payPurpose=purpose;S.payment="CASH";
+S.status=purpose==="VISIT"?"VISIT_CASH_WAIT":"CASH_WAIT";
+hist("Customer marked Cash Paid")
+}
+
+function cashReceived(){
+let amt=S.payPurpose==="VISIT"?S.visitCharge:S.total;
+S.status=S.payPurpose==="VISIT"?"CANCELLED_SETTLED":"DONE";
+if(S.payPurpose==="JOB"){applyCommission(amt);S.currentJob=null}
+hist(S.provider+" confirmed Cash Received • ₹"+amt)
+}
+
+function createTicket(side,category,callback){
+let id="OCS-TKT-"+Math.floor(100000+Math.random()*900000);
+S.supportTickets.push({id,side,category,callback});
+return id;
+}
+
+function openSupport(side){
+let cat=prompt(side==="customer"
+?"Issue: Payment / Provider / Work Not Completed / Other"
+:"Issue: Customer / Payment / Job / Other");
+if(!cat)return;
+let details=prompt("Problem details");if(!details)return;
+let cb=confirm("Request Callback chahiye?");
+let id=createTicket(side,cat,cb);
+hist((side==="customer"?"Customer":"Service Provider")+" Support Ticket created • "+id+(cb?" • Callback Requested":""));
+alert("Ticket Number: "+id)
+}
+
+function askExpert(){
+let q=prompt("Rate / Quote / Job related question");if(!q)return;
+let id=createTicket("provider","Ask to Expert",true);
+hist("Ask to Expert submitted • "+id);
+alert("Expert Request Ticket: "+id)
+}
+
+function resetAll(){
+Object.assign(S,{
+status:"READY",provider:"SP1",available:true,total:S.base,startOtp:null,
+quote:null,quoteDecision:null,reschedule:null,rescheduleBy:null,cancelReason:null,
+cancelBy:null,visitCharge:0,distanceSlab:null,payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",logs:[],currentJob:null,nextJob:null,completionRequested:false
+});
+render()
+}
+
+function customerHTML(){
+let h="";
+
+if(S.status==="READY")h=`
+<div class="card">
+<b>${S.service}</b><div class="muted">${S.address}</div>
+<div class="money">₹${S.base}</div>
+<div class="card">
+  <h3>Payment Method</h3>
+  <div class="row">
+    <button class="btn ${S.paymentChoice==="ONLINE"?"ok":"gray"}" onclick="choosePayment('ONLINE')">Online</button>
+    <button class="btn ${S.paymentChoice==="CASH"?"ok":"gray"}" onclick="choosePayment('CASH')">Cash</button>
+  </div>
+  <div class="muted">Online preferred. Network issue ho to Cash allowed.</div>
+</div>
+<button class="btn" onclick="booking()">Find Service Provider</button>
+</div>`;
+
+if(S.status==="REQUESTED")h=`<div class="notice">Searching / request sent to <b>${S.provider}</b></div>`;
+
+if(S.status==="ASSIGNED"||S.status==="ON_WAY")h=`
+<div class="notice good"><b>${S.provider}</b> assigned<br>
+${S.status==="ON_WAY"?"Service Provider On the Way":"Waiting for Provider"}</div>`;
+
+if(S.status==="REACHED")h=`
+<div class="notice good"><b>${S.provider} Reached</b><br>
+Start OTP: <b style="font-size:26px">${S.startOtp}</b><br>
+<span class="muted">OTP only after Provider reaches.</span></div>`;
+
+if(S.status==="WORKING"){
+h=`<div class="notice good"><b>Work In Progress</b><br>Provider: ${S.provider}<br>Current Total: ₹${S.total}</div>`;
+
+if(S.quote&&S.quoteDecision==="PENDING")h+=`
+<div class="card"><h3>Extra Work Quote</h3><p>${S.quote.desc}</p>
+<div class="money">₹${S.quote.amount}</div>
+<div class="row">
+<button class="btn ok" onclick="quoteDecide('APPROVED')">Approve</button>
+<button class="btn red" onclick="quoteDecide('REJECTED')">Reject</button>
+</div></div>`;
+
+h+=`
+<button class="btn alt" onclick="openReschedule('customer')">Pause & Reschedule</button>
+<button class="btn red" onclick="changeProvider()">Change Service Provider</button>
+<button class="btn gray" onclick="cancelJob('customer')">Work Not Completed / Cancel</button>`;
+}
+
+if(S.status==="RESCHEDULE_PENDING"){
+h=`<div class="card"><h3>Reschedule Request</h3>
+<b>${S.reschedule.date} • ${S.reschedule.time}</b>
+<p class="muted">Requested by: ${S.rescheduleBy==="customer"?"Customer":S.provider}</p>`;
+if(S.rescheduleBy==="provider")h+=`
+<div class="row"><button class="btn ok" onclick="rescheduleDecision('APPROVED')">Accept</button>
+<button class="btn red" onclick="rescheduleDecision('REJECTED')">Reject</button></div>`;
+else h+=`<div class="notice">Waiting for ${S.provider} response</div>`;
+h+=`</div>`;
+}
+
+if(S.status==="RESCHEDULED")h=`
+<div class="notice good"><b>Rescheduled</b><br>${S.reschedule.date} • ${S.reschedule.time}<br>Same Provider: ${S.provider}</div>
+<button class="btn" onclick="resumeVisit()">Simulate New Visit</button>`;
+
+if(S.status==="COMPLETION_CONFIRM")h=`
+<div class="card"><h3>Work Completed?</h3>
+<div class="notice">Service Provider ne work complete mark kiya hai.<br><b>Start OTP completion proof nahi hai.</b></div>
+<div class="row">
+<button class="btn ok" onclick="confirmCompletion(true)">Confirm Work Completed</button>
+<button class="btn red" onclick="confirmCompletion(false)">Not Confirm / Support</button>
+</div></div>`;
+
+if(S.status==="PAYMENT")h=`
+<div class="card"><h3>Payment</h3><div class="money">₹${S.total}</div>
+<button class="btn" onclick="openOnline('JOB')">Online Payment</button>
+<button class="btn alt" onclick="payCash('JOB')">Cash</button></div>`;
+
+if(S.status==="ONLINE_PAY"){
+let amt=S.payPurpose==="VISIT"?S.visitCharge:S.total;
+h=`<div class="card"><h3>OCS Online Payment</h3>
+<div class="money">₹${amt}</div>
+<div class="notice"><b>Prototype QR — Test Only</b><br>Real Company QR / Payment Link merchant setup ke baad connect hoga.</div>
+<div class="qr"></div>
+<button class="btn alt" onclick="alert('Company Payment Link abhi connected nahi hai')">Company Payment Link</button>
+<button class="btn ok" onclick="onlineSuccess()">Simulate Payment Success</button></div>`;
+}
+
+if(S.status==="CASH_WAIT")h=`<div class="notice">Cash Paid marked.<br>Waiting for ${S.provider} confirmation.</div>`;
+
+if(S.status==="VISIT_REVIEW")h=`
+<div class="card"><h3>Work Not Completed</h3>
+<div class="notice bad"><b>Reason:</b> ${S.cancelReason}</div>
+<p>Select visit distance slab:</p>
+<button class="btn" onclick="setVisitCharge(199,'1–6 km')">1–6 km • ₹199</button>
+<button class="btn alt" onclick="setVisitCharge(249,'>6–12 km')">Above 6–12 km • ₹249</button>
+<button class="btn red" onclick="disputeVisit()">Dispute / OCS Support</button>
+</div>`;
+
+if(S.status==="VISIT_PAYMENT")h=`
+<div class="card"><h3>Visit Charge</h3>
+<div class="muted">${S.distanceSlab}</div>
+<div class="money">₹${S.visitCharge}</div>
+<button class="btn" onclick="openOnline('VISIT')">Online Payment</button>
+<button class="btn alt" onclick="payCash('VISIT')">Cash</button>
+<button class="btn red" onclick="disputeVisit()">Dispute / Support</button>
+</div>`;
+
+if(S.status==="VISIT_CASH_WAIT")h=`<div class="notice">Visit Charge Cash Paid ₹${S.visitCharge}<br>Waiting for Provider confirmation.</div>`;
+
+if(S.status==="SUPPORT_REVIEW")h=`<div class="notice">OCS Support Review<br>Booking payment/visit charge temporarily under review.</div>`;
+
+if(S.status==="DONE")h=`
+<div class="notice good"><b>Booking Completed</b><br>Payment: ${S.payment}<br>₹${S.total}</div>
+<button class="btn gray" onclick="resetAll()">Start New Test</button>`;
+
+if(S.status==="CANCELLED_SETTLED")h=`
+<div class="notice good"><b>Work Not Completed • Settled</b><br>
+Visit Charge: ₹${S.visitCharge}<br>Payment: ${S.payment}</div>
+<button class="btn gray" onclick="resetAll()">Start New Test</button>`;
+
+if(S.status==="CANCELLED")h=`
+<div class="notice bad"><b>Job Cancelled</b><br>${S.cancelReason}</div>
+<button class="btn gray" onclick="resetAll()">Start New Test</button>`;
+
+return h;
+}
+
+function providerHTML(){
+let h="";
+
+if(S.status==="READY")h=`<p class="muted">No active job.</p>`;
+
+if(S.status==="REQUESTED")h=`
+<div class="card"><h3>Incoming Request</h3>
+<b>${S.service}</b><div class="muted">${S.address}</div>
+<div class="money">₹${S.base}</div>
+<div class="row">
+<button class="btn ok" onclick="providerDecision('accept')">Accept</button>
+<button class="btn red" onclick="providerDecision('reject')">Reject</button>
+</div></div>`;
+
+if(S.status==="ASSIGNED")h=`<button class="btn" onclick="onWay()">On the Way</button>`;
+
+if(S.status==="ON_WAY")h=`<button class="btn" onclick="reached()">Reached Customer</button>`;
+
+if(S.status==="REACHED")h=`
+<div class="notice">Customer se Start OTP lo.</div>
+<button class="btn" onclick="startWork()">Enter Start OTP</button>`;
+
+if(S.status==="WORKING"){
+h=`<div class="notice good"><b>Work In Progress</b><br>Current Total ₹${S.total}</div>
+<button class="btn" onclick="openAddWork()">+ Add Work / Send Quote</button>
+<button class="btn alt" onclick="openReschedule('provider')">Pause & Reschedule</button>
+<button class="btn ok" onclick="finish()">Finish Job</button>
+<button class="btn gray" onclick="cancelJob('provider')">Work Not Completed / Cancel</button>`;
+}
+
+if(S.status==="RESCHEDULE_PENDING"){
+h=`<div class="card"><h3>Reschedule Request</h3>
+<b>${S.reschedule.date} • ${S.reschedule.time}</b>`;
+if(S.rescheduleBy==="customer")h+=`
+<div class="row"><button class="btn ok" onclick="rescheduleDecision('APPROVED')">Accept</button>
+<button class="btn red" onclick="rescheduleDecision('REJECTED')">Reject</button></div>`;
+else h+=`<div class="notice">Waiting for Customer response</div>`;
+h+=`</div>`;
+}
+
+if(S.status==="RESCHEDULED")h=`<div class="notice good">Reschedule accepted.<br>Same Provider stays assigned.</div>`;
+
+if(S.status==="COMPLETION_CONFIRM")h=`<div class="notice">Work Completed marked.<br>Waiting for Customer confirmation.</div>`;
+if(S.status==="PAYMENT"||S.status==="ONLINE_PAY")h=`<div class="notice">Waiting for Customer payment.</div>`;
+
+if(S.status==="CASH_WAIT")h=`
+<div class="notice">Customer marked Cash Paid ₹${S.total}</div>
+<button class="btn ok" onclick="cashReceived()">Cash Received</button>`;
+
+if(S.status==="VISIT_REVIEW")h=`<div class="notice">Work Not Completed request opened.<br>Waiting for Customer visit-charge selection / dispute.</div>`;
+
+if(S.status==="VISIT_PAYMENT"||S.status==="SUPPORT_REVIEW")h=`<div class="notice">Waiting for Customer / OCS Support.</div>`;
+
+if(S.status==="VISIT_CASH_WAIT")h=`
+<div class="notice">Customer marked Visit Charge Cash Paid ₹${S.visitCharge}</div>
+<button class="btn ok" onclick="cashReceived()">Visit Charge Cash Received</button>`;
+
+if(S.status==="DONE")h=`<div class="notice good"><b>Job Completed</b><br>₹${S.total}</div>`;
+
+if(S.status==="CANCELLED_SETTLED")h=`<div class="notice good"><b>Work Not Completed • Settled</b><br>Visit Charge ₹${S.visitCharge}</div>`;
+
+if(S.status==="CANCELLED")h=`<div class="notice bad"><b>Job Cancelled</b><br>${S.cancelReason}</div>`;
+
+return h;
+}
+
+function render(){
+$("providerName").textContent=S.provider;
+$("availabilityBtn").textContent="Available: "+(S.available?"ON":"OFF");
+$("availabilityBtn").style.background=S.available?"#16a34a":"#64748b";
+$("walletBalance").textContent="₹"+S.wallet.toFixed(2)+(S.commissionDue>0?" • OCS Charge Due ₹"+S.commissionDue.toFixed(2):"");
+$("currentJob").textContent=S.currentJob||((["WORKING","ON_WAY","REACHED","ASSIGNED","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?"Current Booking":"None");
+$("nextJob").textContent=S.nextJob||"None";
+$("walletWarning").classList.toggle("hide",S.jobAccess);
+$("walletWarning").innerHTML=S.jobAccess?"":"<b>New jobs paused.</b><br>OCS Wallet recharge karke pending company charge clear karein. Ongoing/accepted job cancel nahi hoga.";
+$("cStatus").textContent=S.status;
+$("pStatus").textContent=S.status;
+$("cBody").innerHTML=customerHTML();
+$("pBody").innerHTML=providerHTML();
+$("cLog").innerHTML=S.logs.length?S.logs.map(x=>"<div>"+x+"</div>").join(""):"No history yet.";
+$("pLog").innerHTML=$("cLog").innerHTML;
+}
+
+render();
+</script>
+</body>
+</html>
