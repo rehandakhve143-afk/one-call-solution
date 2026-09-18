@@ -303,9 +303,9 @@ provider:"SP1",
 
 available:true,
 
-base:539,
+base: 239,
 
-total:539,
+total: 239,
 
 service:"Electrician • Fan + Switch Work",
 
@@ -650,44 +650,7 @@ hist(
 }
 
 
-function changeProvider(){
-
-let reason=
-prompt(
-"Change Provider reason"
-);
-
-if(!reason)
-return;
-
-let old=
-S.provider;
-
-S.provider=
-old==="SP1"
-?"SP2"
-:"SP1";
-
-S.status=
-"REQUESTED";
-
-S.startOtp=null;
-
-S.reassigned=true;
-
-hist(
-"Customer requested Change Provider • "+
-old+
-" detached • Reason: "+
-reason+
-" • Request sent to "+
-S.provider
-);
-
-}
-
-
-function cancelJob(by){
+function changeProvider(){  let reason=prompt("Service Provider change reason mandatory");  if(!reason)return;  if(!confirm("Provider change request OCS review me HOLD karna hai? New provider automatic assign nahi hoga."))return;  S.previousProvider=S.provider;  S.status="PROVIDER_CHANGE_HOLD";  S.startOtp=null;  S.reassigned=false;  hist("Customer requested Change Provider • "+S.previousProvider+" stopped • Reason: "+reason+" • OCS review HOLD • No automatic reassignment");  }   function cancelJob(by){
 
 let reason=
 prompt(
