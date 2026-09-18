@@ -93,13 +93,13 @@
 
     <section id="work" class="screen">
       <button class="back" onclick="go('home')">← Home</button><h2>Work / Sell With Us</h2>
-      <div class="grid"><button class="module" onclick="go('provider')"><span class="emoji">🧰</span><b>Service Provider</b><small>KYC • Skills • Area • Bank</small></button><button class="module" onclick="go('seller')"><span class="emoji">🏪</span><b>Shop Seller</b><small>₹199/month marketplace plan</small></button></div>
+      <div class="grid"><button class="module" onclick="go('provider')"><span class="emoji">🧰</span><b>Service Provider</b><small>KYC • Skills • Area • Bank</small></button><button class="module" onclick="go('seller')"><span class="emoji">🏪</span><b>Shop Seller</b><small>₹99 / 28 days marketplace plan</small></button></div>
     </section>
 
     <section id="provider" class="screen">
       <button class="back" onclick="go('work')">← Back</button><h2>Service Provider Dashboard</h2>
       <div class="card between"><div><b>Available for Work</b><div class="muted">OFF stops new jobs only; accepted/ongoing jobs continue.</div></div><button id="availabilitySwitch" class="switch on" onclick="toggleAvailability()" aria-label="Available for work"></button></div>
-      <div class="statgrid"><div class="stat"><span class="muted">Company Due</span><b id="dueAmount">₹0</b></div><div class="stat"><span class="muted">Threshold</span><b>₹500</b></div><div class="stat"><span class="muted">Commission</span><b>15%</b></div><div class="stat"><span class="muted">Jobs</span><b>4</b></div></div>
+      <div class="statgrid"><div class="stat"><span class="muted">Company Due</span><b id="dueAmount">₹0</b></div><div class="stat"><span class="muted">Threshold</span><b>₹500</b></div><div class="stat"><span class="muted">Commission</span><b>9%</b></div><div class="stat"><span class="muted">Jobs</span><b>4</b></div></div>
       <div id="providerAlert" class="notice hide"></div>
       <div class="card"><b>Onboarding checklist</b><div class="muted">Mobile OTP • KYC • Skills/services • Area • Bank/payment details • Verification</div></div>
       <div class="btnrow"><button class="btn secondary" onclick="simulateCashJob()">Demo Cash Job ₹1,000</button><button class="btn outline" onclick="clearDue()">Clear Full Due</button></div>
@@ -140,7 +140,7 @@
 <nav class="bottomnav"><button onclick="go('home')"><span>🏠</span>Home</button><button onclick="go('property')"><span>🏢</span>Property</button><button onclick="go('services')"><span>🛠️</span>Services</button><button onclick="go('shop')"><span>🛒</span>Shop</button><button onclick="go('account')"><span>👤</span>Account</button></nav>
 
 <script>
-const DEFAULTS={commission:15,dueThreshold:500,visit1:199,visit2:249,customerFee:0,welcomeBonus:100,propertySingle:199,propertyBuilder:1449,shopPlan:199};
+const DEFAULTS={commission:9,dueThreshold:500,visit1:199,visit2:249,customerFee:0,welcomeBonus:100,propertySingle:199,propertyBuilder:499,shopPlan:99};
 let settings={...DEFAULTS,...JSON.parse(localStorage.getItem('ocsSettings')||'{}')};
 let selectedService='',selectedTask=null,currentBooking=null,supportRole='customer',providerAvailable=true,companyDue=Number(localStorage.getItem('ocsCompanyDue')||0);
 const services={
