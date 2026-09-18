@@ -76,8 +76,8 @@ body{background:linear-gradient(180deg,#f8fbfb 0%,#f5f7fb 45%,#eef4f3 100%)}
       <div class="card"><b>Search anywhere</b><div class="field"><label>City</label><input id="propCity" placeholder="e.g. Panvel" /></div><div class="field"><label>Locality / Area</label><input id="propArea" placeholder="e.g. Kharghar" /></div><div class="btnrow"><button class="btn" onclick="demoPropertySearch()">Search Property</button><button class="btn secondary" onclick="showPropertyPlans()">Post Property</button></div></div>
       <div id="propertyResults"></div>
       <div id="propertyPlans" class="hide">
-        <div class="card"><div class="between"><div><b>Single Property Listing</b><div class="muted">Basic details • Photos • Visible contact • Direct call</div></div><div class="price-big">₹<span id="singlePlanPrice">199</span></div></div><button class="btn" onclick="openPropertyForm('Single Property')">Choose ₹<span id="singlePlanBtnPrice">199</span></button></div>
-        <div class="card"><div class="between"><div><b>Builder Plan</b><div class="muted">Builder profile • Multiple listings • Chat • Enquiries • Lead dashboard • Likes/interest analytics</div></div><div class="price-big">₹<span id="builderPlanPrice">1,449</span></div></div><div class="notice">Listing limit and validity are intentionally Admin-configurable and not hard-coded.</div><button class="btn" onclick="openPropertyForm('Builder Plan')">Choose Builder Plan</button></div>
+        <div class="card"><div class="between"><div><b>Single Property Listing</b><div class="muted">1 property • 28 days • Basic details • Photos/Video • Visible contact • Direct call</div></div><div class="price-big">₹<span id="singlePlanPrice">199</span><span class="muted"> / 28 days</span></div></div><button class="btn" onclick="openPropertyForm('Single Property')">Choose ₹<span id="singlePlanBtnPrice">199</span></button></div>
+        <div class="card"><div class="between"><div><b>Builder Plan</b><div class="muted">28 days • Builder profile • Multiple projects • Chat/history • Enquiries • Lead dashboard</div></div><div class="price-big">₹<span id="builderPlanPrice">499</span><span class="muted"> / 28 days</span></div></div><button class="btn" onclick="openPropertyForm('Builder Plan')">Choose Builder Plan</button></div>
       </div>
     </section>
 
@@ -85,20 +85,20 @@ body{background:linear-gradient(180deg,#f8fbfb 0%,#f5f7fb 45%,#eef4f3 100%)}
       <button class="back" onclick="go('property')">← Property</button><h2>Post Property</h2><div id="propertyPlanLabel" class="pill"></div>
       <div class="field"><label>I am</label><select id="posterRole"><option>Owner</option><option>Agent</option><option>Builder</option></select></div>
       <div class="field"><label>Purpose</label><select><option>Sale</option><option>Rent</option></select></div>
-      <div class="field"><label>Property Type</label><select><option>Flat</option><option>House</option><option>Shop</option><option>Plot</option><option>Builder Project</option></select></div>
+      <div class="field"><label>Property Type</label><select><option>Flat / Apartment</option><option>Bungalow</option><option>Row House</option><option>Land / Plot</option><option>Builder Project</option></select></div>
       <div class="field"><label>City</label><input placeholder="City" /></div><div class="field"><label>Locality</label><input placeholder="Area / Locality" /></div><div class="field"><label>Price / Rent</label><input type="number" placeholder="₹" /></div><div class="field"><label>Photos</label><input type="file" accept="image/*" multiple /></div><div class="field"><label>Contact Number</label><input inputmode="tel" placeholder="Mobile number" /></div>
-      <button class="btn" onclick="propertySubmit()">Pay & Submit for Verification</button>
+      <button class="btn" onclick="propertySubmit()">Pay & Post Property</button>
     </section>
 
     <section id="shop" class="screen">
-      <button class="back" onclick="go('home')">← Home</button><h2>Local Shops</h2><p class="muted">Local seller marketplace. Shop subscription is the primary platform charge.</p>
-      <div class="card"><div class="between"><div><b>Seller plan</b><div class="muted">Products stay saved if recharge expires; listings become temporarily hidden until recharge.</div></div><div class="price-big">₹<span id="shopPlanPrice">199</span><span class="muted">/mo</span></div></div></div>
+      <button class="back" onclick="go('home')">← Home</button><h2>Local Shops</h2><p class="muted">Electrical Shop and Hardware Shop only. Shop profile + gallery + product enquiry.</p>
+      <div class="card"><div class="between"><div><b>Shop Partner Plan</b><div class="muted">₹99 / 28 days • Products/gallery stay saved if recharge expires; listing is temporarily hidden until recharge.</div></div><div class="price-big">₹<span id="shopPlanPrice">99</span><span class="muted"> / 28 days</span></div></div></div>
       <div id="productList" class="list"></div><button class="btn outline" onclick="go('seller')">Register / Manage My Shop</button>
     </section>
 
     <section id="seller" class="screen">
       <button class="back" onclick="go('shop')">← Shop</button><h2>Seller Dashboard</h2>
-      <div class="statgrid"><div class="stat"><span class="muted">Recharge</span><b id="sellerRecharge">Active</b></div><div class="stat"><span class="muted">Products</span><b id="sellerProductsCount">2</b></div><div class="stat"><span class="muted">Enquiries</span><b>6</b></div><div class="stat"><span class="muted">Plan</span><b>₹199</b></div></div>
+      <div class="statgrid"><div class="stat"><span class="muted">Recharge</span><b id="sellerRecharge">Active</b></div><div class="stat"><span class="muted">Products</span><b id="sellerProductsCount">2</b></div><div class="stat"><span class="muted">Enquiries</span><b>6</b></div><div class="stat"><span class="muted">Plan</span><b>₹99 / 28d</b></div></div>
       <div class="card"><b>Shop Profile</b><div class="muted">Rehan Electricals • Khopoli (demo)</div></div>
       <button class="btn" onclick="toggleAddProduct()">+ Add Product / Material</button>
       <div id="addProduct" class="card hide"><div class="field"><label>Category</label><input id="pCat" placeholder="Fan / TV / Fridge / Material" /></div><div class="field"><label>Product name</label><input id="pName" /></div><div class="field"><label>Brand / Model</label><input id="pBrand" /></div><div class="field"><label>Selling Price</label><input id="pPrice" type="number" /></div><div class="field"><label>Stock</label><input id="pStock" type="number" value="1" /></div><div class="field"><label>Warranty</label><input id="pWarranty" placeholder="e.g. 2 years" /></div><div class="field"><label>Photo</label><input type="file" accept="image/*" /></div><button class="btn" onclick="addProduct()">Publish Product</button></div>
@@ -107,7 +107,7 @@ body{background:linear-gradient(180deg,#f8fbfb 0%,#f5f7fb 45%,#eef4f3 100%)}
 
     <section id="work" class="screen">
       <button class="back" onclick="go('home')">← Home</button><h2>Work / Sell With Us</h2>
-      <div class="grid"><button class="module" onclick="go('providerRegister')"><span class="emoji">🧰</span><b>Join as Service Provider</b><small>Full profile • KYC • Skills • Area • Bank</small></button><button class="module" onclick="go('seller')"><span class="emoji">🏪</span><b>Register Your Shop</b><small>Basic plan ₹199/month</small></button></div>
+      <div class="grid"><button class="module" onclick="go('providerRegister')"><span class="emoji">🧰</span><b>Join as Service Provider</b><small>OTP + Email • KYC • Multiple Skills • Area • Bank</small></button><button class="module" onclick="go('seller')"><span class="emoji">🏪</span><b>Register Your Shop</b><small>Electrical / Hardware • ₹99 / 28 days</small></button></div>
       <div class="card" style="margin-top:12px"><b>Same account, more possibilities</b><div class="muted">A customer can later become a Service Provider, Seller, Owner, Agent or Builder. No need to create a separate account.</div></div>
     </section>
 
@@ -131,8 +131,8 @@ body{background:linear-gradient(180deg,#f8fbfb 0%,#f5f7fb 45%,#eef4f3 100%)}
         <div class="field"><label>Mobile Number</label><input id="spMobile" inputmode="tel" placeholder="Mobile number" /></div>
         <div class="field"><label>Email ID</label><input id="spEmail" type="email" placeholder="Email ID" /></div>
         <div class="field"><label>City / Area</label><input id="spArea" placeholder="City and work area" /></div>
-        <div class="field"><label>Primary Skill</label><select id="spSkill"><option>Electrical</option><option>Plumbing</option><option>AC Service</option><option>Cleaning</option><option>Carpenter</option><option>Appliance Repair</option><option>Pest Control</option><option>Maid Service</option></select></div>
-        <div class="field"><label>Other Skills (optional)</label><input id="spOtherSkill" placeholder="e.g. Plumbing, Appliance Repair" /></div>
+        <div class="field"><label>Select Skills / Services (multiple allowed)</label><select id="spSkill" multiple size="10"><option>Electrician / Electrical</option><option>Plumber / Plumbing</option><option>AC Technician</option><option>Cleaning Staff</option><option>Carpenter</option><option>Appliance Repair Technician</option><option>Pest Control Technician</option><option>Maid / Kamwali</option><option>Cook / Cooking</option><option>Housekeeping / Home Helper</option><option>Painter</option><option>CCTV Technician</option><option>Gas Stove Technician</option><option>Wi-Fi / TV Technician</option><option>Packers & Movers Staff</option><option>Tiles / Stone Mason</option><option>Waterproofing Technician</option><option>False Ceiling / POP / Gypsum / PVC Technician</option><option>Other Technician / Home Service</option></select><div class="muted">One registration • multiple skills. OCS verifies each skill separately.</div></div>
+        <div class="field"><label>Other Skill / Service (optional)</label><input id="spOtherSkill" placeholder="Other home service skill" /></div>
         <div class="field"><label>Experience</label><input id="spExperience" placeholder="e.g. 5 years" /></div>
         <div class="field"><label>Service Radius</label><select id="spRadius"><option>Up to 6 km</option><option>Up to 12 km</option></select></div>
         <div class="field"><label>Profile Photo</label><input type="file" accept="image/*" /></div>
@@ -146,11 +146,11 @@ body{background:linear-gradient(180deg,#f8fbfb 0%,#f5f7fb 45%,#eef4f3 100%)}
     <section id="provider" class="screen">
       <button class="back" onclick="go('work')">← Back</button><h2>Service Provider Dashboard</h2>
       <div class="card between"><div><b>Available for Work</b><div class="muted">OFF stops new jobs only; accepted/ongoing jobs continue.</div></div><button id="availabilitySwitch" class="switch on" onclick="toggleAvailability()" aria-label="Available for work"></button></div>
-      <div class="statgrid"><div class="stat"><span class="muted">Company Due</span><b id="dueAmount">₹0</b></div><div class="stat"><span class="muted">Threshold</span><b>₹500</b></div><div class="stat"><span class="muted">Commission</span><b>9%</b></div><div class="stat"><span class="muted">Jobs</span><b>4</b></div></div>
+      <div class="statgrid"><div class="stat"><span class="muted">OCS Wallet</span><b id="dueAmount">₹100</b></div><div class="stat"><span class="muted">Job Access</span><b id="jobAccessStatus">ON</b></div><div class="stat"><span class="muted">Commission</span><b>9%</b></div><div class="stat"><span class="muted">Minimum Wallet</span><b>None</b></div></div>
       <div id="providerAlert" class="notice hide"></div>
       <div class="card"><b>Onboarding checklist</b><div class="muted">Mobile OTP • Email • Full profile • KYC • Verified skills/services • Area/radius • Bank/payment details • Verification</div></div>
       <div class="card"><div class="between"><div><b>Current Job</b><div class="muted">Only one job can be Running / On the Way at a time.</div></div><span class="pill warn">1 Active</span></div><div class="divider"></div><div class="between"><div><b>Next Job Queue</b><div class="muted">Matching nearby jobs accepted while current work is running.</div></div><span class="pill ok">Allowed</span></div></div>
-      <div class="btnrow"><button class="btn secondary" onclick="simulateCashJob()">Demo Cash Job ₹1,000</button><button class="btn outline" onclick="clearDue()">Clear Full Due</button></div>
+      <div class="btnrow"><button class="btn secondary" onclick="simulateCashJob()">Demo Cash Job ₹1,000</button><button class="btn outline" onclick="rechargeWallet()">Recharge Wallet</button></div>
       <br><button class="btn outline" onclick="openSupport('provider')">Provider Support / Callback</button>
     </section>
 
@@ -163,7 +163,7 @@ body{background:linear-gradient(180deg,#f8fbfb 0%,#f5f7fb 45%,#eef4f3 100%)}
       <div class="card"><b>One Account • Multiple Roles</b><div class="muted">Use the app as Customer, Service Provider, Shop Seller, Property Owner/Agent/Builder — roles can be added later to the same account.</div><div class="rolebar" style="margin-top:10px"><span class="pill ok">Customer</span><span class="pill gray">Provider</span><span class="pill gray">Seller</span><span class="pill gray">Property</span></div></div>
       <div class="btnrow"><button class="btn" onclick="go('customerRegister')">Register Customer</button><button class="btn outline" onclick="go('providerRegister')">Join as Provider</button></div><br>
       <div class="card"><div class="between"><div><b>Future customer lifetime access fee</b><div class="muted">Not active now. Admin can decide later.</div></div><span class="pill warn" id="customerFeeLabel">OFF</span></div></div>
-      <div class="card"><b>Welcome Bonus</b><div class="muted">₹100 once after verified mobile; usable on first completed service online payment only; not withdrawable and does not reduce provider's agreed service amount.</div></div>
+      <div class="card"><b>Service Provider Welcome Bonus</b><div class="muted">₹100 OCS Wallet credit after provider verification. Non-withdrawable. Normal 9% platform commission applies from the first completed job.</div></div>
       <button class="btn outline" onclick="go('admin')">Open Admin Demo</button>
     </section>
 
@@ -171,7 +171,6 @@ body{background:linear-gradient(180deg,#f8fbfb 0%,#f5f7fb 45%,#eef4f3 100%)}
       <button class="back" onclick="go('account')">← Account</button><h2>Admin Control Center</h2><p class="muted">Prototype controls show the intended future architecture: normal business changes should be possible from mobile without editing code.</p>
       <div class="card"><h3>Business Settings</h3>
         <div class="field"><label>Home service commission %</label><input id="adminCommission" type="number" min="0" max="100" /></div>
-        <div class="field"><label>Company Due pause threshold ₹</label><input id="adminThreshold" type="number" min="0" /></div>
         <div class="field"><label>Visit charge 1–6 km ₹</label><input id="adminVisit1" type="number" /></div>
         <div class="field"><label>Visit charge >6–12 km ₹</label><input id="adminVisit2" type="number" /></div>
         <div class="field"><label>Customer lifetime fee ₹ (0 = OFF)</label><input id="adminCustomerFee" type="number" /></div>
@@ -189,11 +188,18 @@ body{background:linear-gradient(180deg,#f8fbfb 0%,#f5f7fb 45%,#eef4f3 100%)}
 <nav class="bottomnav"><button onclick="go('home')"><span>🏠</span>Home</button><button onclick="go('property')"><span>🏢</span>Property</button><button onclick="go('services')"><span>🛠️</span>Services</button><button onclick="go('shop')"><span>🛒</span>Shop</button><button onclick="go('account')"><span>👤</span>Account</button></nav>
 
 <script>
-const DEFAULTS={commission:9,dueThreshold:500,visit1:199,visit2:249,customerFee:0,welcomeBonus:100,propertySingle:199,propertyBuilder:1449,shopPlan:199};
+const DEFAULTS={commission:9,visit1:199,visit2:249,customerFee:0,welcomeBonus:100,propertySingle:199,propertyBuilder:499,shopPlan:99};
 let savedSettings={};try{savedSettings=JSON.parse(localStorage.getItem('ocsSettings')||'{}')}catch(e){savedSettings={}}
-if(Number(savedSettings.commission)===15){savedSettings.commission=9;localStorage.setItem('ocsSettings',JSON.stringify(savedSettings));}
+if(Number(savedSettings.commission)===15)savedSettings.commission=9;
+if(Number(savedSettings.propertyBuilder)===1449)savedSettings.propertyBuilder=499;
+if(Number(savedSettings.shopPlan)===199)savedSettings.shopPlan=99;
+delete savedSettings.dueThreshold;
+localStorage.setItem('ocsSettings',JSON.stringify(savedSettings));
 let settings={...DEFAULTS,...savedSettings};
-let selectedService='',selectedTask=null,currentBooking=null,supportRole='customer',providerAvailable=true,companyDue=Number(localStorage.getItem('ocsCompanyDue')||0);
+const legacyCompanyDue=Number(localStorage.getItem('ocsCompanyDue')||0);
+let providerWallet=Number(localStorage.getItem('ocsProviderWallet') ?? (settings.welcomeBonus-legacyCompanyDue));
+let providerJobAccess=providerWallet>0;
+let selectedService='',selectedTask=null,currentBooking=null,supportRole='customer',providerAvailable=providerJobAccess;
 // Explicit DOM references so buttons work reliably across mobile browsers/GitHub Pages.
 const serviceCategories=document.getElementById('serviceCategories');
 const serviceTitle=document.getElementById('serviceTitle');
@@ -218,6 +224,7 @@ const pWarranty=document.getElementById('pWarranty');
 const sellerProductsCount=document.getElementById('sellerProductsCount');
 const availabilitySwitch=document.getElementById('availabilitySwitch');
 const dueAmount=document.getElementById('dueAmount');
+const jobAccessStatus=document.getElementById('jobAccessStatus');
 const providerAlert=document.getElementById('providerAlert');
 const supportTitle=document.getElementById('supportTitle');
 const supportText=document.getElementById('supportText');
@@ -225,7 +232,6 @@ const callbackReq=document.getElementById('callbackReq');
 const ticketResult=document.getElementById('ticketResult');
 const customerFeeLabel=document.getElementById('customerFeeLabel');
 const adminCommission=document.getElementById('adminCommission');
-const adminThreshold=document.getElementById('adminThreshold');
 const adminVisit1=document.getElementById('adminVisit1');
 const adminVisit2=document.getElementById('adminVisit2');
 const adminCustomerFee=document.getElementById('adminCustomerFee');
@@ -239,7 +245,7 @@ const services={
  'AC Service':{icon:'❄️',items:[{name:'AC service',type:'quote'},{name:'AC repair',type:'quote'},{name:'Installation / uninstallation',type:'quote'},{name:'Gas / cooling issue',type:'quote'},{name:'Any Other AC Work',type:'quote'}]},
  'Cleaning':{icon:'🧹',items:[{name:'Full home cleaning',type:'quote'},{name:'Bathroom cleaning',type:'quote'},{name:'Kitchen cleaning',type:'quote'},{name:'Sofa / carpet cleaning',type:'quote'},{name:'Any Other Cleaning Work',type:'quote'}]},
  'Carpenter':{icon:'🪚',items:[{name:'Door / hinge / lock work',type:'quote'},{name:'Furniture assembly',type:'quote'},{name:'Drawer / channel repair',type:'quote'},{name:'Custom woodwork',type:'quote'},{name:'Any Other Carpentry Work',type:'quote'}]},
- 'Appliance Repair':{icon:'🔧',items:[{name:'Washing machine',type:'quote'},{name:'Refrigerator',type:'quote'},{name:'Microwave / chimney',type:'quote'},{name:'TV / RO',type:'quote'},{name:'Any Other Appliance Work',type:'quote'}]},
+ 'Appliance Repair':{icon:'🔧',items:[{name:'Washing Machine Repair / Service',type:'quote'},{name:'Refrigerator Repair / Service',type:'quote'},{name:'Chimney Repair / Service',type:'quote'},{name:'RO / Water Purifier Repair / Service',type:'quote'}]},
  'Pest Control':{icon:'🐜',items:[{name:'General pest control',type:'quote'},{name:'Cockroach',type:'quote'},{name:'Ant',type:'quote'},{name:'Bedbugs',type:'quote'},{name:'Any Other Pest Control',type:'quote'}]},
  'Maid Service':{icon:'🧼',items:[{name:'Hourly / daily maid',type:'quote'},{name:'Jhadu / Pocha',type:'quote'},{name:'Utensils / clothes',type:'quote'},{name:'Cooking assistance',type:'quote'},{name:'Any Other Maid Work',type:'quote'}]}
 };
@@ -259,25 +265,26 @@ function startWork(){const otp=prompt('Enter Start OTP (demo: 4826)');if(otp!==c
 function completeWork(){if(!confirm('Customer confirms the work is completed?'))return;currentBooking.status='Completed';renderJob();}
 function notCompleted(){const reason=prompt('Reason work could not be completed');if(!reason)return;if(!confirm('Customer confirms Work Not Completed?'))return;currentBooking.reason=reason;currentBooking.visitCharge=currentBooking.km<=6?settings.visit1:settings.visit2;currentBooking.status='Not completed';renderJob();}
 function switchToOnline(kind='service'){currentBooking.paymentMethod='online';alert('Online selected. OCS Razorpay QR/payment link will open here after live payment integration is connected.');renderJob();}
-function payOnline(kind='service'){const isVisit=kind==='visit';const amount=isVisit?currentBooking.visitCharge:currentBooking.quote;alert(`Demo online payment: ₹${amount}. Razorpay live checkout/OCS QR will be connected after approval.`);currentBooking.status=isVisit?'Visit charge paid online':'Paid online';renderJob();}
-function payCash(kind='service'){const isVisit=kind==='visit';const amount=isVisit?currentBooking.visitCharge:currentBooking.quote;if(!isVisit){const commission=Math.round(amount*settings.commission/100);companyDue+=commission;localStorage.setItem('ocsCompanyDue',companyDue);alert(`Cash ₹${amount} paid directly to provider. Company Due added: ₹${commission}.`);currentBooking.status='Cash paid / Company Due recorded';}else{alert(`Cash visit charge ₹${amount} recorded.`);currentBooking.status='Visit charge paid cash';}renderJob();}
+function payOnline(kind='service'){const isVisit=kind==='visit';const amount=isVisit?currentBooking.visitCharge:currentBooking.quote;alert(`Demo online payment: ₹${amount}. Online settlement me 9% OCS commission automatically adjust hoga.`);currentBooking.status=isVisit?'Visit charge paid online':'Paid online';renderJob();}
+function payCash(kind='service'){const isVisit=kind==='visit';const amount=isVisit?currentBooking.visitCharge:currentBooking.quote;if(!isVisit){const commission=applyProviderCommission(amount);alert(`Cash ₹${amount} paid directly to provider. 9% OCS charge ₹${commission.toFixed(2)} provider wallet se adjust hua.`);currentBooking.status='Cash paid / OCS wallet adjusted';}else{alert(`Cash visit charge ₹${amount} recorded.`);currentBooking.status='Visit charge paid cash';}renderJob();}
 function demoPropertySearch(){const city=propCity.value.trim()||'Selected city',area=propArea.value.trim()||'All areas';propertyResults.innerHTML=`<div class="card"><b>Search ready: ${city} • ${area}</b><div class="muted">Real listings will come from database after backend is connected. Customer search is city/locality based and not locked to current GPS.</div></div>`;}
 function showPropertyPlans(){propertyPlans.classList.remove('hide');propertyPlans.scrollIntoView({behavior:'smooth'});}
 function openPropertyForm(plan){const amount=plan==='Builder Plan'?settings.propertyBuilder:settings.propertySingle;propertyPlanLabel.textContent=plan+' ₹'+Number(amount).toLocaleString('en-IN');go('propertyForm');}
-function propertySubmit(){alert('Prototype: payment gateway + Admin verification will be connected later. Listing becomes Live only after required payment and approval.');}
+function propertySubmit(){alert('Prototype: payment + required verification flow. After successful payment/verification, the property listing becomes Live for 28 days.');}
 function renderProducts(){productList.innerHTML=products.map(p=>`<div class="card"><div class="between"><div><b>${p.name}</b><div class="muted">In Stock • ${p.warranty}</div></div><b>₹${p.price.toLocaleString('en-IN')}</b></div><div class="divider"></div><b>Sold by: ${p.shop}</b><div class="muted">${p.area}</div><div class="btnrow" style="margin-top:10px"><button class="btn outline" onclick="alert('Call Shop')">Call Shop</button><button class="btn outline" onclick="alert('Chat with Shop')">Chat</button></div><button class="btn secondary" style="margin-top:10px" onclick="alert('Need Installation? Connect to Home Services')">Need Installation?</button></div>`).join('');}
 function toggleAddProduct(){addProductBox.classList.toggle('hide');}
 function addProduct(){const name=pName.value.trim(),price=Number(pPrice.value);if(!name||!price){alert('Enter product name and price');return}products.unshift({name,price,shop:'Rehan Electricals',area:'Khopoli',warranty:pWarranty.value||'Warranty as per seller'});addProductBox.classList.add('hide');sellerProductsCount.textContent=products.length;alert('Product published in prototype.');}
-function toggleAvailability(){providerAvailable=!providerAvailable;availabilitySwitch.classList.toggle('on',providerAvailable);renderProvider();}
-function renderProvider(){dueAmount.textContent='₹'+companyDue;availabilitySwitch.classList.toggle('on',providerAvailable);if(companyDue>=settings.dueThreshold){providerAlert.classList.remove('hide');providerAlert.innerHTML=`<b>New job alerts paused.</b> Company Due is ₹${companyDue}, which is at/above ₹${settings.dueThreshold}. Already accepted/ongoing jobs are not cancelled. Clear the <b>full outstanding</b> to resume new alerts.`;}else if(!providerAvailable){providerAlert.classList.remove('hide');providerAlert.innerHTML='<b>Available for Work is OFF.</b> No new jobs will be sent. Existing accepted/ongoing jobs continue.';}else{providerAlert.classList.add('hide');}}
-function simulateCashJob(){const commission=Math.round(1000*settings.commission/100);companyDue+=commission;localStorage.setItem('ocsCompanyDue',companyDue);renderProvider();}
-function clearDue(){if(companyDue===0){alert('No Company Due');return}if(!confirm(`Clear full outstanding ₹${companyDue}?`))return;companyDue=0;localStorage.setItem('ocsCompanyDue','0');renderProvider();}
+function toggleAvailability(){if(!providerAvailable&&!providerJobAccess){alert('OCS Wallet recharge ke baad new jobs ON honge. Ongoing/accepted job cancel nahi hoga.');return}providerAvailable=!providerAvailable;availabilitySwitch.classList.toggle('on',providerAvailable);renderProvider();}
+function renderProvider(){dueAmount.textContent=(providerWallet<0?'−₹'+Math.abs(providerWallet).toFixed(2):'₹'+providerWallet.toFixed(2));jobAccessStatus.textContent=providerJobAccess?'ON':'PAUSED';availabilitySwitch.classList.toggle('on',providerAvailable);if(!providerJobAccess){providerAlert.classList.remove('hide');providerAlert.innerHTML='<b>New jobs paused.</b> OCS Wallet balance zero/negative after company charge. Recharge karte hi job access resume hoga. Already accepted/ongoing jobs cancel nahi honge.';}else if(!providerAvailable){providerAlert.classList.remove('hide');providerAlert.innerHTML='<b>Available for Work is OFF.</b> No new jobs will be sent. Existing accepted/ongoing jobs continue.';}else{providerAlert.classList.add('hide');}}
+function applyProviderCommission(amount){const commission=Math.round((amount*settings.commission/100)*100)/100;providerWallet=Math.round((providerWallet-commission)*100)/100;localStorage.setItem('ocsProviderWallet',providerWallet);if(providerWallet<=0){providerJobAccess=false;providerAvailable=false;}return commission;}
+function simulateCashJob(){const commission=applyProviderCommission(1000);alert(`Demo cash job: 9% OCS charge ₹${commission.toFixed(2)} wallet se adjust hua.`);renderProvider();}
+function rechargeWallet(){const amount=Number(prompt('Recharge amount ₹'));if(!amount||amount<=0)return;providerWallet=Math.round((providerWallet+amount)*100)/100;localStorage.setItem('ocsProviderWallet',providerWallet);if(providerWallet>0){providerJobAccess=true;providerAvailable=true;}renderProvider();}
 function openSupport(role){supportRole=role;supportTitle.textContent=role==='provider'?'Service Provider Support':'Customer Support';supportText.value='';ticketResult.innerHTML='';go('support');}
 function submitTicket(){const txt=supportText.value.trim();if(!txt){alert('Please describe the issue');return}const no='OCST'+Date.now().toString().slice(-8);ticketResult.innerHTML=`<div class="card"><span class="pill ok">Submitted</span><h3>Ticket <span class="ticket">${no}</span></h3><div>${callbackReq.checked?'Callback requested.':'No callback requested.'}</div></div>`;}
 function registerCustomer(){const n=document.getElementById('custName').value.trim(),m=document.getElementById('custMobile').value.trim(),e=document.getElementById('custEmail').value.trim();if(!n||m.length<10||!e){alert('Please enter name, valid mobile number and email ID.');return}alert('Prototype: OTP will be sent to '+m+'. Customer account can later add Provider, Seller or Property roles.');go('account');}
 function submitProviderProfile(){const n=document.getElementById('spName').value.trim(),m=document.getElementById('spMobile').value.trim(),a=document.getElementById('spArea').value.trim(),b=document.getElementById('spBank').value.trim();if(!n||m.length<10||!a||!b){alert('Please complete name, mobile, area and bank/payment details.');return}alert('Service Provider profile submitted for verification. Only jobs matching verified skills and service area will be eligible.');go('provider');}
-function loadAdmin(){adminCommission.value=settings.commission;adminThreshold.value=settings.dueThreshold;adminVisit1.value=settings.visit1;adminVisit2.value=settings.visit2;adminCustomerFee.value=settings.customerFee;adminBonus.value=settings.welcomeBonus;adminPropertySingle.value=settings.propertySingle;adminPropertyBuilder.value=settings.propertyBuilder;adminShopPlan.value=settings.shopPlan;}
-function saveAdminSettings(){settings={commission:Number(adminCommission.value),dueThreshold:Number(adminThreshold.value),visit1:Number(adminVisit1.value),visit2:Number(adminVisit2.value),customerFee:Number(adminCustomerFee.value),welcomeBonus:Number(adminBonus.value),propertySingle:Number(adminPropertySingle.value),propertyBuilder:Number(adminPropertyBuilder.value),shopPlan:Number(adminShopPlan.value)};localStorage.setItem('ocsSettings',JSON.stringify(settings));alert('Admin settings saved on this device (prototype).');refreshAccount();}
+function loadAdmin(){adminCommission.value=settings.commission;adminVisit1.value=settings.visit1;adminVisit2.value=settings.visit2;adminCustomerFee.value=settings.customerFee;adminBonus.value=settings.welcomeBonus;adminPropertySingle.value=settings.propertySingle;adminPropertyBuilder.value=settings.propertyBuilder;adminShopPlan.value=settings.shopPlan;}
+function saveAdminSettings(){settings={commission:9,visit1:Number(adminVisit1.value),visit2:Number(adminVisit2.value),customerFee:Number(adminCustomerFee.value),welcomeBonus:100,propertySingle:Number(adminPropertySingle.value),propertyBuilder:Number(adminPropertyBuilder.value),shopPlan:Number(adminShopPlan.value)};localStorage.setItem('ocsSettings',JSON.stringify(settings));alert('Admin settings saved on this device (prototype). Home Service commission stays locked at 9% and SP welcome bonus at ₹100.');refreshAccount();}
 function refreshAccount(){customerFeeLabel.textContent=settings.customerFee>0?'₹'+settings.customerFee+' LIFETIME':'OFF';}
 function refreshPlanPrices(){const s1=document.getElementById('singlePlanPrice'),s2=document.getElementById('singlePlanBtnPrice'),b=document.getElementById('builderPlanPrice'),sh=document.getElementById('shopPlanPrice');if(s1)s1.textContent=Number(settings.propertySingle).toLocaleString('en-IN');if(s2)s2.textContent=Number(settings.propertySingle).toLocaleString('en-IN');if(b)b.textContent=Number(settings.propertyBuilder).toLocaleString('en-IN');if(sh)sh.textContent=Number(settings.shopPlan).toLocaleString('en-IN');refreshBookingPaymentInfo();}
 renderServices();renderProducts();refreshAccount();refreshPlanPrices();go('home');
