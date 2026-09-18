@@ -159,14 +159,7 @@ S.startOtp=String(Math.floor(1000+Math.random()*9000));
 hist("Rescheduled visit • Fresh Start OTP generated")
 }
 
-function changeProvider(){
-let r=prompt("Change Provider reason");if(!r)return;
-let old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";
-S.status="REQUESTED";S.startOtp=null;
-hist("Customer changed Provider • "+old+" detached • Reason: "+r+" • Sent to "+S.provider)
-}
-
-function cancelJob(by){
+function changeProvider(){ let r=prompt("Service Provider change reason mandatory");if(!r)return;if(!confirm("Provider change request OCS Support ko bhejna hai? New provider automatic assign nahi hoga."))return;S.previousProvider=S.provider;S.providerChangeReason=r;S.providerChangeTicket=createTicket("customer","Provider Change: "+r,true);S.status="PROVIDER_CHANGE_HOLD";S.startOtp=null;S.currentJob="On Hold • OCS Support Review";hist("Customer requested Provider Change • "+S.previousProvider+" stopped • Reason: "+r+" • Ticket "+S.providerChangeTicket+" • No automatic reassignment") }  function cancelJob(by){
 let r=prompt("Work Not Completed / Cancel reason mandatory");if(!r)return;
 S.cancelReason=r;S.cancelBy=by;
 if(S.status==="WORKING"){
