@@ -86,8 +86,7 @@ Status: <span class="status" id="pStatus">WAITING</span>
 
 <script>
 const S={
-status:"READY",provider:"SP1",available:true,base:539,total:539,
-service:"Electrician • Fan + Switch Work",address:"Customer Address",
+status:"READY",provider:"SP1",available:true,base:239,total:239, service:"Electrical • Fan Fitting / Capacitor Change",address:"Customer Address",
 startOtp:null,quote:null,quoteDecision:null,reschedule:null,rescheduleBy:null,
 cancelReason:null,cancelBy:null,visitCharge:0,distanceSlab:null,
 payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",supportTickets:[],logs:[],
@@ -327,7 +326,7 @@ if(S.status==="READY")h=`
 <button class="btn" onclick="booking()">Find Service Provider</button>
 </div>`;
 
-if(S.status==="REQUESTED")h=`<div class="notice">Searching / request sent to <b>${S.provider}</b></div>`;
+if(S.status==="REQUESTED")h=`<div class="notice">Searching / request sent to <b>${S.provider}</b></div>`;  if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice"><b>Provider Change On Hold</b><br>OCS Support/Admin review chal raha hai. New provider automatic assign nahi hoga.</div>`;
 
 if(S.status==="ASSIGNED"||S.status==="ON_WAY")h=`
 <div class="notice good"><b>${S.provider}</b> assigned<br>
