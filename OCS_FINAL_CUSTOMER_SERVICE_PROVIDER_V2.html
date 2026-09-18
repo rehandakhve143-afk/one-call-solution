@@ -260,7 +260,7 @@ if(S.status==="READY")h=`
 <button class="btn" onclick="booking()">Book Service</button>
 </div>`;
 
-if(S.status==="REQUESTED")h=`<div class="notice">Searching / request sent to <b>${S.provider}</b></div>`;
+if(S.status==="REQUESTED")h=`<div class="notice">Searching / request sent to <b>${S.provider}</b></div>`;  if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice"><b>Provider Change On Hold</b><br>OCS Support/Admin review. No automatic reassignment.</div>`;
 
 if(S.status==="ASSIGNED"||S.status==="ON_WAY")h=`
 <div class="notice good"><b>${S.provider}</b> assigned<br>
