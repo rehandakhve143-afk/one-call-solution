@@ -3,7 +3,7 @@
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#edf4f7;color:#173247}.app{max-width:720px;margin:auto;min-height:100vh;background:#f9fcfd;padding-bottom:35px}
 header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18px 16px 22px;border-radius:0 0 24px 24px}.brand{display:flex;gap:12px;align-items:center}.logo{width:54px;height:54px;border:4px solid #42d6cf;border-radius:50%;display:grid;place-items:center;background:#fff;color:#07506f;font-weight:900}h1{font-size:24px;margin:0}header small{opacity:.82}.hero{margin:14px;padding:17px;border-radius:18px;background:linear-gradient(110deg,#e5f8ff,#fff1e7);box-shadow:0 5px 18px #1232}.hero h2{margin:0 0 5px}.muted{color:#6b808c;font-size:13px}
 .grid{padding:0 13px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.card{border:1px solid #dce8ed;background:#fff;border-radius:16px;padding:13px;text-align:left;display:flex;gap:10px;align-items:center;box-shadow:0 4px 15px #1231;min-height:77px}.card .ico{font-size:27px}.card span:nth-child(2){flex:1}.card b{display:block;font-size:14px}.card small{display:block;color:#758792;margin-top:4px}.card strong{font-size:25px;color:#0b7185}.biz{margin:13px;background:#083f65;color:white;border-radius:18px;padding:17px}.primary{border:0;border-radius:11px;background:#ff671b;color:white;font-weight:900;padding:12px 15px;width:100%}
-.viewer{display:none;position:fixed;inset:0;background:#fff;z-index:20}.viewer.show{display:block}.bar{height:54px;background:#063f63;color:white;display:flex;align-items:center;gap:10px;padding:8px 11px}.back{border:0;background:#fff;color:#063f63;border-radius:9px;padding:8px 11px;font-weight:900}#title{font-weight:900;flex:1}.common-search,.viewer-search{display:flex;gap:8px;align-items:center;background:#fff}.common-search{margin:13px 14px 6px;padding:8px;border:1px solid #d9e6e8;border-radius:16px;box-shadow:0 5px 16px #173d4210}.viewer-search{height:58px;padding:8px 11px;border-bottom:1px solid #dce7e9}.common-search input,.viewer-search input{flex:1;min-width:0;border:0!important;outline:0;padding:11px!important;margin:0!important;background:#f3f8f8!important;border-radius:11px!important}.common-search button,.viewer-search button{border:0;border-radius:11px;padding:11px 14px;background:#087a70;color:#fff;font-weight:850;white-space:nowrap}.search-hint{margin:0 16px 8px;color:#6c8088;font-size:12px}.search-hit{outline:3px solid #17a589!important;outline-offset:3px!important;transition:outline .2s}.viewer iframe{width:100%;height:calc(100vh - 112px);border:0}
+.viewer{display:none;position:fixed;inset:0;background:#fff;z-index:20;padding-top:72px}.viewer.show{display:block}.bar{height:54px;background:#063f63;color:white;display:flex;align-items:center;gap:10px;padding:8px 11px}.back{border:0;background:#fff;color:#063f63;border-radius:9px;padding:8px 11px;font-weight:900}#title{font-weight:900;flex:1}.common-search{display:flex;gap:8px;align-items:center;background:#fff;margin:13px 14px 6px;padding:8px;border:1px solid #d9e6e8;border-radius:16px;box-shadow:0 5px 16px #173d4210}.common-search input{flex:1;min-width:0;border:0!important;outline:0;padding:11px!important;margin:0!important;background:#f3f8f8!important;border-radius:11px!important}.common-search button{border:0;border-radius:11px;padding:11px 14px;background:#087a70;color:#fff;font-weight:850;white-space:nowrap}.search-hint{margin:0 16px 8px;color:#6c8088;font-size:12px}.search-hit{outline:3px solid #17a589!important;outline-offset:3px!important;transition:outline .2s}body.module-open .common-search{position:fixed;top:0;left:0;right:0;z-index:60;margin:8px auto;width:min(692px,calc(100% - 16px));box-shadow:0 8px 24px #173d4230}body.module-open #globalSearchHint{display:none}.viewer iframe{width:100%;height:calc(100vh - 126px);border:0}
 .modal{display:none;position:fixed;inset:0;background:#001d2d99;z-index:40;align-items:flex-end;justify-content:center}.modal.show{display:flex}.sheet{width:min(720px,100%);background:white;border-radius:24px 24px 0 0;padding:18px;max-height:90vh;overflow:auto}.x{float:right;border:0;border-radius:50%;width:38px;height:38px;font-size:20px}label{display:block;font-weight:850;margin:10px 0 5px}input,textarea,select{width:100%;padding:11px;border:1px solid #cadbe2;border-radius:10px}textarea{min-height:75px}#otherFields{display:none;margin-bottom:12px}
 /* Final home shell: sliding banner + obvious account entry */
 .top-actions{display:flex;gap:8px;margin-left:auto}.top-actions button{border:1px solid #ffffff38;background:#ffffff16;color:#fff;border-radius:11px;padding:9px 11px;font-weight:850}
@@ -52,7 +52,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <div class="section-head" id="explore"><div><h2>Explore OCS</h2><small>Choose a service or business window</small></div></div>
 <div class="grid" id="moduleGrid"><button class="card" onclick='openModule("Home Services")'><span class="ico">🏠</span><span><b>Home Services</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Property")'><span class="ico">🏢</span><span><b>Property</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Local Shop")'><span class="ico">🏪</span><span><b>Local Shop</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Sliding / Aluminium")'><span class="ico">🪟</span><span><b>Sliding / Aluminium</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Welding / Fabrication")'><span class="ico">⚒</span><span><b>Welding / Fabrication</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Beauty / Make-up")'><span class="ico">✦</span><span><b>Beauty / Make-up</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Used Vehicle")'><span class="ico">🚗</span><span><b>Used Vehicle</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("New Vehicle")'><span class="ico">🚘</span><span><b>New Vehicle</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Medical Store")'><span class="ico">✚</span><span><b>Medical Store</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Diagnostic Lab")'><span class="ico">🧪</span><span><b>Diagnostic Lab</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Modular Kitchen")'><span class="ico">▦</span><span><b>Modular Kitchen</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Hotel / Restaurant / Lodging")'><span class="ico">🏨</span><span><b>Hotel / Restaurant / Lodging</b><small>Rooms • Food • Stay</small></span><strong>›</strong></button></div>
 <div class="biz"><h2 style="margin:0">Register Your Business on OCS</h2><p style="opacity:.85">Yahan business profile/listing banegi. Ye Home Banner Ad se alag hai.</p><button class="primary" onclick="openBiz()">Create Business Listing</button><button class="primary" style="margin-top:9px;background:#0d6f86" onclick="openPricingAdmin()">Admin • Prices / Free Override</button></div></div>
-<div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div></div><div class="viewer-search"><span>🔎</span><input id="windowSearch" placeholder="Search inside this window..." onkeydown="if(event.key==='Enter')runWindowSearch()"><button onclick="runWindowSearch()">Search</button></div><iframe id="frame"></iframe></div>
+<div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div></div><iframe id="frame"></iframe></div>
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Create Customer Account</h2><p class="muted" id="accountSub">Mobile OTP + email verification required.</p>
 <div id="customerAccountForm">
   <label>Full Name *</label><input id="caName" autocomplete="name" placeholder="Your full name">
@@ -236,6 +236,11 @@ function moduleText(n){let base=n+" "+(OCS_SEARCH_ALIASES[n]||"");try{base+=" "+
 function resetHomeSearch(){document.querySelectorAll("#moduleGrid .card").forEach(x=>x.style.display="");const h=document.getElementById("globalSearchHint");if(h)h.textContent="Common search • OCS ke kisi bhi window/service ko search karein"}
 function runGlobalSearch(){
  const input=document.getElementById("globalSearch"),q=ocsNorm(input?.value);
+ if(currentModuleName){
+   if(!q)return;
+   runWindowSearch(q);
+   return;
+ }
  if(!q){resetHomeSearch();return}
  const cards=[...document.querySelectorAll("#moduleGrid .card")];
  const names=Object.keys(modulesB64);
@@ -257,8 +262,8 @@ function runGlobalSearch(){
  }
 }
 function frameVisible(el){const s=el.ownerDocument.defaultView.getComputedStyle(el);return s.display!=="none"&&s.visibility!=="hidden"&&el.getClientRects().length>0}
-function runWindowSearch(){
- const q=ocsNorm(document.getElementById("windowSearch")?.value);
+function runWindowSearch(searchValue){
+ const q=ocsNorm(searchValue||document.getElementById("globalSearch")?.value);
  if(!q)return;
  const frame=document.getElementById("frame"),doc=frame.contentDocument;if(!doc)return;
  const native=[...doc.querySelectorAll('input[type="search"],input[placeholder*="search" i]')].find(frameVisible);
@@ -271,14 +276,19 @@ function runWindowSearch(){
 }
 function openModule(n,role){
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
- const ws=document.getElementById("windowSearch");if(ws)ws.value=pendingWindowSearch||"";
+ document.body.classList.add("module-open");
+ const gs=document.getElementById("globalSearch");if(gs){gs.placeholder="Search in "+n+"...";if(pendingWindowSearch)gs.value=pendingWindowSearch}
  frame.onload=function(){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role)}catch(e){}}
-   if(pendingWindowSearch){setTimeout(runWindowSearch,180);pendingWindowSearch=""}
+   if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch="";setTimeout(()=>runWindowSearch(q),180)}
  };
  frame.srcdoc=decode64(modulesB64[n]);document.getElementById('viewer').classList.add('show')
 }
-function closeModule(){document.getElementById('viewer').classList.remove('show');document.getElementById('frame').srcdoc='';currentModuleName="";pendingWindowSearch="";const ws=document.getElementById("windowSearch");if(ws)ws.value=""}
+function closeModule(){
+ document.getElementById('viewer').classList.remove('show');document.getElementById('frame').srcdoc='';currentModuleName="";pendingWindowSearch="";
+ document.body.classList.remove("module-open");
+ const gs=document.getElementById("globalSearch");if(gs){gs.value="";gs.placeholder="Search service, shop, property, hotel, vehicle..."}
+}
 function openBiz(){document.getElementById('bizModal').classList.add('show')}function closeBiz(){document.getElementById('bizModal').classList.remove('show')}
 document.getElementById('bizCat').onchange=function(){document.getElementById('otherFields').style.display=this.value==='Other Business'?'block':'none';updateBizPrice()};document.getElementById('obName').addEventListener('input',updateBizPrice);updateBizPrice();
 function continueBiz(){let c=document.getElementById('bizCat').value;if(c!=='Other Business'){closeBiz();openModule(c);return}
