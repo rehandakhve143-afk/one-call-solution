@@ -123,6 +123,51 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
  #moduleGrid .card .mini-badge{top:13px;left:13px;font-size:7px}
 }
 
+
+/* OCS Clean Marketplace Home v3 */
+.search-hint{display:none!important}
+#explore{padding:10px 14px 7px!important}
+#explore h2{font-size:18px!important;margin:0!important}
+#explore small{display:none!important}
+#moduleGrid{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:11px 9px!important;padding:0 13px 14px!important
+}
+#moduleGrid .card{
+  min-height:0!important;padding:0!important;border:0!important;border-left:0!important;
+  border-radius:15px!important;background:transparent!important;box-shadow:none!important;
+  display:block!important;text-align:center!important;overflow:visible!important
+}
+#moduleGrid .card:active{transform:scale(.98)!important;box-shadow:none!important}
+#moduleGrid .card .ico{
+  width:100%!important;height:auto!important;aspect-ratio:1.08/1!important;
+  border-radius:15px!important;margin:0 0 7px!important;
+  background-size:300% 400%!important;background-repeat:no-repeat!important;
+  box-shadow:0 4px 13px rgba(18,50,71,.10)!important;border:1px solid #e2ebec!important
+}
+#moduleGrid .card span:nth-child(3){
+  display:block!important;padding:0 3px!important;min-width:0!important
+}
+#moduleGrid .card b{
+  display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
+  overflow:hidden!important;font-size:11px!important;line-height:1.13!important;
+  min-height:25px!important;color:#173247!important;text-align:center!important;font-weight:850!important
+}
+#moduleGrid .card small,#moduleGrid .card strong,#moduleGrid .card .mini-badge{display:none!important}
+#moduleGrid .c1,#moduleGrid .c2,#moduleGrid .c3,#moduleGrid .c4,#moduleGrid .c5,#moduleGrid .c6,
+#moduleGrid .c7,#moduleGrid .c8,#moduleGrid .c9,#moduleGrid .c10,#moduleGrid .c11,#moduleGrid .c12{
+  background:transparent!important
+}
+.clean-hero{margin:8px 14px 12px!important;border-radius:18px!important}
+.clean-hero .slide{min-height:176px!important}
+.trust-row{margin-top:8px!important}
+.myocs-home{margin-top:4px!important}
+.promo-admin-row{margin-top:8px!important}
+@media(max-width:360px){
+ #moduleGrid{gap:10px 7px!important;padding-left:10px!important;padding-right:10px!important}
+ #moduleGrid .card b{font-size:10px!important}
+}
+
 </style></head><body><div class="app">
 <header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openNotifications()">🔔</button></div></div></header>
 
@@ -136,6 +181,21 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
   <div class="hb-meta" id="homeBookingMeta">Tap to view booking details</div>
 </div>
 
+<div class="section-head" id="explore"><div><h2>Explore One Call Solution</h2><small>Choose a main OCS window</small></div></div>
+<div class="grid" id="moduleGrid">
+<button class="card c1" onclick='openModule("Home Services")'><span class="mini-badge">Popular</span><span class="ico ico-home" aria-hidden="true"></span><span><b>Home Services</b><small>Book trusted local experts</small></span><strong>›</strong></button>
+<button class="card c2" onclick='openModule("Property")'><span class="mini-badge">Property</span><span class="ico ico-property" aria-hidden="true"></span><span><b>Property</b><small>Rent • Buy • Builder listings</small></span><strong>›</strong></button>
+<button class="card c3" onclick='openModule("Local Shop")'><span class="mini-badge">Nearby</span><span class="ico ico-local" aria-hidden="true"></span><span><b>Local Shop</b><small>Electrical & hardware shops</small></span><strong>›</strong></button>
+<button class="card c4" onclick='openModule("Sliding / Aluminium")'><span class="mini-badge">Business</span><span class="ico ico-sliding" aria-hidden="true"></span><span><b>Sliding / Aluminium</b><small>Windows • doors • glass work</small></span><strong>›</strong></button>
+<button class="card c5" onclick='openModule("Welding / Fabrication")'><span class="mini-badge">Business</span><span class="ico ico-welding" aria-hidden="true"></span><span><b>Welding / Fabrication</b><small>Gate • grill • fabrication</small></span><strong>›</strong></button>
+<button class="card c6" onclick='openModule("Beauty / Make-up")'><span class="mini-badge">Beauty</span><span class="ico ico-beauty" aria-hidden="true"></span><span><b>Beauty / Make-up</b><small>Artists • bridal • beauty</small></span><strong>›</strong></button>
+<button class="card c7" onclick='openModule("Used Vehicle")'><span class="mini-badge">Vehicles</span><span class="ico ico-used" aria-hidden="true"></span><span><b>Used Vehicle</b><small>Second-hand bikes & cars</small></span><strong>›</strong></button>
+<button class="card c8" onclick='openModule("New Vehicle")'><span class="mini-badge">Showroom</span><span class="ico ico-new" aria-hidden="true"></span><span><b>New Vehicle</b><small>New bikes & cars</small></span><strong>›</strong></button>
+<button class="card c9" onclick='openModule("Medical Store")'><span class="mini-badge">Health</span><span class="ico ico-medical" aria-hidden="true"></span><span><b>Medical Store</b><small>Nearby medical stores</small></span><strong>›</strong></button>
+<button class="card c10" onclick='openModule("Diagnostic Lab")'><span class="mini-badge">Health</span><span class="ico ico-lab" aria-hidden="true"></span><span><b>Diagnostic Lab</b><small>Tests • packages • enquiries</small></span><strong>›</strong></button>
+<button class="card c11" onclick='openModule("Modular Kitchen")'><span class="mini-badge">Premium</span><span class="ico ico-kitchen" aria-hidden="true"></span><span><b>Modular Kitchen</b><small>Design • measurement • quote</small></span><strong>›</strong></button>
+<button class="card c12" onclick='openModule("Hotel / Restaurant / Lodging")'><span class="mini-badge">Hospitality</span><span class="ico ico-hotel" aria-hidden="true"></span><span><b>Hotel / Restaurant / Lodging</b><small>Rooms • food • stay</small></span><strong>›</strong></button>
+</div>
 <div class="slider clean-hero" id="homeSlider">
   <div class="slides" id="slides">
     <div class="slide s1"><div class="slide-copy"><div class="slide-kicker">Home Services</div><h2>Trusted help, one call away</h2><p>Verified Service Providers, clear pricing, Start OTP and support — all in one place.</p><button onclick="openModule('Home Services','customer')">Book Home Service</button></div></div>
@@ -165,21 +225,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 
 <div class="promo-admin-row"><button onclick="openBannerAd()"><span class="promo-ico">📣</span><span class="promo-copy"><b>Promote on OCS</b><small>Post a Home Banner Ad • Paid promotion</small></span><span class="promo-arrow">›</span></button></div>
 
-<div class="section-head" id="explore"><div><h2>Explore OCS</h2><small>Choose a main OCS window</small></div></div>
-<div class="grid" id="moduleGrid">
-<button class="card c1" onclick='openModule("Home Services")'><span class="mini-badge">Popular</span><span class="ico ico-home" aria-hidden="true"></span><span><b>Home Services</b><small>Book trusted local experts</small></span><strong>›</strong></button>
-<button class="card c2" onclick='openModule("Property")'><span class="mini-badge">Property</span><span class="ico ico-property" aria-hidden="true"></span><span><b>Property</b><small>Rent • Buy • Builder listings</small></span><strong>›</strong></button>
-<button class="card c3" onclick='openModule("Local Shop")'><span class="mini-badge">Nearby</span><span class="ico ico-local" aria-hidden="true"></span><span><b>Local Shop</b><small>Electrical & hardware shops</small></span><strong>›</strong></button>
-<button class="card c4" onclick='openModule("Sliding / Aluminium")'><span class="mini-badge">Business</span><span class="ico ico-sliding" aria-hidden="true"></span><span><b>Sliding / Aluminium</b><small>Windows • doors • glass work</small></span><strong>›</strong></button>
-<button class="card c5" onclick='openModule("Welding / Fabrication")'><span class="mini-badge">Business</span><span class="ico ico-welding" aria-hidden="true"></span><span><b>Welding / Fabrication</b><small>Gate • grill • fabrication</small></span><strong>›</strong></button>
-<button class="card c6" onclick='openModule("Beauty / Make-up")'><span class="mini-badge">Beauty</span><span class="ico ico-beauty" aria-hidden="true"></span><span><b>Beauty / Make-up</b><small>Artists • bridal • beauty</small></span><strong>›</strong></button>
-<button class="card c7" onclick='openModule("Used Vehicle")'><span class="mini-badge">Vehicles</span><span class="ico ico-used" aria-hidden="true"></span><span><b>Used Vehicle</b><small>Second-hand bikes & cars</small></span><strong>›</strong></button>
-<button class="card c8" onclick='openModule("New Vehicle")'><span class="mini-badge">Showroom</span><span class="ico ico-new" aria-hidden="true"></span><span><b>New Vehicle</b><small>New bikes & cars</small></span><strong>›</strong></button>
-<button class="card c9" onclick='openModule("Medical Store")'><span class="mini-badge">Health</span><span class="ico ico-medical" aria-hidden="true"></span><span><b>Medical Store</b><small>Nearby medical stores</small></span><strong>›</strong></button>
-<button class="card c10" onclick='openModule("Diagnostic Lab")'><span class="mini-badge">Health</span><span class="ico ico-lab" aria-hidden="true"></span><span><b>Diagnostic Lab</b><small>Tests • packages • enquiries</small></span><strong>›</strong></button>
-<button class="card c11" onclick='openModule("Modular Kitchen")'><span class="mini-badge">Premium</span><span class="ico ico-kitchen" aria-hidden="true"></span><span><b>Modular Kitchen</b><small>Design • measurement • quote</small></span><strong>›</strong></button>
-<button class="card c12" onclick='openModule("Hotel / Restaurant / Lodging")'><span class="mini-badge">Hospitality</span><span class="ico ico-hotel" aria-hidden="true"></span><span><b>Hotel / Restaurant / Lodging</b><small>Rooms • food • stay</small></span><strong>›</strong></button>
-</div>
+
 <div class="biz"><div class="biz-ico">🏪</div><div class="biz-copy"><small>Grow with One Call Solution</small><h2>Add Your Business</h2><p>Create your business profile/listing on OCS. Banner advertising is a separate promotion option.</p></div><button class="primary" onclick="openBiz()">Add Your Business ›</button></div>
 <div class="share-ocs">
   <div class="share-ico">📲</div>
