@@ -51,6 +51,13 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 .bottom-nav{position:fixed;z-index:15;left:50%;transform:translateX(-50%);bottom:0;width:min(720px,100%);background:#fff;border-top:1px solid #dfe8ea;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px max(7px,env(safe-area-inset-bottom));box-shadow:0 -7px 22px rgba(18,50,71,.09)}.bottom-nav button{border:0;background:transparent;color:#667b84;padding:4px 2px;font-size:9px;font-weight:800}.bottom-nav button span{display:block;font-size:18px;line-height:1.1;margin-bottom:3px}.bottom-nav button.active{color:#087a70}
 @media(max-width:390px){.home-entry .start-card{min-height:146px}.home-entry .start-card .bigico{height:78px}.service-mini-grid{gap:6px}.service-mini{font-size:8.7px;padding:9px 2px}.clean-hero .slide-copy{width:64%}.clean-hero .slide h2{font-size:20px}}
 
+
+.home-role-buttons{margin:4px 14px 10px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.role-btn{border:1px solid #dce7e8;background:#fff;border-radius:14px;padding:13px 10px;font-weight:900;font-size:13px;box-shadow:0 4px 12px rgba(18,50,71,.05)}
+.role-btn.customer{color:#087a70}
+.role-btn.provider{color:#2f5fa8}
+@media(max-width:390px){.role-btn{font-size:12px;padding:12px 8px}}
+
 </style></head><body><div class="app">
 <header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openCustomerHub()">🔔</button></div></div></header>
 
@@ -59,11 +66,9 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <div class="common-search"><span style="font-size:20px">🔎</span><input id="globalSearch" placeholder="Search services, shops, property, vehicle..." onkeydown="if(event.key==='Enter')runGlobalSearch()"><button onclick="runGlobalSearch()">Search</button></div>
 <div id="globalSearchHint" class="search-hint">Search across One Call Solution</div>
 
-<div class="home-entry">
-  <div class="start-grid">
-    <button class="start-card customer" onclick="openCustomerHub()"><span class="bigico" aria-hidden="true"></span><b>Customer</b><small>Book service • My Bookings • Track status</small><span class="go">Open →</span></button>
-    <button class="start-card provider" onclick="openAccount('provider')"><span class="bigico" aria-hidden="true"></span><b>Service Provider</b><small>Jobs • Wallet • Available for Work</small><span class="go">Open →</span></button>
-  </div>
+<div class="home-role-buttons">
+  <button class="role-btn customer" onclick="openCustomerHub()">👤 Customer</button>
+  <button class="role-btn provider" onclick="openAccount('provider')">🛠 Service Provider</button>
 </div>
 
 <div class="home-booking" id="homeBookingStatus" onclick="openCustomerHub()">
