@@ -26,6 +26,16 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 @media(max-width:390px){.grid{grid-template-columns:1fr 1fr}.slide{min-height:178px}.slide-copy{width:75%}.slide h2{font-size:21px}.start-card{min-height:135px;padding:13px}}
 .promo-admin-row{margin:-3px 14px 14px;display:grid;grid-template-columns:1fr;gap:8px}.promo-admin-row button{border:1px solid #d9e7e6;background:#fff;border-radius:13px;padding:12px;font-weight:850;color:#17545e}
 .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.price-box{background:#f6faf9;border:1px solid #dce9e6;border-radius:13px;padding:10px}.price-box label{font-size:11px;margin:0 0 5px;color:#577079}.price-box input{margin:0}.free-box{margin-top:12px;padding:12px;border-radius:14px;background:#fff8e8;border:1px solid #f0dfb5}.free-list{margin-top:9px;font-size:12px}.free-pill{display:flex;justify-content:space-between;gap:8px;align-items:center;background:#fff;border:1px solid #eadfca;border-radius:10px;padding:8px;margin-top:6px}.free-pill button{border:0;background:#f7e6e6;color:#9b2c2c;border-radius:8px;padding:6px 8px;font-weight:800}.price-now{padding:10px;border-radius:12px;background:#eef8f5;border:1px solid #d6ebe4;margin:10px 0;font-weight:850;color:#175b4e}
+.banner-builder-note{padding:10px 12px;border-radius:12px;background:#eef8ff;border-left:4px solid #0b7891;font-size:12px;line-height:1.4;margin:8px 0 12px}
+.banner-preview-wrap{margin:14px 0 10px}.banner-preview-label{font-size:12px;font-weight:900;color:#617980;margin-bottom:6px}
+.banner-preview{position:relative;min-height:190px;border-radius:22px;overflow:hidden;background:linear-gradient(135deg,#073b56,#078a79 60%,#0aa58a);color:#fff;padding:18px;box-shadow:0 12px 30px #073b5630;display:flex;align-items:stretch}
+.banner-preview:before{content:"";position:absolute;width:190px;height:190px;border-radius:50%;right:-70px;top:-65px;background:#ffffff12}
+.banner-preview-copy{position:relative;z-index:2;width:62%;display:flex;flex-direction:column;justify-content:center}.banner-sponsored{display:inline-flex;align-items:center;gap:5px;width:max-content;background:#ffffff24;border:1px solid #ffffff30;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.7px;text-transform:uppercase}
+.banner-preview h3{font-size:23px;line-height:1.05;margin:8px 0 6px}.banner-preview p{font-size:12px;line-height:1.35;margin:0 0 6px;opacity:.92}.banner-preview .area{font-size:10px;opacity:.8;margin-bottom:10px}
+.banner-preview-cta{display:inline-block;width:max-content;max-width:100%;background:#fff;color:#07576a;border-radius:10px;padding:9px 12px;font-size:11px;font-weight:900}
+.banner-preview-media{position:absolute;right:10px;bottom:14px;width:35%;height:125px;border-radius:16px;overflow:hidden;background:#ffffff16;border:1px solid #ffffff22;display:grid;place-items:center;font-size:46px}.banner-preview-media img{width:100%;height:100%;object-fit:cover}
+.banner-file-help{font-size:11px;color:#6f8085;margin-top:-5px;margin-bottom:8px}.banner-two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:390px){.banner-preview-copy{width:64%}.banner-preview h3{font-size:20px}.banner-preview-media{width:33%;height:112px}}
 </style></head><body><div class="app">
 <header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openAccount('customer')">👤 Account</button></div></div></header>
 <div class="common-search"><span style="font-size:20px">🔎</span><input id="globalSearch" placeholder="Search service, shop, property, hotel, vehicle..." onkeydown="if(event.key==='Enter')runGlobalSearch()"><button onclick="runGlobalSearch()">Search</button></div>
@@ -107,16 +117,31 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <div id="freeOverrideList" class="free-list"></div></div>
 </div></div>
 
-<div class="modal" id="bannerModal"><div class="sheet"><button class="x" onclick="closeBannerAd()">×</button><h2>Post Home Banner Ad</h2><p class="muted">Ye sirf OCS Home Screen ke sliding advertisement banner ke liye hai. Business listing/profile alag hoti hai.</p>
-<label>Business Name *</label><input id="bannerBusiness" oninput="updateBannerPrice()" placeholder="Business / shop / project name">
-<label>Banner Title / Offer *</label><input id="bannerTitle" placeholder="e.g. Grand Opening • 20% Off">
-<label>City / Area *</label><input id="bannerArea" placeholder="City / Area">
-<label>Mobile / WhatsApp *</label><input id="bannerPhone" inputmode="tel">
-<label>Banner Image</label><input id="bannerImage" type="file" accept="image/*">
+<div class="modal" id="bannerModal"><div class="sheet"><button class="x" onclick="closeBannerAd()">×</button><h2>📣 Post Premium Home Banner Ad</h2>
+<p class="muted">Ye Home Screen ke sliding sponsored banner ke liye hai. OCS Business Listing karna compulsory nahi hai.</p>
+<div class="banner-builder-note"><b>Banner Ad = separate product.</b><br>Business OCS me registered ho ya na ho, banner le sakta hai. Payment ke baad OCS Admin approval ke baad ad live hoga.</div>
+
+<label>Business Name *</label><input id="bannerBusiness" oninput="updateBannerPrice();renderBannerPreview()" placeholder="Business / shop / project name">
+<label>Headline / Offer *</label><input id="bannerTitle" oninput="renderBannerPreview()" placeholder="e.g. Grand Opening • 20% Off">
+<label>Short Description</label><input id="bannerDesc" oninput="renderBannerPreview()" maxlength="90" placeholder="e.g. Premium rooms from ₹1,499 • Call today">
+<div class="banner-two">
+<div><label>City / Area *</label><input id="bannerArea" oninput="renderBannerPreview()" placeholder="City / Area"></div>
+<div><label>CTA Button *</label><select id="bannerCta" onchange="syncBannerCta();renderBannerPreview()"><option value="CALL">📞 Call Now</option><option value="WHATSAPP">🟢 WhatsApp</option><option value="WEBSITE">🌐 Visit Website</option><option value="OCS_PROFILE">🔗 View OCS Profile</option></select></div>
+</div>
+<label id="bannerActionLabel">Mobile Number *</label><input id="bannerActionValue" oninput="renderBannerPreview()" placeholder="10-digit mobile number">
+<label>Banner Photo / Creative *</label><input id="bannerImage" type="file" accept="image/*" onchange="handleBannerImage(event)">
+<div class="banner-file-help">Landscape photo/creative best rahega. Preview niche live dikhega.</div>
+
+<div class="banner-preview-wrap"><div class="banner-preview-label">LIVE PREVIEW</div>
+<div class="banner-preview" id="bannerPreview">
+ <div class="banner-preview-copy"><span class="banner-sponsored">Sponsored • OCS</span><h3 id="bpTitle">Your Offer Here</h3><p id="bpBusiness">Your Business Name</p><p id="bpDesc">Premium promotion on One Call Solution</p><div class="area" id="bpArea">📍 Your Area</div><span class="banner-preview-cta" id="bpCta">📞 Call Now</span></div>
+ <div class="banner-preview-media" id="bpMedia">📣</div>
+</div></div>
+
 <label>Plan</label><select id="bannerPlan" onchange="updateBannerPrice()"><option value="banner28">28 Days</option><option value="banner6m">6 Months</option></select>
 <div id="bannerPriceNow" class="price-now">Price: —</div>
-<button class="primary" onclick="submitBannerAd()">Continue</button>
-<div class="muted" style="margin-top:8px">Paid plan: payment ke baad Admin approval. FREE override: payment skip, Admin approval ke baad banner live.</div>
+<button class="primary" onclick="submitBannerAd()">Continue to Payment / Submit</button>
+<div class="muted" style="margin-top:8px">FREE override ho to payment skip hoga. Paid banner me production payment gateway connect hone ke baad payment complete karke Admin approval me jayega.</div>
 </div></div>
 
 <div class="modal" id="bizModal"><div class="sheet"><button class="x" onclick="closeBiz()">×</button><h2>Create Business Listing</h2><p class="muted">Yahan aapka business OCS me category/profile ke roop me list hoga. Home Banner Ad isse alag hai.</p>
@@ -195,18 +220,48 @@ function addFreeOverride(){
 }
 function removeFreeOverride(i){const a=getFreeOverrides();a.splice(i,1);setFreeOverrides(a);renderFreeOverrides();updateBannerPrice();updateBizPrice()}
 function renderFreeOverrides(){const a=getFreeOverrides(),box=document.getElementById('freeOverrideList');if(!box)return;box.innerHTML=a.length?a.map((x,i)=>'<div class="free-pill"><span><b>'+x.name+'</b><br>'+x.scope+' • FREE</span><button onclick="removeFreeOverride('+i+')">Remove</button></div>').join(''):'No FREE override yet.'}
-function openBannerAd(){document.getElementById('bannerModal').classList.add('show');updateBannerPrice()}
+let bannerImageData="";
+function openBannerAd(){document.getElementById('bannerModal').classList.add('show');syncBannerCta();updateBannerPrice();renderBannerPreview()}
 function closeBannerAd(){document.getElementById('bannerModal').classList.remove('show')}
 function updateBannerPrice(){
  const n=(document.getElementById('bannerBusiness')?.value||'').trim(),key=document.getElementById('bannerPlan')?.value||'banner28',price=pricingValue(key,n,'BANNER'),box=document.getElementById('bannerPriceNow');
  if(box)box.textContent='Current price: '+moneyINR(price)+(price===0?' • Admin FREE override':'');
 }
+function syncBannerCta(){
+ const type=document.getElementById('bannerCta')?.value||'CALL',lab=document.getElementById('bannerActionLabel'),inp=document.getElementById('bannerActionValue');
+ const cfg={CALL:['Mobile Number *','10-digit mobile number'],WHATSAPP:['WhatsApp Number *','WhatsApp mobile number'],WEBSITE:['Website Link *','https://yourwebsite.com'],OCS_PROFILE:['OCS Profile / Listing Link *','OCS profile link']};
+ if(lab)lab.textContent=cfg[type][0];if(inp)inp.placeholder=cfg[type][1];
+}
+function bannerCtaText(type){return ({CALL:'📞 Call Now',WHATSAPP:'🟢 WhatsApp',WEBSITE:'🌐 Visit Website',OCS_PROFILE:'🔗 View Profile'})[type]||'Contact Now'}
+function renderBannerPreview(){
+ const n=(document.getElementById('bannerBusiness')?.value||'').trim(),t=(document.getElementById('bannerTitle')?.value||'').trim(),d=(document.getElementById('bannerDesc')?.value||'').trim(),a=(document.getElementById('bannerArea')?.value||'').trim(),cta=document.getElementById('bannerCta')?.value||'CALL';
+ const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+ set('bpTitle',t||'Your Offer Here');set('bpBusiness',n||'Your Business Name');set('bpDesc',d||'Premium promotion on One Call Solution');set('bpArea','📍 '+(a||'Your Area'));set('bpCta',bannerCtaText(cta));
+ const media=document.getElementById('bpMedia');if(media)media.innerHTML=bannerImageData?'<img src="'+bannerImageData+'" alt="Banner preview">':'📣';
+}
+function handleBannerImage(ev){
+ const file=ev.target.files&&ev.target.files[0];if(!file){bannerImageData='';renderBannerPreview();return}
+ if(!file.type.startsWith('image/')){alert('Image file choose karein.');ev.target.value='';return}
+ const reader=new FileReader();reader.onload=e=>{
+   const img=new Image();img.onload=()=>{
+     const maxW=900,scale=Math.min(1,maxW/img.width),cv=document.createElement('canvas');cv.width=Math.round(img.width*scale);cv.height=Math.round(img.height*scale);
+     const ctx=cv.getContext('2d');ctx.drawImage(img,0,0,cv.width,cv.height);bannerImageData=cv.toDataURL('image/jpeg',.76);renderBannerPreview();
+   };img.src=e.target.result;
+ };reader.readAsDataURL(file);
+}
 function submitBannerAd(){
- const n=bannerBusiness.value.trim(),t=bannerTitle.value.trim(),a=bannerArea.value.trim(),ph=bannerPhone.value.trim(),key=bannerPlan.value;
- if(!n||!t||!a||ph.replace(/\D/g,'').length<10){alert('Business name, title, area aur valid mobile required.');return}
+ const n=bannerBusiness.value.trim(),t=bannerTitle.value.trim(),d=bannerDesc.value.trim(),a=bannerArea.value.trim(),cta=bannerCta.value,av=bannerActionValue.value.trim(),key=bannerPlan.value;
+ if(!n||!t||!a||!av){alert('Business name, headline, area aur CTA contact/link required.');return}
+ if((cta==='CALL'||cta==='WHATSAPP')&&av.replace(/\D/g,'').length<10){alert('Valid mobile / WhatsApp number enter karein.');return}
+ if(cta==='WEBSITE'&&!/^https?:\/\//i.test(av)){alert('Website link http:// ya https:// se start karein.');return}
  const price=pricingValue(key,n,'BANNER'),plan=key==='banner6m'?'6 Months':'28 Days';
- const pending=JSON.parse(localStorage.getItem('ocsBannerRequests')||'[]');pending.push({id:'OCSB'+Date.now(),name:n,title:t,area:a,phone:ph,plan,price,status:'ADMIN_APPROVAL_PENDING'});localStorage.setItem('ocsBannerRequests',JSON.stringify(pending));
- closeBannerAd();alert((price===0?'FREE override applied. Payment skipped.':'Plan '+moneyINR(price)+'. Payment step will apply in production.')+'\nBanner request saved → Admin approval pending.');
+ const pending=JSON.parse(localStorage.getItem('ocsBannerRequests')||'[]');
+ pending.push({id:'OCSB'+Date.now(),name:n,title:t,description:d,area:a,cta,actionValue:av,plan,price,image:bannerImageData||'',status:price===0?'ADMIN_APPROVAL_PENDING':'PAYMENT_PENDING'});
+ try{localStorage.setItem('ocsBannerRequests',JSON.stringify(pending))}catch(e){
+   pending[pending.length-1].image='';localStorage.setItem('ocsBannerRequests',JSON.stringify(pending));
+ }
+ closeBannerAd();
+ alert(price===0?'FREE banner request saved → Admin approval pending.':'Banner ready • Plan '+moneyINR(price)+' • Production payment ke baad Admin approval me jayega.');
 }
 const BIZ_PRICE_KEY={'Local Shop':'localShop','Sliding / Aluminium':'sliding','Welding / Fabrication':'welding','Beauty / Make-up':'beauty','New Vehicle':'new2w','Medical Store':'medical','Diagnostic Lab':'lab','Modular Kitchen':'kitchen','Other Business':'localShop'};
 function updateBizPrice(){
