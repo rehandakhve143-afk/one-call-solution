@@ -406,7 +406,7 @@ function refreshHomeBookingStatus(){
  const box=document.getElementById('homeBookingStatus');if(!box)return;
  const b=getCurrentBooking();if(!b){box.classList.remove('on');return}
  const s=String(b.state||b.status||'').toUpperCase();
- const inactive=['SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED'];
+ const inactive=['SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'];
  if(!s||inactive.includes(s)){box.classList.remove('on');return}
  const title=b.service||b.category||b.task||'Active Booking';
  const label=typeof dashStatusLabel==='function'?dashStatusLabel(s):s.replaceAll('_',' ');
@@ -438,7 +438,7 @@ function bottomServices(){
 function openBottomBookings(){
  closeAllBottomHubs();setBottomActive('bnBookings');
  const body=document.getElementById('bottomBookingsBody'),b=getCurrentBooking();
- const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED'];
+ const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'];
  const s=String(b?.status||b?.state||'').toUpperCase();
  if(!b||inactive.includes(s)){
   body.innerHTML='<div class="bottom-hub-card"><b>No active booking</b><small>Abhi koi running Home Service booking nahi hai.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button><button onclick="closeBottomHub(\'bottomBookingsModal\')">Close</button></div></div>';
@@ -505,7 +505,7 @@ function closeClearPricingInfo(){document.getElementById('clearPricingModal').cl
 function openBookingsHub(){
  const b=getCurrentBooking();
  const s=String(b?.status||b?.state||'').toUpperCase();
- const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED'];
+ const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'];
  if(b&&!inactive.includes(s)){openCustomerDashboard();return}
  openCustomerHub();
 }
