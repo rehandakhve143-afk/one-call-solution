@@ -27,7 +27,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 .promo-admin-row{margin:-3px 14px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.promo-admin-row button{border:1px solid #d9e7e6;background:#fff;border-radius:13px;padding:10px;font-weight:850;color:#17545e}
 .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.price-box{background:#f6faf9;border:1px solid #dce9e6;border-radius:13px;padding:10px}.price-box label{font-size:11px;margin:0 0 5px;color:#577079}.price-box input{margin:0}.free-box{margin-top:12px;padding:12px;border-radius:14px;background:#fff8e8;border:1px solid #f0dfb5}.free-list{margin-top:9px;font-size:12px}.free-pill{display:flex;justify-content:space-between;gap:8px;align-items:center;background:#fff;border:1px solid #eadfca;border-radius:10px;padding:8px;margin-top:6px}.free-pill button{border:0;background:#f7e6e6;color:#9b2c2c;border-radius:8px;padding:6px 8px;font-weight:800}.price-now{padding:10px;border-radius:12px;background:#eef8f5;border:1px solid #d6ebe4;margin:10px 0;font-weight:850;color:#175b4e}
 </style></head><body><div class="app">
-<header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openAccount('customer')">👤 Account</button><button onclick="openPricingAdmin()">⚙ Rates</button></div></div></header>
+<header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openAccount('customer')">👤 Account</button></div></div></header>
 
 <div class="slider" id="homeSlider">
   <div class="slides" id="slides">
@@ -37,7 +37,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
   </div>
   <div class="slider-dots"><button class="on" onclick="showSlide(0)"></button><button onclick="showSlide(1)"></button><button onclick="showSlide(2)"></button></div>
 </div>
-<div class="promo-admin-row"><button onclick="openBannerAd()">📣 Promote Your Business</button><button onclick="openPricingAdmin()">⚙ Manage Prices / Free</button></div>
+<div class="promo-admin-row"><button onclick="openBannerAd()">📣 Post Home Banner Ad<br><small style="font-weight:600;color:#6b808c">Paid promotion on OCS home slider</small></button><button onclick="openBiz()">🏪 Register Business<br><small style="font-weight:600;color:#6b808c">Create your business listing/profile</small></button></div>
 
 <div class="start">
   <h2>Start Here</h2>
@@ -49,7 +49,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 
 <div class="section-head" id="explore"><div><h2>Explore OCS</h2><small>Choose a service or business window</small></div></div>
 <div class="grid"><button class="card" onclick='openModule("Home Services")'><span class="ico">🏠</span><span><b>Home Services</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Property")'><span class="ico">🏢</span><span><b>Property</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Local Shop")'><span class="ico">🏪</span><span><b>Local Shop</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Sliding / Aluminium")'><span class="ico">🪟</span><span><b>Sliding / Aluminium</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Welding / Fabrication")'><span class="ico">⚒</span><span><b>Welding / Fabrication</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Beauty / Make-up")'><span class="ico">✦</span><span><b>Beauty / Make-up</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Used Vehicle")'><span class="ico">🚗</span><span><b>Used Vehicle</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("New Vehicle")'><span class="ico">🚘</span><span><b>New Vehicle</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Medical Store")'><span class="ico">✚</span><span><b>Medical Store</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Diagnostic Lab")'><span class="ico">🧪</span><span><b>Diagnostic Lab</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Modular Kitchen")'><span class="ico">▦</span><span><b>Modular Kitchen</b><small>Open window</small></span><strong>›</strong></button><button class="card" onclick='openModule("Hotel / Restaurant / Lodging")'><span class="ico">🏨</span><span><b>Hotel / Restaurant / Lodging</b><small>Rooms • Food • Stay</small></span><strong>›</strong></button></div>
-<div class="biz"><h2 style="margin:0">Have a Business?</h2><p style="opacity:.85">Existing category select karo, ya Other Business se apna business join karo.</p><button class="primary" onclick="openBiz()">List Your Business</button></div></div>
+<div class="biz"><h2 style="margin:0">Register Your Business on OCS</h2><p style="opacity:.85">Yahan business profile/listing banegi. Ye Home Banner Ad se alag hai.</p><button class="primary" onclick="openBiz()">Create Business Listing</button><button class="primary" style="margin-top:9px;background:#0d6f86" onclick="openPricingAdmin()">Admin • Prices / Free Override</button></div></div>
 <div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div></div><iframe id="frame"></iframe></div>
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Create Customer Account</h2><p class="muted" id="accountSub">Mobile OTP + email verification required.</p>
 <div id="customerAccountForm">
@@ -105,7 +105,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <div id="freeOverrideList" class="free-list"></div></div>
 </div></div>
 
-<div class="modal" id="bannerModal"><div class="sheet"><button class="x" onclick="closeBannerAd()">×</button><h2>Promote Your Business</h2><p class="muted">Sliding home banner ke liye details submit karein.</p>
+<div class="modal" id="bannerModal"><div class="sheet"><button class="x" onclick="closeBannerAd()">×</button><h2>Post Home Banner Ad</h2><p class="muted">Ye sirf OCS Home Screen ke sliding advertisement banner ke liye hai. Business listing/profile alag hoti hai.</p>
 <label>Business Name *</label><input id="bannerBusiness" oninput="updateBannerPrice()" placeholder="Business / shop / project name">
 <label>Banner Title / Offer *</label><input id="bannerTitle" placeholder="e.g. Grand Opening • 20% Off">
 <label>City / Area *</label><input id="bannerArea" placeholder="City / Area">
@@ -117,7 +117,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <div class="muted" style="margin-top:8px">Paid plan: payment ke baad Admin approval. FREE override: payment skip, Admin approval ke baad banner live.</div>
 </div></div>
 
-<div class="modal" id="bizModal"><div class="sheet"><button class="x" onclick="closeBiz()">×</button><h2>List Your Business</h2><p class="muted">Existing OCS category choose karo. Category nahi mile to Other Business.</p>
+<div class="modal" id="bizModal"><div class="sheet"><button class="x" onclick="closeBiz()">×</button><h2>Create Business Listing</h2><p class="muted">Yahan aapka business OCS me category/profile ke roop me list hoga. Home Banner Ad isse alag hai.</p>
 <label>Business Category</label><select id="bizCat"><option>Local Shop</option><option>Sliding / Aluminium</option><option>Welding / Fabrication</option><option>Beauty / Make-up</option><option>New Vehicle</option><option>Medical Store</option><option>Diagnostic Lab</option><option>Modular Kitchen</option><option>Hotel / Restaurant / Lodging</option><option>Other Business</option></select>
 <div id="bizCurrentPrice" class="price-now">Current 28-day plan: —</div>
 <div id="otherFields"><label>Business Name</label><input id="obName"><label>Business Type</label><input id="obType" placeholder="e.g. Interior Designer"><label>Area</label><input id="obArea"><label>About</label><textarea id="obAbout"></textarea><label>Mobile / WhatsApp</label><input id="obPhone"><label>Photos / Videos</label><input type="file" accept="image/*,video/*" multiple></div>
