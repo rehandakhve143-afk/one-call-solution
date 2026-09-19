@@ -152,7 +152,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 </div></div>
 
 <div class="modal" id="bottomProfileModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>Customer Profile</h2><div class="muted">Your OCS account details</div></div><button class="x" onclick="closeBottomHub('bottomProfileModal')">×</button></div>
+  <div class="bottom-hub-head"><div><h2>OCS Profiles</h2><div class="muted">Customer + Service Provider in one place</div></div><button class="x" onclick="closeBottomHub('bottomProfileModal')">×</button></div>
   <div id="bottomProfileBody"></div>
 </div></div>
 
@@ -401,6 +401,7 @@ function saveProviderAccount(){
  closeAccount();openModule('Home Services','provider');
 }
 function getCustomerProfile(){try{return JSON.parse(localStorage.getItem('ocsCustomerProfile')||'null')}catch(e){return null}}
+function getProviderProfile(){try{return JSON.parse(localStorage.getItem('ocsProviderProfile')||'null')}catch(e){return null}}
 function getCurrentBooking(){try{return JSON.parse(localStorage.getItem('ocsCurrentBooking')||'null')}catch(e){return null}}
 function refreshHomeBookingStatus(){
  const box=document.getElementById('homeBookingStatus');if(!box)return;
@@ -472,10 +473,19 @@ function submitBottomSupport(){
 }
 function openBottomProfile(){
  closeAllBottomHubs();setBottomActive('bnProfile');
- const p=getCustomerProfile();
- if(!p){openAccount('customer');return}
+ const customer=getCustomerProfile(),provider=getProviderProfile();
  const body=document.getElementById('bottomProfileBody');
- body.innerHTML='<div class="bottom-hub-card"><b>'+((p.name||'Customer'))+'</b><small>📱 '+(p.mobile||'—')+'<br>✉ '+(p.email||'—')+'<br>✓ Verified Customer Account</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Edit / Verify</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openMyOcs(\'saved\')">My OCS</button></div></div>';
+
+ const customerCard=customer
+ ? '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small><strong>'+((customer.name||'Customer'))+'</strong><br>📱 '+(customer.mobile||'—')+'<br>✉ '+(customer.email||'—')+'<br>✓ Customer account available</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Edit / Verify</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openCustomerDashboard()">Open Customer</button></div></div>'
+ : '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small>Customer account abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Create Customer Profile</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
+
+ const skills=provider&&Array.isArray(provider.skills)?provider.skills.join(', '):'—';
+ const providerCard=provider
+ ? '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small><strong>'+((provider.name||'Service Provider'))+'</strong><br>📱 '+(provider.mobile||'—')+'<br>✉ '+(provider.email||'—')+'<br>📍 '+(provider.area||'—')+'<br>Skills: '+skills+'<br>Status: '+(provider.status||'Verification Pending')+'</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Edit / Verify</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openModule(\'Home Services\',\'provider\')">Open Provider</button></div></div>'
+ : '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small>Service Provider account abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Register as Service Provider</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
+
+ body.innerHTML=customerCard+providerCard;
  document.getElementById('bottomProfileModal').classList.add('show');
 }
 
