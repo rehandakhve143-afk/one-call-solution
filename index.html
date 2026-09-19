@@ -147,10 +147,31 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
   <label>Service Radius *</label><select id="paRadius"><option value="6">Up to 6 km</option><option value="12">Up to 12 km</option><option value="20">Up to 20 km</option><option value="30">Up to 30 km</option></select>
   <label>Select Skills (multiple allowed)</label>
   <div class="skillgrid">
-    <label><input type="checkbox" name="paSkill" value="Electrical">Electrical</label><label><input type="checkbox" name="paSkill" value="Plumbing">Plumbing</label>
-    <label><input type="checkbox" name="paSkill" value="AC">AC</label><label><input type="checkbox" name="paSkill" value="Carpenter">Carpenter</label>
-    <label><input type="checkbox" name="paSkill" value="Cleaning">Cleaning</label><label><input type="checkbox" name="paSkill" value="Maid">Maid</label>
-    <label><input type="checkbox" name="paSkill" value="Painter">Painter</label><label><input type="checkbox" name="paSkill" value="Other">Other</label>
+    <label><input type="checkbox" name="paSkill" value="Electrical">Electrical</label>
+    <label><input type="checkbox" name="paSkill" value="Plumbing">Plumbing</label>
+    <label><input type="checkbox" name="paSkill" value="Carpenter">Carpenter</label>
+    <label><input type="checkbox" name="paSkill" value="AC">AC</label>
+    <label><input type="checkbox" name="paSkill" value="Washing Machine">Washing Machine</label>
+    <label><input type="checkbox" name="paSkill" value="Refrigerator">Refrigerator</label>
+    <label><input type="checkbox" name="paSkill" value="Chimney">Chimney</label>
+    <label><input type="checkbox" name="paSkill" value="RO / Water Purifier">RO / Water Purifier</label>
+    <label><input type="checkbox" name="paSkill" value="Cleaning">Cleaning</label>
+    <label><input type="checkbox" name="paSkill" value="Maid">Maid</label>
+    <label><input type="checkbox" name="paSkill" value="Cook">Cook</label>
+    <label><input type="checkbox" name="paSkill" value="Pest Control">Pest Control</label>
+    <label><input type="checkbox" name="paSkill" value="CCTV">CCTV</label>
+    <label><input type="checkbox" name="paSkill" value="Gas Stove">Gas Stove</label>
+    <label><input type="checkbox" name="paSkill" value="Wi-Fi / TV Setup">Wi-Fi / TV Setup</label>
+    <label><input type="checkbox" name="paSkill" value="Packers & Movers">Packers & Movers</label>
+    <label><input type="checkbox" name="paSkill" value="Painter">Painter</label>
+    <label><input type="checkbox" name="paSkill" value="Tiles / Stone Work">Tiles / Stone Work</label>
+    <label><input type="checkbox" name="paSkill" value="Waterproofing">Waterproofing</label>
+    <label><input type="checkbox" name="paSkill" value="False Ceiling / POP / Gypsum / PVC">False Ceiling / POP / Gypsum / PVC</label>
+    <label><input type="checkbox" name="paSkill" value="Other" onchange="document.getElementById('paOtherSkillWrap').style.display=this.checked?'block':'none'">Other</label>
+  </div>
+  <div id="paOtherSkillWrap" style="display:none">
+    <label>Other Skill / Service Name *</label>
+    <input id="paOtherSkill" placeholder="e.g. Glass work / Door repair / Custom service">
   </div>
   <h3 style="margin:16px 0 4px">Bank / Payout Details</h3>
   <div class="muted">Completed jobs ka payout isi account me jayega. Production app me bank details secure backend par save hongi.</div>
@@ -281,7 +302,13 @@ function saveCustomerAccount(){
  closeAccount();openCustomerDashboard();
 }
 function saveProviderAccount(){
- const name=paName.value.trim(),mobile=paMobile.value.trim(),email=paEmail.value.trim(),area=paArea.value.trim(),radius=paRadius.value,skills=[...document.querySelectorAll('input[name="paSkill"]:checked')].map(x=>x.value);
+ const name=paName.value.trim(),mobile=paMobile.value.trim(),email=paEmail.value.trim(),area=paArea.value.trim(),radius=paRadius.value;
+ let skills=[...document.querySelectorAll('input[name="paSkill"]:checked')].map(x=>x.value);
+ const otherChecked=skills.includes('Other'),otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
+ if(otherChecked){
+   if(!otherSkill){alert('Other select kiya hai to apni skill / service ka naam likhein.');return}
+   skills=skills.filter(x=>x!=='Other');skills.push('Other: '+otherSkill);
+ }
  const bankHolder=paBankHolder.value.trim(),bankName=paBankName.value.trim(),accountNo=paAccountNo.value.replace(/\s/g,''),accountNo2=paAccountNo2.value.replace(/\s/g,''),ifsc=paIfsc.value.trim().toUpperCase(),upi=paUpi.value.trim();
  if(!name||mobile.replace(/\D/g,'').length<10||!email.includes('@')||!area||!skills.length){alert('Name, valid mobile, email, service area aur kam se kam 1 skill required.');return}
  if(!bankHolder||!bankName||accountNo.length<6||accountNo!==accountNo2||!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)){alert('Valid bank details required. Account number dono jagah same aur IFSC sahi enter karein.');return}
