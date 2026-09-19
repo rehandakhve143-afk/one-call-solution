@@ -71,7 +71,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
   <button class="role-btn provider" onclick="openAccount('provider')">🛠 Service Provider</button>
 </div>
 
-<div class="home-booking" id="homeBookingStatus" onclick="openCustomerHub()">
+<div class="home-booking" id="homeBookingStatus" onclick="openBookingsHub()">
   <div class="hb-top"><div class="hb-title" id="homeBookingTitle">Active Booking</div><div class="hb-status" id="homeBookingLabel">Status</div></div>
   <div class="hb-meta" id="homeBookingMeta">Tap to view booking details</div>
 </div>
@@ -126,7 +126,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <nav class="bottom-nav">
   <button class="active" onclick="window.scrollTo({top:0,behavior:'smooth'})"><span>⌂</span>Home</button>
   <button onclick="openModule('Home Services','customer')"><span>🧰</span>Services</button>
-  <button onclick="openCustomerHub()"><span>▣</span>Bookings</button>
+  <button onclick="openBookingsHub()"><span>▣</span>Bookings</button>
   <button onclick="openModule('Home Services','customer')"><span>🎧</span>Support</button>
   <button onclick="openCustomerHub()"><span>👤</span>Profile</button>
 </nav>
@@ -309,6 +309,13 @@ function refreshHomeBookingStatus(){
 window.addEventListener('storage',refreshHomeBookingStatus);
 window.addEventListener('focus',refreshHomeBookingStatus);
 setTimeout(refreshHomeBookingStatus,0);
+function openBookingsHub(){
+ const b=getCurrentBooking();
+ const s=String(b?.status||b?.state||'').toUpperCase();
+ const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED'];
+ if(b&&!inactive.includes(s)){openCustomerDashboard();return}
+ openCustomerHub();
+}
 function openCustomerHub(){getCustomerProfile()?openCustomerDashboard():openAccount('customer')}
 function openCustomerDashboard(){renderCustomerDashboard();document.getElementById('customerDashModal').classList.add('show')}
 function closeCustomerDashboard(){document.getElementById('customerDashModal').classList.remove('show')}
