@@ -37,20 +37,70 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 .banner-file-help{font-size:11px;color:#6f8085;margin-top:-5px;margin-bottom:8px}.banner-two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 @media(max-width:390px){.banner-preview-copy{width:64%}.banner-preview h3{font-size:20px}.banner-preview-media{width:33%;height:112px}}
 .customer-dash-sheet{max-width:720px}.dash-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.dash-welcome h2{margin:0;font-size:21px}.dash-welcome small{color:#71818a}.booking-card{border:1px solid #dbe8e8;background:linear-gradient(145deg,#f2fbf8,#fff);border-radius:18px;padding:14px;margin:10px 0 14px;box-shadow:0 7px 20px #1231}.booking-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.booking-top h3{margin:0;font-size:16px}.dash-status{font-size:10px;font-weight:900;padding:6px 8px;border-radius:999px;background:#e7f5f1;color:#0a725f;white-space:nowrap}.dash-meta{font-size:11px;color:#657b83;line-height:1.5;margin-top:7px}.progress-steps{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:12px 0 4px}.progress-steps span{height:5px;background:#dce8e8;border-radius:99px}.progress-steps span.on{background:#0b8a75}.progress-labels{display:flex;justify-content:space-between;font-size:8px;color:#71818a}.dash-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.dash-actions button,.dash-quick button{border:1px solid #dce7e8;background:#fff;border-radius:12px;padding:10px 8px;font-weight:850;color:#174a55}.dash-quick-title{font-size:15px;font-weight:900;margin:4px 0 8px}.dash-quick{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dash-quick button{text-align:left;min-height:54px}.dash-quick small{display:block;font-size:9px;font-weight:600;color:#71818a;margin-top:3px}.dash-empty{padding:12px;border-radius:13px;background:#f5f8fa;color:#637982;font-size:12px;margin-top:9px}
-</style></head><body><div class="app">
-<header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openCustomerHub()">👤 Account</button></div></div></header>
-<div class="common-search"><span style="font-size:20px">🔎</span><input id="globalSearch" placeholder="Search service, shop, property, hotel, vehicle..." onkeydown="if(event.key==='Enter')runGlobalSearch()"><button onclick="runGlobalSearch()">Search</button></div>
-<div id="globalSearchHint" class="search-hint">Common search • OCS ke kisi bhi window/service ko search karein</div>
 
-<div class="slider" id="homeSlider">
-  <div class="slides" id="slides">
-    <div class="slide s1"><div class="slide-copy"><div class="slide-kicker">Home Services</div><h2>Trusted help, one call away</h2><p>Clear service rates, nearby Service Providers, support and secure booking flow.</p><button onclick="openModule('Home Services','customer')">Book Home Service</button></div><div class="slide-art">🧰</div></div>
-    <div class="slide s2"><div class="slide-copy"><div class="slide-kicker">Earn with OCS</div><h2>Join as Service Provider</h2><p>Create one profile, select multiple skills and receive matching nearby jobs.</p><button onclick="openAccount('provider')">Create SP Account</button></div><div class="slide-art">👨‍🔧</div></div>
-    <div class="slide s3"><div class="slide-copy"><div class="slide-kicker">Explore OCS</div><h2>Property, shops & more</h2><p>All approved OCS business windows are available from this single home screen.</p><button onclick="document.getElementById('explore').scrollIntoView({behavior:'smooth'})">Explore Windows</button></div><div class="slide-art">🏪</div></div>
+/* OCS Final Clean Home v1 */
+.app{padding-bottom:84px}
+.location-bar{margin:12px 14px 6px;background:#fff;border:1px solid #dce7e8;border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 14px rgba(18,50,71,.05);font-size:12px;color:#5f747d}.location-bar b{color:#173247;font-size:13px}.location-bar .loc-copy{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.location-bar button{border:0;background:#eef7f7;color:#087a70;border-radius:10px;padding:7px 9px;font-weight:850}
+.home-entry{padding:2px 14px 8px}.home-entry .start-grid{gap:10px}.home-entry .start-card{min-height:154px;padding:12px;border-radius:18px}.home-entry .start-card .bigico{width:100%;height:86px;margin:0 0 8px;border-radius:14px;background-size:300% 400%}.home-entry .start-card b{font-size:14px}.home-entry .start-card small{font-size:9px;line-height:1.2}.home-entry .start-card .go{margin-top:8px;font-size:10px}
+.home-booking{display:none;margin:2px 14px 10px;background:#fff;border:1px solid #dbe8e8;border-radius:16px;padding:12px;box-shadow:0 5px 16px rgba(18,50,71,.06);cursor:pointer}.home-booking.on{display:block}.home-booking .hb-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.home-booking .hb-title{font-weight:900;font-size:14px}.home-booking .hb-status{font-size:10px;font-weight:900;background:#e7f5f1;color:#0a725f;border-radius:999px;padding:6px 8px}.home-booking .hb-meta{font-size:11px;color:#6c8088;margin-top:6px}
+.clean-hero{margin:4px 14px 13px;position:relative;overflow:hidden;border-radius:20px;box-shadow:0 10px 26px rgba(18,50,71,.16);min-height:170px}.clean-hero .slides,.clean-hero .slide{min-height:170px}.clean-hero .slide{padding:20px 18px}.clean-hero .slide-copy{width:61%;position:relative;z-index:3}.clean-hero .slide h2{font-size:22px;line-height:1.05;margin:5px 0 7px}.clean-hero .slide p{font-size:11px;line-height:1.35;margin:0 0 11px}.clean-hero .slide button{padding:9px 12px;font-size:11px}.clean-hero .slider-dots,.clean-hero .slide-art{display:none!important}
+.quick-services{padding:0 14px 8px}.quick-title{display:flex;justify-content:space-between;align-items:end;margin:8px 1px}.quick-title h2{font-size:19px;margin:0}.quick-title button{border:0;background:transparent;color:#087a70;font-weight:850}.service-mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.service-mini{border:1px solid #dce7e8;background:#fff;border-radius:14px;padding:10px 4px;text-align:center;box-shadow:0 4px 12px rgba(18,50,71,.05);font-size:10px;font-weight:850;color:#234957}.service-mini span{display:grid;place-items:center;margin:0 auto 7px;width:38px;height:38px;border-radius:12px;background:#eef7f7;font-size:20px}
+.new-request{margin:6px 14px 10px;background:linear-gradient(120deg,#fff7e8,#ffffff);border:1px solid #f1e2be;border-radius:16px;padding:13px;display:flex;gap:10px;align-items:center}.new-request .nr-copy{flex:1}.new-request b{display:block;font-size:14px}.new-request small{display:block;color:#7c7461;font-size:10px;margin-top:3px;line-height:1.3}.new-request button{border:0;background:#173247;color:#fff;border-radius:11px;padding:10px 11px;font-weight:850;font-size:10px}
+.trust-row{margin:4px 14px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.trust-row div{background:#fff;border:1px solid #dce7e8;border-radius:12px;padding:9px 5px;text-align:center;font-size:8px;font-weight:800;color:#5e747d}.trust-row b{display:block;font-size:15px;color:#087a70;margin-bottom:3px}
+#explore{padding-top:6px}.grid{gap:9px}.card{border-radius:16px;box-shadow:0 4px 13px rgba(18,50,71,.06)}
+.bottom-nav{position:fixed;z-index:15;left:50%;transform:translateX(-50%);bottom:0;width:min(720px,100%);background:#fff;border-top:1px solid #dfe8ea;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px max(7px,env(safe-area-inset-bottom));box-shadow:0 -7px 22px rgba(18,50,71,.09)}.bottom-nav button{border:0;background:transparent;color:#667b84;padding:4px 2px;font-size:9px;font-weight:800}.bottom-nav button span{display:block;font-size:18px;line-height:1.1;margin-bottom:3px}.bottom-nav button.active{color:#087a70}
+@media(max-width:390px){.home-entry .start-card{min-height:146px}.home-entry .start-card .bigico{height:78px}.service-mini-grid{gap:6px}.service-mini{font-size:8.7px;padding:9px 2px}.clean-hero .slide-copy{width:64%}.clean-hero .slide h2{font-size:20px}}
+
+</style></head><body><div class="app">
+<header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openCustomerHub()">🔔</button></div></div></header>
+
+<div class="location-bar"><span>📍</span><div class="loc-copy"><b>Home</b> • Current service location</div><button onclick="alert('Live location / address selector will open here in production.')">Change</button></div>
+
+<div class="common-search"><span style="font-size:20px">🔎</span><input id="globalSearch" placeholder="Search services, shops, property, vehicle..." onkeydown="if(event.key==='Enter')runGlobalSearch()"><button onclick="runGlobalSearch()">Search</button></div>
+<div id="globalSearchHint" class="search-hint">Search across One Call Solution</div>
+
+<div class="home-entry">
+  <div class="start-grid">
+    <button class="start-card customer" onclick="openCustomerHub()"><span class="bigico" aria-hidden="true"></span><b>Customer</b><small>Book service • My Bookings • Track status</small><span class="go">Open →</span></button>
+    <button class="start-card provider" onclick="openAccount('provider')"><span class="bigico" aria-hidden="true"></span><b>Service Provider</b><small>Jobs • Wallet • Available for Work</small><span class="go">Open →</span></button>
   </div>
-  <div class="slider-dots"><button class="on" onclick="showSlide(0)"></button><button onclick="showSlide(1)"></button><button onclick="showSlide(2)"></button></div>
 </div>
-<div class="promo-admin-row"><button onclick="openBannerAd()">📣 Post Home Banner Ad<br><small style="font-weight:600;color:#6b808c">Paid promotion on OCS home slider</small></button></div>
+
+<div class="home-booking" id="homeBookingStatus" onclick="openCustomerHub()">
+  <div class="hb-top"><div class="hb-title" id="homeBookingTitle">Active Booking</div><div class="hb-status" id="homeBookingLabel">Status</div></div>
+  <div class="hb-meta" id="homeBookingMeta">Tap to view booking details</div>
+</div>
+
+<div class="slider clean-hero" id="homeSlider">
+  <div class="slides" id="slides">
+    <div class="slide s1"><div class="slide-copy"><div class="slide-kicker">Home Services</div><h2>Trusted help, one call away</h2><p>Verified Service Providers, clear pricing, Start OTP and support — all in one place.</p><button onclick="openModule('Home Services','customer')">Book Home Service</button></div></div>
+  </div>
+</div>
+
+<div class="quick-services">
+  <div class="quick-title"><h2>Home Services</h2><button onclick="openModule('Home Services','customer')">View All</button></div>
+  <div class="service-mini-grid">
+    <button class="service-mini" onclick="openModule('Home Services','customer')"><span>⚡</span>Electrical</button>
+    <button class="service-mini" onclick="openModule('Home Services','customer')"><span>🔧</span>Plumber</button>
+    <button class="service-mini" onclick="openModule('Home Services','customer')"><span>❄️</span>AC</button>
+    <button class="service-mini" onclick="openModule('Home Services','customer')"><span>🧹</span>Cleaning</button>
+    <button class="service-mini" onclick="openModule('Home Services','customer')"><span>🪚</span>Carpenter</button>
+    <button class="service-mini" onclick="openModule('Home Services','customer')"><span>🧺</span>Appliance</button>
+    <button class="service-mini" onclick="openModule('Home Services','customer')"><span>📹</span>CCTV</button>
+    <button class="service-mini" onclick="openModule('Home Services','customer')"><span>➕</span>More</button>
+  </div>
+</div>
+
+<div class="new-request">
+  <div class="nr-copy"><b>Can’t find your work?</b><small>Describe the job and add photo/video in New Service Request.</small></div>
+  <button onclick="openModule('Home Services','customer')">New Request</button>
+</div>
+
+<div class="trust-row">
+  <div><b>✓</b>Verified</div><div><b>₹</b>Clear Pricing</div><div><b>🔐</b>Start OTP</div><div><b>🎧</b>Support</div>
+</div>
+
+<div class="promo-admin-row"><button onclick="openBannerAd()">📣 Post Home Banner Ad<br><small style="font-weight:600;color:#6b808c">Paid promotion on OCS home</small></button></div>
 
 <div class="section-head" id="explore"><div><h2>Explore OCS</h2><small>Choose a service or business window</small></div></div>
 <div class="grid" id="moduleGrid">
@@ -65,18 +115,16 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <button class="card c9" onclick='openModule("Medical Store")'><span class="mini-badge">Health</span><span class="ico ico-medical" aria-hidden="true"></span><span><b>Medical Store</b><small>Nearby medical stores</small></span><strong>›</strong></button>
 <button class="card c10" onclick='openModule("Diagnostic Lab")'><span class="mini-badge">Health</span><span class="ico ico-lab" aria-hidden="true"></span><span><b>Diagnostic Lab</b><small>Tests • packages • enquiries</small></span><strong>›</strong></button>
 <button class="card c11" onclick='openModule("Modular Kitchen")'><span class="mini-badge">Premium</span><span class="ico ico-kitchen" aria-hidden="true"></span><span><b>Modular Kitchen</b><small>Design • measurement • quote</small></span><strong>›</strong></button>
-<button class="card c12" onclick='openModule("Hotel / Restaurant / Lodging")'><span class="mini-badge">New</span><span class="ico ico-hotel" aria-hidden="true"></span><span><b>Hotel / Restaurant / Lodging</b><small>Rooms • food • stay</small></span><strong>›</strong></button>
 </div>
 <div class="biz"><h2 style="margin:0">Register Your Business on OCS</h2><p style="opacity:.85">Yahan business profile/listing banegi. Ye Home Banner Ad se alag hai.</p><button class="primary" onclick="openBiz()">Create Business Listing</button></div>
-<div class="start">
-  <h2>Start Here</h2>
-  <div class="start-grid">
-    <button class="start-card customer" onclick="openCustomerHub()"><span class="bigico" aria-hidden="true"></span><b>Customer Account</b><small>Create / verify your account to book and track services.</small><span class="go">Create / Open →</span></button>
-    <button class="start-card provider" onclick="openAccount('provider')"><span class="bigico" aria-hidden="true"></span><b>Service Provider</b><small>Register, verify skills and open your job dashboard.</small><span class="go">Register / Open →</span></button>
-  </div>
 </div>
-
-</div>
+<nav class="bottom-nav">
+  <button class="active" onclick="window.scrollTo({top:0,behavior:'smooth'})"><span>⌂</span>Home</button>
+  <button onclick="openModule('Home Services','customer')"><span>🧰</span>Services</button>
+  <button onclick="openCustomerHub()"><span>▣</span>Bookings</button>
+  <button onclick="openModule('Home Services','customer')"><span>🎧</span>Support</button>
+  <button onclick="openCustomerHub()"><span>👤</span>Profile</button>
+</nav>
 <div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div></div><iframe id="frame"></iframe></div>
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Create Customer Account</h2><p class="muted" id="accountSub">Mobile OTP + email verification required.</p>
 <div id="customerAccountForm">
@@ -196,8 +244,8 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <button class="primary" onclick="continueBiz()">Continue</button></div></div>
 <script>
 let homeSlide=0,homeSlideTimer=null;
-function showSlide(i){homeSlide=((i%3)+3)%3;document.getElementById('slides').style.transform='translateX(-'+(homeSlide*100)+'%)';document.querySelectorAll('.slider-dots button').forEach((b,n)=>b.classList.toggle('on',n===homeSlide));}
-function startSlider(){if(homeSlideTimer)clearInterval(homeSlideTimer);homeSlideTimer=setInterval(()=>showSlide(homeSlide+1),4500);}
+function showSlide(){homeSlide=0;const s=document.getElementById('slides');if(s)s.style.transform='translateX(0)'}
+function startSlider(){showSlide(0)}
 startSlider();
 
 const accountVerified={customerMobile:false,customerEmail:false,providerMobile:false,providerEmail:false};
@@ -240,6 +288,22 @@ function saveProviderAccount(){
 }
 function getCustomerProfile(){try{return JSON.parse(localStorage.getItem('ocsCustomerProfile')||'null')}catch(e){return null}}
 function getCurrentBooking(){try{return JSON.parse(localStorage.getItem('ocsCurrentBooking')||'null')}catch(e){return null}}
+function refreshHomeBookingStatus(){
+ const box=document.getElementById('homeBookingStatus');if(!box)return;
+ const b=getCurrentBooking();if(!b){box.classList.remove('on');return}
+ const s=String(b.state||b.status||'').toUpperCase();
+ const inactive=['SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED'];
+ if(!s||inactive.includes(s)){box.classList.remove('on');return}
+ const title=b.service||b.category||b.task||'Active Booking';
+ const label=typeof dashStatusLabel==='function'?dashStatusLabel(s):s.replaceAll('_',' ');
+ document.getElementById('homeBookingTitle').textContent=title;
+ document.getElementById('homeBookingLabel').textContent=label;
+ document.getElementById('homeBookingMeta').textContent=(b.id||b.bookingId||'OCS Booking')+' • Tap to track booking';
+ box.classList.add('on');
+}
+window.addEventListener('storage',refreshHomeBookingStatus);
+window.addEventListener('focus',refreshHomeBookingStatus);
+setTimeout(refreshHomeBookingStatus,0);
 function openCustomerHub(){getCustomerProfile()?openCustomerDashboard():openAccount('customer')}
 function openCustomerDashboard(){renderCustomerDashboard();document.getElementById('customerDashModal').classList.add('show')}
 function closeCustomerDashboard(){document.getElementById('customerDashModal').classList.remove('show')}
@@ -372,7 +436,6 @@ const OCS_SEARCH_ALIASES={
  "Medical Store":"medical medicine pharmacy chemist",
  "Diagnostic Lab":"diagnostic lab blood test pathology test package",
  "Modular Kitchen":"modular kitchen interior kitchen",
- "Hotel / Restaurant / Lodging":"hotel restaurant lodging room rooms stay food dining accommodation"
 };
 function ocsNorm(v){return String(v||"").toLowerCase().replace(/[^a-z0-9₹\s/-]/g," ").replace(/\s+/g," ").trim()}
 function moduleText(n){let base=n+" "+(OCS_SEARCH_ALIASES[n]||"");try{base+=" "+decode64(modulesB64[n]).replace(/<[^>]+>/g," ")}catch(e){}return ocsNorm(base)}
@@ -430,7 +493,7 @@ function openModule(n,role){
 function closeModule(){
  document.getElementById('viewer').classList.remove('show');document.getElementById('frame').srcdoc='';currentModuleName="";pendingWindowSearch="";
  document.body.classList.remove("module-open");
- const gs=document.getElementById("globalSearch");if(gs){gs.value="";gs.placeholder="Search service, shop, property, hotel, vehicle..."}
+ const gs=document.getElementById("globalSearch");if(gs){gs.value="";gs.placeholder="Search services, shops, property, vehicle..."}
 }
 function openBiz(){document.getElementById('bizModal').classList.add('show')}function closeBiz(){document.getElementById('bizModal').classList.remove('show')}
 document.getElementById('bizCat').onchange=function(){document.getElementById('otherFields').style.display=this.value==='Other Business'?'block':'none';updateBizPrice()};document.getElementById('obName').addEventListener('input',updateBizPrice);updateBizPrice();
