@@ -65,7 +65,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 @media(max-width:390px){.role-btn{font-size:12px;padding:12px 8px}.myocs-grid{grid-template-columns:1fr 1fr}.myocs-grid button{min-height:58px}}
 
 </style></head><body><div class="app">
-<header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openCustomerHub()">🔔</button></div></div></header>
+<header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openNotifications()">🔔</button></div></div></header>
 
 <div class="location-bar"><span>📍</span><div class="loc-copy"><b>Home</b> • Current service location</div><button onclick="alert('Live location / address selector will open here in production.')">Change</button></div>
 
@@ -147,6 +147,11 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <div class="modal" id="bottomProfileModal"><div class="sheet">
   <div class="bottom-hub-head"><div><h2>Customer Profile</h2><div class="muted">Your OCS account details</div></div><button class="x" onclick="closeBottomHub('bottomProfileModal')">×</button></div>
   <div id="bottomProfileBody"></div>
+</div></div>
+
+<div class="modal" id="notificationsModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>Notifications</h2><div class="muted">Booking, support, quote & enquiry updates</div></div><button class="x" onclick="closeNotifications()">×</button></div>
+  <div id="notificationsBody"></div>
 </div></div>
 
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Create Customer Account</h2><p class="muted" id="accountSub">Mobile OTP + email verification required.</p>
@@ -426,6 +431,25 @@ function openBottomProfile(){
  body.innerHTML='<div class="bottom-hub-card"><b>'+((p.name||'Customer'))+'</b><small>📱 '+(p.mobile||'—')+'<br>✉ '+(p.email||'—')+'<br>✓ Verified Customer Account</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Edit / Verify</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openMyOcs(\'saved\')">My OCS</button></div></div>';
  document.getElementById('bottomProfileModal').classList.add('show');
 }
+
+function openNotifications(){
+ const body=document.getElementById('notificationsBody');if(!body)return;
+ const items=[];
+ const b=getCurrentBooking();
+ const s=String(b?.status||b?.state||'').toUpperCase();
+ if(b&&s&&!['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED'].includes(s)){
+   items.push('<div class="bottom-hub-card"><b>Home Service Update</b><small>'+(b.service||b.category||b.task||'Home Service')+'<br>Status: '+dashStatusLabel(s)+'</small><div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomBookings()">View Booking</button><button onclick="closeNotifications()">Close</button></div></div>');
+ }
+ let tickets=[];try{tickets=JSON.parse(localStorage.getItem('ocsSupportTickets')||'[]')}catch(e){}
+ if(tickets.length){
+   const t=tickets[0];
+   items.push('<div class="bottom-hub-card"><b>Support Request</b><small>'+t.id+' • '+(t.role==='SERVICE_PROVIDER'?'Service Provider':'Customer')+' Support'+(t.callback?' • Callback requested':'')+'</small><div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomSupport()">Open Support</button><button onclick="closeNotifications()">Close</button></div></div>');
+ }
+ if(!items.length)items.push('<div class="bottom-hub-card"><b>No new notification</b><small>Booking, quote, support, enquiry aur important OCS updates yahan dikhengi.</small></div>');
+ body.innerHTML=items.join('');
+ document.getElementById('notificationsModal').classList.add('show');
+}
+function closeNotifications(){document.getElementById('notificationsModal').classList.remove('show')}
 
 function openBookingsHub(){
  const b=getCurrentBooking();
