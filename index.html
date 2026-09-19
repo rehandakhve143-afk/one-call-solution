@@ -101,6 +101,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <button class="card c9" onclick='openModule("Medical Store")'><span class="mini-badge">Health</span><span class="ico ico-medical" aria-hidden="true"></span><span><b>Medical Store</b><small>Nearby medical stores</small></span><strong>›</strong></button>
 <button class="card c10" onclick='openModule("Diagnostic Lab")'><span class="mini-badge">Health</span><span class="ico ico-lab" aria-hidden="true"></span><span><b>Diagnostic Lab</b><small>Tests • packages • enquiries</small></span><strong>›</strong></button>
 <button class="card c11" onclick='openModule("Modular Kitchen")'><span class="mini-badge">Premium</span><span class="ico ico-kitchen" aria-hidden="true"></span><span><b>Modular Kitchen</b><small>Design • measurement • quote</small></span><strong>›</strong></button>
+<button class="card c12" onclick='openModule("Hotel / Restaurant / Lodging")'><span class="mini-badge">Hospitality</span><span class="ico ico-hotel" aria-hidden="true"></span><span><b>Hotel / Restaurant / Lodging</b><small>Rooms • food • stay</small></span><strong>›</strong></button>
 </div>
 <div class="biz"><h2 style="margin:0">Register Your Business on OCS</h2><p style="opacity:.85">Yahan business profile/listing banegi. Ye Home Banner Ad se alag hai.</p><button class="primary" onclick="openBiz()">Create Business Listing</button></div>
 </div>
@@ -457,6 +458,7 @@ const OCS_SEARCH_ALIASES={
  "Medical Store":"medical medicine pharmacy chemist",
  "Diagnostic Lab":"diagnostic lab blood test pathology test package",
  "Modular Kitchen":"modular kitchen interior kitchen",
+ "Hotel / Restaurant / Lodging":"hotel restaurant lodging room rooms stay food dining hospitality",
 };
 function ocsNorm(v){return String(v||"").toLowerCase().replace(/[^a-z0-9₹\s/-]/g," ").replace(/\s+/g," ").trim()}
 function moduleText(n){let base=n+" "+(OCS_SEARCH_ALIASES[n]||"");try{base+=" "+decode64(modulesB64[n]).replace(/<[^>]+>/g," ")}catch(e){}return ocsNorm(base)}
