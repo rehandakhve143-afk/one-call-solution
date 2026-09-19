@@ -56,7 +56,12 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 .role-btn{border:1px solid #dce7e8;background:#fff;border-radius:14px;padding:13px 10px;font-weight:900;font-size:13px;box-shadow:0 4px 12px rgba(18,50,71,.05)}
 .role-btn.customer{color:#087a70}
 .role-btn.provider{color:#2f5fa8}
-@media(max-width:390px){.role-btn{font-size:12px;padding:12px 8px}}
+.myocs-home{margin:2px 14px 13px;background:linear-gradient(145deg,#ffffff,#f3faf8);border:1px solid #dce9e6;border-radius:18px;padding:13px;box-shadow:0 5px 16px rgba(18,50,71,.06)}
+.myocs-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.myocs-head h2{margin:0;font-size:17px}.myocs-head small{font-size:9px;font-weight:900;background:#e7f6f1;color:#08725f;padding:5px 8px;border-radius:999px}
+.myocs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.myocs-grid button{border:1px solid #dce7e8;background:#fff;border-radius:13px;padding:10px 4px;color:#244c57;font-size:9px;font-weight:850;min-height:62px}.myocs-grid button span{display:block;font-size:20px;margin-bottom:5px}
+.myocs-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.myocs-panel-head h2{margin:0}.myocs-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:13px 0}.myocs-tabs button{border:1px solid #dce7e8;background:#f5f8f9;border-radius:11px;padding:9px 4px;font-size:9px;font-weight:850;color:#49636c}.myocs-tabs button.on{background:#087a70;color:#fff;border-color:#087a70}
+.myocs-card{border:1px solid #dce8e8;border-radius:15px;padding:12px;margin-top:9px;background:#fff}.myocs-card b{display:block;margin-bottom:4px}.myocs-card small{color:#71818a;line-height:1.4}.myocs-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.myocs-actions button{border:0;border-radius:11px;padding:10px;font-weight:850;background:#edf5f4;color:#185b55}.myocs-actions button.primary-mini{background:#087a70;color:#fff}
+@media(max-width:390px){.role-btn{font-size:12px;padding:12px 8px}.myocs-grid{grid-template-columns:1fr 1fr}.myocs-grid button{min-height:58px}}
 
 </style></head><body><div class="app">
 <header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openCustomerHub()">🔔</button></div></div></header>
@@ -84,6 +89,16 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 
 <div class="trust-row">
   <div><b>✓</b>Verified</div><div><b>₹</b>Clear Pricing</div><div><b>🔐</b>Start OTP</div><div><b>🎧</b>Support</div>
+</div>
+
+<div class="myocs-home">
+  <div class="myocs-head"><h2>My OCS</h2><small>Everything in one place</small></div>
+  <div class="myocs-grid">
+    <button onclick="openMyOcs('book')"><span>↻</span>Book Again</button>
+    <button onclick="openMyOcs('saved')"><span>♡</span>Saved</button>
+    <button onclick="openMyOcs('inbox')"><span>💬</span>OCS Inbox</button>
+    <button onclick="openMyOcs('offers')"><span>🏷️</span>Nearby & Offers</button>
+  </div>
 </div>
 
 <div class="promo-admin-row"><button onclick="openBannerAd()">📣 Post Home Banner Ad<br><small style="font-weight:600;color:#6b808c">Paid promotion on OCS home</small></button></div>
@@ -188,6 +203,17 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <button onclick="dashOpen('Hotel / Restaurant / Lodging')"><b>Hotel / Restaurant / Lodging</b><small>Rooms • Food • Stay</small></button>
 </div>
 <div class="dash-actions" style="margin-top:12px"><button onclick="openAccount('customer')">Profile</button><button onclick="dashOpen('Home Services','customer')">Support</button><button onclick="closeCustomerDashboard()">Close</button></div>
+</div></div>
+
+<div class="modal" id="myOcsModal"><div class="sheet">
+  <div class="myocs-panel-head"><div><h2>My OCS</h2><div class="muted">Your OCS activity, saved places and shortcuts</div></div><button class="x" onclick="closeMyOcs()">×</button></div>
+  <div class="myocs-tabs">
+    <button id="myTabBook" onclick="renderMyOcs('book')">Book Again</button>
+    <button id="myTabSaved" onclick="renderMyOcs('saved')">Saved</button>
+    <button id="myTabInbox" onclick="renderMyOcs('inbox')">Inbox</button>
+    <button id="myTabOffers" onclick="renderMyOcs('offers')">Offers</button>
+  </div>
+  <div id="myOcsBody"></div>
 </div></div>
 
 <div class="modal" id="pricingModal"><div class="sheet"><button class="x" onclick="closePricingAdmin()">×</button><h2>Admin Pricing Control</h2><p class="muted">Yahan se business/banner plan rates kabhi bhi change kar sakte ho. Kisi specific business ko FREE bhi de sakte ho.</p>
@@ -330,6 +356,33 @@ function openCustomerHub(){getCustomerProfile()?openCustomerDashboard():openAcco
 function openCustomerDashboard(){renderCustomerDashboard();document.getElementById('customerDashModal').classList.add('show')}
 function closeCustomerDashboard(){document.getElementById('customerDashModal').classList.remove('show')}
 function dashOpen(name,role){closeCustomerDashboard();openModule(name,role)}
+function openMyOcs(tab){
+ renderMyOcs(tab||'book');
+ document.getElementById('myOcsModal').classList.add('show');
+}
+function closeMyOcs(){document.getElementById('myOcsModal').classList.remove('show')}
+function myOcsOpenModule(name,role){closeMyOcs();openModule(name,role)}
+function renderMyOcs(tab){
+ const body=document.getElementById('myOcsBody');if(!body)return;
+ ['Book','Saved','Inbox','Offers'].forEach(x=>{const b=document.getElementById('myTab'+x);if(b)b.classList.toggle('on',x.toLowerCase()===tab)});
+ if(tab==='book'){
+   const b=getCurrentBooking(),service=b&&(b.service||b.category||b.task);
+   body.innerHTML=(service?
+     '<div class="myocs-card"><b>Recent Home Service</b><small>'+service+' • Keep the same OCS flow and choose the service again.</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Open Home Services</button><button class="primary-mini" onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Book Again</button></div></div>':
+     '<div class="myocs-card"><b>No recent completed service yet</b><small>After a Home Service booking, the same service can appear here for quick repeat booking.</small><div class="myocs-actions"><button class="primary-mini" onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Book Home Service</button><button onclick="closeMyOcs()">Not Now</button></div></div>');
+   return;
+ }
+ if(tab==='saved'){
+   let saved=[];try{saved=JSON.parse(localStorage.getItem('ocsSavedItems')||'[]')}catch(e){}
+   body.innerHTML='<div class="myocs-card"><b>Saved / Wishlist</b><small>'+(saved.length?saved.length+' saved item(s) available.':'Property, Hotel, Shop, Beauty Partner aur Vehicle ko future me yahan save karke ek jagah dekh sakenge.')+'</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Property\')">Explore Property</button><button class="primary-mini" onclick="myOcsOpenModule(\'Hotel / Restaurant / Lodging\')">Explore Hotel / Stay</button></div></div>';
+   return;
+ }
+ if(tab==='inbox'){
+   body.innerHTML='<div class="myocs-card"><b>One OCS Inbox</b><small>Home Service support, Property enquiry, Shop enquiry, Hotel/Restaurant, Beauty aur other business chats ko ek common inbox me rakhne ka structure. Prototype me live backend messages abhi connected nahi hain.</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Home Service Support</button><button class="primary-mini" onclick="openCustomerDashboard();closeMyOcs()">Customer Dashboard</button></div></div>';
+   return;
+ }
+ body.innerHTML='<div class="myocs-card"><b>Nearby & Offers</b><small>Homepage par offers ka clutter nahi. Yahan se nearby business windows aur future live offers ek place me milenge.</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Local Shop\')">Local Shop</button><button onclick="myOcsOpenModule(\'Hotel / Restaurant / Lodging\')">Hotel / Restaurant</button><button onclick="myOcsOpenModule(\'Beauty / Make-up\')">Beauty</button><button class="primary-mini" onclick="myOcsOpenModule(\'Property\')">Property</button></div></div>';
+}
 function dashStatusLabel(s){
  const map={SELECT_SERVICE:'No Active Booking',SELECT_ITEM:'Selecting Service',BOOKING_DETAILS:'Booking Details',CUSTOM_REQUEST:'Custom Request',QUOTE_WAIT:'Waiting for Quote',INITIAL_QUOTE:'Quote Received',REQUESTED:'Booking Requested',ASSIGNED:'Provider Assigned',ON_WAY:'Provider On the Way',REACHED:'Provider Reached',WORKING:'Work in Progress',RESCHEDULED:'Work Rescheduled',RESCHEDULE_PENDING:'Reschedule Pending',RESCHEDULE_WAIT:'Reschedule Pending',PROVIDER_CHANGE_HOLD:'Provider Change • Admin Review',SUPPORT_HOLD:'Support Review',SUPPORT_REVIEW:'Support Review',NO_SHOW_VISIT:'Visit Review',WNC_REASON:'Work Not Completed',WNC_PROVIDER_REASON:'Work Not Completed • Provider Reason',WNC_CUSTOMER_CONFIRM:'Work Not Completed • Customer Confirmation',VISIT_REVIEW:'Visit Charge Review',WNC_CLOSED:'Work Not Completed • Closed',COMPLETION_CONFIRM:'Completion Confirmation',PAYMENT:'Payment Pending',ONLINE_PAY:'Online Payment',CANCELLED:'Cancelled',CANCELLED_SETTLED:'Cancelled • Settled'};
  return map[s]||String(s||'No Active Booking').replaceAll('_',' ');
