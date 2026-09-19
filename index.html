@@ -89,7 +89,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 </div>
 
 <div class="trust-row">
-  <div onclick="openVerificationInfo()" style="cursor:pointer"><b>✓</b>Verified</div><div><b>₹</b>Clear Pricing</div><div><b>🔐</b>Start OTP</div><div><b>🎧</b>Support</div>
+  <div onclick="openVerificationInfo()" style="cursor:pointer"><b>✓</b>Verified</div><div onclick="openClearPricingInfo()" style="cursor:pointer"><b>₹</b>Clear Pricing</div><div><b>🔐</b>Start OTP</div><div><b>🎧</b>Support</div>
 </div>
 
 <div class="myocs-home">
@@ -160,6 +160,14 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
   <div class="bottom-hub-card"><b>Business Listing</b><small>Basic contact/business details are checked. Where legally required, licence/registration details must also be verified.</small></div>
   <div class="bottom-hub-card"><b>Important</b><small>“Verified” does not guarantee work quality or outcome. Ratings, booking history and OCS Support remain separate trust signals.</small></div>
   <div class="notice" style="margin-top:10px"><b>Prototype status:</b> Real OTP/KYC/licence verification backend will be connected before production launch.</div>
+</div></div>
+
+<div class="modal" id="clearPricingModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>₹ Clear Pricing</h2><div class="muted">Know the charge before the work starts</div></div><button class="x" onclick="closeClearPricingInfo()">×</button></div>
+  <div class="bottom-hub-card"><b>Fixed-rate services</b><small>Listed service ka OCS labour rate booking se pehle dikhaya jayega. Quantity applicable ho to total automatically calculate hoga.</small></div>
+  <div class="bottom-hub-card"><b>Material / Parts</b><small>Jahan rate card labour-only hai, material, spare parts aur hardware ka charge alag rahega aur customer ko bataya jayega.</small></div>
+  <div class="bottom-hub-card"><b>Get Quote work</b><small>Service Provider quote bhejega. Customer accept karega tabhi accepted amount official booking amount banega.</small></div>
+  <div class="bottom-hub-card"><b>No-work visit charge</b><small>Applicable case me 1–6 km ₹199 aur &gt;6–12 km ₹249. Work Pending / Reschedule same provider case ko separately handle kiya jayega.</small></div>
 </div></div>
 
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Create Customer Account</h2><p class="muted" id="accountSub">Mobile OTP + email verification required.</p>
@@ -460,6 +468,8 @@ function openNotifications(){
 function closeNotifications(){document.getElementById('notificationsModal').classList.remove('show')}
 function openVerificationInfo(){document.getElementById('verificationInfoModal').classList.add('show')}
 function closeVerificationInfo(){document.getElementById('verificationInfoModal').classList.remove('show')}
+function openClearPricingInfo(){document.getElementById('clearPricingModal').classList.add('show')}
+function closeClearPricingInfo(){document.getElementById('clearPricingModal').classList.remove('show')}
 
 function openBookingsHub(){
  const b=getCurrentBooking();
