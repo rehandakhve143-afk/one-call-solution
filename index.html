@@ -49,6 +49,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 .trust-row{margin:4px 14px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.trust-row div{background:#fff;border:1px solid #dce7e8;border-radius:12px;padding:9px 5px;text-align:center;font-size:8px;font-weight:800;color:#5e747d}.trust-row b{display:block;font-size:15px;color:#087a70;margin-bottom:3px}
 #explore{padding-top:6px}.grid{gap:9px}.card{border-radius:16px;box-shadow:0 4px 13px rgba(18,50,71,.06)}
 .bottom-nav{position:fixed;z-index:15;left:50%;transform:translateX(-50%);bottom:0;width:min(720px,100%);background:#fff;border-top:1px solid #dfe8ea;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px max(7px,env(safe-area-inset-bottom));box-shadow:0 -7px 22px rgba(18,50,71,.09)}.bottom-nav button{border:0;background:transparent;color:#667b84;padding:4px 2px;font-size:9px;font-weight:800}.bottom-nav button span{display:block;font-size:18px;line-height:1.1;margin-bottom:3px}.bottom-nav button.active{color:#087a70}
+.bottom-hub-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.bottom-hub-head h2{margin:0}.bottom-hub-card{border:1px solid #dce8e8;border-radius:16px;background:#fff;padding:13px;margin:9px 0}.bottom-hub-card b{display:block;margin-bottom:5px}.bottom-hub-card small{color:#6f8188;line-height:1.45}.bottom-hub-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.bottom-hub-actions button{border:0;border-radius:11px;padding:10px;font-weight:850;background:#edf5f4;color:#175b55}.bottom-hub-actions .main{background:#087a70;color:#fff}.support-role-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:9px 0}.support-role-row button{border:1px solid #dce8e8;border-radius:12px;padding:11px;background:#fff;font-weight:850;color:#30545d}.support-role-row button.on{background:#087a70;color:#fff;border-color:#087a70}
 @media(max-width:390px){.home-entry .start-card{min-height:146px}.home-entry .start-card .bigico{height:78px}.service-mini-grid{gap:6px}.service-mini{font-size:8.7px;padding:9px 2px}.clean-hero .slide-copy{width:64%}.clean-hero .slide h2{font-size:20px}}
 
 
@@ -121,13 +122,33 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <div class="biz"><h2 style="margin:0">Register Your Business on OCS</h2><p style="opacity:.85">Yahan business profile/listing banegi. Ye Home Banner Ad se alag hai.</p><button class="primary" onclick="openBiz()">Create Business Listing</button></div>
 </div>
 <nav class="bottom-nav">
-  <button class="active" onclick="window.scrollTo({top:0,behavior:'smooth'})"><span>⌂</span>Home</button>
-  <button onclick="openModule('Home Services','customer')"><span>🧰</span>Services</button>
-  <button onclick="openBookingsHub()"><span>▣</span>Bookings</button>
-  <button onclick="openModule('Home Services','customer')"><span>🎧</span>Support</button>
-  <button onclick="openCustomerHub()"><span>👤</span>Profile</button>
+  <button id="bnHome" class="active" onclick="bottomHome()"><span>⌂</span>Home</button>
+  <button id="bnServices" onclick="bottomServices()"><span>🧰</span>Services</button>
+  <button id="bnBookings" onclick="openBottomBookings()"><span>▣</span>Bookings</button>
+  <button id="bnSupport" onclick="openBottomSupport()"><span>🎧</span>Support</button>
+  <button id="bnProfile" onclick="openBottomProfile()"><span>👤</span>Profile</button>
 </nav>
 <div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div></div><iframe id="frame"></iframe></div>
+<div class="modal" id="bottomBookingsModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>Bookings</h2><div class="muted">Your Home Service booking status</div></div><button class="x" onclick="closeBottomHub('bottomBookingsModal')">×</button></div>
+  <div id="bottomBookingsBody"></div>
+</div></div>
+
+<div class="modal" id="bottomSupportModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>OCS Support</h2><div class="muted">Customer and Service Provider support are separate</div></div><button class="x" onclick="closeBottomHub('bottomSupportModal')">×</button></div>
+  <div class="support-role-row"><button id="supportCustomerBtn" class="on" onclick="setBottomSupportRole('CUSTOMER')">Customer Support</button><button id="supportProviderBtn" onclick="setBottomSupportRole('SERVICE_PROVIDER')">Service Provider Support</button></div>
+  <div class="bottom-hub-card"><b id="bottomSupportTitle">Customer Support</b><small>Booking issue, payment, Service Provider, unusual situation ya kisi bhi problem ke liye request bhejein.</small>
+  <label>Problem / Message *</label><textarea id="bottomSupportText" placeholder="Apni problem clearly likhiye..."></textarea>
+  <label style="display:flex;gap:8px;align-items:center;font-weight:700"><input id="bottomSupportCallback" type="checkbox" style="width:auto"> OCS callback chahiye</label>
+  <button class="primary" onclick="submitBottomSupport()">Submit Support Request</button>
+  <div id="bottomSupportResult" class="muted" style="margin-top:9px"></div></div>
+</div></div>
+
+<div class="modal" id="bottomProfileModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>Customer Profile</h2><div class="muted">Your OCS account details</div></div><button class="x" onclick="closeBottomHub('bottomProfileModal')">×</button></div>
+  <div id="bottomProfileBody"></div>
+</div></div>
+
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Create Customer Account</h2><p class="muted" id="accountSub">Mobile OTP + email verification required.</p>
 <div id="customerAccountForm">
   <label>Full Name *</label><input id="caName" autocomplete="name" placeholder="Your full name">
@@ -345,6 +366,67 @@ function refreshHomeBookingStatus(){
 window.addEventListener('storage',refreshHomeBookingStatus);
 window.addEventListener('focus',refreshHomeBookingStatus);
 setTimeout(refreshHomeBookingStatus,0);
+function setBottomActive(id){
+ document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.remove('active'));
+ const x=document.getElementById(id);if(x)x.classList.add('active');
+}
+function closeBottomHub(id){const m=document.getElementById(id);if(m)m.classList.remove('show')}
+function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
+function bottomHome(){
+ closeAllBottomHubs();
+ if(document.getElementById('viewer')?.classList.contains('show'))closeModule();
+ setBottomActive('bnHome');window.scrollTo({top:0,behavior:'smooth'});
+}
+function bottomServices(){
+ closeAllBottomHubs();
+ if(document.getElementById('viewer')?.classList.contains('show'))closeModule();
+ setBottomActive('bnServices');
+ const el=document.getElementById('explore');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function openBottomBookings(){
+ closeAllBottomHubs();setBottomActive('bnBookings');
+ const body=document.getElementById('bottomBookingsBody'),b=getCurrentBooking();
+ const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED'];
+ const s=String(b?.status||b?.state||'').toUpperCase();
+ if(!b||inactive.includes(s)){
+  body.innerHTML='<div class="bottom-hub-card"><b>No active booking</b><small>Abhi koi running Home Service booking nahi hai.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button><button onclick="closeBottomHub(\'bottomBookingsModal\')">Close</button></div></div>';
+ }else{
+  const service=b.service||b.category||b.task||'Home Service',label=dashStatusLabel(s),id=b.id||b.bookingId||'OCS Booking';
+  body.innerHTML='<div class="bottom-hub-card"><b>'+service+'</b><small>'+id+'<br>Status: <b style="display:inline">'+label+'</b></small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Track Booking</button><button onclick="closeBottomHub(\'bottomBookingsModal\')">Close</button></div></div>';
+ }
+ document.getElementById('bottomBookingsModal').classList.add('show');
+}
+let bottomSupportRole='CUSTOMER';
+function setBottomSupportRole(role){
+ bottomSupportRole=role;
+ document.getElementById('supportCustomerBtn').classList.toggle('on',role==='CUSTOMER');
+ document.getElementById('supportProviderBtn').classList.toggle('on',role==='SERVICE_PROVIDER');
+ document.getElementById('bottomSupportTitle').textContent=role==='CUSTOMER'?'Customer Support':'Service Provider Support';
+ document.getElementById('bottomSupportText').value='';
+ document.getElementById('bottomSupportResult').textContent='';
+}
+function openBottomSupport(){
+ closeAllBottomHubs();setBottomActive('bnSupport');setBottomSupportRole('CUSTOMER');
+ document.getElementById('bottomSupportModal').classList.add('show');
+}
+function submitBottomSupport(){
+ const msg=(document.getElementById('bottomSupportText').value||'').trim();if(!msg){alert('Problem / message likhiye.');return}
+ const callback=document.getElementById('bottomSupportCallback').checked;
+ const id='OCS-'+Math.floor(100000+Math.random()*900000);
+ let arr=[];try{arr=JSON.parse(localStorage.getItem('ocsSupportTickets')||'[]')}catch(e){}
+ arr.unshift({id,role:bottomSupportRole,message:msg,callback,createdAt:new Date().toISOString()});
+ localStorage.setItem('ocsSupportTickets',JSON.stringify(arr.slice(0,20)));
+ document.getElementById('bottomSupportResult').innerHTML='<b>Request submitted • '+id+'</b><br>'+(callback?'Callback requested.':'No callback requested.');
+}
+function openBottomProfile(){
+ closeAllBottomHubs();setBottomActive('bnProfile');
+ const p=getCustomerProfile();
+ if(!p){openAccount('customer');return}
+ const body=document.getElementById('bottomProfileBody');
+ body.innerHTML='<div class="bottom-hub-card"><b>'+((p.name||'Customer'))+'</b><small>📱 '+(p.mobile||'—')+'<br>✉ '+(p.email||'—')+'<br>✓ Verified Customer Account</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Edit / Verify</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openMyOcs(\'saved\')">My OCS</button></div></div>';
+ document.getElementById('bottomProfileModal').classList.add('show');
+}
+
 function openBookingsHub(){
  const b=getCurrentBooking();
  const s=String(b?.status||b?.state||'').toUpperCase();
