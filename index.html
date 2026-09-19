@@ -1891,7 +1891,12 @@ delete savedSettings.dueThreshold;
 localStorage.setItem('ocsSettings',JSON.stringify(savedSettings));
 let settings={...DEFAULTS,...savedSettings};
 let providerWallet=Number(localStorage.getItem('ocsProviderWallet'));
-if(!Number.isFinite(providerWallet))providerWallet=settings.welcomeBonus;
+if(!Number.isFinite(providerWallet))providerWallet=0;
+if(localStorage.getItem('ocsWelcomeBonusCreditedV2')!=='1'){
+  providerWallet=Math.round((providerWallet+settings.welcomeBonus)*100)/100;
+  localStorage.setItem('ocsProviderWallet',providerWallet);
+  localStorage.setItem('ocsWelcomeBonusCreditedV2','1');
+}
 let providerJobAccess=providerWallet>0;
 let selectedService='',selectedTask=null,currentBooking=null,supportRole='customer',providerAvailable=providerJobAccess;
 // Explicit DOM references so buttons work reliably across mobile browsers/GitHub Pages.
