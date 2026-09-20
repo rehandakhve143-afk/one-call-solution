@@ -21,6 +21,9 @@ button,input,select,textarea{font:inherit}.app{max-width:720px;margin:auto;min-h
 .bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:720px;width:100%;background:#064b78;color:white;display:grid;grid-template-columns:repeat(4,1fr);padding:11px 5px 15px;z-index:10}.bottom button{background:none;border:0;color:#d9edf5;font-weight:700}.bottom .active{color:#ff7a21}
 .overlay{position:fixed;inset:0;background:#001d2b99;z-index:20;display:none;align-items:flex-end;justify-content:center}.sheet{background:#fff;width:min(720px,100%);max-height:91vh;overflow:auto;border-radius:25px 25px 0 0;padding:20px}.sheet h2{margin:0 0 4px}.close{float:right;border:0;background:#eef3f5;border-radius:50%;width:38px;height:38px;font-weight:900}
 label{display:block;font-weight:800;margin:13px 0 6px}.field{width:100%;border:1px solid #cddce3;border-radius:12px;padding:13px;background:white}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.next{width:100%;margin-top:18px;background:#006a8b;color:white;border:0;border-radius:13px;padding:14px;font-weight:900}.preview{border:1px solid #d8e5ea;border-radius:15px;padding:13px;background:#f8fcfd}.hidden{display:none}.notice{background:#eafaf3;color:#176744;padding:12px;border-radius:12px;margin:10px 0}.ownerbox{background:#eef8ff;border-radius:13px;padding:11px;margin-top:10px}.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.links button{border:1px solid #d3e1e8;background:white;border-radius:9px;padding:8px;font-weight:700;font-size:12px}
+.property-plan-box{margin:10px 0 4px;padding:12px 13px;border-radius:13px;background:linear-gradient(135deg,#eef9f6,#fff);border:1px solid #d7eae4}
+.property-plan-box b{display:block;font-size:14px;color:#174f55}.property-plan-box span{display:block;margin-top:3px;font-size:17px;font-weight:900;color:#087a70}.property-plan-box small{display:block;margin-top:4px;color:#6b7f87;font-size:11px;line-height:1.35}
+.property-preview-plan{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0;padding:10px 11px;border-radius:11px;background:#eef8f5;border:1px solid #d8ebe5}.property-preview-plan span{font-weight:900;color:#087a70;font-size:12px}
 
 /* OCS PREMIUM VISUAL PASS */
 :root{--ocs-accent:#0a7a74;--ocs-hero:linear-gradient(135deg,#083d55 0%,#0a7a74 56%,#18a78b 100%)}
@@ -88,6 +91,11 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 
 <div id="s1">
 <label>I am posting as</label><select class="field" id="poster" onchange="posterChange()"><option>Property Owner</option><option>Builder / Developer</option></select>
+<div class="property-plan-box" id="propertyPlanBox">
+  <b id="propertyPlanTitle">Owner Single Post</b>
+  <span id="propertyPlanPrice">₹199 / 28 days</span>
+  <small id="propertyPlanHelp">Single property listing with photos and direct customer contact.</small>
+</div>
 <label>Purpose</label><select class="field" id="purpose"><option>Rent</option><option>Sale</option></select>
 <label>Property type</label><select class="field" id="ptype" onchange="typeChange()"><option>Flat</option><option>Bungalow</option><option>Row House</option><option>Land</option></select>
 <div id="builderProject" class="hidden"><label>Project name</label><input class="field" id="project" placeholder="e.g. Green Heights"></div>
@@ -114,7 +122,7 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 
 <div id="s4" class="hidden">
 <div class="preview" id="preview"></div>
-<div class="notice"><b>Final step:</b> Listing plan/payment successful hone ke baad listing live hogi. Is prototype me payment simulation hai; production me real payment verification connect hoga.</div>
+<div class="notice" id="propertyPaymentNotice"><b>Final step:</b> Owner Single Post • ₹199 / 28 days. Payment successful hone ke baad listing live hogi.</div>
 <button class="next" onclick="publish()">Simulate Payment & Publish</button>
 <button class="next" style="background:#eef3f5;color:#24485c" onclick="go(3)">← Edit Details</button></div>
 
@@ -125,7 +133,23 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 const $=id=>document.getElementById(id);
 function openPost(){$('overlay').style.display='flex';go(1)}
 function closePost(){$('overlay').style.display='none'}
-function posterChange(){let b=$('poster').value.includes('Builder');$('builderProject').classList.toggle('hidden',!b);$('builderLinks').classList.toggle('hidden',!b)}
+function posterChange(){
+ let b=$('poster').value.includes('Builder');
+ $('builderProject').classList.toggle('hidden',!b);
+ $('builderLinks').classList.toggle('hidden',!b);
+ const title=$('propertyPlanTitle'),price=$('propertyPlanPrice'),help=$('propertyPlanHelp'),notice=$('propertyPaymentNotice');
+ if(b){
+   if(title)title.textContent='Builder Profile';
+   if(price)price.textContent='₹499 / 28 days';
+   if(help)help.textContent='Builder profile with project gallery, brochure, video / YouTube and website links.';
+   if(notice)notice.innerHTML='<b>Final step:</b> Builder Profile • ₹499 / 28 days. Payment successful hone ke baad Builder profile live hogi.';
+ }else{
+   if(title)title.textContent='Owner Single Post';
+   if(price)price.textContent='₹199 / 28 days';
+   if(help)help.textContent='Single property listing with photos and direct customer contact.';
+   if(notice)notice.innerHTML='<b>Final step:</b> Owner Single Post • ₹199 / 28 days. Payment successful hone ke baad listing live hogi.';
+ }
+}
 function typeChange(){$('bhkWrap').classList.toggle('hidden',$('ptype').value==='Land')}
 function go(n){
  for(let i=1;i<=4;i++) $('s'+i).classList.toggle('hidden',i!==n);$('done').classList.add('hidden');
@@ -136,7 +160,7 @@ function go(n){
 function makePreview(){
  let b=$('poster').value.includes('Builder');
  let name=b?($('project').value||'Builder Project'):($('bhk').value+' '+$('ptype').value+' for '+$('purpose').value);
- $('preview').innerHTML='<b style="font-size:20px">'+name+'</b><br><span class="muted">'+$('area').value+' • '+$('city').value+'</span><div class="price">₹'+Number($('price').value||0).toLocaleString('en-IN')+( $('purpose').value==='Rent'?' / month':'')+'</div><div>'+$('ptype').value+( $('ptype').value!=='Land'?' • '+$('bhk').value:'')+( $('sqft').value?' • '+$('sqft').value+' sq ft':'')+'</div><p>'+($('desc').value||'No description added')+'</p>'+(b?'<div class="ownerbox"><b>Builder Profile</b><br>Gallery'+($('brochure').value?' • Brochure':'')+($('video').value?' • Video':'')+($('website').value?' • Website':'')+'</div>':'');
+ $('preview').innerHTML='<b style="font-size:20px">'+name+'</b><br><span class="muted">'+$('area').value+' • '+$('city').value+'</span><div class="price">₹'+Number($('price').value||0).toLocaleString('en-IN')+( $('purpose').value==='Rent'?' / month':'')+'</div><div>'+$('ptype').value+( $('ptype').value!=='Land'?' • '+$('bhk').value:'')+( $('sqft').value?' • '+$('sqft').value+' sq ft':'')+'</div><p>'+($('desc').value||'No description added')+'</p><div class="property-preview-plan"><b>'+(b?'Builder Profile':'Owner Single Post')+'</b><span>'+(b?'₹499 / 28 days':'₹199 / 28 days')+'</span></div>'+(b?'<div class="ownerbox"><b>Builder Profile Features</b><br>Project Gallery'+($('brochure').value?' • Brochure':'')+($('video').value?' • Video / YouTube':'')+($('website').value?' • Website':'')+'</div>':'<div class="ownerbox"><b>Owner Single Post</b><br>One property listing • Photos • Direct contact</div>');
 }
 function publish(){
  let b=$('poster').value.includes('Builder'), type=$('ptype').value, purpose=$('purpose').value;
