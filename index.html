@@ -532,6 +532,150 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
   #moduleGrid .card{border-radius:15px!important}
 }
 
+
+/* OCS SLIDER-STYLE WINDOW CARDS FINAL */
+#moduleGrid.ocs-slider-cards{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+  padding:0 14px 18px!important;
+}
+#moduleGrid .ocs-window-card{
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  aspect-ratio:1.56/1!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border:1px solid rgba(255,255,255,.9)!important;
+  border-radius:18px!important;
+  background:linear-gradient(145deg,#0b6672,#12384d)!important;
+  box-shadow:0 8px 20px rgba(18,50,71,.14)!important;
+  text-align:left!important;
+  cursor:pointer!important;
+  isolation:isolate!important;
+}
+#moduleGrid .ocs-window-photo{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  display:block!important;
+  opacity:1!important;
+  filter:brightness(1.07) saturate(1.06)!important;
+  transform:none!important;
+  z-index:0!important;
+}
+#moduleGrid .ocs-window-shade{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  z-index:1!important;
+  pointer-events:none!important;
+  background:
+    linear-gradient(180deg,rgba(5,37,49,.03) 0%,rgba(5,37,49,.03) 38%,rgba(3,28,40,.42) 67%,rgba(3,28,40,.92) 100%),
+    linear-gradient(90deg,rgba(0,32,45,.20),transparent 68%)!important;
+}
+#moduleGrid .ocs-window-badge{
+  position:absolute!important;
+  top:10px!important;
+  left:10px!important;
+  z-index:3!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  max-width:calc(100% - 20px)!important;
+  min-height:24px!important;
+  padding:4px 9px!important;
+  border-radius:999px!important;
+  border:1px solid rgba(116,246,238,.76)!important;
+  background:rgba(0,93,109,.84)!important;
+  color:#fff!important;
+  box-shadow:0 3px 10px rgba(0,0,0,.16)!important;
+  font-size:8.5px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  letter-spacing:.15px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  text-shadow:none!important;
+}
+#moduleGrid .ocs-window-copy{
+  position:absolute!important;
+  left:12px!important;
+  right:48px!important;
+  bottom:11px!important;
+  z-index:3!important;
+  display:block!important;
+  padding:0!important;
+  margin:0!important;
+}
+#moduleGrid .ocs-window-copy b{
+  display:block!important;
+  margin:0!important;
+  padding:0!important;
+  color:#fff!important;
+  font-size:15px!important;
+  line-height:1.06!important;
+  font-weight:900!important;
+  letter-spacing:-.15px!important;
+  text-shadow:0 2px 7px rgba(0,0,0,.48)!important;
+}
+#moduleGrid .ocs-window-copy small{
+  display:block!important;
+  margin-top:4px!important;
+  color:rgba(255,255,255,.94)!important;
+  font-size:9.6px!important;
+  line-height:1.12!important;
+  font-weight:500!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  text-shadow:0 1px 5px rgba(0,0,0,.5)!important;
+}
+#moduleGrid .ocs-window-arrow{
+  position:absolute!important;
+  right:10px!important;
+  bottom:10px!important;
+  z-index:4!important;
+  display:grid!important;
+  place-items:center!important;
+  width:34px!important;
+  height:34px!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  color:#008c86!important;
+  box-shadow:0 4px 12px rgba(0,0,0,.22)!important;
+  font-size:25px!important;
+  line-height:1!important;
+  font-weight:700!important;
+}
+#moduleGrid .ocs-window-card:active{
+  transform:scale(.985)!important;
+  box-shadow:0 5px 14px rgba(18,50,71,.12)!important;
+}
+#moduleGrid .ocs-window-card.long-title .ocs-window-copy b{font-size:12.5px!important;line-height:1.08!important}
+#moduleGrid .ocs-window-card.long-title .ocs-window-badge{font-size:7.2px!important;padding-left:7px!important;padding-right:7px!important}
+@media(max-width:390px){
+  #moduleGrid.ocs-slider-cards{gap:9px!important;padding-left:12px!important;padding-right:12px!important}
+  #moduleGrid .ocs-window-card{border-radius:16px!important}
+  #moduleGrid .ocs-window-badge{top:8px!important;left:8px!important;min-height:22px!important;font-size:7.6px!important;padding:4px 7px!important}
+  #moduleGrid .ocs-window-copy{left:10px!important;right:43px!important;bottom:9px!important}
+  #moduleGrid .ocs-window-copy b{font-size:13px!important}
+  #moduleGrid .ocs-window-copy small{font-size:8.5px!important;margin-top:3px!important}
+  #moduleGrid .ocs-window-arrow{right:8px!important;bottom:8px!important;width:31px!important;height:31px!important;font-size:22px!important}
+  #moduleGrid .ocs-window-card.long-title .ocs-window-copy b{font-size:10.8px!important}
+  #moduleGrid .ocs-window-card.long-title .ocs-window-badge{font-size:6.5px!important}
+}
+
 </style></head><body><div class="app">
 <header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openNotifications()">🔔</button></div></div></header>
 
@@ -561,19 +705,91 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 </div>
 
 <div class="section-head" id="explore"><div><h2>Explore One Call Solution</h2><small>Choose a main OCS window</small></div></div>
-<div class="grid" id="moduleGrid" data-card-set="bright2">
-<button class="card c1" aria-label="Home Services" title="Home Services" onclick='openModule("Home Services")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:0% 0%!important"></button>
-<button class="card c2" aria-label="Property" title="Property" onclick='openModule("Property")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:50% 0%!important"></button>
-<button class="card c3" aria-label="Local Shop" title="Local Shop" onclick='openModule("Local Shop")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:100% 0%!important"></button>
-<button class="card c4" aria-label="Sliding / Aluminium" title="Sliding / Aluminium" onclick='openModule("Sliding / Aluminium")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:0% 33.333%!important"></button>
-<button class="card c5" aria-label="Welding / Fabrication" title="Welding / Fabrication" onclick='openModule("Welding / Fabrication")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:50% 33.333%!important"></button>
-<button class="card c6" aria-label="Beauty / Make-up" title="Beauty / Make-up" onclick='openModule("Beauty / Make-up")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:100% 33.333%!important"></button>
-<button class="card c7" aria-label="Used Vehicle" title="Used Vehicle" onclick='openModule("Used Vehicle")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:100% 66.666%!important"></button>
-<button class="card c8" aria-label="New Vehicle" title="New Vehicle" onclick='openModule("New Vehicle")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:0% 100%!important"></button>
-<button class="card c9" aria-label="Medical Store" title="Medical Store" onclick='openModule("Medical Store")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:0% 66.666%!important"></button>
-<button class="card c10" aria-label="Diagnostic Lab" title="Diagnostic Lab" onclick='openModule("Diagnostic Lab")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:50% 66.666%!important"></button>
-<button class="card c11" aria-label="Modular Kitchen" title="Modular Kitchen" onclick='openModule("Modular Kitchen")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:50% 100%!important"></button>
-<button class="card c12" aria-label="Hotel / Restaurant / Lodging" title="Hotel / Restaurant / Lodging" onclick='openModule("Hotel / Restaurant / Lodging")' style="position:relative!important;display:block!important;min-height:0!important;aspect-ratio:360/235!important;padding:0!important;border:0!important;border-radius:17px!important;overflow:hidden!important;background-image:url('assets/ocs-window-cards-final.jpg?v=20260920-bright2')!important;background-size:300% 400%!important;background-repeat:no-repeat!important;box-shadow:0 7px 18px rgba(18,50,71,.13)!important;transform:none!important;background-position:100% 100%!important"></button>
+<div class="grid ocs-slider-cards" id="moduleGrid" data-card-set="slider-photo-final">
+<button class="ocs-window-card" aria-label="Home Services" title="Home Services" onclick='openModule("Home Services")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1741388222137-c0d3007ec173?auto=format&fit=crop&w=1200&q=90" alt="" loading="eager" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">HOME SERVICES</span>
+  <span class="ocs-window-copy"><b>Home Services</b><small>Book trusted local experts</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
+<button class="ocs-window-card" aria-label="Property" title="Property" onclick='openModule("Property")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1693160206111-202ab0b8b34c?auto=format&fit=crop&w=1200&q=90" alt="" loading="eager" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">PROPERTY</span>
+  <span class="ocs-window-copy"><b>Property</b><small>Rent • Buy • Builder listings</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
+<button class="ocs-window-card" aria-label="Local Shop" title="Local Shop" onclick='openModule("Local Shop")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1759200165738-6366977a73c6?auto=format&fit=crop&w=1200&q=90" alt="" loading="eager" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">LOCAL SHOP</span>
+  <span class="ocs-window-copy"><b>Local Shop</b><small>Electrical & hardware shops</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
+<button class="ocs-window-card" aria-label="Sliding / Aluminium" title="Sliding / Aluminium" onclick='openModule("Sliding / Aluminium")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1758998202918-d921125a700f?auto=format&fit=crop&w=1200&q=90" alt="" loading="eager" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">SLIDING / ALUMINIUM</span>
+  <span class="ocs-window-copy"><b>Sliding / Aluminium</b><small>Windows • doors • glass work</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
+<button class="ocs-window-card" aria-label="Welding / Fabrication" title="Welding / Fabrication" onclick='openModule("Welding / Fabrication")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1776159904891-e7b213b8198f?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">WELDING / FABRICATION</span>
+  <span class="ocs-window-copy"><b>Welding / Fabrication</b><small>Gate • grill • fabrication</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
+<button class="ocs-window-card" aria-label="Beauty / Make-up" title="Beauty / Make-up" onclick='openModule("Beauty / Make-up")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1758739011301-0d348a60d32e?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">BEAUTY / MAKE-UP</span>
+  <span class="ocs-window-copy"><b>Beauty / Make-up</b><small>Artists • bridal • beauty</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
+<button class="ocs-window-card" aria-label="Used Vehicle" title="Used Vehicle" onclick='openModule("Used Vehicle")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1717535398330-ce2d0d7ed850?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">USED VEHICLE</span>
+  <span class="ocs-window-copy"><b>Used Vehicle</b><small>Second-hand bikes & cars</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
+<button class="ocs-window-card" aria-label="New Vehicle" title="New Vehicle" onclick='openModule("New Vehicle")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1771284848859-12f150fa1637?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">NEW VEHICLE</span>
+  <span class="ocs-window-copy"><b>New Vehicle</b><small>New bikes & cars</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
+<button class="ocs-window-card" aria-label="Medical Store" title="Medical Store" onclick='openModule("Medical Store")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1560840038-e595bb6c706d?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">MEDICAL STORE</span>
+  <span class="ocs-window-copy"><b>Medical Store</b><small>Nearby medical stores</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
+<button class="ocs-window-card" aria-label="Diagnostic Lab" title="Diagnostic Lab" onclick='openModule("Diagnostic Lab")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1491299461284-6aa083937f71?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">DIAGNOSTIC LAB</span>
+  <span class="ocs-window-copy"><b>Diagnostic Lab</b><small>Tests • packages • enquiries</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
+<button class="ocs-window-card" aria-label="Modular Kitchen" title="Modular Kitchen" onclick='openModule("Modular Kitchen")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">MODULAR KITCHEN</span>
+  <span class="ocs-window-copy"><b>Modular Kitchen</b><small>Design • cabinets • interiors</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
+<button class="ocs-window-card long-title" aria-label="Hotel / Restaurant / Lodging" title="Hotel / Restaurant / Lodging" onclick='openModule("Hotel / Restaurant / Lodging")'>
+  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1763914767111-b4451913ceba?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
+  <span class="ocs-window-shade" aria-hidden="true"></span>
+  <span class="ocs-window-badge">HOTEL / RESTAURANT / LODGING</span>
+  <span class="ocs-window-copy"><b>Hotel / Restaurant / Lodging</b><small>Stay • dine • discover nearby</small></span>
+  <span class="ocs-window-arrow" aria-hidden="true">›</span>
+</button>
 </div>
 <div class="trust-row">
   <div onclick="openVerificationInfo()" style="cursor:pointer"><b>✓</b>Verified</div><div onclick="openClearPricingInfo()" style="cursor:pointer"><b>₹</b>Clear Pricing</div><div><b>🔐</b>Start OTP</div><div><b>🎧</b>Support</div>
