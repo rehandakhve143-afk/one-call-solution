@@ -19,8 +19,14 @@ button,input,select,textarea{font:inherit}.app{max-width:720px;margin:auto;min-h
 .actions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}.actions button{border:0;border-radius:10px;padding:10px 3px;background:#eef5f8;color:#083a55;font-size:12px;font-weight:800}.actions .wa{background:#0bbd70;color:white}.actions .call{background:#006c91;color:white}
 .partner{margin:15px 14px;background:#fff0e5;border-radius:18px;padding:17px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.step{background:white;border-radius:13px;padding:11px;text-align:center;font-size:12px}.num{width:28px;height:28px;margin:0 auto 5px;border-radius:50%;background:#ff6517;color:white;display:grid;place-items:center;font-weight:900}
 .bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:720px;width:100%;background:#064b78;color:white;display:grid;grid-template-columns:repeat(4,1fr);padding:11px 5px 15px;z-index:10}.bottom button{background:none;border:0;color:#d9edf5;font-weight:700}.bottom .active{color:#ff7a21}
-.overlay{position:fixed;inset:0;background:#001d2b99;z-index:20;display:none;align-items:flex-end;justify-content:center}.sheet{background:#fff;width:min(720px,100%);max-height:91vh;overflow:auto;border-radius:25px 25px 0 0;padding:20px}.sheet h2{margin:0 0 4px}.close{float:right;border:0;background:#eef3f5;border-radius:50%;width:38px;height:38px;font-weight:900}
-label{display:block;font-weight:800;margin:13px 0 6px}.field{width:100%;border:1px solid #cddce3;border-radius:12px;padding:13px;background:white}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.next{width:100%;margin-top:18px;background:#006a8b;color:white;border:0;border-radius:13px;padding:14px;font-weight:900}.preview{border:1px solid #d8e5ea;border-radius:15px;padding:13px;background:#f8fcfd}.hidden{display:none}.notice{background:#eafaf3;color:#176744;padding:12px;border-radius:12px;margin:10px 0}.ownerbox{background:#eef8ff;border-radius:13px;padding:11px;margin-top:10px}.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.links button{border:1px solid #d3e1e8;background:white;border-radius:9px;padding:8px;font-weight:700;font-size:12px}
+.overlay{position:fixed;inset:0;background:#001d2b99;z-index:20;display:none;align-items:flex-end;justify-content:center}.sheet{background:#fff;width:min(720px,100%);max-height:88dvh;overflow:auto;border-radius:25px 25px 0 0;padding:20px 20px calc(96px + env(safe-area-inset-bottom));position:relative;overscroll-behavior:contain}.sheet h2{margin:0 0 4px}.close{float:right;border:0;background:#eef3f5;border-radius:50%;width:38px;height:38px;font-weight:900}
+label{display:block;font-weight:800;margin:13px 0 6px}.field{width:100%;border:1px solid #cddce3;border-radius:12px;padding:13px;background:white}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.next{width:100%;margin-top:18px;background:#006a8b;color:white;border:0;border-radius:13px;padding:14px;font-weight:900}
+.primary-action{
+  position:fixed;left:20px;right:20px;bottom:calc(14px + env(safe-area-inset-bottom));
+  width:auto;max-width:680px;margin:0 auto;z-index:40;
+  box-shadow:0 10px 24px rgba(0,62,82,.24);
+  min-height:52px
+}.preview{border:1px solid #d8e5ea;border-radius:15px;padding:13px;background:#f8fcfd}.hidden{display:none}#s1,#s2,#s3,#s4{padding-bottom:18px}.notice{background:#eafaf3;color:#176744;padding:12px;border-radius:12px;margin:10px 0}.ownerbox{background:#eef8ff;border-radius:13px;padding:11px;margin-top:10px}.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.links button{border:1px solid #d3e1e8;background:white;border-radius:9px;padding:8px;font-weight:700;font-size:12px}
 .property-plan-box{margin:10px 0 4px;padding:12px 13px;border-radius:13px;background:linear-gradient(135deg,#eef9f6,#fff);border:1px solid #d7eae4}
 .property-plan-box b{display:block;font-size:14px;color:#174f55}.property-plan-box span{display:block;margin-top:3px;font-size:17px;font-weight:900;color:#087a70}.property-plan-box small{display:block;margin-top:4px;color:#6b7f87;font-size:11px;line-height:1.35}
 .property-preview-plan{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0;padding:10px 11px;border-radius:11px;background:#eef8f5;border:1px solid #d8ebe5}.property-preview-plan span{font-weight:900;color:#087a70;font-size:12px}
@@ -99,7 +105,7 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <label>Purpose</label><select class="field" id="purpose"><option>Rent</option><option>Sale</option></select>
 <label>Property type</label><select class="field" id="ptype" onchange="typeChange()"><option>Flat</option><option>Bungalow</option><option>Row House</option><option>Land</option></select>
 <div id="builderProject" class="hidden"><label>Project name</label><input class="field" id="project" placeholder="e.g. Green Heights"></div>
-<button class="next" onclick="go(2)">Continue →</button></div>
+<button class="next primary-action" onclick="go(2)">Continue →</button></div>
 
 <div id="s2" class="hidden">
 <div class="row"><div><label>City</label><input class="field" id="city" placeholder="City"></div><div><label>Locality / Area</label><input class="field" id="area" placeholder="Area"></div></div>
@@ -107,7 +113,7 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <div class="row"><div><label>Price</label><input class="field" id="price" type="number" placeholder="Amount"></div><div id="bhkWrap"><label>BHK</label><select class="field" id="bhk"><option>1 BHK</option><option>2 BHK</option><option>3 BHK</option><option>4+ BHK</option></select></div></div>
 <label>Area (sq ft)</label><input class="field" id="sqft" type="number" placeholder="e.g. 1050">
 <label>Short description</label><textarea class="field" id="desc" placeholder="Important details customers should know"></textarea>
-<button class="next" onclick="go(3)">Continue to Photos →</button></div>
+<button class="next primary-action" onclick="go(3)">Continue to Photos →</button></div>
 
 <div id="s3" class="hidden">
 <label>Property / Project photos</label><input class="field" id="photos" type="file" accept="image/*" multiple>
@@ -118,12 +124,12 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <label>Video / YouTube link (Optional)</label><input class="field" id="video" placeholder="Video URL">
 <label>Builder website (Optional)</label><input class="field" id="website" placeholder="https://yourwebsite...">
 <div class="muted">Website na ho to blank chhod sakte hain — fake/empty button customer ko nahi dikhega.</div></div>
-<button class="next" onclick="go(4)">Preview Listing →</button></div>
+<button class="next primary-action" onclick="go(4)">Preview Listing →</button></div>
 
 <div id="s4" class="hidden">
 <div class="preview" id="preview"></div>
 <div class="notice" id="propertyPaymentNotice"><b>Final step:</b> Owner Single Post • ₹199 / 28 days. Payment successful hone ke baad listing live hogi.</div>
-<button class="next" onclick="publish()">Simulate Payment & Publish</button>
+<button class="next primary-action" onclick="publish()">Continue to Payment & Publish</button>
 <button class="next" style="background:#eef3f5;color:#24485c" onclick="go(3)">← Edit Details</button></div>
 
 <div id="done" class="hidden"><div class="notice"><b>✓ Property listing live</b><br>Customer ab listing dekh sakta hai. Aap Profile/My Listings se edit, pause ya renew kar sakenge.</div><button class="next" onclick="closePost()">View Property Window</button></div>
