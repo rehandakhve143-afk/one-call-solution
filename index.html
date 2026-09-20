@@ -490,6 +490,48 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
   transform:scale(.985)!important;
   box-shadow:0 5px 12px rgba(18,50,71,.14)!important
 }
+
+/* OCS APPROVED BRIGHT WINDOW CARDS */
+#moduleGrid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+  padding:0 14px 18px!important;
+}
+#moduleGrid .card{
+  position:relative!important;
+  display:block!important;
+  min-height:0!important;
+  aspect-ratio:360/235!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:17px!important;
+  overflow:hidden!important;
+  background-image:url("assets/ocs-window-cards-final.jpg?v=20260920-bright1")!important;
+  background-size:300% 400%!important;
+  background-repeat:no-repeat!important;
+  box-shadow:0 7px 18px rgba(18,50,71,.13)!important;
+  transform:none!important;
+}
+#moduleGrid .card>*{display:none!important}
+#moduleGrid .card.c1{background-position:0% 0%!important}
+#moduleGrid .card.c2{background-position:50% 0%!important}
+#moduleGrid .card.c3{background-position:100% 0%!important}
+#moduleGrid .card.c4{background-position:0% 33.333%!important}
+#moduleGrid .card.c5{background-position:50% 33.333%!important}
+#moduleGrid .card.c6{background-position:100% 33.333%!important}
+#moduleGrid .card.c7{background-position:100% 66.666%!important}
+#moduleGrid .card.c8{background-position:0% 100%!important}
+#moduleGrid .card.c9{background-position:0% 66.666%!important}
+#moduleGrid .card.c10{background-position:50% 66.666%!important}
+#moduleGrid .card.c11{background-position:50% 100%!important}
+#moduleGrid .card.c12{background-position:100% 100%!important}
+#moduleGrid .card:active{transform:scale(.985)!important}
+@media(max-width:390px){
+  #moduleGrid{gap:9px!important;padding-left:12px!important;padding-right:12px!important}
+  #moduleGrid .card{border-radius:15px!important}
+}
+
 </style></head><body><div class="app">
 <header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openNotifications()">🔔</button></div></div></header>
 
