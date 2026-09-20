@@ -757,18 +757,8 @@ function dashStage(s){
  return 0;
 }
 function renderCustomerDashboard(){
- const p=getCustomerProfile(),b=getCurrentBooking(),hello=document.getElementById('dashHello'),box=document.getElementById('dashBookingMount');
+ const p=getCustomerProfile(),hello=document.getElementById('dashHello');
  if(hello)hello.textContent=p&&p.name?'Hi, '+p.name.split(' ')[0]:'Customer Dashboard';
- if(!box)return;
- const active=b&&b.status&&!['SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST'].includes(b.status);
- if(!active){
-   box.innerHTML='<div class="booking-card"><div class="booking-top"><h3>Current Booking</h3><span class="dash-status">NO ACTIVE JOB</span></div><div class="dash-empty">Abhi koi active Home Service booking nahi hai.</div><button class="primary" style="margin-top:10px" onclick="dashOpen(\'Home Services\',\'customer\')">Book Home Service</button></div>';
-   return;
- }
- const stage=dashStage(b.status),amount=Number(b.total||b.base||0),provider=b.provider||'Assigning...',service=b.service||b.category||'Home Service';
- box.innerHTML='<div class="booking-card"><div class="booking-top"><div><h3>'+service+'</h3><div class="dash-meta">Provider: <b>'+provider+'</b><br>Payment: '+(b.paymentChoice||'—')+(amount?' • ₹'+amount:'')+'</div></div><span class="dash-status">'+dashStatusLabel(b.status)+'</span></div>'+
- '<div class="progress-steps">'+[1,2,3,4,5,6].map(i=>'<span class="'+(i<=stage?'on':'')+'"></span>').join('')+'</div><div class="progress-labels"><span>Booked</span><span>Assigned</span><span>On Way</span><span>Reached</span><span>Working</span><span>Done</span></div>'+
- '<div class="dash-actions"><button onclick="dashOpen(\'Home Services\',\'customer\')">Open Booking</button><button onclick="dashOpen(\'Home Services\',\'customer\')">Call / Chat</button><button onclick="dashOpen(\'Home Services\',\'customer\')">Support</button></div></div>';
 }
 window.addEventListener('message',e=>{
  const d=e.data;if(!d||d.type!=='OCS_BOOKING_STATE'||!d.booking)return;
