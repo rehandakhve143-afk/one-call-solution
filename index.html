@@ -387,23 +387,29 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
   .slider-business-cta button{padding:9px 10px;font-size:9.5px}
 }
 
-/* Home Services outer poster — approved people-at-work visual */
+/* Home Services outer poster — sharp image rendering */
+#moduleGrid .card.c1{
+  transform:none!important;
+  box-shadow:0 11px 24px rgba(18,50,71,.18)!important;
+  border:1px solid rgba(255,255,255,.72)!important;
+  background:#0d2d38!important
+}
+#moduleGrid .card.c1:before{
+  content:""!important;display:block!important;position:absolute!important;inset:0!important;z-index:2!important;
+  background:linear-gradient(180deg,transparent 0%,transparent 58%,rgba(3,22,29,.18) 72%,rgba(3,22,29,.78) 100%)!important;
+  filter:none!important;transform:none!important;opacity:1!important;pointer-events:none!important
+}
 #moduleGrid .card.c1 .ico-home{
-  background-image:
-    linear-gradient(180deg,transparent 48%,rgba(4,24,31,.72) 100%),
-    url('assets/home-services-poster.jpg?v=20260920-2')!important;
-  background-size:145% auto!important;
-  background-position:center 62%!important;
-  background-repeat:no-repeat!important
+  background:none!important;filter:none!important;transform:none!important;overflow:hidden!important
 }
 #moduleGrid .card.c1 .ico-home:before,
 #moduleGrid .card.c1 .ico-home:after{display:none!important}
-#moduleGrid .card.c1{
-  box-shadow:0 11px 24px rgba(18,50,71,.18)!important;
-  border:1px solid rgba(255,255,255,.72)!important
+#moduleGrid .card.c1 .home-poster-img{
+  position:absolute;inset:0;width:100%;height:100%;display:block;
+  object-fit:cover;object-position:center 52%;filter:none!important;
+  transform:none!important;backface-visibility:hidden;
+  image-rendering:auto
 }
-#moduleGrid .card.c1:before{display:none!important}
-#moduleGrid .card.c1 .ico-home{filter:none!important}
 </style></head><body><div class="app">
 <header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openNotifications()">🔔</button></div></div></header>
 
@@ -434,7 +440,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 
 <div class="section-head" id="explore"><div><h2>Explore One Call Solution</h2><small>Choose a main OCS window</small></div></div>
 <div class="grid" id="moduleGrid">
-<button class="card c1" onclick='openModule("Home Services")'><span class="mini-badge">Popular</span><span class="ico ico-home" aria-hidden="true"></span><span><b>Home Services</b><small>Book trusted local experts</small></span><strong>›</strong></button>
+<button class="card c1" onclick='openModule("Home Services")'><span class="mini-badge">Popular</span><span class="ico ico-home" aria-hidden="true"><img class="home-poster-img" src="assets/home-services-poster.jpg?v=20260920-3" alt=""></span><span><b>Home Services</b><small>Book trusted local experts</small></span><strong>›</strong></button>
 <button class="card c2" onclick='openModule("Property")'><span class="mini-badge">Property</span><span class="ico ico-property" aria-hidden="true"><i class="pm-board">OCS REALTY</i><i class="pm-tower pm-a"></i><i class="pm-tower pm-b"></i><i class="pm-house"></i><i class="pm-sale">FOR SALE</i></span><span><b>Property</b><small>Rent • Buy • Builder listings</small></span><strong>›</strong></button>
 <button class="card c3" onclick='openModule("Local Shop")'><span class="mini-badge">Nearby</span><span class="ico ico-local" aria-hidden="true"></span><span><b>Local Shop</b><small>Electrical & hardware shops</small></span><strong>›</strong></button>
 <button class="card c4" onclick='openModule("Sliding / Aluminium")'><span class="mini-badge">Business</span><span class="ico ico-sliding" aria-hidden="true"></span><span><b>Sliding / Aluminium</b><small>Windows • doors • glass work</small></span><strong>›</strong></button>
