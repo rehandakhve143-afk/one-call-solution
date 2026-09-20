@@ -299,6 +299,57 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 #moduleGrid .c7,#moduleGrid .c8,#moduleGrid .c9,#moduleGrid .c10,#moduleGrid .c11,#moduleGrid .c12{
   background:#102e3a!important
 }
+
+/* Property home card — OCS Realty sample look */
+#moduleGrid .card.c2{box-shadow:0 11px 24px rgba(18,50,71,.18)!important}
+#moduleGrid .card.c2 .ico-property{
+  background-image:
+    radial-gradient(circle at 78% 18%,rgba(255,218,165,.34),transparent 23%),
+    linear-gradient(145deg,#314755 0%,#17303d 48%,#765640 100%)!important;
+  background-size:cover!important;background-position:center!important;
+  border:1px solid rgba(255,255,255,.18)!important;overflow:hidden!important
+}
+#moduleGrid .card.c2 .ico-property:before{
+  content:"";display:block!important;position:absolute;left:7%;right:7%;bottom:8%;height:31%;
+  border-radius:12px;background:linear-gradient(180deg,#9a806a,#4c3d33);
+  box-shadow:0 8px 18px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.25);
+  transform:perspective(120px) rotateX(7deg);z-index:1
+}
+#moduleGrid .card.c2 .ico-property:after{
+  content:"";display:block!important;position:absolute;inset:0;z-index:5;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.02) 28%,rgba(0,0,0,.06) 54%,rgba(3,20,26,.72) 100%)
+}
+#moduleGrid .card.c2 .pm-board{
+  position:absolute;z-index:3;top:26%;left:50%;transform:translateX(-50%);
+  width:70%;padding:5px 3px;border-radius:8px;border:1px solid rgba(255,255,255,.34);
+  background:rgba(255,255,255,.11);color:#f3d6ac;font-style:normal;text-align:center;
+  font-size:7px;font-weight:900;letter-spacing:.6px;backdrop-filter:blur(3px)
+}
+#moduleGrid .card.c2 .pm-tower{
+  position:absolute;z-index:2;bottom:24%;display:block;border-radius:3px 3px 1px 1px;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 7px,rgba(50,82,94,.9) 7px 10px),
+    linear-gradient(90deg,#d8ccb9,#f1e7d9 52%,#998c7e);
+  box-shadow:0 7px 12px rgba(0,0,0,.28);font-style:normal
+}
+#moduleGrid .card.c2 .pm-a{left:38%;width:19%;height:41%}
+#moduleGrid .card.c2 .pm-b{left:54%;width:21%;height:52%}
+#moduleGrid .card.c2 .pm-house{
+  position:absolute;z-index:2;left:13%;bottom:23%;width:24%;height:18%;display:block;
+  border-radius:3px;background:linear-gradient(145deg,#d9b996,#8f684e);
+  box-shadow:0 6px 11px rgba(0,0,0,.25)
+}
+#moduleGrid .card.c2 .pm-house:before{
+  content:"";position:absolute;left:4px;right:4px;top:-10px;
+  border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:12px solid #754a34
+}
+#moduleGrid .card.c2 .pm-sale{
+  position:absolute;z-index:4;right:9%;bottom:34%;display:block;padding:3px 5px;border-radius:4px;
+  background:#1a9a68;color:#fff;font-style:normal;font-size:6px;font-weight:900;
+  box-shadow:0 3px 7px rgba(0,0,0,.25)
+}
+#moduleGrid .card.c2 .mini-badge{background:rgba(61,43,30,.75)!important}
+
 .clean-hero{margin:8px 14px 12px!important;border-radius:20px!important}
 .clean-hero .slide{min-height:190px!important}
 @media(max-width:390px){
@@ -366,7 +417,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <div class="section-head" id="explore"><div><h2>Explore One Call Solution</h2><small>Choose a main OCS window</small></div></div>
 <div class="grid" id="moduleGrid">
 <button class="card c1" onclick='openModule("Home Services")'><span class="mini-badge">Popular</span><span class="ico ico-home" aria-hidden="true"></span><span><b>Home Services</b><small>Book trusted local experts</small></span><strong>›</strong></button>
-<button class="card c2" onclick='openModule("Property")'><span class="mini-badge">Property</span><span class="ico ico-property" aria-hidden="true"></span><span><b>Property</b><small>Rent • Buy • Builder listings</small></span><strong>›</strong></button>
+<button class="card c2" onclick='openModule("Property")'><span class="mini-badge">Property</span><span class="ico ico-property" aria-hidden="true"><i class="pm-board">OCS REALTY</i><i class="pm-tower pm-a"></i><i class="pm-tower pm-b"></i><i class="pm-house"></i><i class="pm-sale">FOR SALE</i></span><span><b>Property</b><small>Rent • Buy • Builder listings</small></span><strong>›</strong></button>
 <button class="card c3" onclick='openModule("Local Shop")'><span class="mini-badge">Nearby</span><span class="ico ico-local" aria-hidden="true"></span><span><b>Local Shop</b><small>Electrical & hardware shops</small></span><strong>›</strong></button>
 <button class="card c4" onclick='openModule("Sliding / Aluminium")'><span class="mini-badge">Business</span><span class="ico ico-sliding" aria-hidden="true"></span><span><b>Sliding / Aluminium</b><small>Windows • doors • glass work</small></span><strong>›</strong></button>
 <button class="card c5" onclick='openModule("Welding / Fabrication")'><span class="mini-badge">Business</span><span class="ico ico-welding" aria-hidden="true"></span><span><b>Welding / Fabrication</b><small>Gate • grill • fabrication</small></span><strong>›</strong></button>
