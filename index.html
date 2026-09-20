@@ -60,7 +60,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 .myocs-home{margin:2px 14px 13px;background:linear-gradient(145deg,#ffffff,#f3faf8);border:1px solid #dce9e6;border-radius:18px;padding:13px;box-shadow:0 5px 16px rgba(18,50,71,.06)}
 .myocs-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.myocs-head h2{margin:0;font-size:17px}.myocs-head small{font-size:9px;font-weight:900;background:#e7f6f1;color:#08725f;padding:5px 8px;border-radius:999px}
 .myocs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.myocs-grid button{border:1px solid #dce7e8;background:#fff;border-radius:13px;padding:10px 4px;color:#244c57;font-size:9px;font-weight:850;min-height:62px}.myocs-grid button span{display:block;font-size:20px;margin-bottom:5px}
-.myocs-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.myocs-panel-head h2{margin:0}.myocs-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:13px 0}.myocs-tabs button{border:1px solid #dce7e8;background:#f5f8f9;border-radius:11px;padding:9px 4px;font-size:9px;font-weight:850;color:#49636c}.myocs-tabs button.on{background:#087a70;color:#fff;border-color:#087a70}
+.myocs-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.myocs-panel-head h2{margin:0}.myocs-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:13px 0}.myocs-tabs button{border:1px solid #dce7e8;background:#f5f8f9;border-radius:11px;padding:9px 4px;font-size:9px;font-weight:850;color:#49636c}.myocs-tabs button.on{background:#087a70;color:#fff;border-color:#087a70}
 .myocs-card{border:1px solid #dce8e8;border-radius:15px;padding:12px;margin-top:9px;background:#fff}.myocs-card b{display:block;margin-bottom:4px}.myocs-card small{color:#71818a;line-height:1.4}.myocs-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.myocs-actions button{border:0;border-radius:11px;padding:10px;font-weight:850;background:#edf5f4;color:#185b55}.myocs-actions button.primary-mini{background:#087a70;color:#fff}
 @media(max-width:390px){.role-btn{font-size:12px;padding:12px 8px}.myocs-grid{grid-template-columns:1fr 1fr}.myocs-grid button{min-height:58px}}
 
@@ -529,7 +529,6 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <div class="modal" id="myOcsModal"><div class="sheet">
   <div class="myocs-panel-head"><div><h2>My OCS</h2><div class="muted">Your OCS activity, saved places and shortcuts</div></div><button class="x" onclick="closeMyOcs()">×</button></div>
   <div class="myocs-tabs">
-    <button id="myTabBook" onclick="renderMyOcs('book')">Book Again</button>
     <button id="myTabSaved" onclick="renderMyOcs('saved')">Saved</button>
     <button id="myTabInbox" onclick="renderMyOcs('inbox')">Inbox</button>
     <button id="myTabOffers" onclick="renderMyOcs('offers')">Offers</button>
@@ -789,31 +788,14 @@ function openCustomerDashboard(){renderCustomerDashboard();document.getElementBy
 function closeCustomerDashboard(){document.getElementById('customerDashModal').classList.remove('show')}
 function dashOpen(name,role){closeCustomerDashboard();openModule(name,role)}
 function openMyOcs(tab){
- renderMyOcs(tab||'book');
+ renderMyOcs(tab||'saved');
  document.getElementById('myOcsModal').classList.add('show');
 }
 function closeMyOcs(){document.getElementById('myOcsModal').classList.remove('show')}
 function myOcsOpenModule(name,role){closeMyOcs();openModule(name,role)}
 function renderMyOcs(tab){
  const body=document.getElementById('myOcsBody');if(!body)return;
- ['Book','Saved','Inbox','Offers'].forEach(x=>{const b=document.getElementById('myTab'+x);if(b)b.classList.toggle('on',x.toLowerCase()===tab)});
- if(tab==='book'){
-   const b=getCurrentBooking();
-   const s=String(b?.status||b?.state||'').toUpperCase();
-   const service=b&&(b.service||b.category||b.task);
-   const completed=['DONE','COMPLETED'].includes(s);
-   const active=b&&s&&!['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'].includes(s);
-
-   if(active){
-     body.innerHTML='<div class="myocs-card"><b>Active booking already running</b><small>Running booking ko bottom Bookings tab se open aur track karein. Home screen par booking repeat nahi hogi.</small><div class="myocs-actions"><button class="primary-mini" onclick="closeMyOcs();openBottomBookings()">Open Bookings</button><button onclick="closeMyOcs()">Close</button></div></div>';
-     return;
-   }
-
-   body.innerHTML=(completed&&service?
-     '<div class="myocs-card"><b>Book Again</b><small>'+service+' • Previous completed service ko dobara book karein.</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Open Home Services</button><button class="primary-mini" onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Book Again</button></div></div>':
-     '<div class="myocs-card"><b>No recent completed service yet</b><small>Completed Home Service ke baad yahan Book Again shortcut milega.</small><div class="myocs-actions"><button class="primary-mini" onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Book Home Service</button><button onclick="closeMyOcs()">Not Now</button></div></div>');
-   return;
- }
+ ['Saved','Inbox','Offers'].forEach(x=>{const b=document.getElementById('myTab'+x);if(b)b.classList.toggle('on',x.toLowerCase()===tab)});
  if(tab==='saved'){
    let saved=[];try{saved=JSON.parse(localStorage.getItem('ocsSavedItems')||'[]')}catch(e){}
    body.innerHTML='<div class="myocs-card"><b>Saved / Wishlist</b><small>'+(saved.length?saved.length+' saved item(s) available.':'Property, Hotel, Shop, Beauty Partner aur Vehicle ko future me yahan save karke ek jagah dekh sakenge.')+'</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Property\')">Explore Property</button><button class="primary-mini" onclick="myOcsOpenModule(\'Hotel / Restaurant / Lodging\')">Explore Hotel / Stay</button></div></div>';
