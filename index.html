@@ -520,7 +520,148 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 
 <div class="section-head" id="explore"><div><h2>Explore One Call Solution</h2><small>Choose a main OCS window</small></div></div>
 <div class="grid" id="moduleGrid">
-<button class="card c1" onclick='openModule("Home Services")'><span class="mini-badge">Popular</span><span class="ico ico-home" aria-hidden="true"><img class="home-poster-img" src="assets/home-services-poster.jpg?v=20260920-5" alt=""></span><span><b>Home Services</b><small>Book trusted local experts</small></span><strong>›</strong></button>
+<button class="card c1" onclick='openModule("Home Services")'><span class="mini-badge">Popular</span><span class="ico ico-home" aria-hidden="true"><svg class="home-poster-img" viewBox="0 0 1080 1000" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="hsBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7e5cf"/><stop offset=".55" stop-color="#f8f3ea"/><stop offset="1" stop-color="#d9eee8"/></linearGradient>
+  <linearGradient id="hsShirt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#163b70"/><stop offset="1" stop-color="#071f44"/></linearGradient>
+  <linearGradient id="hsSkin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7b17b"/><stop offset="1" stop-color="#d87948"/></linearGradient>
+  <linearGradient id="hsBucket" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#16c3c7"/><stop offset="1" stop-color="#087d96"/></linearGradient>
+  <filter id="hsShadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#102b38" flood-opacity=".22"/></filter>
+  <filter id="hsSoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>
+</defs>
+
+<rect width="1080" height="1000" fill="url(#hsBg)"/>
+<rect x="0" y="0" width="1080" height="120" fill="#fff" opacity=".28"/>
+<rect x="70" y="170" width="250" height="300" rx="24" fill="#bce3ee"/>
+<rect x="88" y="188" width="214" height="264" rx="17" fill="#dff6fb"/>
+<path d="M92 330 C150 250 224 250 302 315 V452 H92Z" fill="#9bd9ae" opacity=".75"/>
+<circle cx="242" cy="230" r="35" fill="#fff4bf" opacity=".85"/>
+
+<!-- pendant light -->
+<rect x="170" y="55" width="12" height="135" rx="6" fill="#26333b"/>
+<path d="M118 190 Q176 125 236 190 Z" fill="#26333b"/>
+<ellipse cx="177" cy="190" rx="60" ry="14" fill="#ffd87d" opacity=".7"/>
+
+<!-- room details -->
+<rect x="780" y="175" width="255" height="430" rx="12" fill="#d8b184" opacity=".45"/>
+<rect x="815" y="212" width="184" height="18" rx="9" fill="#b78457"/>
+<rect x="815" y="330" width="184" height="18" rx="9" fill="#b78457"/>
+<rect x="815" y="448" width="184" height="18" rx="9" fill="#b78457"/>
+<g fill="#5ea85c">
+  <ellipse cx="857" cy="283" rx="35" ry="62" transform="rotate(-22 857 283)"/>
+  <ellipse cx="923" cy="392" rx="33" ry="58" transform="rotate(25 923 392)"/>
+  <ellipse cx="850" cy="510" rx="29" ry="53" transform="rotate(-17 850 510)"/>
+</g>
+<g fill="#f6f7f3"><rect x="836" y="287" width="50" height="40" rx="9"/><rect x="898" y="394" width="50" height="42" rx="9"/><rect x="827" y="512" width="48" height="40" rx="9"/></g>
+<rect x="735" y="620" width="300" height="160" rx="25" fill="#e3cda7" opacity=".65"/>
+<path d="M808 618 Q814 555 874 554 Q934 555 941 618" fill="none" stroke="#bccbd0" stroke-width="19"/>
+<rect x="787" y="610" width="175" height="105" rx="16" fill="#e9edf0"/>
+<path d="M825 650 Q870 615 916 650" fill="none" stroke="#a8b5b8" stroke-width="11"/>
+
+<!-- background electrician -->
+<g opacity=".88" filter="url(#hsSoft)">
+  <circle cx="170" cy="330" r="48" fill="#b96f4f"/>
+  <path d="M112 325 Q170 255 228 325 L224 355 H116Z" fill="#102b55"/>
+  <path d="M95 500 Q100 390 170 380 Q245 390 248 500 L225 655 H110Z" fill="#123b70"/>
+  <path d="M145 392 L110 225" stroke="#d27b52" stroke-width="35" stroke-linecap="round"/>
+  <path d="M200 392 L235 222" stroke="#d27b52" stroke-width="35" stroke-linecap="round"/>
+  <circle cx="109" cy="214" r="22" fill="#0c63a8"/><circle cx="238" cy="211" r="22" fill="#0c63a8"/>
+</g>
+
+<!-- background plumber -->
+<g opacity=".9" filter="url(#hsSoft)">
+  <circle cx="864" cy="630" r="46" fill="#b96f4f"/>
+  <path d="M810 622 Q864 560 920 622 L920 648 H810Z" fill="#102b55"/>
+  <path d="M795 780 Q805 670 865 662 Q925 670 936 780 L920 920 H800Z" fill="#123b70"/>
+  <path d="M835 760 L770 845" stroke="#d27b52" stroke-width="32" stroke-linecap="round"/>
+</g>
+
+<!-- foreground technician -->
+<g filter="url(#hsShadow)">
+  <!-- body -->
+  <path d="M310 520 Q350 420 515 408 Q692 420 742 540 L790 968 H254Z" fill="url(#hsShirt)"/>
+  <path d="M468 421 Q520 465 572 421 L586 535 H452Z" fill="#173f72"/>
+  <path d="M473 426 L515 490 L557 426" fill="#0f2f5e"/>
+  <circle cx="515" cy="523" r="8" fill="#071d3f"/>
+  <circle cx="515" cy="558" r="8" fill="#071d3f"/>
+
+  <!-- neck -->
+  <path d="M444 385 Q515 420 586 385 L570 470 Q515 505 460 470Z" fill="#d47a4e"/>
+
+  <!-- head -->
+  <ellipse cx="515" cy="300" rx="160" ry="170" fill="url(#hsSkin)"/>
+  <ellipse cx="359" cy="318" rx="28" ry="45" fill="#e89061"/>
+  <ellipse cx="672" cy="318" rx="28" ry="45" fill="#e89061"/>
+
+  <!-- hair -->
+  <path d="M365 276 Q355 145 445 104 Q545 46 654 116 Q705 150 678 258 Q643 193 590 179 Q538 151 474 175 Q414 176 365 276Z" fill="#191619"/>
+  <path d="M384 208 Q435 102 548 92 Q625 95 662 154 Q579 116 518 144 Q449 153 384 208Z" fill="#292126"/>
+
+  <!-- ears highlight -->
+  <path d="M365 310 Q347 320 363 350" fill="none" stroke="#c66e47" stroke-width="9" stroke-linecap="round"/>
+  <path d="M665 310 Q683 320 668 350" fill="none" stroke="#c66e47" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- brows -->
+  <path d="M420 267 Q458 242 489 263" fill="none" stroke="#241b19" stroke-width="18" stroke-linecap="round"/>
+  <path d="M543 263 Q576 241 613 267" fill="none" stroke="#241b19" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- eyes -->
+  <ellipse cx="455" cy="300" rx="33" ry="30" fill="#fff"/>
+  <ellipse cx="578" cy="300" rx="33" ry="30" fill="#fff"/>
+  <circle cx="457" cy="302" r="15" fill="#613715"/><circle cx="578" cy="302" r="15" fill="#613715"/>
+  <circle cx="457" cy="302" r="8" fill="#111"/><circle cx="578" cy="302" r="8" fill="#111"/>
+  <circle cx="451" cy="295" r="4" fill="#fff"/><circle cx="572" cy="295" r="4" fill="#fff"/>
+
+  <!-- nose -->
+  <path d="M515 305 Q500 340 518 350" fill="none" stroke="#bd6641" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- beard -->
+  <path d="M403 345 Q420 447 515 458 Q610 447 628 345 Q602 390 566 406 Q515 431 463 407 Q428 390 403 345Z" fill="#2c221f" opacity=".92"/>
+  <!-- smile -->
+  <path d="M455 363 Q516 410 577 363 Q553 431 515 432 Q476 431 455 363Z" fill="#f7f1e8"/>
+  <path d="M464 373 Q516 401 568 373" fill="none" stroke="#a34e3e" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- left arm/thumb -->
+  <path d="M340 570 Q250 570 180 650 Q125 716 173 770 Q214 813 266 765 L374 635Z" fill="url(#hsSkin)"/>
+  <path d="M188 677 Q152 636 170 589 Q187 550 220 579 L253 624 L285 602 Q306 586 323 604 Q339 624 315 647 L273 686 Q235 718 188 677Z" fill="url(#hsSkin)"/>
+  <path d="M186 590 L166 526 Q158 499 183 490 Q211 482 222 512 L239 573Z" fill="url(#hsSkin)"/>
+
+  <!-- right arm -->
+  <path d="M690 572 Q777 610 844 728 Q884 799 827 841 Q780 872 742 817 L657 648Z" fill="url(#hsSkin)"/>
+
+  <!-- belt -->
+  <rect x="324" y="821" width="382" height="45" rx="18" fill="#17191d"/>
+  <rect x="483" y="813" width="78" height="62" rx="10" fill="#3a4047" stroke="#717981" stroke-width="7"/>
+
+  <!-- tool pouch -->
+  <path d="M315 790 L435 800 L425 972 L292 962Z" fill="#101c2e"/>
+  <path d="M314 828 L420 836" stroke="#526681" stroke-width="10"/>
+  <path d="M338 833 L338 746" stroke="#d9d9d9" stroke-width="20" stroke-linecap="round"/>
+  <path d="M338 746 L316 717 M338 746 L359 716" stroke="#d9d9d9" stroke-width="16" stroke-linecap="round"/>
+  <path d="M384 835 L400 731" stroke="#ffb80d" stroke-width="22" stroke-linecap="round"/>
+  <path d="M399 730 L417 704" stroke="#e48a00" stroke-width="16" stroke-linecap="round"/>
+
+  <!-- bucket -->
+  <path d="M650 690 L842 690 L820 920 Q818 955 782 960 H696 Q659 956 657 918Z" fill="url(#hsBucket)"/>
+  <path d="M674 686 Q744 590 818 686" fill="none" stroke="#075e78" stroke-width="19"/>
+  <rect x="690" y="605" width="55" height="115" rx="18" fill="#f8f8f8"/>
+  <rect x="705" y="575" width="86" height="40" rx="18" fill="#f9f9f9"/>
+  <rect x="750" y="566" width="60" height="25" rx="10" fill="#086fc3"/>
+  <rect x="755" y="640" width="50" height="87" rx="15" fill="#17aaa9"/>
+  <path d="M788 635 L833 575" stroke="#133d77" stroke-width="15" stroke-linecap="round"/>
+  <path d="M735 717 L765 921" stroke="#9ee8ef" stroke-width="48" stroke-linecap="round"/>
+  <path d="M765 705 Q820 675 847 704 Q820 721 788 744Z" fill="#e6eee6"/>
+  <path d="M809 706 L844 794" stroke="#0c4378" stroke-width="20" stroke-linecap="round"/>
+
+  <!-- chest home badge -->
+  <path d="M610 535 L648 505 L686 535 V588 H610Z" fill="none" stroke="#a8edf0" stroke-width="14" stroke-linejoin="round"/>
+  <rect x="636" y="548" width="24" height="40" rx="4" fill="#a8edf0"/>
+</g>
+
+<!-- foreground floor and subtle depth -->
+<ellipse cx="520" cy="990" rx="460" ry="38" fill="#163541" opacity=".15"/>
+<rect y="940" width="1080" height="60" fill="#dce8e4" opacity=".35"/>
+</svg></span><span><b>Home Services</b><small>Book trusted local experts</small></span><strong>›</strong></button>
 <button class="card c2" onclick='openModule("Property")'><span class="mini-badge">Property</span><span class="ico ico-property" aria-hidden="true"><i class="pm-board">OCS REALTY</i><i class="pm-tower pm-a"></i><i class="pm-tower pm-b"></i><i class="pm-house"></i><i class="pm-sale">FOR SALE</i></span><span><b>Property</b><small>Rent • Buy • Builder listings</small></span><strong>›</strong></button>
 <button class="card c3" onclick='openModule("Local Shop")'><span class="mini-badge">Nearby</span><span class="ico ico-local" aria-hidden="true"></span><span><b>Local Shop</b><small>Electrical & hardware shops</small></span><strong>›</strong></button>
 <button class="card c4" onclick='openModule("Sliding / Aluminium")'><span class="mini-badge">Business</span><span class="ico ico-sliding" aria-hidden="true"></span><span><b>Sliding / Aluminium</b><small>Windows • doors • glass work</small></span><strong>›</strong></button>
