@@ -48,7 +48,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 .new-request{margin:6px 14px 10px;background:linear-gradient(120deg,#fff7e8,#ffffff);border:1px solid #f1e2be;border-radius:16px;padding:13px;display:flex;gap:10px;align-items:center}.new-request .nr-copy{flex:1}.new-request b{display:block;font-size:14px}.new-request small{display:block;color:#7c7461;font-size:10px;margin-top:3px;line-height:1.3}.new-request button{border:0;background:#173247;color:#fff;border-radius:11px;padding:10px 11px;font-weight:850;font-size:10px}
 .trust-row{margin:4px 14px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.trust-row div{background:#fff;border:1px solid #dce7e8;border-radius:12px;padding:9px 5px;text-align:center;font-size:8px;font-weight:800;color:#5e747d}.trust-row b{display:block;font-size:15px;color:#087a70;margin-bottom:3px}
 #explore{padding-top:6px}.grid{gap:9px}.card{border-radius:16px;box-shadow:0 4px 13px rgba(18,50,71,.06)}
-.bottom-nav{position:fixed;z-index:15;left:50%;transform:translateX(-50%);bottom:0;width:min(720px,100%);background:#fff;border-top:1px solid #dfe8ea;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px max(7px,env(safe-area-inset-bottom));box-shadow:0 -7px 22px rgba(18,50,71,.09)}.bottom-nav button{border:0;background:transparent;color:#667b84;padding:4px 2px;font-size:9px;font-weight:800}.bottom-nav button span{display:block;font-size:18px;line-height:1.1;margin-bottom:3px}.bottom-nav button.active{color:#087a70}
+.bottom-nav{position:fixed;z-index:15;left:50%;transform:translateX(-50%);bottom:0;width:min(720px,100%);background:#fff;border-top:1px solid #dfe8ea;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px max(7px,env(safe-area-inset-bottom));box-shadow:0 -7px 22px rgba(18,50,71,.09)}.bottom-nav button{position:relative;border:0;background:transparent;color:#667b84;padding:4px 2px;font-size:9px;font-weight:800}.bottom-nav button span{display:block;font-size:18px;line-height:1.1;margin-bottom:3px}.bottom-nav button.active{color:#087a70}.bottom-nav button.has-booking:after{content:"";position:absolute;top:2px;left:calc(50% + 8px);width:7px;height:7px;border-radius:50%;background:#ff671b;box-shadow:0 0 0 2px #fff}
 .bottom-hub-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.bottom-hub-head h2{margin:0}.bottom-hub-card{border:1px solid #dce8e8;border-radius:16px;background:#fff;padding:13px;margin:9px 0}.bottom-hub-card b{display:block;margin-bottom:5px}.bottom-hub-card small{color:#6f8188;line-height:1.45}.bottom-hub-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.bottom-hub-actions button{border:0;border-radius:11px;padding:10px;font-weight:850;background:#edf5f4;color:#175b55}.bottom-hub-actions .main{background:#087a70;color:#fff}.support-role-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:9px 0}.support-role-row button{border:1px solid #dce8e8;border-radius:12px;padding:11px;background:#fff;font-weight:850;color:#30545d}.support-role-row button.on{background:#087a70;color:#fff;border-color:#087a70}
 @media(max-width:390px){.home-entry .start-card{min-height:146px}.home-entry .start-card .bigico{height:78px}.service-mini-grid{gap:6px}.service-mini{font-size:8.7px;padding:9px 2px}.clean-hero .slide-copy{width:64%}.clean-hero .slide h2{font-size:20px}}
 
@@ -263,11 +263,6 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <div class="common-search"><span style="font-size:20px">🔎</span><input id="globalSearch" placeholder="Search services, shops, property, vehicle..." onkeydown="if(event.key==='Enter')runGlobalSearch()"><button onclick="runGlobalSearch()">Search</button></div>
 <div id="globalSearchHint" class="search-hint">Search across One Call Solution</div>
 
-<div class="home-booking" id="homeBookingStatus" onclick="openBookingsHub()">
-  <div class="hb-top"><div class="hb-title" id="homeBookingTitle">Active Booking</div><div class="hb-status" id="homeBookingLabel">Status</div></div>
-  <div class="hb-meta" id="homeBookingMeta">Tap to view booking details</div>
-</div>
-
 <div class="slider clean-hero" id="homeSlider">
   <div class="slides" id="slides">
     <div class="slide s1"><div class="slide-copy"><div class="slide-kicker">Home Services</div><h2>Trusted help, one call away</h2><p>Verified Service Providers, clear pricing, Start OTP and support — all in one place.</p><button onclick="openModule('Home Services','customer')">Book Home Service</button></div></div>
@@ -430,8 +425,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 </div></div>
 
 <div class="modal" id="customerDashModal"><div class="sheet customer-dash-sheet"><button class="x" onclick="closeCustomerDashboard()">×</button>
-<div class="dash-head"><div class="dash-welcome"><h2 id="dashHello">Customer Dashboard</h2><small>Current booking + all OCS services in one place</small></div></div>
-<div id="dashBookingMount"></div>
+<div class="dash-head"><div class="dash-welcome"><h2 id="dashHello">Customer Dashboard</h2><small>Account, support and OCS quick access</small></div></div>
 <div class="dash-quick-title">Explore One Call Solution</div>
 <div class="dash-quick">
 <button onclick="dashOpen('Home Services','customer')"><b>Home Services</b><small>Book & track home service</small></button>
@@ -600,17 +594,10 @@ function getCustomerProfile(){try{return JSON.parse(localStorage.getItem('ocsCus
 function getProviderProfile(){try{return JSON.parse(localStorage.getItem('ocsProviderProfile')||'null')}catch(e){return null}}
 function getCurrentBooking(){try{return JSON.parse(localStorage.getItem('ocsCurrentBooking')||'null')}catch(e){return null}}
 function refreshHomeBookingStatus(){
- const box=document.getElementById('homeBookingStatus');if(!box)return;
- const b=getCurrentBooking();if(!b){box.classList.remove('on');return}
- const s=String(b.state||b.status||'').toUpperCase();
+ const b=getCurrentBooking(),btn=document.getElementById('bnBookings');if(!btn)return;
+ const s=String(b?.state||b?.status||'').toUpperCase();
  const inactive=['SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'];
- if(!s||inactive.includes(s)){box.classList.remove('on');return}
- const title=b.service||b.category||b.task||'Active Booking';
- const label=typeof dashStatusLabel==='function'?dashStatusLabel(s):s.replaceAll('_',' ');
- document.getElementById('homeBookingTitle').textContent=title;
- document.getElementById('homeBookingLabel').textContent=label;
- document.getElementById('homeBookingMeta').textContent=(b.id||b.bookingId||'OCS Booking')+' • Tap to track booking';
- box.classList.add('on');
+ btn.classList.toggle('has-booking',!!b&&!!s&&!inactive.includes(s));
 }
 window.addEventListener('storage',refreshHomeBookingStatus);
 window.addEventListener('focus',refreshHomeBookingStatus);
@@ -736,7 +723,7 @@ function renderMyOcs(tab){
    const active=b&&s&&!['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'].includes(s);
 
    if(active){
-     body.innerHTML='<div class="myocs-card"><b>Active booking already running</b><small>Running booking ka status Home par Search ke niche sirf ek compact card me dikh raha hai. Full detail ke liye bottom Bookings tab use karein.</small><div class="myocs-actions"><button class="primary-mini" onclick="closeMyOcs();openBottomBookings()">Open Bookings</button><button onclick="closeMyOcs()">Close</button></div></div>';
+     body.innerHTML='<div class="myocs-card"><b>Active booking already running</b><small>Running booking ko bottom Bookings tab se open aur track karein. Home screen par booking repeat nahi hogi.</small><div class="myocs-actions"><button class="primary-mini" onclick="closeMyOcs();openBottomBookings()">Open Bookings</button><button onclick="closeMyOcs()">Close</button></div></div>';
      return;
    }
 
