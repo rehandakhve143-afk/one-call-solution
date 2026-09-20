@@ -729,10 +729,20 @@ function renderMyOcs(tab){
  const body=document.getElementById('myOcsBody');if(!body)return;
  ['Book','Saved','Inbox','Offers'].forEach(x=>{const b=document.getElementById('myTab'+x);if(b)b.classList.toggle('on',x.toLowerCase()===tab)});
  if(tab==='book'){
-   const b=getCurrentBooking(),service=b&&(b.service||b.category||b.task);
-   body.innerHTML=(service?
-     '<div class="myocs-card"><b>Recent Home Service</b><small>'+service+' • Keep the same OCS flow and choose the service again.</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Open Home Services</button><button class="primary-mini" onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Book Again</button></div></div>':
-     '<div class="myocs-card"><b>No recent completed service yet</b><small>After a Home Service booking, the same service can appear here for quick repeat booking.</small><div class="myocs-actions"><button class="primary-mini" onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Book Home Service</button><button onclick="closeMyOcs()">Not Now</button></div></div>');
+   const b=getCurrentBooking();
+   const s=String(b?.status||b?.state||'').toUpperCase();
+   const service=b&&(b.service||b.category||b.task);
+   const completed=['DONE','COMPLETED'].includes(s);
+   const active=b&&s&&!['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'].includes(s);
+
+   if(active){
+     body.innerHTML='<div class="myocs-card"><b>Active booking already running</b><small>Running booking ka status Home par Search ke niche sirf ek compact card me dikh raha hai. Full detail ke liye bottom Bookings tab use karein.</small><div class="myocs-actions"><button class="primary-mini" onclick="closeMyOcs();openBottomBookings()">Open Bookings</button><button onclick="closeMyOcs()">Close</button></div></div>';
+     return;
+   }
+
+   body.innerHTML=(completed&&service?
+     '<div class="myocs-card"><b>Book Again</b><small>'+service+' • Previous completed service ko dobara book karein.</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Open Home Services</button><button class="primary-mini" onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Book Again</button></div></div>':
+     '<div class="myocs-card"><b>No recent completed service yet</b><small>Completed Home Service ke baad yahan Book Again shortcut milega.</small><div class="myocs-actions"><button class="primary-mini" onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Book Home Service</button><button onclick="closeMyOcs()">Not Now</button></div></div>');
    return;
  }
  if(tab==='saved'){
