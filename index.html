@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title>
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#edf4f7;color:#173247}.app{max-width:720px;margin:auto;min-height:100vh;background:#f9fcfd;padding-bottom:35px}
 header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18px 16px 22px;border-radius:0 0 24px 24px}.brand{display:flex;gap:12px;align-items:center}.logo{width:54px;height:54px;border:4px solid #42d6cf;border-radius:50%;display:grid;place-items:center;background:#fff;color:#07506f;font-weight:900}h1{font-size:24px;margin:0}header small{opacity:.82}.hero{margin:14px;padding:17px;border-radius:18px;background:linear-gradient(110deg,#e5f8ff,#fff1e7);box-shadow:0 5px 18px #1232}.hero h2{margin:0 0 5px}.muted{color:#6b808c;font-size:13px}
@@ -980,10 +980,17 @@ function openModule(n,role){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role)}catch(e){}}
    if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch="";setTimeout(()=>runWindowSearch(q),180)}
  };
- frame.srcdoc=decode64(modulesB64[n]);document.getElementById('viewer').classList.add('show')
+ if(n==='Property'){
+   frame.removeAttribute('srcdoc');
+   frame.src='property.html?v=20260920-2';
+ }else{
+   frame.removeAttribute('src');
+   frame.srcdoc=decode64(modulesB64[n]);
+ }
+ document.getElementById('viewer').classList.add('show')
 }
 function closeModule(){
- document.getElementById('viewer').classList.remove('show');document.getElementById('frame').srcdoc='';currentModuleName="";pendingWindowSearch="";
+ document.getElementById('viewer').classList.remove('show');const f=document.getElementById('frame');f.srcdoc='';f.removeAttribute('src');currentModuleName="";pendingWindowSearch="";
  document.body.classList.remove("module-open");
  const gs=document.getElementById("globalSearch");if(gs){gs.value="";gs.placeholder="Search services, shops, property, vehicle..."}
 }
