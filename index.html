@@ -308,6 +308,17 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
  #moduleGrid .card small{font-size:8px!important}
 }
 
+
+.slider-business-cta{
+  margin:-2px 14px 12px;padding:10px 12px;border-radius:13px;
+  background:linear-gradient(135deg,#f4fbf9,#ffffff);
+  border:1px solid #dceae6;box-shadow:0 4px 12px rgba(18,50,71,.06);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  color:#174a55;font-size:11px;font-weight:900;cursor:pointer
+}
+.slider-business-cta span{flex:1}
+.slider-business-cta b{color:#087a70;font-size:17px;line-height:1}
+.slider-business-cta:active{transform:scale(.99)}
 </style></head><body><div class="app">
 <header><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openNotifications()">🔔</button></div></div></header>
 
@@ -328,7 +339,9 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
     <button onclick="setHomeSlide(2)" aria-label="Slide 3"></button>
   </div>
 </div>
-
+<div class="slider-business-cta" onclick="openBannerAd()" role="button" tabindex="0">
+  <span>Your Business, Seen by Every OCS Visitor</span><b>›</b>
+</div>
 
 <div class="section-head" id="explore"><div><h2>Explore One Call Solution</h2><small>Choose a main OCS window</small></div></div>
 <div class="grid" id="moduleGrid">
