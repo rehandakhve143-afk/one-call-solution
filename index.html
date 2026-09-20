@@ -59,8 +59,8 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 .role-btn.provider{color:#2f5fa8}
 .myocs-home{margin:2px 14px 13px;background:linear-gradient(145deg,#ffffff,#f3faf8);border:1px solid #dce9e6;border-radius:18px;padding:13px;box-shadow:0 5px 16px rgba(18,50,71,.06)}
 .myocs-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.myocs-head h2{margin:0;font-size:17px}.myocs-head small{font-size:9px;font-weight:900;background:#e7f6f1;color:#08725f;padding:5px 8px;border-radius:999px}
-.myocs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.myocs-grid button{border:1px solid #dce7e8;background:#fff;border-radius:13px;padding:10px 4px;color:#244c57;font-size:9px;font-weight:850;min-height:62px}.myocs-grid button span{display:block;font-size:20px;margin-bottom:5px}
-.myocs-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.myocs-panel-head h2{margin:0}.myocs-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:13px 0}.myocs-tabs button{border:1px solid #dce7e8;background:#f5f8f9;border-radius:11px;padding:9px 4px;font-size:9px;font-weight:850;color:#49636c}.myocs-tabs button.on{background:#087a70;color:#fff;border-color:#087a70}
+.myocs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.myocs-grid button{border:1px solid #dce7e8;background:#fff;border-radius:13px;padding:10px 4px;color:#244c57;font-size:9px;font-weight:850;min-height:62px}.myocs-grid button span{display:block;font-size:20px;margin-bottom:5px}
+.myocs-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.myocs-panel-head h2{margin:0}.myocs-tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:13px 0}.myocs-tabs button{border:1px solid #dce7e8;background:#f5f8f9;border-radius:11px;padding:9px 4px;font-size:9px;font-weight:850;color:#49636c}.myocs-tabs button.on{background:#087a70;color:#fff;border-color:#087a70}
 .myocs-card{border:1px solid #dce8e8;border-radius:15px;padding:12px;margin-top:9px;background:#fff}.myocs-card b{display:block;margin-bottom:4px}.myocs-card small{color:#71818a;line-height:1.4}.myocs-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.myocs-actions button{border:0;border-radius:11px;padding:10px;font-weight:850;background:#edf5f4;color:#185b55}.myocs-actions button.primary-mini{background:#087a70;color:#fff}
 @media(max-width:390px){.role-btn{font-size:12px;padding:12px 8px}.myocs-grid{grid-template-columns:1fr 1fr}.myocs-grid button{min-height:58px}}
 
@@ -800,7 +800,6 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
   <div class="myocs-grid">
     <button onclick="openMyOcs('saved')"><span>♡</span>Saved</button>
     <button onclick="openMyOcs('inbox')"><span>💬</span>OCS Inbox</button>
-    <button onclick="openMyOcs('offers')"><span>🏷️</span>Nearby & Offers</button>
   </div>
 </div>
 
@@ -944,7 +943,6 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
   <div class="myocs-tabs">
     <button id="myTabSaved" onclick="renderMyOcs('saved')">Saved</button>
     <button id="myTabInbox" onclick="renderMyOcs('inbox')">Inbox</button>
-    <button id="myTabOffers" onclick="renderMyOcs('offers')">Offers</button>
   </div>
   <div id="myOcsBody"></div>
 </div></div>
@@ -1208,7 +1206,7 @@ function closeMyOcs(){document.getElementById('myOcsModal').classList.remove('sh
 function myOcsOpenModule(name,role){closeMyOcs();openModule(name,role)}
 function renderMyOcs(tab){
  const body=document.getElementById('myOcsBody');if(!body)return;
- ['Saved','Inbox','Offers'].forEach(x=>{const b=document.getElementById('myTab'+x);if(b)b.classList.toggle('on',x.toLowerCase()===tab)});
+ ['Saved','Inbox'].forEach(x=>{const b=document.getElementById('myTab'+x);if(b)b.classList.toggle('on',x.toLowerCase()===tab)});
  if(tab==='saved'){
    let saved=[];try{saved=JSON.parse(localStorage.getItem('ocsSavedItems')||'[]')}catch(e){}
    body.innerHTML='<div class="myocs-card"><b>Saved / Wishlist</b><small>'+(saved.length?saved.length+' saved item(s) available.':'Property, Hotel, Shop, Beauty Partner aur Vehicle ko future me yahan save karke ek jagah dekh sakenge.')+'</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Property\')">Explore Property</button><button class="primary-mini" onclick="myOcsOpenModule(\'Hotel / Restaurant / Lodging\')">Explore Hotel / Stay</button></div></div>';
@@ -1218,7 +1216,7 @@ function renderMyOcs(tab){
    body.innerHTML='<div class="myocs-card"><b>One OCS Inbox</b><small>Home Service support, Property enquiry, Shop enquiry, Hotel/Restaurant, Beauty aur other business chats ko ek common inbox me rakhne ka structure. Prototype me live backend messages abhi connected nahi hain.</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Home Service Support</button><button class="primary-mini" onclick="openCustomerDashboard();closeMyOcs()">Customer Dashboard</button></div></div>';
    return;
  }
- body.innerHTML='<div class="myocs-card"><b>Nearby & Offers</b><small>Homepage par offers ka clutter nahi. Yahan se nearby business windows aur future live offers ek place me milenge.</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Local Shop\')">Local Shop</button><button onclick="myOcsOpenModule(\'Hotel / Restaurant / Lodging\')">Hotel / Restaurant</button><button onclick="myOcsOpenModule(\'Beauty / Make-up\')">Beauty</button><button class="primary-mini" onclick="myOcsOpenModule(\'Property\')">Property</button></div></div>';
+ renderMyOcs('saved');
 }
 function dashStatusLabel(s){
  const map={SELECT_SERVICE:'No Active Booking',SELECT_ITEM:'Selecting Service',BOOKING_DETAILS:'Booking Details',CUSTOM_REQUEST:'Custom Request',QUOTE_WAIT:'Waiting for Quote',INITIAL_QUOTE:'Quote Received',REQUESTED:'Booking Requested',ASSIGNED:'Provider Assigned',ON_WAY:'Provider On the Way',REACHED:'Provider Reached',WORKING:'Work in Progress',RESCHEDULED:'Work Rescheduled',RESCHEDULE_PENDING:'Reschedule Pending',RESCHEDULE_WAIT:'Reschedule Pending',PROVIDER_CHANGE_HOLD:'Provider Change • Admin Review',SUPPORT_HOLD:'Support Review',SUPPORT_REVIEW:'Support Review',NO_SHOW_VISIT:'Visit Review',WNC_REASON:'Work Not Completed',WNC_PROVIDER_REASON:'Work Not Completed • Provider Reason',WNC_CUSTOMER_REASON:'Work Not Completed • Customer Reason',WNC_PROVIDER_CONFIRM:'Work Not Completed • Provider Confirmation',WNC_CUSTOMER_CONFIRM:'Work Not Completed • Customer Confirmation',VISIT_REVIEW:'Visit Charge Review',WNC_CLOSED:'Work Not Completed • Closed',COMPLETION_CONFIRM:'Completion Confirmation',PAYMENT:'Payment Pending',ONLINE_PAY:'Online Payment',CANCELLED:'Cancelled',CANCELLED_SETTLED:'Cancelled • Settled'};
