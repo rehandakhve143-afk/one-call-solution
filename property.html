@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>One Call Solution • Property</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f8fb;color:#0b2942}
+button,input,select,textarea{font:inherit}.app{max-width:720px;margin:auto;min-height:100vh;background:#f7fbfd;padding-bottom:90px}
+.top{background:linear-gradient(135deg,#064b78,#006e82);color:#fff;padding:20px 18px 14px;border-radius:0 0 24px 24px;position:sticky;top:0;z-index:5}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:52px;height:52px;border:5px solid #27d7d0;background:#fff;color:#075071;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:19px}
+.brand h1{font-size:25px;margin:0}.tag{opacity:.85;font-size:14px;margin-top:2px}
+.hero{margin:14px;background:linear-gradient(110deg,#e9fbff,#fff4e7);border-radius:20px;padding:20px;box-shadow:0 7px 25px #0b456014}
+.hero h2{font-size:27px;margin:0 0 7px}.hero p{margin:0 0 14px;color:#52697a}.orange{background:#ff6517;color:white;border:0;border-radius:13px;padding:13px 17px;font-weight:800}
+.section{padding:0 14px}.headrow{display:flex;justify-content:space-between;align-items:end;gap:8px}.headrow h2{margin:9px 0 2px;font-size:26px}.muted{color:#6d7f8d;font-size:14px}
+.tabs,.filters{display:flex;gap:8px;overflow:auto;padding:12px 0 8px}.pill{white-space:nowrap;border:1px solid #d6e2e8;background:#fff;color:#173a53;border-radius:22px;padding:10px 15px;font-weight:700}.pill.on{background:#006a8b;color:#fff}
+.card{background:white;border:1px solid #e0e9ed;border-radius:18px;margin:12px 0;overflow:hidden;box-shadow:0 6px 18px #1234}
+.photo{height:190px;background:linear-gradient(135deg,#d9eff5,#eef3f5);display:flex;align-items:center;justify-content:center;font-size:54px;position:relative}.badge{position:absolute;top:12px;right:12px;background:#e4f5ff;color:#0872a3;border-radius:14px;padding:7px 10px;font-weight:800;font-size:12px}
+.body{padding:14px}.title{font-size:21px;font-weight:800}.loc{color:#567386;margin:5px 0}.price{font-size:23px;color:#e74e12;font-weight:900;margin:9px 0}.chips{display:flex;gap:7px;flex-wrap:wrap}.chip{background:#f0f5f8;border-radius:9px;padding:7px 9px;font-size:12px}
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}.actions button{border:0;border-radius:10px;padding:10px 3px;background:#eef5f8;color:#083a55;font-size:12px;font-weight:800}.actions .wa{background:#0bbd70;color:white}.actions .call{background:#006c91;color:white}
+.partner{margin:15px 14px;background:#fff0e5;border-radius:18px;padding:17px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.step{background:white;border-radius:13px;padding:11px;text-align:center;font-size:12px}.num{width:28px;height:28px;margin:0 auto 5px;border-radius:50%;background:#ff6517;color:white;display:grid;place-items:center;font-weight:900}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:720px;width:100%;background:#064b78;color:white;display:grid;grid-template-columns:repeat(4,1fr);padding:11px 5px 15px;z-index:10}.bottom button{background:none;border:0;color:#d9edf5;font-weight:700}.bottom .active{color:#ff7a21}
+.overlay{position:fixed;inset:0;background:#001d2b99;z-index:20;display:none;align-items:flex-end;justify-content:center}.sheet{background:#fff;width:min(720px,100%);max-height:91vh;overflow:auto;border-radius:25px 25px 0 0;padding:20px}.sheet h2{margin:0 0 4px}.close{float:right;border:0;background:#eef3f5;border-radius:50%;width:38px;height:38px;font-weight:900}
+label{display:block;font-weight:800;margin:13px 0 6px}.field{width:100%;border:1px solid #cddce3;border-radius:12px;padding:13px;background:white}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.next{width:100%;margin-top:18px;background:#006a8b;color:white;border:0;border-radius:13px;padding:14px;font-weight:900}.preview{border:1px solid #d8e5ea;border-radius:15px;padding:13px;background:#f8fcfd}.hidden{display:none}.notice{background:#eafaf3;color:#176744;padding:12px;border-radius:12px;margin:10px 0}.ownerbox{background:#eef8ff;border-radius:13px;padding:11px;margin-top:10px}.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.links button{border:1px solid #d3e1e8;background:white;border-radius:9px;padding:8px;font-weight:700;font-size:12px}
+
+/* OCS PREMIUM VISUAL PASS */
+:root{--ocs-accent:#0a7a74;--ocs-hero:linear-gradient(135deg,#083d55 0%,#0a7a74 56%,#18a78b 100%)}
+body{background:linear-gradient(180deg,#f7fbfc 0%,#ffffff 45%,#f8fbfc 100%)!important}
+header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
+.hero{
+  position:relative!important;display:block!important;overflow:hidden!important;
+  min-height:190px!important;margin:14px!important;padding:22px 118px 22px 20px!important;
+  border-radius:22px!important;background:var(--ocs-hero)!important;background-size:cover!important;background-position:center!important;
+  box-shadow:0 14px 30px rgba(18,50,71,.18)!important;color:#fff!important
+}
+.hero:before{content:"";position:absolute;right:-36px;top:-38px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.12);box-shadow:0 0 0 26px rgba(255,255,255,.05)}
+.hero:after{content:"🏡";position:absolute;right:24px;top:50%;transform:translateY(-50%);font-size:66px;line-height:1;filter:drop-shadow(0 10px 16px rgba(0,0,0,.22));z-index:2}
+.hero h1,.hero h2,.hero h3,.hero p,.hero .muted,.hero .sub,.hero .tag,.hero .heroText h2,.hero .heroText span{color:#fff!important;position:relative;z-index:3;text-shadow:0 2px 10px rgba(0,0,0,.18)}
+.hero h1,.hero h2{margin-top:0!important;line-height:1.06!important}
+.hero p{line-height:1.45!important;opacity:.94!important}
+.hero .heroArt{display:none!important}
+.hero button,.hero .btn{position:relative;z-index:3!important;background:#fff!important;color:var(--ocs-accent)!important;border:0!important;box-shadow:0 6px 16px rgba(0,0,0,.12)!important}
+.sec,.section{padding-top:4px!important}
+.head,.headrow{align-items:flex-start!important}
+.card{
+  border-radius:18px!important;border:1px solid #dfeaec!important;
+  box-shadow:0 7px 20px rgba(18,50,71,.075)!important;background:#fff!important;
+  overflow:hidden
+}
+.card h3,.card .title,.name{letter-spacing:-.1px}
+.chips{gap:7px!important}
+.chip,.pill{border-radius:999px!important;border:1px solid #dce7e9!important;background:#fff!important;box-shadow:0 2px 7px rgba(18,50,71,.04)}
+.chip.on,.pill.on,.tabs .pill.on{background:var(--ocs-accent)!important;color:#fff!important;border-color:var(--ocs-accent)!important}
+.actions button,.links button{border-radius:10px!important}
+.photo,.pic{border-radius:14px!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.bottom{box-shadow:0 -8px 24px rgba(18,50,71,.10)!important;border-top:1px solid #dfe8ea!important}
+.bottom button.on,.bottom .active{color:var(--ocs-accent)!important}
+@media(max-width:430px){
+ .hero{min-height:178px!important;padding:20px 96px 20px 17px!important}
+ .hero:after{right:18px;font-size:55px}
+ .hero h1,.hero h2{font-size:22px!important}
+}
+
+
+/* OCS PROPERTY SAMPLE FIT - premium realty showcase */
+.top{display:none!important}
+.property-intro{padding:18px 16px 9px}
+.property-intro h2{margin:0;color:#102f42;font-size:28px;line-height:1.05;letter-spacing:-.5px}
+.property-intro p{margin:6px 0 0;color:#74858d;font-size:13px}
+.realty-showcase{
+  margin:5px 14px 18px;min-height:330px;border-radius:25px;position:relative;overflow:hidden;
+  padding:21px 18px 18px;color:#fff;
+  background:
+    radial-gradient(circle at 83% 15%,rgba(255,221,170,.28),transparent 26%),
+    linear-gradient(145deg,#263a46 0%,#162d3a 45%,#72543f 100%);
+  box-shadow:0 16px 32px rgba(18,50,71,.24)
+}
+.realty-showcase:before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:32px 32px;opacity:.55
+}
+.realty-copy{position:relative;z-index:4;text-align:center;max-width:92%;margin:auto}
+.realty-kicker{display:inline-block;padding:5px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.38);background:rgba(255,255,255,.12);font-size:9px;font-weight:900;letter-spacing:1px}
+.realty-copy h2{font-size:23px;line-height:1.08;margin:9px 0 6px;color:#fff!important}
+.realty-copy p{font-size:11px;line-height:1.4;margin:0 auto;color:rgba(255,255,255,.84)!important;max-width:420px}
+.realty-types{position:relative;z-index:4;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:15px 0 8px}
+.realty-types span{padding:8px 3px;border:1px solid rgba(255,255,255,.22);border-radius:11px;background:rgba(13,27,34,.38);text-align:center;backdrop-filter:blur(5px)}
+.realty-types b{display:block;font-size:8px;line-height:1.15}.realty-types small{display:block;margin-top:3px;font-size:7px;color:rgba(255,255,255,.7)}
+.realty-model{position:relative;z-index:3;height:120px;margin:3px auto 10px;width:92%;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(7,18,24,.38));border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 -18px 35px rgba(0,0,0,.25)}
+.tower{position:absolute;bottom:19px;border-radius:4px 4px 1px 1px;background:linear-gradient(90deg,#d8d0c5,#f2e5d4 45%,#a89a8a);box-shadow:0 10px 18px rgba(0,0,0,.28)}
+.tower i{display:block;height:7px;margin:5px 5px;background:linear-gradient(90deg,#6f8b98 0 38%,#d8ebec 38% 62%,#6f8b98 62%);opacity:.85}
+.t1{left:27%;width:43px;height:74px}.t2{left:43%;width:50px;height:96px}.t3{left:61%;width:39px;height:65px}
+.house{position:absolute;bottom:18px;width:48px;height:31px;background:linear-gradient(145deg,#d9c3a5,#8c6b50);border-radius:3px;box-shadow:0 8px 14px rgba(0,0,0,.25)}
+.house:before{content:"";position:absolute;left:5px;right:5px;top:-13px;border-left:19px solid transparent;border-right:19px solid transparent;border-bottom:15px solid #744b35}
+.h1{left:8%}.h2{right:7%;transform:scale(.88)}
+.sold-tag{position:absolute;right:7%;bottom:50px;background:#17a06e;color:#fff;padding:4px 7px;border-radius:5px;font-size:7px;font-weight:900;box-shadow:0 4px 9px rgba(0,0,0,.25)}
+.realty-actions{position:relative;z-index:4;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.realty-actions button{border:0;border-radius:12px;padding:11px 8px;font-size:10.5px;font-weight:900}
+.realty-primary{background:#fff;color:#0a746d}.realty-secondary{background:rgba(255,255,255,.13);color:#fff;border:1px solid rgba(255,255,255,.28)!important}
+.section{padding:0 14px!important}
+.headrow{align-items:flex-start!important}
+.headrow h2{font-size:22px!important;line-height:1.08!important;margin-top:5px!important}
+@media(max-width:390px){
+ .property-intro h2{font-size:25px}
+ .realty-showcase{min-height:315px;padding:18px 14px 15px}
+ .realty-copy h2{font-size:21px}
+ .realty-types{gap:4px}
+ .realty-types span{padding:7px 2px}
+ .realty-model{height:112px}
+}
+</style>
+</head><body><div class="app">
+<header class="top"><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><div class="tag">One for All and All for One</div></div></div></header>
+
+<div class="property-intro">
+  <h2>Explore Property</h2>
+  <p>Rent, buy, sell and discover trusted property listings.</p>
+</div>
+<div class="realty-showcase">
+  <div class="realty-copy">
+    <div class="realty-kicker">OCS REALTY</div>
+    <h2>Find, List & Explore Property</h2>
+    <p>Flats, Bungalows, Row Houses, Land and Builder Projects - all in one place.</p>
+  </div>
+  <div class="realty-types">
+    <span><b>FLAT</b><small>Residential</small></span>
+    <span><b>BUNGALOW</b><small>Homes</small></span>
+    <span><b>ROW HOUSE</b><small>Projects</small></span>
+    <span><b>LAND</b><small>Plots</small></span>
+  </div>
+  <div class="realty-model" aria-hidden="true">
+    <div class="tower t1"><i></i><i></i><i></i><i></i></div>
+    <div class="tower t2"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="tower t3"><i></i><i></i><i></i></div>
+    <div class="house h1"></div><div class="house h2"></div>
+    <div class="sold-tag">FOR SALE</div>
+  </div>
+  <div class="realty-actions">
+    <button class="realty-primary" onclick="openPost()">Post Property</button>
+    <button class="realty-secondary" onclick="document.querySelector('.section').scrollIntoView({behavior:'smooth'})">Explore Listings</button>
+  </div>
+</div>
+
+<section class="section">
+<div class="headrow"><div><h2>Explore Local Property Listings</h2><div class="muted">Owner & Builder listings - Rent, Buy and Sale</div></div><div class="muted">📍 Your Location</div></div>
+<div class="tabs"><button class="pill on">Rent</button><button class="pill">Buy</button><button class="pill">Builder Projects</button></div>
+<div class="filters"><button class="pill">Flat</button><button class="pill">Bungalow</button><button class="pill">Row House</button><button class="pill">Land</button><button class="pill">BHK ▾</button><button class="pill">Budget ▾</button><button class="pill">City / Locality ▾</button></div>
+
+<div id="liveArea">
+<div class="card"><div class="photo">🏠<span class="badge">OWNER POST</span></div><div class="body"><div class="title">2 BHK Flat for Rent</div><div class="loc">📍 Sample Locality • Sample City</div><div class="price">₹28,000 / month</div><div class="chips"><span class="chip">2 BHK</span><span class="chip">1,050 sq ft</span><span class="chip">Semi Furnished</span></div><div class="actions"><button class="call">Call</button><button>Chat</button><button class="wa">WhatsApp</button><button>Directions</button></div></div></div>
+
+<div class="card"><div class="photo">🏢<span class="badge">BUILDER PROJECT</span></div><div class="body"><div class="title">Sample Heights</div><div class="loc">By Sample Constructions • Sample City</div><div class="price">₹72 Lakhs onwards</div><div class="chips"><span class="chip">2 & 3 BHK</span><span class="chip">Project Gallery</span><span class="chip">Ready to Move</span></div><div class="ownerbox"><b>Builder Profile</b><div class="links"><button>Gallery</button><button>Brochure</button><button>Video / YouTube</button><button>Website</button></div></div><div class="actions"><button class="call">Call</button><button>Chat</button><button class="wa">WhatsApp</button><button>Email</button></div></div></div>
+</div>
+</section>
+
+<div class="partner"><b style="font-size:19px">Post your property in a few simple steps</b><div class="muted">No complicated form. Only relevant fields appear for the property you select.</div><div class="steps"><div class="step"><div class="num">1</div><b>Add Details</b><br>type, price, location</div><div class="step"><div class="num">2</div><b>Add Media</b><br>photos & optional links</div><div class="step"><div class="num">3</div><b>Payment & Go Live</b><br>publish listing</div></div><button class="orange" style="width:100%;margin-top:13px" onclick="openPost()">Post Property →</button></div>
+
+<nav class="bottom"><button onclick="ocsModuleHome()">⌂<br>Home</button><button class="active" onclick="ocsModuleTop()">▣<br>Property</button><button onclick="ocsModuleSearch()">⌕<br>Search</button><button onclick="openPost()">○<br>Profile</button></nav>
+</div>
+
+<div class="overlay" id="overlay"><div class="sheet"><button class="close" onclick="closePost()">×</button>
+<h2 id="stepTitle">Post Property</h2><div class="muted" id="stepHelp">Step 1 of 4 • Choose who is posting and property type</div>
+
+<div id="s1">
+<label>I am posting as</label><select class="field" id="poster" onchange="posterChange()"><option>Property Owner</option><option>Builder / Developer</option></select>
+<label>Purpose</label><select class="field" id="purpose"><option>Rent</option><option>Sale</option></select>
+<label>Property type</label><select class="field" id="ptype" onchange="typeChange()"><option>Flat</option><option>Bungalow</option><option>Row House</option><option>Land</option></select>
+<div id="builderProject" class="hidden"><label>Project name</label><input class="field" id="project" placeholder="e.g. Green Heights"></div>
+<button class="next" onclick="go(2)">Continue →</button></div>
+
+<div id="s2" class="hidden">
+<div class="row"><div><label>City</label><input class="field" id="city" placeholder="City"></div><div><label>Locality / Area</label><input class="field" id="area" placeholder="Area"></div></div>
+<label>Property / Project address</label><textarea class="field" id="address" placeholder="Building, road, landmark"></textarea>
+<div class="row"><div><label>Price</label><input class="field" id="price" type="number" placeholder="Amount"></div><div id="bhkWrap"><label>BHK</label><select class="field" id="bhk"><option>1 BHK</option><option>2 BHK</option><option>3 BHK</option><option>4+ BHK</option></select></div></div>
+<label>Area (sq ft)</label><input class="field" id="sqft" type="number" placeholder="e.g. 1050">
+<label>Short description</label><textarea class="field" id="desc" placeholder="Important details customers should know"></textarea>
+<button class="next" onclick="go(3)">Continue to Photos →</button></div>
+
+<div id="s3" class="hidden">
+<label>Property / Project photos</label><input class="field" id="photos" type="file" accept="image/*" multiple>
+<div class="muted">Clear photos add karein. Mobile gallery se multiple photos select kar sakte hain.</div>
+<div id="builderLinks" class="hidden">
+<label>Builder logo</label><input class="field" type="file" accept="image/*">
+<label>Brochure link (Optional)</label><input class="field" id="brochure" placeholder="Brochure URL">
+<label>Video / YouTube link (Optional)</label><input class="field" id="video" placeholder="Video URL">
+<label>Builder website (Optional)</label><input class="field" id="website" placeholder="https://yourwebsite...">
+<div class="muted">Website na ho to blank chhod sakte hain — fake/empty button customer ko nahi dikhega.</div></div>
+<button class="next" onclick="go(4)">Preview Listing →</button></div>
+
+<div id="s4" class="hidden">
+<div class="preview" id="preview"></div>
+<div class="notice"><b>Final step:</b> Listing plan/payment successful hone ke baad listing live hogi. Is prototype me payment simulation hai; production me real payment verification connect hoga.</div>
+<button class="next" onclick="publish()">Simulate Payment & Publish</button>
+<button class="next" style="background:#eef3f5;color:#24485c" onclick="go(3)">← Edit Details</button></div>
+
+<div id="done" class="hidden"><div class="notice"><b>✓ Property listing live</b><br>Customer ab listing dekh sakta hai. Aap Profile/My Listings se edit, pause ya renew kar sakenge.</div><button class="next" onclick="closePost()">View Property Window</button></div>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+function openPost(){$('overlay').style.display='flex';go(1)}
+function closePost(){$('overlay').style.display='none'}
+function posterChange(){let b=$('poster').value.includes('Builder');$('builderProject').classList.toggle('hidden',!b);$('builderLinks').classList.toggle('hidden',!b)}
+function typeChange(){$('bhkWrap').classList.toggle('hidden',$('ptype').value==='Land')}
+function go(n){
+ for(let i=1;i<=4;i++) $('s'+i).classList.toggle('hidden',i!==n);$('done').classList.add('hidden');
+ $('stepHelp').textContent='Step '+n+' of 4';
+ if(n===4) makePreview();
+ posterChange();typeChange();
+}
+function makePreview(){
+ let b=$('poster').value.includes('Builder');
+ let name=b?($('project').value||'Builder Project'):($('bhk').value+' '+$('ptype').value+' for '+$('purpose').value);
+ $('preview').innerHTML='<b style="font-size:20px">'+name+'</b><br><span class="muted">'+$('area').value+' • '+$('city').value+'</span><div class="price">₹'+Number($('price').value||0).toLocaleString('en-IN')+( $('purpose').value==='Rent'?' / month':'')+'</div><div>'+$('ptype').value+( $('ptype').value!=='Land'?' • '+$('bhk').value:'')+( $('sqft').value?' • '+$('sqft').value+' sq ft':'')+'</div><p>'+($('desc').value||'No description added')+'</p>'+(b?'<div class="ownerbox"><b>Builder Profile</b><br>Gallery'+($('brochure').value?' • Brochure':'')+($('video').value?' • Video':'')+($('website').value?' • Website':'')+'</div>':'');
+}
+function publish(){
+ let b=$('poster').value.includes('Builder'), type=$('ptype').value, purpose=$('purpose').value;
+ let name=b?($('project').value||'New Builder Project'):(($('ptype').value==='Land'?'Land':$('bhk').value+' '+type)+' for '+purpose);
+ let links=b?'<div class="ownerbox"><b>Builder Profile</b><div class="links"><button>Gallery</button>'+($('brochure').value?'<button>Brochure</button>':'')+($('video').value?'<button>Video / YouTube</button>':'')+($('website').value?'<button>Website</button>':'')+'</div></div>':'';
+ $('liveArea').insertAdjacentHTML('afterbegin','<div class="card"><div class="photo">'+(type==='Land'?'🌳':b?'🏢':'🏠')+'<span class="badge">'+(b?'BUILDER PROJECT':'OWNER POST')+'</span></div><div class="body"><div class="title">'+name+'</div><div class="loc">📍 '+($('area').value||'Area')+' • '+($('city').value||'City')+'</div><div class="price">₹'+Number($('price').value||0).toLocaleString('en-IN')+(purpose==='Rent'?' / month':'')+'</div><div class="chips"><span class="chip">'+type+'</span>'+($('sqft').value?'<span class="chip">'+$('sqft').value+' sq ft</span>':'')+'</div>'+links+'<div class="actions"><button class="call">Call</button><button>Chat</button><button class="wa">WhatsApp</button><button>Email</button></div></div></div>');
+ $('s4').classList.add('hidden');$('done').classList.remove('hidden');$('stepHelp').textContent='Published successfully';
+}
+document.querySelectorAll('.tabs .pill').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs .pill').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+
+function ocsModuleHome(){try{window.parent.closeModule();window.parent.scrollTo({top:0,behavior:'smooth'})}catch(e){history.back()}}
+function ocsModuleTop(){window.scrollTo({top:0,behavior:'smooth'})}
+function ocsModuleSaved(){try{window.parent.closeModule();window.parent.openMyOcs('saved')}catch(e){alert('Saved items My OCS me milenge.')}} 
+function ocsModuleSearch(){
+ const inputs=[...document.querySelectorAll('input')];
+ const q=inputs.find(x=>/search/i.test(x.placeholder||''))||inputs.find(x=>/city|area|locality|model|service|product|test|vehicle|property/i.test(x.placeholder||''));
+ if(q){q.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>q.focus(),250);return}
+ const t=document.querySelector('.filters,.chips,.headrow,.head,.sec');
+ if(t)t.scrollIntoView({behavior:'smooth',block:'start'});else window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function propertyPrototypeAction(label){
+ const x=String(label||'Action').trim();
+ if(x==='Directions'){alert('Production listing me verified property address ke liye Maps / Directions open hoga.');return}
+ if(['Call','Chat','WhatsApp','Email'].includes(x)){alert(x+' production me is property ke posted contact details se open hoga.');return}
+ alert(x+' production Builder profile me actual uploaded link/content open karega.');
+}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('.actions button,.links button');
+ if(!b||b.hasAttribute('onclick'))return;
+ propertyPrototypeAction(b.textContent.trim());
+});
+document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.filters .pill').forEach(x=>x.classList.remove('on'));
+ b.classList.add('on');
+});
+</script></body></html>
