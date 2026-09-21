@@ -839,10 +839,10 @@ body:not(.module-open) .myocs-grid button{min-height:54px!important;padding:8px 
 
 /* OCS HOME PREMIUM STRUCTURE + SAFE EMERGENCY — 2026-09-21 */
 .home-primary-actions{
-  margin:0 14px 10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px
+  margin:0 14px 10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px
 }
 .home-primary-action{
-  min-width:0;border:1px solid #dfe9e9;background:#fff;border-radius:14px;padding:10px 7px;
+  min-width:0;border:1px solid #dfe9e9;background:#fff;border-radius:14px;padding:11px 10px;
   display:flex;align-items:center;gap:7px;text-align:left;box-shadow:0 3px 10px rgba(18,50,71,.055)
 }
 .home-primary-action .hpa-icon{
@@ -928,11 +928,8 @@ body:not(.module-open) #moduleGrid .ocs-window-card[data-search-hidden="1"]{disp
 </div>
 
 <div class="home-primary-actions" aria-label="Main OCS actions">
-  <button class="home-primary-action service" onclick="openModule('Home Services','customer')">
-    <span class="hpa-icon">🛠️</span><span><b>Book Service</b><small>Home Services</small></span>
-  </button>
   <button class="home-primary-action explore" onclick="openExploreAll()">
-    <span class="hpa-icon">⌘</span><span><b>Explore OCS</b><small>All categories</small></span>
+    <span class="hpa-icon">▦</span><span><b>All Windows</b><small>Browse categories</small></span>
   </button>
   <button class="home-primary-action emergency" onclick="openEmergency()">
     <span class="hpa-icon">🚨</span><span><b>Emergency</b><small>Fire • Ambulance</small></span>
@@ -946,15 +943,9 @@ body:not(.module-open) #moduleGrid .ocs-window-card[data-search-hidden="1"]{disp
   <button type="button" onclick="event.stopPropagation();openBannerAd()">Post Your Ad</button>
 </div>
 
-<div class="section-head" id="explore"><div><h2>Explore One Call Solution</h2><small>Choose a main OCS window</small></div></div>
+<div class="section-head" id="explore"><div><h2>Explore Categories</h2><small>Property, shops, vehicles & more</small></div></div>
 <div class="grid ocs-slider-cards" id="moduleGrid" data-card-set="slider-photo-final">
-<button class="ocs-window-card" aria-label="Home Services" title="Home Services" onclick='openModule("Home Services")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1741388222137-c0d3007ec173?auto=format&fit=crop&w=1200&q=90" alt="" loading="eager" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">HOME SERVICES</span>
-  <span class="ocs-window-copy"><b>Home Services</b><small>Book trusted local experts</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
+
 <button class="ocs-window-card ocs-featured" aria-label="Property" title="Property" onclick='openModule("Property")'>
   <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1693160206111-202ab0b8b34c?auto=format&fit=crop&w=1200&q=90" alt="" loading="eager" decoding="async">
   <span class="ocs-window-shade" aria-hidden="true"></span>
