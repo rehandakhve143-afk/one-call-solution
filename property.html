@@ -272,7 +272,7 @@ function go(n){
  $('stepHelp').textContent='Step '+n+' of 6 • '+labels[n];
  if(n===5)makePreview();
  if(n===6){const ps=$('propertyPlanSelect');if(ps)ps.value=String(propertyPlanDays);propertyPlanDurationChange()}
- posterChange();typeChange();savePropertyDraft(true);
+ posterChange();typeChange();if(n>1)savePropertyDraft(true);
  const sh=document.querySelector('.sheet');if(sh)sh.scrollTop=0;
 }
 function makePreview(){
