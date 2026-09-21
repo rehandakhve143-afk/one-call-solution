@@ -679,6 +679,7 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 
 /* Single-name Explore cards */
 #moduleGrid .ocs-window-badge{display:none!important}
+.sp-selfie-box{margin:10px 0 12px;padding:12px;border:1px solid #dce8e8;border-radius:14px;background:#f8fbfb}.sp-selfie-row{display:flex;gap:12px;align-items:center}.sp-selfie-preview{width:72px;height:72px;border-radius:50%;border:2px solid #d8e7e5;background:#fff;display:grid;place-items:center;overflow:hidden;flex:0 0 72px;color:#71818a;font-size:28px}.sp-selfie-preview img{width:100%;height:100%;object-fit:cover;display:block}.sp-selfie-actions{flex:1;min-width:0}.sp-selfie-actions input{display:none}.sp-selfie-btn{display:inline-block;border:0;border-radius:11px;background:#087a70;color:#fff;font-weight:850;padding:10px 12px;font-size:11px;cursor:pointer}.sp-selfie-status{font-size:10px;color:#6f8188;margin-top:7px;line-height:1.35}
 </style></head><body><div class="app">
 <header><div class="brand"><div class="logo"><img src="assets/ocs-logo-mark.svg?v=20260921" alt="OCS logo"></div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openNotifications()">🔔</button></div></div></header>
 
@@ -875,6 +876,17 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
   <label>Full Name *</label><input id="paName" autocomplete="name" placeholder="Service Provider name">
   <label>Mobile Number *</label><div class="verifyrow"><input id="paMobile" inputmode="tel" placeholder="10-digit mobile"><button onclick="demoVerify('providerMobile')">Send OTP</button></div><div class="verifyok" id="providerMobileStatus">Not verified</div>
   <label>Email ID *</label><div class="verifyrow"><input id="paEmail" type="email" placeholder="name@email.com"><button onclick="demoVerify('providerEmail')">Verify</button></div><div class="verifyok" id="providerEmailStatus">Not verified</div>
+  <label>Live Selfie *</label>
+  <div class="sp-selfie-box">
+    <div class="sp-selfie-row">
+      <div class="sp-selfie-preview" id="paSelfiePreview">👤</div>
+      <div class="sp-selfie-actions">
+        <label class="sp-selfie-btn" for="paSelfie">📷 Take / Upload Selfie</label>
+        <input id="paSelfie" type="file" accept="image/*" capture="user" onchange="handleProviderSelfie(this)">
+        <div class="sp-selfie-status" id="paSelfieStatus">Front-face selfie required for Service Provider verification.</div>
+      </div>
+    </div>
+  </div>
   <label>Service Area / City *</label><input id="paArea" placeholder="e.g. Khopoli / Panvel">
   <label>Service Radius *</label><select id="paRadius"><option value="6">Up to 6 km</option><option value="12">Up to 12 km</option><option value="20">Up to 20 km</option><option value="30">Up to 30 km</option></select>
   <label>Select Skills (multiple allowed)</label>
@@ -1047,6 +1059,17 @@ function openAccount(role){
  document.getElementById('accountSub').textContent=isProvider?'Mobile + email + skills + verification':'Mobile OTP + email verification required.';
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
+ if(isProvider){
+   const p=getProviderProfile();
+   const st=document.getElementById('paSelfieStatus'),pv=document.getElementById('paSelfiePreview');
+   if(p&&p.selfieCaptured){
+     if(st){st.textContent='✓ Existing selfie on file. New selfie optional while editing.';st.style.color='#16815d'}
+     if(pv&&!providerSelfieFile)pv.textContent='✓';
+   }else{
+     if(st){st.textContent='Front-face selfie required for Service Provider verification.';st.style.color='#6f8188'}
+     if(pv&&!providerSelfieFile)pv.textContent='👤';
+   }
+ }
  document.getElementById('accountModal').classList.add('show');
 }
 function closeAccount(){document.getElementById('accountModal').classList.remove('show')}
@@ -1066,8 +1089,24 @@ function saveCustomerAccount(){
  localStorage.setItem('ocsCustomerProfile',JSON.stringify({name,mobile,email,verified:true}));
  closeAccount();openCustomerDashboard();
 }
+let providerSelfieFile=null;
+function handleProviderSelfie(input){
+ const file=input&&input.files&&input.files[0]?input.files[0]:null;
+ if(!file)return;
+ if(!String(file.type||'').startsWith('image/')){alert('Selfie image file select karein.');input.value='';return}
+ providerSelfieFile=file;
+ const status=document.getElementById('paSelfieStatus');
+ if(status){status.textContent='✓ Selfie selected for verification';status.style.color='#16815d'}
+ const box=document.getElementById('paSelfiePreview');
+ if(box){
+   const url=URL.createObjectURL(file);
+   box.innerHTML='<img alt="Service Provider selfie preview" src="'+url+'">';
+ }
+}
 function saveProviderAccount(){
  const name=paName.value.trim(),mobile=paMobile.value.trim(),email=paEmail.value.trim(),area=paArea.value.trim(),radius=paRadius.value;
+ const existingProvider=getProviderProfile();
+ const selfieOk=!!providerSelfieFile||!!(existingProvider&&existingProvider.selfieCaptured);
  let skills=[...document.querySelectorAll('input[name="paSkill"]:checked')].map(x=>x.value);
  const otherChecked=skills.includes('Other'),otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
  if(otherChecked){
@@ -1076,10 +1115,11 @@ function saveProviderAccount(){
  }
  const bankHolder=paBankHolder.value.trim(),bankName=paBankName.value.trim(),accountNo=paAccountNo.value.replace(/\s/g,''),accountNo2=paAccountNo2.value.replace(/\s/g,''),ifsc=paIfsc.value.trim().toUpperCase(),upi=paUpi.value.trim();
  if(!name||mobile.replace(/\D/g,'').length<10||!email.includes('@')||!area||!skills.length){alert('Name, valid mobile, email, service area aur kam se kam 1 skill required.');return}
+ if(!selfieOk){alert('Live selfie required for Service Provider verification.');return}
  if(!bankHolder||!bankName||accountNo.length<6||accountNo!==accountNo2||!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)){alert('Valid bank details required. Account number dono jagah same aur IFSC sahi enter karein.');return}
  if(!accountVerified.providerMobile||!accountVerified.providerEmail){alert('Mobile OTP aur Email dono verify karein.');return}
  const last4=accountNo.slice(-4);
- localStorage.setItem('ocsProviderProfile',JSON.stringify({name,mobile,email,area,radius,skills,bank:{holder:bankHolder,bankName,last4,ifsc,upi,verification:'Pending'},status:'Verification Pending'}));
+ localStorage.setItem('ocsProviderProfile',JSON.stringify({name,mobile,email,area,radius,skills,selfieCaptured:true,selfieMeta:providerSelfieFile?{name:providerSelfieFile.name||'selfie',type:providerSelfieFile.type||'image',size:providerSelfieFile.size||0}:((existingProvider&&existingProvider.selfieMeta)||null),bank:{holder:bankHolder,bankName,last4,ifsc,upi,verification:'Pending'},status:'Verification Pending'}));
  paAccountNo.value='';paAccountNo2.value='';
  closeAccount();openModule('Home Services','provider');
 }
@@ -1387,6 +1427,7 @@ function runWindowSearch(searchValue){
 }
 function openModule(n,role){
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
+ const manageBtn=document.getElementById('windowManageBtn');if(manageBtn)manageBtn.style.display=n==='Home Services'?'none':'block';
  document.body.classList.add("module-open");
  const gs=document.getElementById("globalSearch");if(gs){gs.placeholder="Search in "+n+"...";if(pendingWindowSearch)gs.value=pendingWindowSearch}
  frame.onload=function(){
@@ -1437,7 +1478,7 @@ function openBiz(category){
 function closeBiz(){document.getElementById('bizModal').classList.remove('show')}
 function manageCurrentWindow(){
  const n=currentModuleName;
- if(n==='Home Services'){closeModule();openAccount('provider');return}
+ if(n==='Home Services')return
  if(!n){openBiz();return}
  closeModule();openBiz(n);
 }
