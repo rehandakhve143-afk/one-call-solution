@@ -119,6 +119,8 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <div class="row"><div><label>Price</label><input class="field" id="price" type="number" placeholder="Amount"></div><div id="bhkWrap"><label>BHK</label><select class="field" id="bhk"><option>1 BHK</option><option>2 BHK</option><option>3 BHK</option><option>4+ BHK</option></select></div></div>
 <label>Area (sq ft)</label><input class="field" id="sqft" type="number" placeholder="e.g. 1050">
 <label>Short description</label><textarea class="field" id="desc" placeholder="Important details customers should know"></textarea>
+<label>Registered Email for Renewal Reminder *</label><input class="field" id="renewalEmail" type="email" placeholder="name@email.com">
+<div class="muted">Expiry se 7 days aur 1 day pehle renewal reminder is email par jayega.</div>
 <button class="next primary-action" onclick="go(3)">Continue to Photos →</button></div>
 
 <div id="s3" class="hidden">
@@ -136,6 +138,9 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <div id="s4" class="hidden">
 <button type="button" class="form-back" onclick="go(3)">← Back to Step 3</button>
 <div class="preview" id="preview"></div>
+<label>Listing Package</label>
+<select class="field" id="propertyPlanSelect" onchange="propertyPlanDurationChange()"><option value="28">28 Days</option><option value="180">6 Months</option></select>
+<div class="muted">Package validity ke dauran listing editable rahegi. Expiry se 7 days aur 1 day pehle email reminder jayega.</div>
 <div class="notice" id="propertyPaymentNotice"><b>Final step:</b> Owner Single Post • ₹199 / 28 days. Payment successful hone ke baad listing live hogi.</div>
 <button class="next primary-action" onclick="publish()">Continue to Payment & Publish</button>
 </div>
@@ -165,10 +170,17 @@ function posterChange(){
  }
 }
 function typeChange(){$('bhkWrap').classList.toggle('hidden',$('ptype').value==='Land')}
+function propertyPlanDurationChange(){
+ const sel=$('propertyPlanSelect');propertyPlanDays=sel?Number(sel.value)||28:28;
+ const notice=$('propertyPaymentNotice');if(!notice)return;
+ const b=$('poster').value.includes('Builder');
+ const label=propertyPlanDays===180?'6 Months':'28 Days';
+ notice.innerHTML='<b>Final step:</b> '+(b?'Builder Profile':'Owner Single Post')+' • '+label+'. Payment successful hone ke baad listing live hogi.';
+}
 function go(n){
  for(let i=1;i<=4;i++) $('s'+i).classList.toggle('hidden',i!==n);$('done').classList.add('hidden');
  $('stepHelp').textContent='Step '+n+' of 4';
- if(n===4) makePreview();
+ if(n===4){makePreview();const ps=$('propertyPlanSelect');if(ps)ps.value=String(propertyPlanDays);propertyPlanDurationChange()}
  posterChange();typeChange();
  const sh=document.querySelector('.sheet');if(sh)sh.scrollTop=0;
 }
@@ -215,9 +227,14 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
 </script>
 <script id="ocsPropertySelfEdit">
 (function(){
- const OCS_PROPERTY_PLAN_DAYS=28;
- const ocsPropertyNewExpiry=()=>Date.now()+OCS_PROPERTY_PLAN_DAYS*24*60*60*1000;
+ const OCS_PROPERTY_PLAN_DAYS=28,OCS_PROPERTY_PLAN_6M_DAYS=180;
+ let propertyPlanDays=28;
+ const ocsPropertyNewExpiry=(days)=>Date.now()+(Number(days)||OCS_PROPERTY_PLAN_DAYS)*24*60*60*1000;
  const ocsPropertyDaysLeft=ts=>Math.max(0,Math.ceil((Number(ts||0)-Date.now())/(24*60*60*1000)));
+ const ocsPropertyPlanLabel=days=>Number(days)===OCS_PROPERTY_PLAN_6M_DAYS?"6 Months":"28 Days";
+ const ocsPropertyReminder7=exp=>Number(exp)-7*24*60*60*1000;
+ const ocsPropertyReminder1=exp=>Number(exp)-1*24*60*60*1000;
+ const ocsPropertyValidEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||"").trim());
  const KEY="ocsSelfListing_Property";
  let editMode=false;
  const rawOpen=openPost,rawPublish=publish,rawGo=go;
@@ -248,12 +265,13 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
  }
  function refreshPropertyValidity(){
    let state=null;try{state=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+   if(state&&state.planDays)propertyPlanDays=Number(state.planDays)||OCS_PROPERTY_PLAN_DAYS;
    const left=state&&state.expiresAt?ocsPropertyDaysLeft(state.expiresAt):OCS_PROPERTY_PLAN_DAYS;
    const card=ownedCard();
    if(card)card.style.display=left>0?"":"none";
    let info=document.getElementById("ocsPropertyValidity");
    if(!info){info=document.createElement("div");info.id="ocsPropertyValidity";info.style.cssText="position:fixed;left:12px;right:12px;bottom:76px;z-index:30;background:#fff;border:1px solid #dbe8e5;border-radius:12px;padding:9px 12px;box-shadow:0 8px 22px rgba(0,0,0,.08);font-size:12px;font-weight:800;color:#345";document.body.appendChild(info)}
-   info.innerHTML=left>0?"Listing ACTIVE &#8226; "+left+" day"+(left===1?"":"s")+" left &#8226; Unlimited edits included":"Listing EXPIRED &#8226; Recharge required &#8226; Your details are saved";
+   info.innerHTML=left>0?"Listing ACTIVE &#8226; "+ocsPropertyPlanLabel((state&&state.planDays)||propertyPlanDays)+" &#8226; "+left+" day"+(left===1?"":"s")+" left &#8226; Unlimited edits &#8226; Email reminder 7 days & 1 day before expiry":"Listing EXPIRED &#8226; Recharge required &#8226; Your details are saved";
    return left;
  }
  function updateProfileButton(){
@@ -262,7 +280,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
  }
  function saveState(){
    const card=ownedCard();if(!card)return;
-   try{const prev=JSON.parse(localStorage.getItem(KEY)||"null");const exp=(prev&&prev.expiresAt)||ocsPropertyNewExpiry();localStorage.setItem(KEY,JSON.stringify({expiresAt:exp,fields:fields(),card:card.outerHTML}))}catch(e){}
+   try{const prev=JSON.parse(localStorage.getItem(KEY)||"null");const pd=(prev&&prev.planDays)||propertyPlanDays||OCS_PROPERTY_PLAN_DAYS;propertyPlanDays=pd;const exp=(prev&&prev.expiresAt)||ocsPropertyNewExpiry(pd);const em=($("renewalEmail")?.value||prev?.renewalEmail||"").trim();localStorage.setItem(KEY,JSON.stringify({expiresAt:exp,planDays:pd,renewalEmail:em,reminder7At:ocsPropertyReminder7(exp),reminder1At:ocsPropertyReminder1(exp),reminder7Status:"SCHEDULED",reminder1Status:"SCHEDULED",fields:fields(),card:card.outerHTML}))}catch(e){}
  }
  function restoreState(){
    try{
@@ -278,7 +296,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    const saved=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}})();
    if(!saved){rawOpen();return}
    if(!confirm("28 days ke liye property listing recharge/renew karna hai?"))return;
-   saved.expiresAt=ocsPropertyNewExpiry();try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){}
+   saved.planDays=saved.planDays||propertyPlanDays||OCS_PROPERTY_PLAN_DAYS;propertyPlanDays=saved.planDays;saved.expiresAt=ocsPropertyNewExpiry(saved.planDays);saved.renewalEmail=saved.renewalEmail||saved.fields?.renewalEmail||"";saved.reminder7At=ocsPropertyReminder7(saved.expiresAt);saved.reminder1At=ocsPropertyReminder1(saved.expiresAt);saved.reminder7Status="SCHEDULED";saved.reminder1Status="SCHEDULED";try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){}
    const card=ownedCard();if(card)card.style.display="";
    updateProfileButton();
    alert("Recharge test successful. Property listing 28 days ke liye ACTIVE hai.");
@@ -289,6 +307,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    if(saved&&saved.expiresAt&&ocsPropertyDaysLeft(saved.expiresAt)<=0){alert("28-day plan expired. Recharge karke listing phir LIVE karein. Aapki details safe hain.");updateProfileButton();return}
    editMode=true;
    rawOpen();
+   if(saved&&saved.planDays)propertyPlanDays=Number(saved.planDays)||OCS_PROPERTY_PLAN_DAYS;
    if(saved&&saved.fields)restoreFields(saved.fields);
    const t=$("stepTitle");if(t)t.textContent="Edit Property Listing";
    const help=$("stepHelp");if(help)help.textContent="Update details and save changes";
@@ -307,6 +326,11 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
  };
  publish=function(){
    const wasEdit=editMode;
+   if(!wasEdit){
+     const em=($("renewalEmail")?.value||"").trim();
+     if(!ocsPropertyValidEmail(em)){alert("Renewal reminder ke liye valid registered email required.");go(2);return}
+     const ps=$("propertyPlanSelect");if(ps)propertyPlanDays=Number(ps.value)||OCS_PROPERTY_PLAN_DAYS;
+   }
    if(editMode){
      const old=ownedCard();if(old)old.remove();
    }
@@ -314,7 +338,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    const card=$("liveArea").firstElementChild;
    addManage(card);
    saveState();
-   if(!wasEdit){try{const state=JSON.parse(localStorage.getItem(KEY)||"{}");state.expiresAt=ocsPropertyNewExpiry();localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+   if(!wasEdit){try{const state=JSON.parse(localStorage.getItem(KEY)||"{}");state.planDays=propertyPlanDays;state.expiresAt=ocsPropertyNewExpiry(propertyPlanDays);state.renewalEmail=($("renewalEmail")?.value||"").trim();state.reminder7At=ocsPropertyReminder7(state.expiresAt);state.reminder1At=ocsPropertyReminder1(state.expiresAt);state.reminder7Status="SCHEDULED";state.reminder1Status="SCHEDULED";localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
    updateProfileButton();
    if(editMode){
      const done=document.querySelector("#done .notice");
