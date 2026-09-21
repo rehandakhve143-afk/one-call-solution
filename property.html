@@ -159,23 +159,30 @@ function posterChange(){
  const title=$('propertyPlanTitle'),price=$('propertyPlanPrice'),help=$('propertyPlanHelp'),notice=$('propertyPaymentNotice');
  if(b){
    if(title)title.textContent='Builder Profile';
-   if(price)price.textContent='₹499 / 28 days';
    if(help)help.textContent='Builder profile with project gallery, brochure, video / YouTube and website links.';
-   if(notice)notice.innerHTML='<b>Final step:</b> Builder Profile • ₹499 / 28 days. Payment successful hone ke baad Builder profile live hogi.';
  }else{
    if(title)title.textContent='Owner Single Post';
-   if(price)price.textContent='₹199 / 28 days';
    if(help)help.textContent='Single property listing with photos and direct customer contact.';
-   if(notice)notice.innerHTML='<b>Final step:</b> Owner Single Post • ₹199 / 28 days. Payment successful hone ke baad listing live hogi.';
  }
+ const pp=propertyPlanPrice(propertyPlanDays),lab=propertyPlanDays===180?'6 Months':'28 Days';
+ if(price)price.textContent=(pp===null?'Rate not set':'₹'+Number(pp).toLocaleString('en-IN'))+' / '+lab;
+ if(notice)propertyPlanDurationChange();
 }
 function typeChange(){$('bhkWrap').classList.toggle('hidden',$('ptype').value==='Land')}
+function propertyPlanPrice(days){
+ const b=$('poster').value.includes('Builder');
+ const key=(b?'propertyBuilder':'propertyOwner')+(Number(days)===180?'6m':'');
+ let raw=null;
+ try{if(window.parent&&typeof window.parent.getPricing==='function')raw=window.parent.getPricing()[key]}catch(e){}
+ raw=Number(raw);return Number.isFinite(raw)?raw:null;
+}
 function propertyPlanDurationChange(){
  const sel=$('propertyPlanSelect');propertyPlanDays=sel?Number(sel.value)||28:28;
  const notice=$('propertyPaymentNotice');if(!notice)return;
  const b=$('poster').value.includes('Builder');
  const label=propertyPlanDays===180?'6 Months':'28 Days';
- notice.innerHTML='<b>Final step:</b> '+(b?'Builder Profile':'Owner Single Post')+' • '+label+'. Payment successful hone ke baad listing live hogi.';
+ const p=propertyPlanPrice(propertyPlanDays);
+ notice.innerHTML='<b>Final step:</b> '+(b?'Builder Profile':'Owner Single Post')+' • '+label+' • '+(p===null?'Rate not set':'₹'+Number(p).toLocaleString('en-IN'))+'. Payment successful hone ke baad listing live hogi.';
 }
 function go(n){
  for(let i=1;i<=4;i++) $('s'+i).classList.toggle('hidden',i!==n);$('done').classList.add('hidden');
@@ -295,16 +302,16 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
  window.renewOwnedProperty=function(){
    const saved=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}})();
    if(!saved){rawOpen();return}
-   if(!confirm("28 days ke liye property listing recharge/renew karna hai?"))return;
+   if(!confirm(ocsPropertyPlanLabel(saved.planDays||propertyPlanDays)+" ke liye property listing recharge/renew karna hai?"))return;
    saved.planDays=saved.planDays||propertyPlanDays||OCS_PROPERTY_PLAN_DAYS;propertyPlanDays=saved.planDays;saved.expiresAt=ocsPropertyNewExpiry(saved.planDays);saved.renewalEmail=saved.renewalEmail||saved.fields?.renewalEmail||"";saved.reminder7At=ocsPropertyReminder7(saved.expiresAt);saved.reminder1At=ocsPropertyReminder1(saved.expiresAt);saved.reminder7Status="SCHEDULED";saved.reminder1Status="SCHEDULED";try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){}
    const card=ownedCard();if(card)card.style.display="";
    updateProfileButton();
-   alert("Recharge test successful. Property listing 28 days ke liye ACTIVE hai.");
+   alert("Recharge test successful. Property listing "+ocsPropertyPlanLabel(saved.planDays||propertyPlanDays)+" ke liye ACTIVE hai.");
  };
  window.editOwnedProperty=function(){
    const saved=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}})();
    if(!ownedCard()&&!saved){rawOpen();return}
-   if(saved&&saved.expiresAt&&ocsPropertyDaysLeft(saved.expiresAt)<=0){alert("28-day plan expired. Recharge karke listing phir LIVE karein. Aapki details safe hain.");updateProfileButton();return}
+   if(saved&&saved.expiresAt&&ocsPropertyDaysLeft(saved.expiresAt)<=0){alert("Plan expired. Recharge karke listing phir LIVE karein. Aapki details safe hain.");updateProfileButton();return}
    editMode=true;
    rawOpen();
    if(saved&&saved.planDays)propertyPlanDays=Number(saved.planDays)||OCS_PROPERTY_PLAN_DAYS;
@@ -330,6 +337,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
      const em=($("renewalEmail")?.value||"").trim();
      if(!ocsPropertyValidEmail(em)){alert("Renewal reminder ke liye valid registered email required.");go(2);return}
      const ps=$("propertyPlanSelect");if(ps)propertyPlanDays=Number(ps.value)||OCS_PROPERTY_PLAN_DAYS;
+     const pp=propertyPlanPrice(propertyPlanDays);if(pp===null){alert((propertyPlanDays===180?"6 Months":"28 Days")+" rate Admin me set hona baki hai.");return}
    }
    if(editMode){
      const old=ownedCard();if(old)old.remove();
@@ -338,7 +346,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    const card=$("liveArea").firstElementChild;
    addManage(card);
    saveState();
-   if(!wasEdit){try{const state=JSON.parse(localStorage.getItem(KEY)||"{}");state.planDays=propertyPlanDays;state.expiresAt=ocsPropertyNewExpiry(propertyPlanDays);state.renewalEmail=($("renewalEmail")?.value||"").trim();state.reminder7At=ocsPropertyReminder7(state.expiresAt);state.reminder1At=ocsPropertyReminder1(state.expiresAt);state.reminder7Status="SCHEDULED";state.reminder1Status="SCHEDULED";localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+   if(!wasEdit){try{const state=JSON.parse(localStorage.getItem(KEY)||"{}");state.planDays=propertyPlanDays;state.planPrice=propertyPlanPrice(propertyPlanDays);state.expiresAt=ocsPropertyNewExpiry(propertyPlanDays);state.renewalEmail=($("renewalEmail")?.value||"").trim();state.reminder7At=ocsPropertyReminder7(state.expiresAt);state.reminder1At=ocsPropertyReminder1(state.expiresAt);state.reminder7Status="SCHEDULED";state.reminder1Status="SCHEDULED";localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
    updateProfileButton();
    if(editMode){
      const done=document.querySelector("#done .notice");
