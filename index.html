@@ -839,7 +839,7 @@ body:not(.module-open) .myocs-grid button{min-height:54px!important;padding:8px 
 
 /* OCS HOME PREMIUM STRUCTURE + SAFE EMERGENCY — 2026-09-21 */
 .home-primary-actions{
-  margin:0 14px 10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px
+  margin:0 14px 7px;display:grid;grid-template-columns:1fr;gap:8px
 }
 .home-primary-action{
   min-width:0;border:1px solid #dfe9e9;background:#fff;border-radius:14px;padding:11px 10px;
@@ -854,6 +854,17 @@ body:not(.module-open) .myocs-grid button{min-height:54px!important;padding:8px 
 .home-primary-action.emergency{border-color:#f1d4d4;background:#fffafa}
 .home-primary-action.emergency .hpa-icon{background:#fff0f0}
 .home-primary-action:active{transform:scale(.98)}
+.home-emergency-strip{
+  margin:0 14px 10px;width:calc(100% - 28px);border:1px solid #f0d7d7;background:#fffafa;
+  border-radius:14px;padding:10px 12px;display:grid;grid-template-columns:34px 1fr 22px;
+  align-items:center;gap:9px;text-align:left;box-shadow:0 3px 10px rgba(18,50,71,.045)
+}
+.home-emergency-strip .hes-icon{width:34px;height:34px;border-radius:10px;background:#fff0f0;display:grid;place-items:center;font-size:17px}
+.home-emergency-strip .hes-copy b{display:block;font-size:11px;color:#713c3c}
+.home-emergency-strip .hes-copy small{display:block;margin-top:2px;font-size:8.5px;color:#9a6c6c}
+.home-emergency-strip .hes-arrow{font-size:22px;color:#b54848;text-align:right}
+.home-emergency-strip:active{transform:scale(.99)}
+
 
 body:not(.module-open) #moduleGrid:not(.show-all) .ocs-window-card{display:none!important}
 body:not(.module-open) #moduleGrid:not(.show-all) .ocs-window-card.ocs-featured{display:block!important}
@@ -900,6 +911,7 @@ body:not(.module-open) #moduleGrid .ocs-window-card[data-search-hidden="1"]{disp
 
 @media(max-width:390px){
   .home-primary-actions{margin-left:12px;margin-right:12px;gap:6px}
+  .home-emergency-strip{margin-left:12px;margin-right:12px;width:calc(100% - 24px)}
   .home-primary-action{padding:9px 5px;gap:5px;border-radius:12px}
   .home-primary-action .hpa-icon{flex-basis:28px;width:28px;height:28px;font-size:14px}
   .home-primary-action b{font-size:9.5px}.home-primary-action small{font-size:7px}
@@ -927,14 +939,16 @@ body:not(.module-open) #moduleGrid .ocs-window-card[data-search-hidden="1"]{disp
   </div>
 </div>
 
-<div class="home-primary-actions" aria-label="Main OCS actions">
-  <button class="home-primary-action explore" onclick="openExploreAll()">
-    <span class="hpa-icon">▦</span><span><b>All Windows</b><small>Browse categories</small></span>
-  </button>
-  <button class="home-primary-action emergency" onclick="openEmergency()">
-    <span class="hpa-icon">🚨</span><span><b>Emergency</b><small>Fire • Ambulance</small></span>
+<div class="home-primary-actions" aria-label="Main OCS action">
+  <button class="home-primary-action service" onclick="openModule('Home Services','customer')">
+    <span class="hpa-icon">🛠️</span><span><b>Home Service</b><small>Book trusted Service Providers</small></span>
   </button>
 </div>
+<button class="home-emergency-strip" onclick="openEmergency()" aria-label="Emergency Fire and Ambulance">
+  <span class="hes-icon">🚨</span>
+  <span class="hes-copy"><b>Emergency Help</b><small>Fire Brigade • Ambulance</small></span>
+  <span class="hes-arrow">›</span>
+</button>
 <div class="slider-business-cta" onclick="openBannerAd()" role="button" tabindex="0">
   <div class="slider-business-copy">
     <strong>Your Business, Seen by Every OCS Visitor</strong>
