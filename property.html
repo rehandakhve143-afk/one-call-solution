@@ -95,7 +95,7 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <div id="liveArea">
 <div class="card"><div class="photo">🏠<span class="badge">OWNER POST</span></div><div class="body"><div class="title">2 BHK Flat for Rent</div><div class="loc">📍 Sample Locality • Sample City</div><div class="price">₹28,000 / month</div><div class="chips"><span class="chip">2 BHK</span><span class="chip">1,050 sq ft</span><span class="chip">Semi Furnished</span></div><div class="actions"><button class="call">Call</button><button>Chat</button><button class="wa">WhatsApp</button><button>Directions</button></div></div></div>
 
-<div class="card"><div class="photo">🏢<span class="badge">BUILDER PROJECT</span></div><div class="body"><div class="title">Sample Heights</div><div class="loc">By Sample Constructions • Sample City</div><div class="price">₹72 Lakhs onwards</div><div class="chips"><span class="chip">2 & 3 BHK</span><span class="chip">Project Gallery</span><span class="chip">Ready to Move</span></div><div class="ownerbox"><b>Builder Profile</b><div class="links"><button>Gallery</button><button>Brochure</button><button>Video / YouTube</button><button>Website</button></div></div><div class="actions"><button class="call">Call</button><button>Chat</button><button class="wa">WhatsApp</button><button>Email</button></div></div></div>
+<div class="card" data-demo-builder="xyz"><div class="photo">🏢<span class="badge">SAMPLE BUILDER PROJECT</span></div><div class="body"><div class="title">XYZ Residency</div><div class="loc">By XYZ Builder • New Panvel • Navi Mumbai</div><div class="price">₹72 Lakhs onwards</div><div class="chips"><span class="chip">2 BHK</span><span class="chip">1,050 sq ft</span><span class="chip">Under Construction</span></div><div class="ownerbox"><b>XYZ Builder • Sample Profile</b><div class="muted" style="margin-top:4px">Flat Sale • Project Gallery • Brochure • Video • Website • Virtual Tour</div><div class="links"><button type="button" onclick="openXyzBuilderSample()">View Filled Profile</button><button>Gallery</button><button>Brochure</button><button>Video / YouTube</button><button>Website</button></div></div><div class="actions"><button class="call">Call</button><button>Chat</button><button class="wa">WhatsApp</button><button>Email</button></div></div></div>
 </div>
 </section>
 
@@ -213,8 +213,9 @@ function restorePropertyDraft(){
  return false;
 }
 function clearPropertyDraft(){try{localStorage.removeItem(OCS_PROPERTY_DRAFT_KEY)}catch(e){}}
-let currentPropertyStep=1;
+let currentPropertyStep=1,ocsBuilderSampleMode=false;
 function openPost(){
+ ocsBuilderSampleMode=false;
  const pb=$('propertyPublishBtn');if(pb){pb.textContent='Continue to Payment & Publish';pb.onclick=()=>publish()}
  $('overlay').style.display='flex';
  go(1);
@@ -222,6 +223,19 @@ function openPost(){
  if(!hasLive)restorePropertyDraft();
 }
 function closePost(){$('overlay').style.display='none'}
+function openXyzBuilderSample(){
+ openPost();ocsBuilderSampleMode=true;
+ const sample={
+  poster:'Builder / Developer',builderCompany:'XYZ Builder',builderContactPerson:'XYZ Builder Team',builderReg:'SAMPLE-RERA-0001',
+  purpose:'Sale',ptype:'Flat',project:'XYZ Residency',city:'Navi Mumbai',area:'New Panvel',address:'Sample Project Address, New Panvel, Navi Mumbai',
+  mapLink:'https://example.com/xyz-builder-location',price:'7200000',bhk:'2 BHK',sqft:'1050',projectStatus:'Under Construction',
+  desc:'Sample 2 BHK builder project with project gallery, modern amenities and direct builder contact.',
+  contactPhone:'0000000000',contactWhatsapp:'0000000000',contactEmail:'sales@xyzbuilder.example',renewalEmail:'accounts@xyzbuilder.example',
+  brochure:'https://example.com/xyz-builder-brochure',video:'https://example.com/xyz-builder-video',website:'https://example.com/xyz-builder',virtualTour:'https://example.com/xyz-builder-tour'
+ };
+ applyValues(sample);go(1);
+ const ds=$('draftStatus');if(ds){ds.classList.add('show');ds.textContent='XYZ Builder sample loaded • Demo only';}
+}
 function posterChange(){
  const b=$('poster').value.includes('Builder');
  ['builderProject','builderIdentity','builderMedia','builderLinks','builderStatusWrap'].forEach(id=>$(id)?.classList.toggle('hidden',!b));
@@ -291,6 +305,7 @@ function makePreview(){
  '<div class="preview-actions"><span>📞 Call</span><span>💬 Chat</span><span>🟢 WhatsApp</span><span>✉ Email</span>'+(b&&$('mapLink').value?'<span>📍 Directions</span>':'')+'</div>';
 }
 function listingActionAttrs(kind,value){
+ if(ocsBuilderSampleMode)return '';
  const v=String(value||'').trim();if(!v)return '';
  if(kind==='call')return ' onclick="location.href=\'tel:'+esc(v.replace(/[^0-9+]/g,''))+'\'"';
  if(kind==='wa')return ' onclick="window.open(\'https://wa.me/'+esc(v.replace(/\D/g,''))+'\',\'_blank\')"';
