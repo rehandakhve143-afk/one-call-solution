@@ -1043,146 +1043,89 @@ body:not(.module-open) #moduleGrid .ocs-window-card.long-title .ocs-window-copy 
   body:not(.module-open) #moduleGrid .ocs-window-arrow{right:8px!important;bottom:9px!important;font-size:18px!important}
 }
 
-</style></head><body><div class="app">
-<header><div class="brand"><div class="logo"><img src="assets/ocs-logo-mark.svg?v=20260921" alt="OCS logo"></div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openNotifications()">🔔</button></div></div></header>
 
-<div class="location-bar"><span>📍</span><div class="loc-copy"><b>Home</b> • Current service location</div><button onclick="alert('Live location / address selector will open here in production.')">Change</button></div>
+/* OCS APPROVED HOME FINAL — 2026-09-22 */
+body{background:#eef5f7!important}
+.ocs-approved-home{width:min(100%,430px)!important;max-width:430px!important;margin:0 auto!important;background:#fff!important;padding-bottom:78px!important;min-height:100vh!important}
+.ocs-final-top{height:68px!important;display:grid!important;grid-template-columns:36px 1fr auto!important;align-items:center!important;gap:8px!important;padding:8px 12px!important;background:#fff!important;position:relative!important;box-shadow:none!important;border:0!important}
+.ocs-final-menu,.ocs-final-bell{border:0!important;background:transparent!important;padding:4px!important;font-size:20px!important;color:#173247!important}.ocs-final-brand{display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important}.ocs-final-brand img{width:48px!important;height:42px!important;object-fit:contain!important}.ocs-final-brand strong{display:block!important;font-size:14px!important;letter-spacing:.2px!important;color:#0f2f5f!important;white-space:nowrap!important}.ocs-final-brand strong em{font-style:normal!important;color:#0b8b75!important}.ocs-final-brand small{display:block!important;font-size:8px!important;color:#74838a!important;margin-top:2px!important}.ocs-final-top-actions{display:flex!important;align-items:center!important;gap:4px!important}.ocs-final-location{border:0!important;background:#f2f7f7!important;border-radius:14px!important;padding:8px 9px!important;font-size:8.5px!important;color:#173247!important;font-weight:800!important;white-space:nowrap!important}
 
-<div class="common-search"><span style="font-size:20px">🔎</span><input id="globalSearch" placeholder="Search services, shops, property, vehicle..." onkeydown="if(event.key==='Enter')runGlobalSearch()"><button onclick="runGlobalSearch()">Search</button></div>
+body:not(.module-open) .ocs-final-hero{position:relative!important;margin:0 10px!important;border-radius:17px!important;overflow:hidden!important;min-height:178px!important;height:178px!important;background:#eaf7f7!important;box-shadow:0 7px 18px rgba(18,50,71,.08)!important}
+body:not(.module-open) .ocs-final-hero .slides{height:178px!important;min-height:178px!important;display:flex!important;transition:transform .35s ease!important}
+body:not(.module-open) .ocs-final-hero .ocs-final-slide{position:relative!important;flex:0 0 100%!important;width:100%!important;height:178px!important;min-height:178px!important;padding:18px 15px!important;color:#0f2f5f!important}
+body:not(.module-open) .ocs-final-hero .s1{background:linear-gradient(100deg,#edf9ff 0%,#e9faf5 58%,#d7eee6 100%)!important}
+body:not(.module-open) .ocs-final-hero .s3{background:linear-gradient(100deg,#f5faff 0%,#eaf6f4 55%,#dae9e5 100%)!important}
+body:not(.module-open) .ocs-final-hero .s2{background:linear-gradient(100deg,#eef8ff 0%,#eaf9f4 55%,#d9ece7 100%)!important}
+body:not(.module-open) .ocs-final-hero .slide-copy{width:74%!important;position:relative!important;z-index:2!important}
+body:not(.module-open) .ocs-final-hero .slide h2{font-size:26px!important;line-height:.98!important;margin:0 0 7px!important;color:#0d2c5a!important;text-shadow:none!important;letter-spacing:-.45px!important}
+body:not(.module-open) .ocs-final-hero .slide h2 span{color:#0b9b7c!important}
+body:not(.module-open) .ocs-final-hero .slide p{font-size:10px!important;line-height:1.3!important;color:#24455d!important;margin:0 0 10px!important;max-width:245px!important}
+body:not(.module-open) .ocs-final-hero .slide-kicker{color:#0b8e79!important;font-size:8px!important;font-weight:900!important;letter-spacing:.65px!important;margin-bottom:6px!important}
+body:not(.module-open) .ocs-final-hero .slide button{border:0!important;background:#0b8e79!important;color:#fff!important;border-radius:10px!important;padding:8px 11px!important;font-size:9px!important;font-weight:900!important}
+.ocs-final-mini-trust{display:flex!important;gap:11px!important;margin-top:12px!important;margin-bottom:11px!important}.ocs-final-mini-trust div{font-size:7.3px!important;text-align:center!important;color:#183f4a!important}.ocs-final-mini-trust b{display:block!important;font-size:17px!important;color:#07957d!important;margin-bottom:1px!important}
+body:not(.module-open) .ocs-final-hero .slider-dots{display:flex!important;position:absolute!important;right:12px!important;left:auto!important;bottom:10px!important;gap:5px!important;z-index:5!important}
+body:not(.module-open) .ocs-final-hero .slider-dots button{border:0!important;padding:0!important;width:6px!important;height:6px!important;border-radius:20px!important;background:#0e6c6660!important}
+body:not(.module-open) .ocs-final-hero .slider-dots button.on{width:21px!important;background:#0b8e79!important}
+
+body:not(.module-open) .ocs-final-search{position:relative!important;z-index:6!important;margin:-11px 14px 0!important;background:#fff!important;border:1px solid #dce8e8!important;border-radius:14px!important;box-shadow:0 6px 16px rgba(18,50,71,.10)!important;display:grid!important;grid-template-columns:25px 1fr auto!important;gap:6px!important;align-items:center!important;padding:6px!important;min-height:0!important}
+body:not(.module-open) .ocs-final-search>span{font-size:17px!important;text-align:center!important}
+body:not(.module-open) .ocs-final-search input{border:0!important;outline:0!important;background:transparent!important;padding:9px 4px!important;font-size:9px!important;min-width:0!important}
+body:not(.module-open) .ocs-final-search button{border:0!important;border-radius:10px!important;background:#0b8e79!important;color:#fff!important;font-size:9px!important;font-weight:900!important;padding:10px 12px!important}
+body:not(.module-open) #globalSearchHint{display:none!important}
+
+.ocs-final-section{padding:15px 10px 0!important}.ocs-final-heading{display:flex!important;justify-content:space-between!important;align-items:end!important;margin-bottom:8px!important}.ocs-final-heading h2{margin:0!important;font-size:18px!important;letter-spacing:-.3px!important;color:#0f2344!important}.ocs-final-heading small{color:#078a78!important;font-size:8.5px!important;font-weight:800!important}
+body:not(.module-open) #moduleGrid.ocs-final-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px!important;padding:0!important}
+body:not(.module-open) #moduleGrid .ocs-final-card{display:block!important;position:relative!important;min-width:0!important;min-height:130px!important;height:auto!important;aspect-ratio:auto!important;margin:0!important;padding:0!important;border:1px solid #e0e9ea!important;border-radius:12px!important;overflow:hidden!important;background:#fff!important;box-shadow:0 3px 9px rgba(18,50,71,.045)!important;text-align:left!important}
+body:not(.module-open) #moduleGrid .ocs-final-card .ocs-final-art{height:70px!important;display:grid!important;place-items:center!important;font-size:34px!important;background:#eaf7ff!important}
+body:not(.module-open) #moduleGrid .ocs-final-card:nth-child(4n+2) .ocs-final-art{background:#fff5df!important}body:not(.module-open) #moduleGrid .ocs-final-card:nth-child(4n+3) .ocs-final-art{background:#e8faf2!important}body:not(.module-open) #moduleGrid .ocs-final-card:nth-child(4n+4) .ocs-final-art{background:#eef4ff!important}body:not(.module-open) #moduleGrid .ocs-final-card:nth-child(5n) .ocs-final-art{background:#fff0e8!important}body:not(.module-open) #moduleGrid .ocs-final-card:nth-child(6n) .ocs-final-art{background:#fff0f5!important}
+body:not(.module-open) #moduleGrid .ocs-final-card .ocs-window-copy{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;display:block!important;padding:8px 16px 8px 7px!important;min-height:60px!important;z-index:2!important}
+body:not(.module-open) #moduleGrid .ocs-final-card .ocs-window-copy b{display:block!important;color:#0f2344!important;font-size:9px!important;line-height:1.06!important;font-weight:900!important;letter-spacing:0!important;text-shadow:none!important;white-space:normal!important;overflow:visible!important}
+body:not(.module-open) #moduleGrid .ocs-final-card .ocs-window-copy small{display:block!important;margin-top:3px!important;color:#526b7b!important;font-size:6.7px!important;line-height:1.18!important;font-weight:500!important;white-space:normal!important;overflow:visible!important;text-shadow:none!important}
+body:not(.module-open) #moduleGrid .ocs-final-card .ocs-window-arrow{position:absolute!important;right:6px!important;bottom:9px!important;width:auto!important;height:auto!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#057fcb!important;font-size:16px!important;font-weight:900!important;z-index:3!important}
+body:not(.module-open) #moduleGrid .ocs-final-card:active{transform:scale(.98)!important}
+
+.ocs-final-promo{margin:14px 10px 0!important;border-radius:13px!important;padding:12px!important;background:linear-gradient(135deg,#0a6f70,#075b68)!important;color:#fff!important;display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important;gap:10px!important;box-shadow:0 6px 14px rgba(10,96,100,.12)!important}.ocs-final-promo b{display:block!important;font-size:11px!important;line-height:1.12!important}.ocs-final-promo small{display:block!important;font-size:7.5px!important;line-height:1.3!important;color:#d8f5ef!important;margin-top:4px!important}.ocs-final-promo button{border:0!important;border-radius:9px!important;background:#fff!important;color:#184b4a!important;font-size:7.8px!important;font-weight:900!important;padding:8px 9px!important;white-space:nowrap!important}.ocs-final-note{text-align:center!important;padding:11px 8px 3px!important;font-size:7px!important;color:#98a3a8!important}
+.bottom-nav{width:min(430px,100%)!important}.bottom-nav button{font-size:7.8px!important}.bottom-nav button span{font-size:18px!important}
+@media(max-width:390px){.ocs-final-top{grid-template-columns:32px 1fr auto!important}.ocs-final-brand img{width:42px!important}.ocs-final-brand strong{font-size:12px!important}.ocs-final-location{font-size:7.2px!important;padding:7px!important}body:not(.module-open) .ocs-final-hero{height:169px!important;min-height:169px!important}body:not(.module-open) .ocs-final-hero .slides,body:not(.module-open) .ocs-final-hero .ocs-final-slide{height:169px!important;min-height:169px!important}body:not(.module-open) .ocs-final-hero .slide h2{font-size:23px!important}body:not(.module-open) #moduleGrid.ocs-final-grid{gap:6px!important}body:not(.module-open) #moduleGrid .ocs-final-card{min-height:120px!important}body:not(.module-open) #moduleGrid .ocs-final-card .ocs-final-art{height:63px!important;font-size:31px!important}body:not(.module-open) #moduleGrid .ocs-final-card .ocs-window-copy{padding:7px 14px 7px 6px!important;min-height:57px!important}body:not(.module-open) #moduleGrid .ocs-final-card .ocs-window-copy b{font-size:8px!important}body:not(.module-open) #moduleGrid .ocs-final-card .ocs-window-copy small{font-size:6.1px!important}}
+
+</style></head><body><div class="app ocs-approved-home">
+<header class="ocs-final-top">
+  <button class="ocs-final-menu" onclick="openMyOcs('saved')" aria-label="My OCS">☰</button>
+  <div class="ocs-final-brand"><img src="assets/ocs-logo-mark.svg?v=20260921" alt="OCS logo"><div><strong>ONE CALL <em>SOLUTION</em></strong><small>One for All • All for One</small></div></div>
+  <div class="ocs-final-top-actions"><button class="ocs-final-location" onclick="alert('Live location / address selector will open here in production.')">📍 Home ▾</button><button class="ocs-final-bell" onclick="openNotifications()" aria-label="Notifications">🔔</button></div>
+</header>
+
+<section class="slider clean-hero ocs-final-hero" id="homeSlider">
+  <div class="slides" id="slides">
+    <div class="slide ocs-final-slide s1"><div class="slide-copy"><h2>All Your Needs<br><span>One Call Away</span></h2><p>Trusted services for a better tomorrow.</p><div class="ocs-final-mini-trust"><div><b>✓</b>Safe</div><div><b>♟</b>Trusted</div><div><b>★</b>Verified</div><div><b>🎧</b>Support</div></div><button onclick="openModule('Home Services','customer')">Book Home Service</button></div></div>
+    <div class="slide ocs-final-slide s3"><div class="slide-copy"><div class="slide-kicker">Property</div><h2>Property Made<br><span>Simple</span></h2><p>Rent, buy and builder listings in one place.</p><button onclick="openModule('Property')">Explore Property</button></div></div>
+    <div class="slide ocs-final-slide s2 hotel-slide"><div class="slide-copy"><div class="slide-kicker">Stay • Dine • Discover</div><h2>Hotels & Restaurants<br><span>Near You</span></h2><p>Discover stays, food and hospitality profiles.</p><button onclick="openModule('Hotel / Restaurant / Lodging')">Explore</button></div></div>
+  </div>
+  <div class="slider-dots" id="homeSliderDots"><button class="on" onclick="setHomeSlide(0)" aria-label="Slide 1"></button><button onclick="setHomeSlide(1)" aria-label="Slide 2"></button><button onclick="setHomeSlide(2)" aria-label="Slide 3"></button></div>
+</section>
+
+<div class="common-search ocs-final-search"><span>⌕</span><input id="globalSearch" placeholder="Search for services, shops, property, vehicles and more..." onkeydown="if(event.key==='Enter')runGlobalSearch()"><button onclick="runGlobalSearch()">Search</button></div>
 <div id="globalSearchHint" class="search-hint">Search across One Call Solution</div>
 
-<div class="slider clean-hero" id="homeSlider">
-  <div class="slides" id="slides">
-    <div class="slide s1"><div class="slide-copy"><div class="slide-kicker">Home Services</div><h2>Trusted help, one call away</h2><p>Verified Service Providers, clear pricing, Start OTP and support — all in one place.</p><button onclick="openModule('Home Services','customer')">Book Home Service</button></div></div>
-    <div class="slide s2 hotel-slide"><div class="slide-copy"><div class="slide-kicker">Hotel • Restaurant • Lodging</div><h2>Stay, dine & discover nearby</h2><p>Beautiful stays, family dining and hospitality profiles inside OCS.</p><button onclick="openModule('Hotel / Restaurant / Lodging')">Explore Hospitality</button></div></div>
-    <div class="slide s3"><div class="slide-copy"><div class="slide-kicker">Property</div><h2>Find your next place</h2><p>Rent, buy and explore verified property & builder listings in one window.</p><button onclick="openModule('Property')">Explore Property</button></div><div class="slide-art">🏡</div></div>
+<section class="ocs-final-section" id="explore">
+  <div class="ocs-final-heading"><h2>Explore Our Services</h2><small>All Services ›</small></div>
+  <div class="grid ocs-slider-cards show-all ocs-final-grid" id="moduleGrid" data-card-set="approved-final">
+    <button class="ocs-window-card ocs-final-card" aria-label="Property" title="Property" onclick='openModule("Property")'><div class="ocs-final-art">🏡</div><span class="ocs-window-copy"><b>Property</b><small>Buy • Rent • Sell • Projects</small></span><span class="ocs-window-arrow">›</span></button>
+    <button class="ocs-window-card ocs-final-card" aria-label="Local Shop" title="Local Shop" onclick='openModule("Local Shop")'><div class="ocs-final-art">🛒</div><span class="ocs-window-copy"><b>Local Shop</b><small>Electrical • Hardware • More</small></span><span class="ocs-window-arrow">›</span></button>
+    <button class="ocs-window-card ocs-final-card" aria-label="Sliding / Aluminium" title="Sliding / Aluminium" onclick='openModule("Sliding / Aluminium")'><div class="ocs-final-art">🪟</div><span class="ocs-window-copy"><b>Sliding / Aluminium</b><small>Windows • Doors • Partitions</small></span><span class="ocs-window-arrow">›</span></button>
+    <button class="ocs-window-card ocs-final-card" aria-label="Welding / Fabrication" title="Welding / Fabrication" onclick='openModule("Welding / Fabrication")'><div class="ocs-final-art">👨‍🏭</div><span class="ocs-window-copy"><b>Welding / Fabrication</b><small>Grill • Gate • Shed • Custom</small></span><span class="ocs-window-arrow">›</span></button>
+    <button class="ocs-window-card ocs-final-card" aria-label="Beauty / Make-up" title="Beauty / Make-up" onclick='openModule("Beauty / Make-up")'><div class="ocs-final-art">💄</div><span class="ocs-window-copy"><b>Beauty / Make-up</b><small>Salon • Bridal • Make-up</small></span><span class="ocs-window-arrow">›</span></button>
+    <button class="ocs-window-card ocs-final-card" aria-label="Used Vehicle" title="Used Vehicle" onclick='openModule("Used Vehicle")'><div class="ocs-final-art">🚗🏍️</div><span class="ocs-window-copy"><b>Used Vehicle</b><small>Buy • Sell • 2W • 4W</small></span><span class="ocs-window-arrow">›</span></button>
+    <button class="ocs-window-card ocs-final-card" aria-label="New Vehicle" title="New Vehicle" onclick='openModule("New Vehicle")'><div class="ocs-final-art">🚘🛵</div><span class="ocs-window-copy"><b>New Vehicle</b><small>Car • Bike • Scooter</small></span><span class="ocs-window-arrow">›</span></button>
+    <button class="ocs-window-card ocs-final-card" aria-label="Medical Store" title="Medical Store" onclick='openModule("Medical Store")'><div class="ocs-final-art">💊➕</div><span class="ocs-window-copy"><b>Medical Store</b><small>Medicines • Healthcare</small></span><span class="ocs-window-arrow">›</span></button>
+    <button class="ocs-window-card ocs-final-card" aria-label="Diagnostic Lab" title="Diagnostic Lab" onclick='openModule("Diagnostic Lab")'><div class="ocs-final-art">🔬🧪</div><span class="ocs-window-copy"><b>Diagnostic Lab</b><small>Tests • Health Packages</small></span><span class="ocs-window-arrow">›</span></button>
+    <button class="ocs-window-card ocs-final-card" aria-label="Modular Kitchen" title="Modular Kitchen" onclick='openModule("Modular Kitchen")'><div class="ocs-final-art">🍽️</div><span class="ocs-window-copy"><b>Modular Kitchen</b><small>Design • Build • Install</small></span><span class="ocs-window-arrow">›</span></button>
+    <button class="ocs-window-card ocs-final-card" aria-label="Hotel / Restaurant / Lodging" title="Hotel / Restaurant / Lodging" onclick='openModule("Hotel / Restaurant / Lodging")'><div class="ocs-final-art">🏨🍽️</div><span class="ocs-window-copy"><b>Hotel / Restaurant</b><small>Stay • Food • Lodging • More</small></span><span class="ocs-window-arrow">›</span></button>
   </div>
-  <div class="slider-dots" id="homeSliderDots">
-    <button class="on" onclick="setHomeSlide(0)" aria-label="Slide 1"></button>
-    <button onclick="setHomeSlide(1)" aria-label="Slide 2"></button>
-    <button onclick="setHomeSlide(2)" aria-label="Slide 3"></button>
-  </div>
-</div>
+</section>
 
-<div class="home-primary-actions" aria-label="Main OCS action">
-  <button class="home-primary-action service" onclick="openModule('Home Services','customer')">
-    <span class="hpa-icon">🛠️</span><span><b>Home Service</b><small>Book trusted Service Providers</small></span>
-  </button>
-</div>
-<button class="home-emergency-strip" onclick="openEmergency()" aria-label="Emergency Fire and Ambulance">
-  <span class="hes-icon">🚨</span>
-  <span class="hes-copy"><b>Emergency Help</b><small>Fire Brigade • Ambulance</small></span>
-  <span class="hes-arrow">›</span>
-</button>
-<div class="slider-business-cta" onclick="openBannerAd()" role="button" tabindex="0">
-  <div class="slider-business-copy">
-    <strong>Your Business, Seen by Every OCS Visitor</strong>
-    <small>Promote on the home slider and reach more people.</small>
-  </div>
-  <button type="button" onclick="event.stopPropagation();openBannerAd()">Post Your Ad</button>
-</div>
-
-<div class="section-head" id="explore"><div><h2>Explore Categories</h2><small>Property, shops, vehicles & more</small></div></div>
-<div class="grid ocs-slider-cards" id="moduleGrid" data-card-set="slider-photo-final">
-
-<button class="ocs-window-card ocs-featured" aria-label="Property" title="Property" onclick='openModule("Property")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1693160206111-202ab0b8b34c?auto=format&fit=crop&w=1200&q=90" alt="" loading="eager" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">PROPERTY</span>
-  <span class="ocs-window-copy"><b>Property</b><small>Rent • Buy • Builder listings</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
-<button class="ocs-window-card ocs-featured" aria-label="Local Shop" title="Local Shop" onclick='openModule("Local Shop")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1759200165738-6366977a73c6?auto=format&fit=crop&w=1200&q=90" alt="" loading="eager" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">LOCAL SHOP</span>
-  <span class="ocs-window-copy"><b>Local Shop</b><small>Electrical & hardware shops</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
-<button class="ocs-window-card" aria-label="Sliding / Aluminium" title="Sliding / Aluminium" onclick='openModule("Sliding / Aluminium")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1758998202918-d921125a700f?auto=format&fit=crop&w=1200&q=90" alt="" loading="eager" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">SLIDING / ALUMINIUM</span>
-  <span class="ocs-window-copy"><b>Sliding / Aluminium</b><small>Windows • doors • glass work</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
-<button class="ocs-window-card" aria-label="Welding / Fabrication" title="Welding / Fabrication" onclick='openModule("Welding / Fabrication")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1776159904891-e7b213b8198f?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">WELDING / FABRICATION</span>
-  <span class="ocs-window-copy"><b>Welding / Fabrication</b><small>Gate • grill • fabrication</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
-<button class="ocs-window-card" aria-label="Beauty / Make-up" title="Beauty / Make-up" onclick='openModule("Beauty / Make-up")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1758739011301-0d348a60d32e?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">BEAUTY / MAKE-UP</span>
-  <span class="ocs-window-copy"><b>Beauty / Make-up</b><small>Artists • bridal • beauty</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
-<button class="ocs-window-card" aria-label="Used Vehicle" title="Used Vehicle" onclick='openModule("Used Vehicle")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1717535398330-ce2d0d7ed850?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">USED VEHICLE</span>
-  <span class="ocs-window-copy"><b>Used Vehicle</b><small>Second-hand bikes & cars</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
-<button class="ocs-window-card" aria-label="New Vehicle" title="New Vehicle" onclick='openModule("New Vehicle")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1771284848859-12f150fa1637?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">NEW VEHICLE</span>
-  <span class="ocs-window-copy"><b>New Vehicle</b><small>New bikes & cars</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
-<button class="ocs-window-card ocs-featured" aria-label="Medical Store" title="Medical Store" onclick='openModule("Medical Store")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1560840038-e595bb6c706d?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">MEDICAL STORE</span>
-  <span class="ocs-window-copy"><b>Medical Store</b><small>Nearby medical stores</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
-<button class="ocs-window-card" aria-label="Diagnostic Lab" title="Diagnostic Lab" onclick='openModule("Diagnostic Lab")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1491299461284-6aa083937f71?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">DIAGNOSTIC LAB</span>
-  <span class="ocs-window-copy"><b>Diagnostic Lab</b><small>Tests • packages • enquiries</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
-<button class="ocs-window-card" aria-label="Modular Kitchen" title="Modular Kitchen" onclick='openModule("Modular Kitchen")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">MODULAR KITCHEN</span>
-  <span class="ocs-window-copy"><b>Modular Kitchen</b><small>Design • cabinets • interiors</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
-<button class="ocs-window-card ocs-featured long-title" aria-label="Hotel / Restaurant / Lodging" title="Hotel / Restaurant / Lodging" onclick='openModule("Hotel / Restaurant / Lodging")'>
-  <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1763914767111-b4451913ceba?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
-  <span class="ocs-window-shade" aria-hidden="true"></span>
-  <span class="ocs-window-badge">HOTEL / RESTAURANT / LODGING</span>
-  <span class="ocs-window-copy"><b>Hotel / Restaurant / Lodging</b><small>Stay • dine • discover nearby</small></span>
-  <span class="ocs-window-arrow" aria-hidden="true">›</span>
-</button>
-</div>
-<div class="explore-more-wrap"><button id="exploreToggleBtn" class="explore-toggle" onclick="toggleExplore()" aria-expanded="false">View All OCS Windows <span>⌄</span></button></div>
-<div class="trust-row">
-  <div onclick="openVerificationInfo()" style="cursor:pointer"><b>✓</b>Verified</div><div onclick="openClearPricingInfo()" style="cursor:pointer"><b>₹</b>Clear Pricing</div><div><b>🔐</b>Start OTP</div><div><b>🎧</b>Support</div>
-</div>
-
-<div class="myocs-home">
-  <div class="myocs-head"><h2>My OCS</h2><small>Everything in one place</small></div>
-  <div class="myocs-grid">
-    <button onclick="openMyOcs('saved')"><span>♡</span>Saved</button>
-    <button onclick="openMyOcs('inbox')"><span>💬</span>OCS Inbox</button>
-  </div>
-</div>
-
-<div class="slider-business-cta home-business-cta" onclick="openBiz()" role="button" tabindex="0">
-  <div class="slider-business-copy">
-    <strong>Add Your Business to OCS</strong>
-    <small>Create your business profile and reach nearby customers.</small>
-  </div>
-  <button type="button" onclick="event.stopPropagation();openBiz()">Add Business</button>
-</div>
+<div class="ocs-final-promo" onclick="openBannerAd()" role="button" tabindex="0"><div><b>Grow Your Business with One Call Solution</b><small>Reach more customers across India.</small></div><button type="button" onclick="event.stopPropagation();openBannerAd()">Post Your Ad ›</button></div>
+<div class="ocs-final-note">One Call Solution • One for All • All for One</div>
 </div>
 
 <div class="modal emergency-modal" id="emergencyModal" role="dialog" aria-modal="true" aria-labelledby="emergencyTitle">
@@ -1214,7 +1157,7 @@ body:not(.module-open) #moduleGrid .ocs-window-card.long-title .ocs-window-copy 
 </div>
 <nav class="bottom-nav">
   <button id="bnHome" class="active" onclick="bottomHome()"><span>⌂</span>Home</button>
-  <button id="bnServices" onclick="bottomServices()"><span>🧰</span>Services</button>
+  <button id="bnServices" onclick="bottomServices()"><span>▦</span>Home Service</button>
   <button id="bnBookings" onclick="openBottomBookings()"><span>▣</span>Bookings</button>
   <button id="bnSupport" onclick="openBottomSupport()"><span>🎧</span>Support</button>
   <button id="bnProfile" onclick="openBottomProfile()"><span>👤</span>Profile</button>
@@ -1263,16 +1206,17 @@ body:not(.module-open) #moduleGrid .ocs-window-card.long-title .ocs-window-copy 
 
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Create Customer Account</h2><p class="muted" id="accountSub">Mobile OTP + email verification required.</p>
 <div id="customerAccountForm">
-  <label>Full Name *</label><input id="caName" autocomplete="name" placeholder="Your full name">
-  <label>Mobile Number *</label><div class="verifyrow"><input id="caMobile" inputmode="tel" placeholder="10-digit mobile"><button onclick="demoVerify('customerMobile')">Send OTP</button></div><div class="verifyok" id="customerMobileStatus">Not verified</div>
-  <label>Email ID *</label><div class="verifyrow"><input id="caEmail" type="email" placeholder="name@email.com"><button onclick="demoVerify('customerEmail')">Verify</button></div><div class="verifyok" id="customerEmailStatus">Not verified</div>
-  <button class="primary" style="margin-top:14px" onclick="saveCustomerAccount()">Create / Open Customer Account</button>
-  <div class="help">Customer account is free at launch. Real OTP/email delivery will connect to the production backend.</div>
+  <label>Email ID *</label><div class="verifyrow"><input id="caEmail" type="email" placeholder="name@email.com"><button onclick="demoVerify('customerEmail')">Verify Email</button></div><div class="verifyok" id="customerEmailStatus">Not verified</div>
+  <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
+  <label>Mobile Number <span class="muted">(optional now)</span></label><input id="caMobile" inputmode="tel" placeholder="10-digit mobile"><div class="verifyok" id="customerMobileStatus" style="display:none"></div>
+  <button class="primary" style="margin-top:14px" onclick="saveCustomerAccount()">Continue with Email</button>
+  <div class="help">Email se direct registration/login. Mobile aur baaki profile details later add ki ja sakti hain.</div>
 </div>
 <div id="providerAccountForm" style="display:none">
+  <label>Email ID *</label><div class="verifyrow"><input id="paEmail" type="email" placeholder="provider@email.com"><button onclick="demoVerify('providerEmail')">Verify Email</button></div><div class="verifyok" id="providerEmailStatus">Not verified</div>
+  <div class="help" style="margin:7px 0 12px">Step 1: Email se register. Step 2: Niche full Service Provider profile complete karein.</div>
   <label>Full Name *</label><input id="paName" autocomplete="name" placeholder="Service Provider name">
-  <label>Mobile Number *</label><div class="verifyrow"><input id="paMobile" inputmode="tel" placeholder="10-digit mobile"><button onclick="demoVerify('providerMobile')">Send OTP</button></div><div class="verifyok" id="providerMobileStatus">Not verified</div>
-  <label>Email ID *</label><div class="verifyrow"><input id="paEmail" type="email" placeholder="name@email.com"><button onclick="demoVerify('providerEmail')">Verify</button></div><div class="verifyok" id="providerEmailStatus">Not verified</div>
+  <label>Mobile Number *</label><input id="paMobile" inputmode="tel" placeholder="10-digit mobile"><div class="verifyok" id="providerMobileStatus" style="display:none"></div>
   <label>Live Selfie *</label>
   <div class="sp-selfie-box">
     <div class="sp-selfie-row">
@@ -1472,8 +1416,8 @@ const accountVerified={customerMobile:false,customerEmail:false,providerMobile:f
 function openAccount(role){
  const isProvider=role==='provider';
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
- document.getElementById('accountTitle').textContent=isProvider?'Service Provider Registration':'Create Customer Account';
- document.getElementById('accountSub').textContent=isProvider?'Mobile + email + skills + verification':'Mobile OTP + email verification required.';
+ document.getElementById('accountTitle').textContent=isProvider?'Service Provider Registration':'Customer Registration / Login';
+ document.getElementById('accountSub').textContent=isProvider?'Email registration first • then complete full Service Provider profile':'Register / sign in directly with Email ID.';
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  if(isProvider){
@@ -1500,10 +1444,12 @@ function demoVerify(kind){
  accountVerified[kind]=true;document.getElementById(id).textContent='✓ Verified for prototype';document.getElementById(id).style.color='#16815d';
 }
 function saveCustomerAccount(){
- const name=caName.value.trim(),mobile=caMobile.value.trim(),email=caEmail.value.trim();
- if(!name||mobile.replace(/\D/g,'').length<10||!email.includes('@')){alert('Name, valid mobile and email required.');return}
- if(!accountVerified.customerMobile||!accountVerified.customerEmail){alert('Mobile OTP aur Email dono verify karein.');return}
- localStorage.setItem('ocsCustomerProfile',JSON.stringify({name,mobile,email,verified:true}));
+ const email=caEmail.value.trim(),name=caName.value.trim(),mobile=caMobile.value.trim();
+ if(!email.includes('@')){alert('Valid email ID required.');return}
+ if(!accountVerified.customerEmail){alert('Email verify karein.');return}
+ if(mobile&&mobile.replace(/\D/g,'').length<10){alert('Mobile number enter karein to valid 10-digit number dalein.');return}
+ const safeName=name||email.split('@')[0]||'Customer';
+ localStorage.setItem('ocsCustomerProfile',JSON.stringify({name:safeName,mobile,email,verified:true,emailVerified:true}));
  closeAccount();openCustomerDashboard();
 }
 let providerSelfieFile=null;
@@ -1534,7 +1480,7 @@ function saveProviderAccount(){
  if(!name||mobile.replace(/\D/g,'').length<10||!email.includes('@')||!area||!skills.length){alert('Name, valid mobile, email, service area aur kam se kam 1 skill required.');return}
  if(!selfieOk){alert('Live selfie required for Service Provider verification.');return}
  if(!bankHolder||!bankName||accountNo.length<6||accountNo!==accountNo2||!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)){alert('Valid bank details required. Account number dono jagah same aur IFSC sahi enter karein.');return}
- if(!accountVerified.providerMobile||!accountVerified.providerEmail){alert('Mobile OTP aur Email dono verify karein.');return}
+ if(!accountVerified.providerEmail){alert('Email verify karein.');return}
  const last4=accountNo.slice(-4);
  localStorage.setItem('ocsProviderProfile',JSON.stringify({name,mobile,email,area,radius,skills,selfieCaptured:true,selfieMeta:providerSelfieFile?{name:providerSelfieFile.name||'selfie',type:providerSelfieFile.type||'image',size:providerSelfieFile.size||0}:((existingProvider&&existingProvider.selfieMeta)||null),bank:{holder:bankHolder,bankName,last4,ifsc,upi,verification:'Pending'},status:'Verification Pending'}));
  paAccountNo.value='';paAccountNo2.value='';
@@ -1565,10 +1511,8 @@ function bottomHome(){
 }
 function bottomServices(){
  closeAllBottomHubs();
- if(document.getElementById('viewer')?.classList.contains('show'))closeModule();
  setBottomActive('bnServices');
- setExploreExpanded(true);
- const el=document.getElementById('explore');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+ openModule('Home Services','customer');
 }
 function openBottomBookings(){
  closeAllBottomHubs();setBottomActive('bnBookings');
@@ -1612,12 +1556,12 @@ function openBottomProfile(){
 
  const customerCard=customer
  ? '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small><strong>'+((customer.name||'Customer'))+'</strong><br>📱 '+(customer.mobile||'—')+'<br>✉ '+(customer.email||'—')+'<br>✓ Customer account available</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Edit / Verify</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openCustomerDashboard()">Open Customer</button></div></div>'
- : '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small>Customer account abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Create Customer Profile</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
+ : '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small>Customer account abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Continue with Email</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
 
  const skills=provider&&Array.isArray(provider.skills)?provider.skills.join(', '):'—';
  const providerCard=provider
  ? '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small><strong>'+((provider.name||'Service Provider'))+'</strong><br>📱 '+(provider.mobile||'—')+'<br>✉ '+(provider.email||'—')+'<br>📍 '+(provider.area||'—')+'<br>Skills: '+skills+'<br>Status: '+(provider.status||'Verification Pending')+'</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Edit / Verify</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openModule(\'Home Services\',\'provider\')">Open Provider</button></div></div>'
- : '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small>Service Provider account abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Register as Service Provider</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
+ : '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small>Service Provider account abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Register with Email</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
 
  const shareCard='<div class="bottom-hub-card"><b>Share One Call Solution</b><small>Share OCS with family, friends, customers and Service Providers.</small><div class="bottom-hub-actions"><button class="main" onclick="shareOcsWhatsApp()">WhatsApp Share</button><button onclick="copyOcsLink()">Copy Link</button></div></div>';
  body.innerHTML=customerCard+providerCard+shareCard;
