@@ -215,6 +215,9 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
 </script>
 <script id="ocsPropertySelfEdit">
 (function(){
+ const OCS_PROPERTY_PLAN_DAYS=28;
+ const ocsPropertyNewExpiry=()=>Date.now()+OCS_PROPERTY_PLAN_DAYS*24*60*60*1000;
+ const ocsPropertyDaysLeft=ts=>Math.max(0,Math.ceil((Number(ts||0)-Date.now())/(24*60*60*1000)));
  const KEY="ocsSelfListing_Property";
  let editMode=false;
  const rawOpen=openPost,rawPublish=publish,rawGo=go;
@@ -243,13 +246,23 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
      body.appendChild(box);
    }
  }
+ function refreshPropertyValidity(){
+   let state=null;try{state=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+   const left=state&&state.expiresAt?ocsPropertyDaysLeft(state.expiresAt):OCS_PROPERTY_PLAN_DAYS;
+   const card=ownedCard();
+   if(card)card.style.display=left>0?"":"none";
+   let info=document.getElementById("ocsPropertyValidity");
+   if(!info){info=document.createElement("div");info.id="ocsPropertyValidity";info.style.cssText="position:fixed;left:12px;right:12px;bottom:76px;z-index:30;background:#fff;border:1px solid #dbe8e5;border-radius:12px;padding:9px 12px;box-shadow:0 8px 22px rgba(0,0,0,.08);font-size:12px;font-weight:800;color:#345";document.body.appendChild(info)}
+   info.innerHTML=left>0?"Listing ACTIVE &#8226; "+left+" day"+(left===1?"":"s")+" left &#8226; Unlimited edits included":"Listing EXPIRED &#8226; Recharge required &#8226; Your details are saved";
+   return left;
+ }
  function updateProfileButton(){
    const b=[...document.querySelectorAll("nav.bottom button")].find(x=>(x.textContent||"").includes("Profile"));
-   if(b&&ownedCard()){b.innerHTML="✎<br>Edit Listing";b.onclick=()=>window.editOwnedProperty()}
+   if(b&&ownedCard()){const left=refreshPropertyValidity();b.innerHTML=left>0?"✎<br>Edit Listing":"↻<br>Recharge";b.onclick=()=>left>0?window.editOwnedProperty():window.renewOwnedProperty()}
  }
  function saveState(){
    const card=ownedCard();if(!card)return;
-   try{localStorage.setItem(KEY,JSON.stringify({fields:fields(),card:card.outerHTML}))}catch(e){}
+   try{const prev=JSON.parse(localStorage.getItem(KEY)||"null");const exp=(prev&&prev.expiresAt)||ocsPropertyNewExpiry();localStorage.setItem(KEY,JSON.stringify({expiresAt:exp,fields:fields(),card:card.outerHTML}))}catch(e){}
  }
  function restoreState(){
    try{
@@ -261,9 +274,19 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
      updateProfileButton();
    }catch(e){}
  }
+ window.renewOwnedProperty=function(){
+   const saved=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}})();
+   if(!saved){rawOpen();return}
+   if(!confirm("28 days ke liye property listing recharge/renew karna hai?"))return;
+   saved.expiresAt=ocsPropertyNewExpiry();try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){}
+   const card=ownedCard();if(card)card.style.display="";
+   updateProfileButton();
+   alert("Recharge test successful. Property listing 28 days ke liye ACTIVE hai.");
+ };
  window.editOwnedProperty=function(){
    const saved=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}})();
    if(!ownedCard()&&!saved){rawOpen();return}
+   if(saved&&saved.expiresAt&&ocsPropertyDaysLeft(saved.expiresAt)<=0){alert("28-day plan expired. Recharge karke listing phir LIVE karein. Aapki details safe hain.");updateProfileButton();return}
    editMode=true;
    rawOpen();
    if(saved&&saved.fields)restoreFields(saved.fields);
@@ -283,6 +306,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    }
  };
  publish=function(){
+   const wasEdit=editMode;
    if(editMode){
      const old=ownedCard();if(old)old.remove();
    }
@@ -290,6 +314,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    const card=$("liveArea").firstElementChild;
    addManage(card);
    saveState();
+   if(!wasEdit){try{const state=JSON.parse(localStorage.getItem(KEY)||"{}");state.expiresAt=ocsPropertyNewExpiry();localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
    updateProfileButton();
    if(editMode){
      const done=document.querySelector("#done .notice");
