@@ -3,116 +3,97 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>OCS Home Preview</title>
+<title>One Call Solution — Home Preview</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;background:#f6fbfb;color:#123247;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-body{display:flex;justify-content:center}.phone{width:min(100%,430px);min-height:100vh;background:#fbfdfd;box-shadow:0 0 32px rgba(17,55,72,.08);padding-bottom:78px}
-.topbar{height:62px;padding:10px 15px;display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;background:#fff;position:sticky;top:0;z-index:10;border-bottom:1px solid #edf2f2}
-.iconbtn{border:0;background:#f4f8f8;border-radius:12px;width:40px;height:40px;font-size:19px}.brand{display:flex;align-items:center;gap:9px;min-width:0}.brand img{width:38px;height:38px}.brand strong{display:block;font-size:14px;line-height:1.05;color:#12345d}.brand small{display:block;margin-top:2px;font-size:8px;color:#74858b}.top-actions{display:flex;gap:6px}.top-actions button{border:0;background:#f4f8f8;border-radius:11px;padding:8px 10px;font-size:14px}
-.hero{margin:12px 13px 0;border-radius:20px;overflow:hidden;position:relative;min-height:215px;box-shadow:0 10px 24px rgba(18,50,71,.13);background:#0d6b69}
-.slide{position:absolute;inset:0;padding:22px 20px;color:#fff;opacity:0;transition:.35s;background-size:cover;background-position:center}.slide:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,50,59,.92) 0%,rgba(6,50,59,.72) 47%,rgba(6,50,59,.16) 100%)}.slide.on{opacity:1;z-index:1}.slide>*{position:relative;z-index:2}.kicker{font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase}.slide h1{font-size:28px;line-height:1.02;margin:7px 0 9px;max-width:260px}.slide p{font-size:11px;line-height:1.35;margin:0 0 14px;max-width:250px;color:#eaf7f5}.slide button{border:0;border-radius:12px;background:#fff;color:#086f68;padding:10px 14px;font-weight:900}.hero-dots{position:absolute;z-index:4;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:6px}.hero-dots button{width:7px;height:7px;padding:0;border:0;border-radius:20px;background:#ffffff88}.hero-dots button.on{width:24px;background:#fff}
-.search{margin:-19px 22px 0;position:relative;z-index:5;background:#fff;border:1px solid #e0eaea;border-radius:16px;box-shadow:0 7px 18px rgba(18,50,71,.11);display:grid;grid-template-columns:26px 1fr auto;gap:7px;align-items:center;padding:7px}.search span{font-size:17px;text-align:center}.search input{border:0;outline:0;background:#f4f8f8;border-radius:11px;padding:10px;font-size:11px;min-width:0}.search button{border:0;border-radius:11px;background:#0c8b7e;color:#fff;padding:10px 12px;font-weight:900;font-size:10px}
-.section{padding:18px 13px 0}.section-title{display:flex;align-items:end;justify-content:space-between;margin-bottom:10px}.section-title h2{margin:0;font-size:20px;letter-spacing:-.3px}.section-title small{font-size:9px;color:#778a91}
-.services{display:grid;grid-template-columns:1fr 1fr;gap:10px}.svc{border:1px solid #e1eaea;background:#fff;border-radius:17px;padding:0;overflow:hidden;text-align:left;box-shadow:0 5px 13px rgba(18,50,71,.055)}.svc .photo{height:96px;background-size:cover;background-position:center}.svc .copy{position:relative;padding:10px 31px 10px 10px;min-height:63px}.svc b{display:block;font-size:12px;line-height:1.08;color:#173247}.svc small{display:block;margin-top:4px;font-size:8px;line-height:1.25;color:#74868c}.svc .go{position:absolute;right:9px;bottom:12px;color:#0a887d;font-size:22px}.svc:active{transform:scale(.985)}
-.features{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.feature{border:1px solid #e0eaea;background:#fff;border-radius:14px;padding:11px 4px;text-align:center;min-height:78px}.feature span{display:block;font-size:20px}.feature b{display:block;margin-top:7px;font-size:8px;line-height:1.15}
-.promo{margin:16px 13px 0;border-radius:18px;background:linear-gradient(135deg,#07566c,#08957d);color:#fff;padding:15px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;box-shadow:0 8px 18px rgba(12,99,102,.16)}.promo b{display:block;font-size:15px}.promo small{display:block;margin-top:4px;font-size:9px;color:#dff6f0}.promo button{border:0;background:#fff;color:#08786f;border-radius:11px;padding:10px 12px;font-weight:900;font-size:9px}
-.emergency{margin:16px 13px 0;border-radius:18px;background:#fff8f8;border:1px solid #f0dddd;padding:13px}.emergency h2{font-size:17px;margin:0 0 9px}.emergency-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.em-card{border:1px solid #efdcdc;background:#fff;border-radius:14px;padding:11px;display:grid;grid-template-columns:36px 1fr;gap:8px;align-items:center;text-align:left}.em-card span{font-size:24px}.em-card b{font-size:10px;display:block}.em-card small{font-size:7.8px;color:#8e6d6d;display:block;margin-top:2px}.support-card{margin-top:8px;border:1px solid #dfe8e8;background:#fff;border-radius:14px;padding:11px;display:grid;grid-template-columns:36px 1fr auto;gap:8px;align-items:center}.support-card span{font-size:22px}.support-card b{font-size:10px}.support-card small{display:block;font-size:7.8px;color:#74858b;margin-top:2px}.support-card i{font-style:normal;color:#0a887d;font-size:20px}
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);background:#fff;border-top:1px solid #e3eaea;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 4px max(8px,env(safe-area-inset-bottom));z-index:20;box-shadow:0 -6px 18px rgba(18,50,71,.07)}.nav button{border:0;background:transparent;color:#657a83;font-size:8px;font-weight:800;padding:4px 1px}.nav span{display:block;font-size:18px;margin-bottom:3px}.nav .on{color:#07877b}
-.note{padding:13px;text-align:center;font-size:8px;color:#91a0a5}
-@media(max-width:360px){.slide h1{font-size:25px}.services{gap:8px}.svc .photo{height:88px}.feature{min-height:72px}.section-title h2{font-size:18px}}
+*{box-sizing:border-box}html,body{margin:0;background:#eef5f7;color:#102a43;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+body{display:flex;justify-content:center}.app{width:min(100%,430px);min-height:100vh;background:#fff;padding-bottom:76px;box-shadow:0 0 30px rgba(16,42,67,.08)}
+.top{height:68px;display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:8px;padding:8px 12px;background:#fff}
+.menu,.bell{border:0;background:transparent;font-size:22px;padding:4px}.brand{display:flex;align-items:center;gap:8px;min-width:0}.brand img{width:48px;height:42px;object-fit:contain}.brand strong{font-size:14px;letter-spacing:.2px;color:#0f2f5f;white-space:nowrap}.brand strong em{font-style:normal;color:#0b8b75}.brand small{display:block;font-size:8px;color:#74838a;margin-top:2px}
+.righttop{display:flex;align-items:center;gap:5px}.location{border:0;background:#f2f7f7;border-radius:14px;padding:8px 9px;font-size:8.5px;color:#173247;font-weight:800;white-space:nowrap}
+.hero{position:relative;margin:0 10px;border-radius:17px;overflow:hidden;height:178px;background:linear-gradient(105deg,#e9f7ff 0%,#edfafa 42%,#d8ece7 100%);box-shadow:0 7px 18px rgba(18,50,71,.08)}
+.slide{position:absolute;inset:0;opacity:0;transition:.35s;padding:18px 15px;background-size:cover;background-position:center}.slide.on{opacity:1;z-index:1}.slide:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(244,251,252,.96) 0%,rgba(244,251,252,.90) 47%,rgba(244,251,252,.15) 77%,rgba(244,251,252,0) 100%)}.slide>*{position:relative;z-index:2}.slide h1{font-size:26px;line-height:.98;margin:0 0 6px;max-width:255px;color:#0d2c5a}.slide h1 span{color:#0b9b7c}.slide p{margin:0;color:#24455d;font-size:10px;line-height:1.3;max-width:245px}.trust-mini{display:flex;gap:11px;margin-top:14px}.trust-mini div{font-size:7.5px;text-align:center;color:#183f4a}.trust-mini b{display:block;font-size:18px;color:#07957d;margin-bottom:2px}.slide-cta{margin-top:12px;border:0;background:#0b8e79;color:#fff;border-radius:10px;padding:8px 11px;font-size:9px;font-weight:900}.dots{position:absolute;z-index:4;right:12px;bottom:10px;display:flex;gap:5px}.dots button{border:0;padding:0;width:6px;height:6px;border-radius:20px;background:#0e6c6660}.dots button.on{width:21px;background:#0b8e79}
+.search{position:relative;z-index:5;margin:-11px 14px 0;background:#fff;border:1px solid #dce8e8;border-radius:14px;box-shadow:0 6px 16px rgba(18,50,71,.10);display:grid;grid-template-columns:25px 1fr auto;gap:6px;align-items:center;padding:6px}.search>span{font-size:17px}.search input{border:0;outline:0;background:transparent;padding:9px 4px;font-size:9px;min-width:0;color:#37556a}.search button{border:0;border-radius:10px;background:#0b8e79;color:#fff;font-size:9px;font-weight:900;padding:10px 12px}
+.section{padding:15px 10px 0}.head{display:flex;justify-content:space-between;align-items:end;margin-bottom:8px}.head h2{margin:0;font-size:18px;letter-spacing:-.3px;color:#0f2344}.head button,.head small{border:0;background:transparent;color:#078a78;font-size:8.5px;font-weight:800;padding:0}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.card{border:1px solid #e0e9ea;background:#fff;border-radius:12px;padding:0;overflow:hidden;text-align:left;box-shadow:0 3px 9px rgba(18,50,71,.045);min-width:0}
+.art{height:70px;display:grid;place-items:center;font-size:38px}.card:nth-child(4n+1) .art{background:#eaf7ff}.card:nth-child(4n+2) .art{background:#fff5df}.card:nth-child(4n+3) .art{background:#e8faf2}.card:nth-child(4n+4) .art{background:#eef4ff}.card:nth-child(5n) .art{background:#fff0e8}.card:nth-child(6n) .art{background:#fff0f5}
+.card-copy{position:relative;padding:8px 18px 8px 7px;min-height:60px;background:#fff}.card b{display:block;font-size:9px;line-height:1.05;color:#0f2344;white-space:normal}.card small{display:block;margin-top:3px;font-size:6.7px;line-height:1.18;color:#526b7b}.arrow{position:absolute;right:6px;bottom:9px;font-size:16px;color:#057fcb;font-weight:900}.card:active{transform:scale(.98)}
+.trust-business{display:grid;grid-template-columns:1.06fr .94fr;gap:8px;align-items:stretch}.features{display:grid;grid-template-columns:1fr 1fr;gap:7px}.feature{border:1px solid #dce7e9;background:#fff;border-radius:11px;padding:8px 4px;text-align:center;min-height:68px}.feature span{display:block;font-size:19px}.feature b{display:block;margin-top:5px;font-size:7.5px;line-height:1.15;color:#173247}
+.promo{border-radius:13px;padding:10px;background:linear-gradient(135deg,#0a6f70,#075b68);color:#fff;display:flex;flex-direction:column;justify-content:center;min-height:143px;position:relative;overflow:hidden}.promo:after{content:"🏪";position:absolute;right:-4px;bottom:-4px;font-size:65px;opacity:.23}.promo b{position:relative;z-index:2;font-size:11px;line-height:1.12}.promo small{position:relative;z-index:2;font-size:7.5px;line-height:1.3;color:#d8f5ef;margin-top:5px}.promo button{position:relative;z-index:2;margin-top:10px;border:0;border-radius:9px;background:#fff;color:#184b4a;font-size:7.8px;font-weight:900;padding:8px 9px;width:max-content}
+.emergency{margin:14px 10px 0;border-radius:14px;background:#fff5f5;border:1px solid #f2dddd;padding:10px}.emergency h2{font-size:16px;margin:0 0 8px;color:#0f2344}.em-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.em{border:1px solid #eadcdc;background:#fff;border-radius:11px;padding:8px 6px;min-height:78px;text-align:left}.em.support{border-color:#d9e5ef;background:#f8fbff}.em .row{display:flex;align-items:center;gap:6px}.em .ico{font-size:25px}.em b{font-size:8px;line-height:1.1;color:#5a2525}.em.support b{color:#173247}.em small{display:block;margin-top:5px;font-size:6.6px;line-height:1.25;color:#7c6b6b}.em.support small{color:#657784}.call{display:inline-block;margin-top:5px;border:1px solid #ff4c4c;border-radius:999px;padding:4px 7px;color:#d92626;font-size:7px;font-weight:900;background:#fff}.note{text-align:center;padding:10px 8px 2px;font-size:7px;color:#98a3a8}
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(430px,100%);background:#fff;border-top:1px solid #e0e8ea;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 4px max(7px,env(safe-area-inset-bottom));z-index:20}.nav button{border:0;background:transparent;color:#3d5d73;font-size:7.5px;font-weight:800}.nav span{display:block;font-size:18px;margin-bottom:3px}.nav .active{color:#078b78}
+@media(max-width:390px){.top{grid-template-columns:32px 1fr auto}.brand img{width:42px}.brand strong{font-size:12px}.location{font-size:7.4px;padding:7px}.hero{height:169px}.slide h1{font-size:23px}.grid{gap:6px}.art{height:63px;font-size:33px}.card-copy{padding:7px 15px 7px 6px;min-height:58px}.card b{font-size:8px}.card small{font-size:6.2px}.feature{min-height:65px}.promo{min-height:137px}}
 </style>
 </head>
 <body>
-<div class="phone">
-  <div class="topbar">
-    <button class="iconbtn" onclick="previewMsg()">☰</button>
-    <div class="brand"><img src="assets/ocs-logo-mark.svg?v=20260921" alt="OCS"><div><strong>ONE CALL SOLUTION</strong><small>One for All • All for One</small></div></div>
-    <div class="top-actions"><button onclick="previewMsg()">📍</button><button onclick="previewMsg()">🔔</button></div>
-  </div>
+<div class="app">
+  <header class="top">
+    <button class="menu" onclick="preview()">☰</button>
+    <div class="brand"><img src="assets/ocs-logo-mark.svg?v=20260921" alt="OCS"><div><strong>ONE CALL <em>SOLUTION</em></strong><small>One for All • All for One</small></div></div>
+    <div class="righttop"><button class="location" onclick="preview()">📍 Home ▾</button><button class="bell" onclick="preview()">♧</button></div>
+  </header>
 
-  <div class="hero" id="hero">
-    <div class="slide on" style="background-image:url('https://images.unsplash.com/photo-1741388222137-c0d3007ec173?auto=format&fit=crop&w=1200&q=88')">
-      <div class="kicker">Home Services</div><h1>All Your Needs, One Call Away</h1><p>Trusted local Service Providers, clear pricing and support in one place.</p><button onclick="previewMsg()">Book Home Service</button>
+  <section class="hero" id="hero">
+    <div class="slide on" style="background-image:url('https://images.unsplash.com/photo-1741388222137-c0d3007ec173?auto=format&fit=crop&w=1100&q=86')">
+      <h1>All Your Needs<br><span>One Call Away</span></h1><p>Trusted services for a better tomorrow.</p>
+      <div class="trust-mini"><div><b>✓</b>Safe</div><div><b>♟</b>Trusted</div><div><b>★</b>Verified</div><div><b>🎧</b>Support</div></div>
     </div>
-    <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1693160206111-202ab0b8b34c?auto=format&fit=crop&w=1200&q=88')">
-      <div class="kicker">Property</div><h1>Find Your Next Place</h1><p>Rent, buy and explore owner & builder listings with OCS.</p><button onclick="previewMsg()">Explore Property</button>
+    <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1693160206111-202ab0b8b34c?auto=format&fit=crop&w=1100&q=86')">
+      <h1>Property Made<br><span>Simple</span></h1><p>Rent, buy and builder listings in one place.</p><button class="slide-cta" onclick="preview()">Explore Property</button>
     </div>
-    <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1763914767111-b4451913ceba?auto=format&fit=crop&w=1200&q=88')">
-      <div class="kicker">Stay • Dine • Discover</div><h1>Hotels & Restaurants Near You</h1><p>Discover hospitality profiles, stays and food options in one window.</p><button onclick="previewMsg()">Explore</button>
+    <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1763914767111-b4451913ceba?auto=format&fit=crop&w=1100&q=86')">
+      <h1>Stay, Dine &<br><span>Discover</span></h1><p>Hotels, restaurants and lodging near you.</p><button class="slide-cta" onclick="preview()">Explore</button>
     </div>
-    <div class="hero-dots"><button class="on" onclick="showSlide(0)"></button><button onclick="showSlide(1)"></button><button onclick="showSlide(2)"></button></div>
-  </div>
+    <div class="dots"><button class="on" onclick="showSlide(0)"></button><button onclick="showSlide(1)"></button><button onclick="showSlide(2)"></button></div>
+  </section>
 
-  <div class="search"><span>⌕</span><input id="q" placeholder="Search services, shops, property, vehicles..." oninput="filterCards()"><button onclick="filterCards()">Search</button></div>
+  <div class="search"><span>⌕</span><input id="search" placeholder="Search for services, shops, property, vehicles and more..." oninput="filterCards()"><button onclick="filterCards()">Search</button></div>
 
   <section class="section">
-    <div class="section-title"><h2>Explore Our Services</h2><small>All OCS windows</small></div>
-    <div class="services" id="services">
-      <button class="svc" data-name="home services repair cleaning installation electrician plumber carpenter ac appliance maid pest cctv">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1741388222137-c0d3007ec173?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>Home Services</b><small>Repairs • Cleaning • Installation • More</small><span class="go">›</span></div>
-      </button>
-      <button class="svc" data-name="property flat builder rent buy sell land bungalow row house">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1693160206111-202ab0b8b34c?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>Property</b><small>Buy • Rent • Sell • Builder Projects</small><span class="go">›</span></div>
-      </button>
-      <button class="svc" data-name="local shop electrical hardware">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1759200165738-6366977a73c6?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>Local Shops</b><small>Electrical • Hardware • Nearby</small><span class="go">›</span></div>
-      </button>
-      <button class="svc" data-name="sliding aluminium window doors glass">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1758998202918-d921125a700f?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>Sliding / Aluminium</b><small>Windows • Doors • Glass Work</small><span class="go">›</span></div>
-      </button>
-      <button class="svc" data-name="welding fabrication gate grill shed">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1776159904891-e7b213b8198f?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>Welding / Fabrication</b><small>Gate • Grill • Shed • Custom Work</small><span class="go">›</span></div>
-      </button>
-      <button class="svc" data-name="beauty makeup make-up bridal salon">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1758739011301-0d348a60d32e?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>Beauty / Make-up</b><small>Salon • Bridal • Make-up</small><span class="go">›</span></div>
-      </button>
-      <button class="svc" data-name="used vehicle car bike second hand">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1717535398330-ce2d0d7ed850?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>Used Vehicle</b><small>Buy • Sell • Bikes • Cars</small><span class="go">›</span></div>
-      </button>
-      <button class="svc" data-name="new vehicle car bike scooter">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1771284848859-12f150fa1637?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>New Vehicle</b><small>Car • Bike • Scooter</small><span class="go">›</span></div>
-      </button>
-      <button class="svc" data-name="medical store medicine healthcare pharmacy">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1560840038-e595bb6c706d?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>Medical Store</b><small>Medicines • Healthcare • Enquiry</small><span class="go">›</span></div>
-      </button>
-      <button class="svc" data-name="diagnostic lab test blood health package">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1491299461284-6aa083937f71?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>Diagnostic Lab</b><small>Tests • Packages • Enquiries</small><span class="go">›</span></div>
-      </button>
-      <button class="svc" data-name="modular kitchen interior cabinet">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>Modular Kitchen</b><small>Design • Build • Install</small><span class="go">›</span></div>
-      </button>
-      <button class="svc" data-name="hotel restaurant lodging stay food">
-        <div class="photo" style="background-image:url('https://images.unsplash.com/photo-1763914767111-b4451913ceba?auto=format&fit=crop&w=700&q=85')"></div><div class="copy"><b>Hotel / Restaurant / Lodging</b><small>Stay • Food • Discover Nearby</small><span class="go">›</span></div>
-      </button>
+    <div class="head"><h2>Explore Our Services</h2><small>All Services ›</small></div>
+    <div class="grid" id="grid">
+      <button class="card" data-name="home services repair cleaning installation electrician plumber carpenter ac maid"><div class="art">🏠🛠️</div><div class="card-copy"><b>Home Services</b><small>Repairs • Cleaning • Installation • More</small><span class="arrow">›</span></div></button>
+      <button class="card" data-name="property buy rent sell builder flat land"><div class="art">🏡</div><div class="card-copy"><b>Property</b><small>Buy • Rent • Sell • Projects</small><span class="arrow">›</span></div></button>
+      <button class="card" data-name="local shop electrical hardware"><div class="art">🛒</div><div class="card-copy"><b>Local Shops</b><small>Electrical • Hardware • More</small><span class="arrow">›</span></div></button>
+      <button class="card" data-name="sliding aluminium windows doors glass"><div class="art">🪟</div><div class="card-copy"><b>Sliding / Aluminium</b><small>Windows • Doors • Partitions</small><span class="arrow">›</span></div></button>
+      <button class="card" data-name="welding fabrication grill gate shed"><div class="art">👨‍🏭</div><div class="card-copy"><b>Welding / Fabrication</b><small>Grill • Gate • Shed • Custom</small><span class="arrow">›</span></div></button>
+      <button class="card" data-name="beauty makeup make-up salon bridal"><div class="art">💄</div><div class="card-copy"><b>Beauty / Make-up</b><small>Salon • Bridal • Make-up</small><span class="arrow">›</span></div></button>
+      <button class="card" data-name="used vehicle car bike second hand"><div class="art">🚗🏍️</div><div class="card-copy"><b>Used Vehicle</b><small>Buy • Sell • 2W • 4W</small><span class="arrow">›</span></div></button>
+      <button class="card" data-name="new vehicle car bike scooter"><div class="art">🚘🛵</div><div class="card-copy"><b>New Vehicle</b><small>Car • Bike • Scooter</small><span class="arrow">›</span></div></button>
+      <button class="card" data-name="medical store medicine pharmacy"><div class="art">💊➕</div><div class="card-copy"><b>Medical Store</b><small>Medicines • Healthcare</small><span class="arrow">›</span></div></button>
+      <button class="card" data-name="diagnostic lab blood test health"><div class="art">🔬🧪</div><div class="card-copy"><b>Diagnostic Lab</b><small>Tests • Health Packages</small><span class="arrow">›</span></div></button>
+      <button class="card" data-name="modular kitchen interior cabinets"><div class="art">🍽️</div><div class="card-copy"><b>Modular Kitchen</b><small>Design • Build • Install</small><span class="arrow">›</span></div></button>
+      <button class="card" data-name="hotel restaurant lodging stay food"><div class="art">🏨🍽️</div><div class="card-copy"><b>Hotel / Restaurant</b><small>Stay • Food • Lodging • More</small><span class="arrow">›</span></div></button>
     </div>
   </section>
 
   <section class="section">
-    <div class="section-title"><h2>Why Choose OCS</h2><small>Trust & support</small></div>
-    <div class="features">
-      <div class="feature"><span>✓</span><b>Verified<br>Partners</b></div>
-      <div class="feature"><span>₹</span><b>Clear<br>Pricing</b></div>
-      <div class="feature"><span>★</span><b>Quality<br>Services</b></div>
-      <div class="feature"><span>🎧</span><b>Dedicated<br>Support</b></div>
+    <div class="head"><h2>Why Choose One Call Solution</h2></div>
+    <div class="trust-business">
+      <div class="features">
+        <div class="feature"><span>🛡️</span><b>Verified<br>Partners</b></div>
+        <div class="feature"><span>₹</span><b>Transparent<br>Pricing</b></div>
+        <div class="feature"><span>⭐</span><b>Quality<br>Services</b></div>
+        <div class="feature"><span>👥</span><b>Dedicated<br>Support</b></div>
+      </div>
+      <div class="promo"><b>Grow Your Business with One Call Solution</b><small>Reach more customers across India.</small><button onclick="preview()">Post Your Ad ›</button></div>
     </div>
   </section>
-
-  <div class="promo"><div><b>Grow Your Business with OCS</b><small>Reach more customers across India.</small></div><button onclick="previewMsg()">Post Your Ad</button></div>
 
   <section class="emergency">
     <h2>Emergency Help</h2>
-    <div class="emergency-grid">
-      <button class="em-card" onclick="previewMsg()"><span>🚒</span><div><b>Fire Brigade</b><small>Emergency shortcut</small></div></button>
-      <button class="em-card" onclick="previewMsg()"><span>🚑</span><div><b>Ambulance</b><small>Emergency shortcut</small></div></button>
+    <div class="em-grid">
+      <button class="em" onclick="preview()"><div class="row"><span class="ico">🚒</span><b>Fire Brigade</b></div><span class="call">Emergency</span></button>
+      <button class="em" onclick="preview()"><div class="row"><span class="ico">🚑</span><b>Ambulance</b></div><span class="call">Emergency</span></button>
+      <button class="em support" onclick="preview()"><div class="row"><span class="ico">🎧</span><b>Need Support?</b></div><small>Raise a ticket or request a callback.</small></button>
     </div>
-    <button class="support-card" onclick="previewMsg()"><span>🎧</span><div><b>Need Support?</b><small>Raise a ticket or request a callback.</small></div><i>›</i></button>
   </section>
 
-  <div class="note">Preview only • Live OCS app has not been changed.</div>
+  <div class="note">Preview only • Live OCS app is unchanged.</div>
 </div>
 
 <nav class="nav">
-  <button class="on"><span>⌂</span>Home</button>
+  <button class="active"><span>⌂</span>Home</button>
   <button><span>▦</span>Services</button>
   <button><span>▣</span>Bookings</button>
   <button><span>🎧</span>Support</button>
@@ -120,24 +101,24 @@ body{display:flex;justify-content:center}.phone{width:min(100%,430px);min-height
 </nav>
 
 <script>
-let slide=0,timer;
+let current=0,timer;
 function showSlide(n){
-  const slides=[...document.querySelectorAll('.slide')],dots=[...document.querySelectorAll('.hero-dots button')];
-  slide=(n+slides.length)%slides.length;
-  slides.forEach((x,i)=>x.classList.toggle('on',i===slide));
-  dots.forEach((x,i)=>x.classList.toggle('on',i===slide));
-  clearInterval(timer);timer=setInterval(()=>showSlide(slide+1),4500);
+ const slides=[...document.querySelectorAll('.slide')],dots=[...document.querySelectorAll('.dots button')];
+ current=(n+slides.length)%slides.length;
+ slides.forEach((s,i)=>s.classList.toggle('on',i===current));
+ dots.forEach((d,i)=>d.classList.toggle('on',i===current));
+ clearInterval(timer);timer=setInterval(()=>showSlide(current+1),4500);
 }
 showSlide(0);
 function filterCards(){
-  const q=(document.getElementById('q').value||'').trim().toLowerCase();
-  document.querySelectorAll('.svc').forEach(card=>{
-    const hay=(card.dataset.name+' '+card.innerText).toLowerCase();
-    card.style.display=!q||hay.includes(q)?'':'none';
-  });
+ const q=(document.getElementById('search').value||'').trim().toLowerCase();
+ document.querySelectorAll('.card').forEach(c=>{
+  const hay=(c.dataset.name+' '+c.innerText).toLowerCase();
+  c.style.display=!q||hay.includes(q)?'':'none';
+ });
 }
-document.querySelectorAll('.svc').forEach(b=>b.addEventListener('click',previewMsg));
-function previewMsg(){alert('Preview only — live app untouched.')}
+document.querySelectorAll('.card').forEach(x=>x.addEventListener('click',preview));
+function preview(){alert('Preview only — live OCS app untouched.')}
 </script>
 </body>
 </html>
