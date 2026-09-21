@@ -212,4 +212,92 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('.filters .pill').forEach(x=>x.classList.remove('on'));
  b.classList.add('on');
 });
-</script></body></html>
+</script>
+<script id="ocsPropertySelfEdit">
+(function(){
+ const KEY="ocsSelfListing_Property";
+ let editMode=false;
+ const rawOpen=openPost,rawPublish=publish,rawGo=go;
+ function fields(){
+   const data={};
+   document.querySelectorAll("#overlay input,#overlay select,#overlay textarea").forEach(el=>{
+     if(!el.id||el.type==="file")return;
+     data[el.id]=el.value;
+   });
+   return data;
+ }
+ function restoreFields(data){
+   if(!data)return;
+   Object.keys(data).forEach(id=>{const el=$(id);if(el&&el.type!=="file")el.value=data[id]});
+   posterChange();typeChange();
+ }
+ function ownedCard(){return document.querySelector('#liveArea [data-ocs-owned="1"]')}
+ function addManage(card){
+   if(!card)return;
+   card.setAttribute("data-ocs-owned","1");
+   const body=card.querySelector(".body");if(!body)return;
+   let box=body.querySelector(".ocs-owner-manage");
+   if(!box){
+     box=document.createElement("div");box.className="ownerbox ocs-owner-manage";
+     box.innerHTML='<b>Your Live Listing</b><div class="links" style="margin-top:8px"><button type="button" onclick="editOwnedProperty()">Edit Listing</button><button type="button" onclick="alert(\'Pause / resume listing control will be available here.\')">Pause</button></div>';
+     body.appendChild(box);
+   }
+ }
+ function updateProfileButton(){
+   const b=[...document.querySelectorAll("nav.bottom button")].find(x=>(x.textContent||"").includes("Profile"));
+   if(b&&ownedCard()){b.innerHTML="✎<br>Edit Listing";b.onclick=()=>window.editOwnedProperty()}
+ }
+ function saveState(){
+   const card=ownedCard();if(!card)return;
+   try{localStorage.setItem(KEY,JSON.stringify({fields:fields(),card:card.outerHTML}))}catch(e){}
+ }
+ function restoreState(){
+   try{
+     const saved=JSON.parse(localStorage.getItem(KEY)||"null");if(!saved)return;
+     if(saved.card&&!ownedCard()){
+       $("liveArea").insertAdjacentHTML("afterbegin",saved.card);
+       addManage(ownedCard());
+     }
+     updateProfileButton();
+   }catch(e){}
+ }
+ window.editOwnedProperty=function(){
+   const saved=(()=>{try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}})();
+   if(!ownedCard()&&!saved){rawOpen();return}
+   editMode=true;
+   rawOpen();
+   if(saved&&saved.fields)restoreFields(saved.fields);
+   const t=$("stepTitle");if(t)t.textContent="Edit Property Listing";
+   const help=$("stepHelp");if(help)help.textContent="Update details and save changes";
+ };
+ go=function(n){
+   rawGo(n);
+   if(editMode){
+     const t=$("stepTitle");if(t)t.textContent="Edit Property Listing";
+     if(n===4){
+       const notice=$("propertyPaymentNotice");
+       if(notice)notice.innerHTML="<b>Edit existing listing</b><br>Changes save karne ke liye dobara payment nahi lagega.";
+       const btn=document.querySelector("#s4 .primary-action");
+       if(btn){btn.textContent="Save Changes →";btn.onclick=()=>publish()}
+     }
+   }
+ };
+ publish=function(){
+   if(editMode){
+     const old=ownedCard();if(old)old.remove();
+   }
+   rawPublish();
+   const card=$("liveArea").firstElementChild;
+   addManage(card);
+   saveState();
+   updateProfileButton();
+   if(editMode){
+     const done=document.querySelector("#done .notice");
+     if(done)done.innerHTML="<b>✓ Changes saved</b><br>Your property listing is updated and remains live. No new payment charged for editing.";
+   }
+   editMode=false;
+ };
+ restoreState();
+})();
+</script>
+</body></html>
