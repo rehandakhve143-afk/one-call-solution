@@ -681,6 +681,161 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 /* Single-name Explore cards */
 #moduleGrid .ocs-window-badge{display:none!important}
 .sp-selfie-box{margin:10px 0 12px;padding:12px;border:1px solid #dce8e8;border-radius:14px;background:#f8fbfb}.sp-selfie-row{display:flex;gap:12px;align-items:center}.sp-selfie-preview{width:72px;height:72px;border-radius:50%;border:2px solid #d8e7e5;background:#fff;display:grid;place-items:center;overflow:hidden;flex:0 0 72px;color:#71818a;font-size:28px}.sp-selfie-preview img{width:100%;height:100%;object-fit:cover;display:block}.sp-selfie-actions{flex:1;min-width:0}.sp-selfie-actions input{display:none}.sp-selfie-btn{display:inline-block;border:0;border-radius:11px;background:#087a70;color:#fff;font-weight:850;padding:10px 12px;font-size:11px;cursor:pointer}.sp-selfie-status{font-size:10px;color:#6f8188;margin-top:7px;line-height:1.35}
+
+/* OCS HOME CLEAN COMPACT FINAL — 2026-09-21
+   Visual-only home cleanup. Bottom nav and app functionality intentionally unchanged. */
+body:not(.module-open) .location-bar{
+  margin:8px 14px 5px!important;
+  min-height:44px!important;
+  padding:7px 10px!important;
+  border-radius:13px!important;
+  gap:7px!important;
+  box-shadow:0 3px 10px rgba(18,50,71,.045)!important;
+  font-size:11px!important;
+}
+body:not(.module-open) .location-bar b{font-size:12px!important}
+body:not(.module-open) .location-bar>span{font-size:14px!important}
+body:not(.module-open) .location-bar button{
+  padding:7px 10px!important;
+  min-height:32px!important;
+  border-radius:9px!important;
+  font-size:11px!important;
+}
+
+body:not(.module-open) .common-search{
+  margin:7px 14px 7px!important;
+  min-height:48px!important;
+  padding:6px 7px!important;
+  gap:6px!important;
+  border-radius:14px!important;
+  box-shadow:0 3px 11px rgba(18,50,71,.055)!important;
+}
+body:not(.module-open) .common-search>span{font-size:17px!important}
+body:not(.module-open) .common-search input{
+  min-height:36px!important;
+  padding:8px 10px!important;
+  border-radius:10px!important;
+  font-size:12px!important;
+}
+body:not(.module-open) .common-search button{
+  min-height:36px!important;
+  padding:8px 12px!important;
+  border-radius:10px!important;
+  font-size:11px!important;
+}
+body:not(.module-open) #globalSearchHint{display:none!important}
+
+/* Keep approved hero size/design untouched; only normalize surrounding space. */
+body:not(.module-open) .clean-hero{
+  margin-top:7px!important;
+  margin-bottom:9px!important;
+}
+
+/* Slim Post Your Ad strip */
+body:not(.module-open) .slider-business-cta{
+  margin:0 14px 12px!important;
+  min-height:58px!important;
+  padding:10px 11px!important;
+  gap:9px!important;
+  border-radius:15px!important;
+  box-shadow:0 5px 14px rgba(18,50,71,.11)!important;
+}
+body:not(.module-open) .slider-business-cta:before{
+  width:88px!important;height:88px!important;right:-30px!important;top:-34px!important;
+}
+body:not(.module-open) .slider-business-copy strong{
+  font-size:12.5px!important;
+  line-height:1.15!important;
+}
+body:not(.module-open) .slider-business-copy small{
+  margin-top:2px!important;
+  font-size:8.8px!important;
+  line-height:1.2!important;
+}
+body:not(.module-open) .slider-business-cta button{
+  padding:8px 10px!important;
+  border-radius:10px!important;
+  font-size:9.5px!important;
+  box-shadow:0 2px 7px rgba(0,0,0,.10)!important;
+}
+
+/* Explore heading: lighter and tighter */
+body:not(.module-open) #explore{
+  padding:7px 14px 6px!important;
+}
+body:not(.module-open) #explore h2{
+  font-size:17px!important;
+  line-height:1.1!important;
+  letter-spacing:-.15px!important;
+}
+body:not(.module-open) #explore small{
+  display:block!important;
+  margin-top:3px!important;
+  font-size:9px!important;
+  color:#7b8c92!important;
+}
+
+/* Explore window cards: same 2-column structure, less visual weight */
+body:not(.module-open) #moduleGrid.ocs-slider-cards{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+  padding:0 14px 14px!important;
+}
+body:not(.module-open) #moduleGrid .ocs-window-card{
+  aspect-ratio:1.72/1!important;
+  border-radius:15px!important;
+  border:1px solid rgba(255,255,255,.82)!important;
+  box-shadow:0 4px 12px rgba(18,50,71,.10)!important;
+}
+body:not(.module-open) #moduleGrid .ocs-window-photo{
+  filter:brightness(1.06) saturate(1.03)!important;
+}
+body:not(.module-open) #moduleGrid .ocs-window-shade{
+  background:
+    linear-gradient(180deg,rgba(5,37,49,.01) 0%,rgba(5,37,49,.02) 40%,rgba(3,28,40,.34) 68%,rgba(3,28,40,.86) 100%),
+    linear-gradient(90deg,rgba(0,32,45,.12),transparent 70%)!important;
+}
+body:not(.module-open) #moduleGrid .ocs-window-copy{
+  left:10px!important;
+  right:39px!important;
+  bottom:8px!important;
+}
+body:not(.module-open) #moduleGrid .ocs-window-copy b{
+  font-size:12.5px!important;
+  line-height:1.05!important;
+}
+body:not(.module-open) #moduleGrid .ocs-window-copy small{
+  margin-top:2px!important;
+  font-size:8px!important;
+  line-height:1.08!important;
+}
+body:not(.module-open) #moduleGrid .ocs-window-arrow{
+  right:7px!important;
+  bottom:7px!important;
+  width:28px!important;
+  height:28px!important;
+  font-size:19px!important;
+  box-shadow:0 2px 7px rgba(0,0,0,.16)!important;
+}
+
+/* Keep lower home sections light without removing anything. */
+body:not(.module-open) .trust-row{margin-top:2px!important;margin-bottom:9px!important}
+body:not(.module-open) .myocs-home{margin-top:1px!important;margin-bottom:10px!important;padding:11px!important;border-radius:15px!important}
+body:not(.module-open) .myocs-head{margin-bottom:7px!important}
+body:not(.module-open) .myocs-head h2{font-size:15px!important}
+body:not(.module-open) .myocs-grid button{min-height:54px!important;padding:8px 4px!important}
+
+@media(max-width:390px){
+  body:not(.module-open) .location-bar{margin-left:12px!important;margin-right:12px!important}
+  body:not(.module-open) .common-search{margin-left:12px!important;margin-right:12px!important}
+  body:not(.module-open) .slider-business-cta{margin-left:12px!important;margin-right:12px!important}
+  body:not(.module-open) .slider-business-copy small{display:none!important}
+  body:not(.module-open) #moduleGrid.ocs-slider-cards{gap:7px!important;padding-left:12px!important;padding-right:12px!important}
+  body:not(.module-open) #moduleGrid .ocs-window-card{border-radius:14px!important}
+  body:not(.module-open) #moduleGrid .ocs-window-copy b{font-size:11.5px!important}
+  body:not(.module-open) #moduleGrid .ocs-window-copy small{font-size:7.5px!important}
+}
+
 </style></head><body><div class="app">
 <header><div class="brand"><div class="logo"><img src="assets/ocs-logo-mark.svg?v=20260921" alt="OCS logo"></div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openNotifications()">🔔</button></div></div></header>
 
