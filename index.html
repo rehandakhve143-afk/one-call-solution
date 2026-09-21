@@ -836,6 +836,76 @@ body:not(.module-open) .myocs-grid button{min-height:54px!important;padding:8px 
   body:not(.module-open) #moduleGrid .ocs-window-copy small{font-size:7.5px!important}
 }
 
+
+/* OCS HOME PREMIUM STRUCTURE + SAFE EMERGENCY — 2026-09-21 */
+.home-primary-actions{
+  margin:0 14px 10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px
+}
+.home-primary-action{
+  min-width:0;border:1px solid #dfe9e9;background:#fff;border-radius:14px;padding:10px 7px;
+  display:flex;align-items:center;gap:7px;text-align:left;box-shadow:0 3px 10px rgba(18,50,71,.055)
+}
+.home-primary-action .hpa-icon{
+  flex:0 0 31px;width:31px;height:31px;border-radius:10px;display:grid;place-items:center;
+  background:#eef8f6;font-size:16px
+}
+.home-primary-action b{display:block;font-size:10.5px;line-height:1.1;color:#183c45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-primary-action small{display:block;margin-top:2px;font-size:7.8px;line-height:1.05;color:#7a8b91;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-primary-action.emergency{border-color:#f1d4d4;background:#fffafa}
+.home-primary-action.emergency .hpa-icon{background:#fff0f0}
+.home-primary-action:active{transform:scale(.98)}
+
+body:not(.module-open) #moduleGrid:not(.show-all) .ocs-window-card{display:none!important}
+body:not(.module-open) #moduleGrid:not(.show-all) .ocs-window-card.ocs-featured{display:block!important}
+body:not(.module-open) #moduleGrid .ocs-window-card[data-search-hidden="1"]{display:none!important}
+.explore-more-wrap{padding:0 14px 11px}
+.explore-toggle{
+  width:100%;border:1px solid #dce8e8;background:#fff;color:#175b55;border-radius:12px;
+  padding:10px 12px;font-weight:900;font-size:10.5px;box-shadow:0 3px 9px rgba(18,50,71,.04)
+}
+.explore-toggle span{font-size:14px;margin-left:4px}
+#moduleGrid.show-all + .explore-more-wrap .explore-toggle{background:#f5faf9}
+
+.emergency-modal{z-index:95!important;background:rgba(1,22,31,.66)!important}
+.emergency-sheet{padding:18px 16px 20px!important;border-radius:24px 24px 0 0!important}
+.emergency-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.emergency-head h2{margin:5px 0 4px;font-size:22px;color:#173247}
+.emergency-head p{margin:0;color:#6f8188;font-size:11px}
+.emergency-kicker{display:inline-flex;padding:5px 8px;border-radius:999px;background:#fff0f0;color:#b43a3a;font-size:8px;font-weight:950;letter-spacing:.35px}
+.emergency-close{border:0;background:#f2f6f6;color:#526b73;width:36px;height:36px;border-radius:50%;font-size:22px;line-height:1}
+.emergency-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.emergency-choice{border:1px solid #e0e9e9;background:#fff;border-radius:17px;padding:16px 11px;text-align:left;min-height:128px;box-shadow:0 5px 14px rgba(18,50,71,.06)}
+.emergency-choice>span{display:block;font-size:29px;margin-bottom:12px}
+.emergency-choice b{display:block;color:#173247;font-size:14px}
+.emergency-choice small{display:block;margin-top:4px;color:#71848b;font-size:9px;line-height:1.25}
+.emergency-choice.fire{background:linear-gradient(180deg,#fff,#fff8f4)}
+.emergency-choice.ambulance{background:linear-gradient(180deg,#fff,#f6fbff)}
+.emergency-confirm{padding-top:2px}
+.emergency-selected{display:flex;align-items:center;gap:11px;padding:12px;border-radius:15px;background:#f7fbfb;border:1px solid #e0ebeb}
+.emergency-selected>span{font-size:28px}
+.emergency-selected b{display:block;font-size:14px;color:#173247}
+.emergency-selected small{display:block;margin-top:2px;font-size:9px;color:#72858b}
+.emergency-warning{margin:10px 0;padding:11px 12px;border-radius:13px;background:#fff7ea;border:1px solid #f0dfba}
+.emergency-warning b{display:block;font-size:11px;color:#774f13}
+.emergency-warning small{display:block;margin-top:3px;font-size:9px;line-height:1.35;color:#8a6f45}
+.emergency-hold{
+  width:100%;border:0;border-radius:14px;padding:15px 12px;background:#c83f3f;color:#fff;
+  font-weight:950;font-size:12px;touch-action:none;user-select:none;-webkit-user-select:none;
+  box-shadow:0 7px 16px rgba(178,49,49,.18)
+}
+.emergency-hold.holding{background:#a72f2f;transform:scale(.99)}
+.emergency-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.emergency-confirm-actions button{border:1px solid #dce7e8;background:#fff;border-radius:11px;padding:10px;font-weight:850;color:#4f6870}
+.emergency-foot{margin-top:12px;color:#859398;font-size:8.5px;line-height:1.35;text-align:center}
+
+@media(max-width:390px){
+  .home-primary-actions{margin-left:12px;margin-right:12px;gap:6px}
+  .home-primary-action{padding:9px 5px;gap:5px;border-radius:12px}
+  .home-primary-action .hpa-icon{flex-basis:28px;width:28px;height:28px;font-size:14px}
+  .home-primary-action b{font-size:9.5px}.home-primary-action small{font-size:7px}
+  .explore-more-wrap{padding-left:12px;padding-right:12px}
+}
+
 </style></head><body><div class="app">
 <header><div class="brand"><div class="logo"><img src="assets/ocs-logo-mark.svg?v=20260921" alt="OCS logo"></div><div><h1>One Call Solution</h1><small>One for All and All for One</small></div><div class="top-actions"><button onclick="openNotifications()">🔔</button></div></div></header>
 
@@ -856,6 +926,18 @@ body:not(.module-open) .myocs-grid button{min-height:54px!important;padding:8px 
     <button onclick="setHomeSlide(2)" aria-label="Slide 3"></button>
   </div>
 </div>
+
+<div class="home-primary-actions" aria-label="Main OCS actions">
+  <button class="home-primary-action service" onclick="openModule('Home Services','customer')">
+    <span class="hpa-icon">🛠️</span><span><b>Book Service</b><small>Home Services</small></span>
+  </button>
+  <button class="home-primary-action explore" onclick="openExploreAll()">
+    <span class="hpa-icon">⌘</span><span><b>Explore OCS</b><small>All categories</small></span>
+  </button>
+  <button class="home-primary-action emergency" onclick="openEmergency()">
+    <span class="hpa-icon">🚨</span><span><b>Emergency</b><small>Fire • Ambulance</small></span>
+  </button>
+</div>
 <div class="slider-business-cta" onclick="openBannerAd()" role="button" tabindex="0">
   <div class="slider-business-copy">
     <strong>Your Business, Seen by Every OCS Visitor</strong>
@@ -873,14 +955,14 @@ body:not(.module-open) .myocs-grid button{min-height:54px!important;padding:8px 
   <span class="ocs-window-copy"><b>Home Services</b><small>Book trusted local experts</small></span>
   <span class="ocs-window-arrow" aria-hidden="true">›</span>
 </button>
-<button class="ocs-window-card" aria-label="Property" title="Property" onclick='openModule("Property")'>
+<button class="ocs-window-card ocs-featured" aria-label="Property" title="Property" onclick='openModule("Property")'>
   <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1693160206111-202ab0b8b34c?auto=format&fit=crop&w=1200&q=90" alt="" loading="eager" decoding="async">
   <span class="ocs-window-shade" aria-hidden="true"></span>
   <span class="ocs-window-badge">PROPERTY</span>
   <span class="ocs-window-copy"><b>Property</b><small>Rent • Buy • Builder listings</small></span>
   <span class="ocs-window-arrow" aria-hidden="true">›</span>
 </button>
-<button class="ocs-window-card" aria-label="Local Shop" title="Local Shop" onclick='openModule("Local Shop")'>
+<button class="ocs-window-card ocs-featured" aria-label="Local Shop" title="Local Shop" onclick='openModule("Local Shop")'>
   <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1759200165738-6366977a73c6?auto=format&fit=crop&w=1200&q=90" alt="" loading="eager" decoding="async">
   <span class="ocs-window-shade" aria-hidden="true"></span>
   <span class="ocs-window-badge">LOCAL SHOP</span>
@@ -922,7 +1004,7 @@ body:not(.module-open) .myocs-grid button{min-height:54px!important;padding:8px 
   <span class="ocs-window-copy"><b>New Vehicle</b><small>New bikes & cars</small></span>
   <span class="ocs-window-arrow" aria-hidden="true">›</span>
 </button>
-<button class="ocs-window-card" aria-label="Medical Store" title="Medical Store" onclick='openModule("Medical Store")'>
+<button class="ocs-window-card ocs-featured" aria-label="Medical Store" title="Medical Store" onclick='openModule("Medical Store")'>
   <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1560840038-e595bb6c706d?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
   <span class="ocs-window-shade" aria-hidden="true"></span>
   <span class="ocs-window-badge">MEDICAL STORE</span>
@@ -943,7 +1025,7 @@ body:not(.module-open) .myocs-grid button{min-height:54px!important;padding:8px 
   <span class="ocs-window-copy"><b>Modular Kitchen</b><small>Design • cabinets • interiors</small></span>
   <span class="ocs-window-arrow" aria-hidden="true">›</span>
 </button>
-<button class="ocs-window-card long-title" aria-label="Hotel / Restaurant / Lodging" title="Hotel / Restaurant / Lodging" onclick='openModule("Hotel / Restaurant / Lodging")'>
+<button class="ocs-window-card ocs-featured long-title" aria-label="Hotel / Restaurant / Lodging" title="Hotel / Restaurant / Lodging" onclick='openModule("Hotel / Restaurant / Lodging")'>
   <img class="ocs-window-photo" src="https://images.unsplash.com/photo-1763914767111-b4451913ceba?auto=format&fit=crop&w=1200&q=90" alt="" loading="lazy" decoding="async">
   <span class="ocs-window-shade" aria-hidden="true"></span>
   <span class="ocs-window-badge">HOTEL / RESTAURANT / LODGING</span>
@@ -951,6 +1033,7 @@ body:not(.module-open) .myocs-grid button{min-height:54px!important;padding:8px 
   <span class="ocs-window-arrow" aria-hidden="true">›</span>
 </button>
 </div>
+<div class="explore-more-wrap"><button id="exploreToggleBtn" class="explore-toggle" onclick="toggleExplore()" aria-expanded="false">View All OCS Windows <span>⌄</span></button></div>
 <div class="trust-row">
   <div onclick="openVerificationInfo()" style="cursor:pointer"><b>✓</b>Verified</div><div onclick="openClearPricingInfo()" style="cursor:pointer"><b>₹</b>Clear Pricing</div><div><b>🔐</b>Start OTP</div><div><b>🎧</b>Support</div>
 </div>
@@ -970,6 +1053,34 @@ body:not(.module-open) .myocs-grid button{min-height:54px!important;padding:8px 
   </div>
   <button type="button" onclick="event.stopPropagation();openBiz()">Add Business</button>
 </div>
+</div>
+
+<div class="modal emergency-modal" id="emergencyModal" role="dialog" aria-modal="true" aria-labelledby="emergencyTitle">
+  <div class="sheet emergency-sheet">
+    <div class="emergency-head">
+      <div><span class="emergency-kicker">FREE • OFFICIAL EMERGENCY</span><h2 id="emergencyTitle">Emergency Help</h2><p>Real emergency ke liye service choose karein.</p></div>
+      <button class="emergency-close" onclick="closeEmergency()" aria-label="Close">×</button>
+    </div>
+    <div id="emergencyChoices" class="emergency-choices">
+      <button class="emergency-choice fire" onclick="chooseEmergency('fire')"><span>🔥</span><b>Fire Brigade</b><small>Fire / rescue emergency</small></button>
+      <button class="emergency-choice ambulance" onclick="chooseEmergency('ambulance')"><span>🚑</span><b>Ambulance</b><small>Medical emergency</small></button>
+    </div>
+    <div id="emergencyConfirm" class="emergency-confirm" hidden>
+      <div class="emergency-selected"><span id="emergencySelectedIcon">🚨</span><div><b id="emergencySelectedTitle">Emergency</b><small>India Emergency Response • 112</small></div></div>
+      <div class="emergency-warning"><b>Only for a real emergency</b><small>Accidental call rokne ke liye neeche button ko 3 seconds hold karna hoga.</small></div>
+      <button id="emergencyHoldBtn" class="emergency-hold"
+        onpointerdown="startEmergencyHold(event)"
+        onpointerup="cancelEmergencyHold()"
+        onpointerleave="cancelEmergencyHold()"
+        onpointercancel="cancelEmergencyHold()"
+        oncontextmenu="return false">Press & Hold 3 sec to Call 112</button>
+      <div class="emergency-confirm-actions">
+        <button onclick="backEmergencyChoice()">Back</button>
+        <button onclick="closeEmergency()">Cancel</button>
+      </div>
+    </div>
+    <div class="emergency-foot">OCS is only providing a quick emergency shortcut and does not charge for it.</div>
+  </div>
 </div>
 <nav class="bottom-nav">
   <button id="bnHome" class="active" onclick="bottomHome()"><span>⌂</span>Home</button>
@@ -1326,6 +1437,7 @@ function bottomServices(){
  closeAllBottomHubs();
  if(document.getElementById('viewer')?.classList.contains('show'))closeModule();
  setBottomActive('bnServices');
+ setExploreExpanded(true);
  const el=document.getElementById('explore');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function openBottomBookings(){
@@ -1662,7 +1774,7 @@ const OCS_SEARCH_ALIASES={
 };
 function ocsNorm(v){return String(v||"").toLowerCase().replace(/[^a-z0-9₹\s/-]/g," ").replace(/\s+/g," ").trim()}
 function moduleText(n){let base=n+" "+(OCS_SEARCH_ALIASES[n]||"");try{base+=" "+decode64(modulesB64[n]).replace(/<[^>]+>/g," ")}catch(e){}return ocsNorm(base)}
-function resetHomeSearch(){document.querySelectorAll("#moduleGrid .card").forEach(x=>x.style.display="");const h=document.getElementById("globalSearchHint");if(h)h.textContent="Common search • OCS ke kisi bhi window/service ko search karein"}
+function resetHomeSearch(){document.querySelectorAll("#moduleGrid .ocs-window-card").forEach(x=>x.removeAttribute("data-search-hidden"));const h=document.getElementById("globalSearchHint");if(h)h.textContent="Common search • OCS ke kisi bhi window/service ko search karein"}
 function runGlobalSearch(){
  const input=document.getElementById("globalSearch"),q=ocsNorm(input?.value);
  if(currentModuleName){
@@ -1671,7 +1783,7 @@ function runGlobalSearch(){
    return;
  }
  if(!q){resetHomeSearch();return}
- const cards=[...document.querySelectorAll("#moduleGrid .card")];
+ const cards=[...document.querySelectorAll("#moduleGrid .ocs-window-card")];
  const names=Object.keys(modulesB64);
  let matches=names.filter(n=>moduleText(n).includes(q));
  const hint=document.getElementById("globalSearchHint");
@@ -1681,7 +1793,7 @@ function runGlobalSearch(){
    if(hint)hint.textContent="Opening "+matches[0]+"…";
    return;
  }
- cards.forEach(card=>{const n=(card.querySelector("b")?.textContent||"").trim();card.style.display=matches.includes(n)?"":"none"});
+ document.getElementById("moduleGrid")?.classList.add("show-all");updateExploreToggle();cards.forEach(card=>{const n=(card.querySelector("b")?.textContent||"").trim();card.toggleAttribute("data-search-hidden",!matches.includes(n))});
  if(matches.length){
    if(hint)hint.textContent=matches.length+" matching windows found • kisi window ko open karein";
    document.getElementById("explore")?.scrollIntoView({behavior:"smooth",block:"start"});
@@ -1850,4 +1962,72 @@ function continueBiz(){
  if(cat==='Other Business'){alert('Business details saved. Production setup me category approval/payment ke baad listing live hogi.');return}
  openModule(cat);
 }
+
+function updateExploreToggle(){
+ const grid=document.getElementById('moduleGrid'),btn=document.getElementById('exploreToggleBtn');
+ if(!grid||!btn)return;
+ const expanded=grid.classList.contains('show-all');
+ btn.setAttribute('aria-expanded',String(expanded));
+ btn.innerHTML=expanded?'Show Less <span>⌃</span>':'View All OCS Windows <span>⌄</span>';
+}
+function setExploreExpanded(expanded){
+ const grid=document.getElementById('moduleGrid');if(!grid)return;
+ grid.classList.toggle('show-all',!!expanded);updateExploreToggle();
+}
+function toggleExplore(){const g=document.getElementById('moduleGrid');if(g)setExploreExpanded(!g.classList.contains('show-all'))}
+function openExploreAll(){
+ resetHomeSearch();setExploreExpanded(true);setBottomActive('bnServices');
+ document.getElementById('explore')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+let emergencyHoldTimer=null,emergencyHoldTick=null,emergencyHoldSeconds=3,emergencyKind='';
+function openEmergency(){
+ emergencyKind='';cancelEmergencyHold();
+ const choices=document.getElementById('emergencyChoices'),confirm=document.getElementById('emergencyConfirm');
+ if(choices)choices.hidden=false;if(confirm)confirm.hidden=true;
+ document.getElementById('emergencyModal')?.classList.add('show');
+}
+function closeEmergency(){cancelEmergencyHold();document.getElementById('emergencyModal')?.classList.remove('show')}
+function chooseEmergency(kind){
+ emergencyKind=kind;
+ const isFire=kind==='fire';
+ document.getElementById('emergencySelectedIcon').textContent=isFire?'🔥':'🚑';
+ document.getElementById('emergencySelectedTitle').textContent=isFire?'Fire Brigade':'Ambulance';
+ document.getElementById('emergencyChoices').hidden=true;
+ document.getElementById('emergencyConfirm').hidden=false;
+ resetEmergencyHoldButton();
+}
+function backEmergencyChoice(){
+ cancelEmergencyHold();emergencyKind='';
+ document.getElementById('emergencyChoices').hidden=false;
+ document.getElementById('emergencyConfirm').hidden=true;
+}
+function resetEmergencyHoldButton(){
+ const btn=document.getElementById('emergencyHoldBtn');if(!btn)return;
+ btn.classList.remove('holding');btn.textContent='Press & Hold 3 sec to Call 112';
+}
+function startEmergencyHold(e){
+ if(e&&e.preventDefault)e.preventDefault();
+ cancelEmergencyHold();emergencyHoldSeconds=3;
+ const btn=document.getElementById('emergencyHoldBtn');if(!btn)return;
+ btn.classList.add('holding');btn.textContent='Keep holding… 3';
+ emergencyHoldTick=setInterval(()=>{
+   emergencyHoldSeconds--;
+   if(emergencyHoldSeconds>0)btn.textContent='Keep holding… '+emergencyHoldSeconds;
+ },1000);
+ emergencyHoldTimer=setTimeout(()=>{
+   if(emergencyHoldTick)clearInterval(emergencyHoldTick);
+   emergencyHoldTimer=null;emergencyHoldTick=null;
+   btn.textContent='Opening emergency call…';
+   window.location.href='tel:112';
+   setTimeout(resetEmergencyHoldButton,1200);
+ },3000);
+}
+function cancelEmergencyHold(){
+ if(emergencyHoldTimer)clearTimeout(emergencyHoldTimer);
+ if(emergencyHoldTick)clearInterval(emergencyHoldTick);
+ emergencyHoldTimer=null;emergencyHoldTick=null;resetEmergencyHoldButton();
+}
+updateExploreToggle();
+
 </script></body></html>
