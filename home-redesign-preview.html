@@ -23,6 +23,17 @@ body{display:flex;justify-content:center}.app{width:min(100%,430px);min-height:1
 .emergency{margin:14px 10px 0;border-radius:14px;background:#fff5f5;border:1px solid #f2dddd;padding:10px}.emergency h2{font-size:16px;margin:0 0 8px;color:#0f2344}.em-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.em{border:1px solid #eadcdc;background:#fff;border-radius:11px;padding:8px 6px;min-height:78px;text-align:left}.em.support{border-color:#d9e5ef;background:#f8fbff}.em .row{display:flex;align-items:center;gap:6px}.em .ico{font-size:25px}.em b{font-size:8px;line-height:1.1;color:#5a2525}.em.support b{color:#173247}.em small{display:block;margin-top:5px;font-size:6.6px;line-height:1.25;color:#7c6b6b}.em.support small{color:#657784}.call{display:inline-block;margin-top:5px;border:1px solid #ff4c4c;border-radius:999px;padding:4px 7px;color:#d92626;font-size:7px;font-weight:900;background:#fff}.note{text-align:center;padding:10px 8px 2px;font-size:7px;color:#98a3a8}
 .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(430px,100%);background:#fff;border-top:1px solid #e0e8ea;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 4px max(7px,env(safe-area-inset-bottom));z-index:20}.nav button{border:0;background:transparent;color:#3d5d73;font-size:7.5px;font-weight:800}.nav span{display:block;font-size:18px;margin-bottom:3px}.nav .active{color:#078b78}
 @media(max-width:390px){.top{grid-template-columns:32px 1fr auto}.brand img{width:42px}.brand strong{font-size:12px}.location{font-size:7.4px;padding:7px}.hero{height:169px}.slide h1{font-size:23px}.grid{gap:6px}.art{height:63px;font-size:33px}.card-copy{padding:7px 15px 7px 6px;min-height:58px}.card b{font-size:8px}.card small{font-size:6.2px}.feature{min-height:65px}.promo{min-height:137px}}
+
+.profile-modal{display:none;position:fixed;inset:0;background:rgba(7,28,39,.55);z-index:40;align-items:flex-end;justify-content:center}
+.profile-modal.show{display:flex}.profile-sheet{width:min(430px,100%);max-height:88vh;overflow:auto;background:#fff;border-radius:24px 24px 0 0;padding:16px 14px 22px;box-shadow:0 -10px 30px rgba(16,42,67,.18)}
+.profile-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.profile-head h2{margin:0;font-size:19px;color:#0f2344}.profile-head p{margin:3px 0 0;font-size:8.5px;color:#70848c}.profile-close{border:0;background:#f1f6f6;width:34px;height:34px;border-radius:50%;font-size:19px;color:#536b73}
+.profile-role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.profile-role{border:1px solid #dde8e9;background:#fff;border-radius:15px;padding:13px 10px;text-align:left}.profile-role span{display:block;font-size:25px;margin-bottom:8px}.profile-role b{display:block;font-size:11px;color:#173247}.profile-role small{display:block;margin-top:3px;font-size:7.5px;line-height:1.25;color:#71848b}
+.profile-panel{display:none}.profile-panel.show{display:block}.profile-back{border:0;background:transparent;color:#078a78;font-weight:900;font-size:9px;padding:0;margin-bottom:10px}
+.profile-label{display:block;font-size:8px;font-weight:900;color:#5a707a;margin:9px 0 4px}.profile-input,.profile-select{width:100%;border:1px solid #dbe6e7;background:#f8fbfb;border-radius:11px;padding:10px;font-size:10px;outline:0}
+.email-box{display:grid;grid-template-columns:1fr auto;gap:7px}.email-box button,.profile-primary{border:0;border-radius:11px;background:#0b8e79;color:#fff;font-weight:900;font-size:9px;padding:10px 12px}.profile-primary{width:100%;margin-top:11px}
+.profile-note{margin-top:8px;padding:8px 9px;border-radius:10px;background:#eff8f6;color:#4f6d69;font-size:7.5px;line-height:1.35}
+.sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.skills{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}.skill{border:1px solid #dce8e8;background:#fff;border-radius:999px;padding:6px 8px;font-size:7.5px;color:#3b5b65}.skill input{width:auto;margin:0 4px 0 0;vertical-align:middle}.profile-success{display:none;text-align:center;padding:18px 8px}.profile-success.show{display:block}.profile-success span{font-size:38px}.profile-success h3{margin:8px 0 4px;font-size:16px}.profile-success p{margin:0;font-size:8.5px;color:#74858b}
+
 </style>
 </head>
 <body>
@@ -73,12 +84,83 @@ body{display:flex;justify-content:center}.app{width:min(100%,430px);min-height:1
   <div class="note">Preview only • Live OCS app is unchanged.</div>
 </div>
 
+
+<div class="profile-modal" id="profileModal">
+  <div class="profile-sheet">
+    <div class="profile-head">
+      <div><h2>Profile</h2><p>Choose how you use One Call Solution.</p></div>
+      <button class="profile-close" onclick="closeProfile()">×</button>
+    </div>
+
+    <div id="profileRoles">
+      <div class="profile-role-grid">
+        <button class="profile-role" onclick="openProfileRole('customer')"><span>👤</span><b>Customer Profile</b><small>Register or sign in directly with your email ID.</small></button>
+        <button class="profile-role" onclick="openProfileRole('provider')"><span>🧰</span><b>Service Provider Profile</b><small>Register with email, then complete your work profile.</small></button>
+      </div>
+    </div>
+
+    <div class="profile-panel" id="customerPanel">
+      <button class="profile-back" onclick="profileBack()">‹ Back</button>
+      <h3 style="margin:0;font-size:15px">Customer Registration</h3>
+      <label class="profile-label">Email ID</label>
+      <div class="email-box"><input class="profile-input" id="customerEmail" type="email" placeholder="name@example.com"><button onclick="sendPreviewCode('customer')">Verify</button></div>
+      <div class="profile-note">Email verify hone ke baad Customer Profile ready ho jayega. Booking details later profile me add ki ja sakti hain.</div>
+      <button class="profile-primary" onclick="finishCustomerProfile()">Continue with Email</button>
+    </div>
+
+    <div class="profile-panel" id="providerEmailPanel">
+      <button class="profile-back" onclick="profileBack()">‹ Back</button>
+      <h3 style="margin:0;font-size:15px">Service Provider Registration</h3>
+      <label class="profile-label">Email ID</label>
+      <div class="email-box"><input class="profile-input" id="providerEmail" type="email" placeholder="provider@example.com"><button onclick="sendPreviewCode('provider')">Verify</button></div>
+      <div class="profile-note">Step 1: Email se register. Step 2: Full Service Provider profile complete karein.</div>
+      <button class="profile-primary" onclick="openProviderSetup()">Continue to Profile Setup</button>
+    </div>
+
+    <div class="profile-panel" id="providerSetupPanel">
+      <button class="profile-back" onclick="openProfileRole('provider')">‹ Email</button>
+      <h3 style="margin:0;font-size:15px">Complete Service Provider Profile</h3>
+      <div class="sp-grid">
+        <div><label class="profile-label">Full Name</label><input class="profile-input" id="spName" placeholder="Your name"></div>
+        <div><label class="profile-label">Mobile</label><input class="profile-input" id="spMobile" inputmode="tel" placeholder="Mobile number"></div>
+      </div>
+      <div class="sp-grid">
+        <div><label class="profile-label">City / Area</label><input class="profile-input" id="spArea" placeholder="Service area"></div>
+        <div><label class="profile-label">Work Radius</label><select class="profile-select" id="spRadius"><option>6 km</option><option>12 km</option><option>20 km</option></select></div>
+      </div>
+      <label class="profile-label">Select Skills</label>
+      <div class="skills">
+        <label class="skill"><input type="checkbox">Electrician</label>
+        <label class="skill"><input type="checkbox">Plumber</label>
+        <label class="skill"><input type="checkbox">Carpenter</label>
+        <label class="skill"><input type="checkbox">AC</label>
+        <label class="skill"><input type="checkbox">Cleaning</label>
+        <label class="skill"><input type="checkbox">Maid / Cook</label>
+        <label class="skill"><input type="checkbox">Other</label>
+      </div>
+      <div class="sp-grid">
+        <div><label class="profile-label">Selfie / Photo</label><input class="profile-input" type="file" accept="image/*"></div>
+        <div><label class="profile-label">Proof / Certificate</label><input class="profile-input" type="file" accept="image/*,.pdf"></div>
+      </div>
+      <label class="profile-label">Availability</label>
+      <select class="profile-select"><option>Available for Work — ON</option><option>Available for Work — OFF</option></select>
+      <div class="profile-note">Welcome wallet, verification status, approved skills aur jobs isi Service Provider profile me manage honge.</div>
+      <button class="profile-primary" onclick="finishProviderProfile()">Save Service Provider Profile</button>
+    </div>
+
+    <div class="profile-success" id="profileSuccess">
+      <span>✅</span><h3 id="profileSuccessTitle">Profile Ready</h3><p id="profileSuccessText">Preview completed.</p>
+      <button class="profile-primary" onclick="closeProfile()">Done</button>
+    </div>
+  </div>
+</div>
+
 <nav class="nav">
   <button class="active"><span>⌂</span>Home</button>
   <button><span>▦</span>Home Service</button>
   <button><span>▣</span>Bookings</button>
   <button><span>🎧</span>Support</button>
-  <button><span>○</span>Profile</button>
+  <button onclick="openProfile()"><span>○</span>Profile</button>
 </nav>
 
 <script>
@@ -99,6 +181,52 @@ function filterCards(){
  });
 }
 document.querySelectorAll('.card').forEach(x=>x.addEventListener('click',preview));
+
+function resetProfilePanels(){
+ document.getElementById('profileRoles').style.display='block';
+ ['customerPanel','providerEmailPanel','providerSetupPanel'].forEach(id=>document.getElementById(id).classList.remove('show'));
+ document.getElementById('profileSuccess').classList.remove('show');
+}
+function openProfile(){resetProfilePanels();document.getElementById('profileModal').classList.add('show')}
+function closeProfile(){document.getElementById('profileModal').classList.remove('show')}
+function profileBack(){resetProfilePanels()}
+function openProfileRole(role){
+ document.getElementById('profileRoles').style.display='none';
+ ['customerPanel','providerEmailPanel','providerSetupPanel'].forEach(id=>document.getElementById(id).classList.remove('show'));
+ document.getElementById('profileSuccess').classList.remove('show');
+ document.getElementById(role==='customer'?'customerPanel':'providerEmailPanel').classList.add('show');
+}
+function sendPreviewCode(role){
+ const id=role==='customer'?'customerEmail':'providerEmail';
+ const v=(document.getElementById(id).value||'').trim();
+ if(!v.includes('@')){alert('Valid email ID enter karein.');return}
+ alert('Preview: verification email sent to '+v);
+}
+function finishCustomerProfile(){
+ const v=(document.getElementById('customerEmail').value||'').trim();
+ if(!v.includes('@')){alert('Valid email ID enter karein.');return}
+ showProfileSuccess('Customer Profile Ready','Email registration flow complete in this preview.');
+}
+function openProviderSetup(){
+ const v=(document.getElementById('providerEmail').value||'').trim();
+ if(!v.includes('@')){alert('Valid email ID enter karein.');return}
+ document.getElementById('providerEmailPanel').classList.remove('show');
+ document.getElementById('providerSetupPanel').classList.add('show');
+}
+function finishProviderProfile(){
+ const name=(document.getElementById('spName').value||'').trim();
+ const mobile=(document.getElementById('spMobile').value||'').replace(/\D/g,'');
+ const area=(document.getElementById('spArea').value||'').trim();
+ if(!name||mobile.length<10||!area){alert('Name, valid mobile aur service area required.');return}
+ showProfileSuccess('Service Provider Profile Ready','Email registration + full profile setup preview complete.');
+}
+function showProfileSuccess(title,text){
+ document.getElementById('profileRoles').style.display='none';
+ ['customerPanel','providerEmailPanel','providerSetupPanel'].forEach(id=>document.getElementById(id).classList.remove('show'));
+ document.getElementById('profileSuccessTitle').textContent=title;
+ document.getElementById('profileSuccessText').textContent=text;
+ document.getElementById('profileSuccess').classList.add('show');
+}
 function preview(){alert('Preview only — live OCS app untouched.')}
 </script>
 </body>
