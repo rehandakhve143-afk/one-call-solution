@@ -992,6 +992,8 @@ header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18p
 <div class="modal" id="bannerModal"><div class="sheet"><button class="x" onclick="closeBannerAd()">×</button><h2>📣 Post Premium Home Banner Ad</h2>
 <p class="muted">Ye Home Screen ke sliding sponsored banner ke liye hai. OCS Business Listing karna compulsory nahi hai.</p>
 <div class="banner-builder-note"><b>Banner Ad = separate product.</b><br>Business OCS me registered ho ya na ho, banner le sakta hai. Payment ke baad OCS Admin approval ke baad ad live hoga.</div>
+<div id="bannerEditRule" class="banner-builder-note" style="background:#fff8e8;border-left-color:#e29b16"><b>Edit rule:</b> Payment se pehle ad editable hai. Payment successful hone ke baad ad LOCK ho jayega aur change nahi hoga.</div>
+<div id="bannerPendingBox"></div>
 
 <label>Business Name *</label><input id="bannerBusiness" oninput="updateBannerPrice();renderBannerPreview()" placeholder="Business / shop / project name">
 <label>Headline / Offer *</label><input id="bannerTitle" oninput="renderBannerPreview()" placeholder="e.g. Grand Opening • 20% Off">
@@ -1316,8 +1318,36 @@ function addFreeOverride(){
 }
 function removeFreeOverride(i){const a=getFreeOverrides();a.splice(i,1);setFreeOverrides(a);renderFreeOverrides();updateBannerPrice();updateBizPrice()}
 function renderFreeOverrides(){const a=getFreeOverrides(),box=document.getElementById('freeOverrideList');if(!box)return;box.innerHTML=a.length?a.map((x,i)=>'<div class="free-pill"><span><b>'+x.name+'</b><br>'+x.scope+' • FREE</span><button onclick="removeFreeOverride('+i+')">Remove</button></div>').join(''):'No FREE override yet.'}
-let bannerImageData="";
-function openBannerAd(){document.getElementById('bannerModal').classList.add('show');syncBannerCta();updateBannerPrice();renderBannerPreview()}
+let bannerImageData="",editingBannerId="";
+function getBannerRequests(){try{return JSON.parse(localStorage.getItem('ocsBannerRequests')||'[]')}catch(e){return []}}
+function setBannerRequests(a){localStorage.setItem('ocsBannerRequests',JSON.stringify(a))}
+function bannerEditableStatus(s){return s==='PAYMENT_PENDING'||s==='DRAFT'}
+function renderBannerPendingState(){
+ const box=document.getElementById('bannerPendingBox');if(!box)return;
+ const a=getBannerRequests(),p=[...a].reverse().find(x=>bannerEditableStatus(x.status));
+ if(!p){box.innerHTML='';return}
+ box.innerHTML='<div class="banner-builder-note" style="background:#eef8f5;border-left-color:#0b8a75"><b>Pending Ad • Editable before payment</b><br>'+String(p.name||'')+' • '+String(p.plan||'')+'<div style="margin-top:8px"><button type="button" class="primary" style="padding:9px 12px" onclick="editPendingBannerAd(\''+p.id+'\')">Edit Pending Ad</button></div></div>';
+}
+function clearBannerForm(){
+ editingBannerId='';bannerImageData='';
+ ['bannerBusiness','bannerTitle','bannerDesc','bannerArea','bannerActionValue'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+ const cta=document.getElementById('bannerCta');if(cta)cta.value='CALL';
+ const plan=document.getElementById('bannerPlan');if(plan)plan.value='banner28';
+ const img=document.getElementById('bannerImage');if(img)img.value='';
+ const btn=document.querySelector('#bannerModal button[onclick="submitBannerAd()"]');if(btn)btn.textContent='Continue to Payment / Submit';
+}
+function openBannerAd(){clearBannerForm();document.getElementById('bannerModal').classList.add('show');renderBannerPendingState();syncBannerCta();updateBannerPrice();renderBannerPreview()}
+function editPendingBannerAd(id){
+ const a=getBannerRequests(),p=a.find(x=>x.id===id);
+ if(!p)return alert('Pending ad nahi mila.');
+ if(!bannerEditableStatus(p.status))return alert('Payment complete hone ke baad ad locked hai. Is ad ko edit nahi kar sakte.');
+ editingBannerId=id;
+ bannerBusiness.value=p.name||'';bannerTitle.value=p.title||'';bannerDesc.value=p.description||'';bannerArea.value=p.area||'';
+ bannerCta.value=p.cta||'CALL';bannerActionValue.value=p.actionValue||'';bannerPlan.value=p.plan==='6 Months'?'banner6m':'banner28';
+ bannerImageData=p.image||'';
+ const btn=document.querySelector('#bannerModal button[onclick="submitBannerAd()"]');if(btn)btn.textContent='Save Changes / Continue to Payment';
+ syncBannerCta();updateBannerPrice();renderBannerPreview();
+}
 function closeBannerAd(){document.getElementById('bannerModal').classList.remove('show')}
 function updateBannerPrice(){
  const n=(document.getElementById('bannerBusiness')?.value||'').trim(),key=document.getElementById('bannerPlan')?.value||'banner28',price=pricingValue(key,n,'BANNER'),box=document.getElementById('bannerPriceNow');
@@ -1351,13 +1381,29 @@ function submitBannerAd(){
  if((cta==='CALL'||cta==='WHATSAPP')&&av.replace(/\D/g,'').length<10){alert('Valid mobile / WhatsApp number enter karein.');return}
  if(cta==='WEBSITE'&&!/^https?:\/\//i.test(av)){alert('Website link http:// ya https:// se start karein.');return}
  const price=pricingValue(key,n,'BANNER'),plan=key==='banner6m'?'6 Months':'28 Days';
- const pending=JSON.parse(localStorage.getItem('ocsBannerRequests')||'[]');
- pending.push({id:'OCSB'+Date.now(),name:n,title:t,description:d,area:a,cta,actionValue:av,plan,price,image:bannerImageData||'',status:price===0?'ADMIN_APPROVAL_PENDING':'PAYMENT_PENDING'});
- try{localStorage.setItem('ocsBannerRequests',JSON.stringify(pending))}catch(e){
-   pending[pending.length-1].image='';localStorage.setItem('ocsBannerRequests',JSON.stringify(pending));
+ const pending=getBannerRequests();
+ const payload={name:n,title:t,description:d,area:a,cta,actionValue:av,plan,price,image:bannerImageData||''};
+ if(editingBannerId){
+   const i=pending.findIndex(x=>x.id===editingBannerId);
+   if(i<0)return alert('Pending ad nahi mila.');
+   if(!bannerEditableStatus(pending[i].status))return alert('Payment complete hone ke baad ad locked hai. Is ad ko edit nahi kar sakte.');
+   pending[i]=Object.assign({},pending[i],payload,{status:'PAYMENT_PENDING',updatedAt:new Date().toISOString()});
+ }else{
+   pending.push(Object.assign({id:'OCSB'+Date.now(),status:price===0?'ADMIN_APPROVAL_PENDING':'PAYMENT_PENDING',createdAt:new Date().toISOString(),locked:price===0},payload));
  }
+ try{setBannerRequests(pending)}catch(e){
+   const i=editingBannerId?pending.findIndex(x=>x.id===editingBannerId):pending.length-1;
+   if(i>=0)pending[i].image='';
+   setBannerRequests(pending);
+ }
+ const wasEdit=!!editingBannerId;editingBannerId='';
  closeBannerAd();
- alert(price===0?'FREE banner request saved → Admin approval pending.':'Banner ready • Plan '+moneyINR(price)+' • Production payment ke baad Admin approval me jayega.');
+ alert(price===0?'FREE banner request submitted and locked for Admin approval.':(wasEdit?'Ad changes saved. Payment hone tak aap ise edit kar sakte hain.':'Banner ready • Plan '+moneyINR(price)+' • Payment hone tak editable rahega; payment ke baad lock ho jayega.'));
+}
+function lockBannerAfterPayment(id,paymentRef){
+ const a=getBannerRequests(),i=a.findIndex(x=>x.id===id);if(i<0)return false;
+ a[i].status='PAID_LOCKED';a[i].locked=true;a[i].paidAt=new Date().toISOString();if(paymentRef)a[i].paymentRef=paymentRef;
+ setBannerRequests(a);return true;
 }
 const BIZ_PRICE_KEY={'Property':'ownerSingle','Local Shop':'localShop','Sliding / Aluminium':'sliding','Welding / Fabrication':'welding','Beauty / Make-up':'beauty','Used Vehicle':'used2w','New Vehicle':'new2w','Medical Store':'medical','Diagnostic Lab':'lab','Modular Kitchen':'kitchen','Hotel / Restaurant / Lodging':'localShop','Other Business':'localShop'};
 function updateBizPrice(){
