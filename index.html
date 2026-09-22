@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260921">
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script><link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260921">
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#edf4f7;color:#173247}.app{max-width:720px;margin:auto;min-height:100vh;background:#f9fcfd;padding-bottom:35px}
 header{background:linear-gradient(135deg,#064b75,#087e83);color:#fff;padding:18px 16px 22px;border-radius:0 0 24px 24px}.brand{display:flex;gap:12px;align-items:center}.logo{width:58px;height:58px;border:2px solid rgba(255,255,255,.7);border-radius:50%;display:grid;place-items:center;background:#fff;overflow:hidden;flex:0 0 58px;box-shadow:0 4px 12px rgba(0,0,0,.14)}.logo img{width:100%;height:100%;display:block;object-fit:cover;border-radius:50%}h1{font-size:24px;margin:0}header small{opacity:.82}.hero{margin:14px;padding:17px;border-radius:18px;background:linear-gradient(110deg,#e5f8ff,#fff1e7);box-shadow:0 5px 18px #1232}.hero h2{margin:0 0 5px}.muted{color:#6b808c;font-size:13px}
@@ -1213,7 +1213,7 @@ body:not(.module-open) #moduleGrid .ocs-final-card:active{transform:scale(.98)!i
   <div class="help">Email se direct registration/login. Mobile aur baaki profile details later add ki ja sakti hain.</div>
 </div>
 <div id="providerAccountForm" style="display:none">
-  <label>Email ID *</label><div class="verifyrow"><input id="paEmail" type="email" placeholder="provider@email.com"><button onclick="demoVerify('providerEmail')">Verify Email</button></div><div class="verifyok" id="providerEmailStatus">Not verified</div>
+  <label>Email ID *</label><div class="verifyrow"><input id="paEmail" type="email" placeholder="provider@email.com"><button onclick="demoVerify('providerEmail')">Send Login Link</button></div><div class="verifyok" id="providerEmailStatus">Email login required</div>
   <div class="help" style="margin:7px 0 12px">Step 1: Email se register. Step 2: Niche full Service Provider profile complete karein.</div>
   <label>Full Name *</label><input id="paName" autocomplete="name" placeholder="Service Provider name">
   <label>Mobile Number *</label><input id="paMobile" inputmode="tel" placeholder="10-digit mobile"><div class="verifyok" id="providerMobileStatus" style="display:none"></div>
@@ -1413,6 +1413,96 @@ function startSlider(){
 startSlider();
 
 const accountVerified={customerMobile:false,customerEmail:false,providerMobile:false,providerEmail:false};
+
+const OCS_SUPABASE_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
+const OCS_SUPABASE_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
+let ocsSupabase=null;
+try{
+  if(window.supabase&&window.supabase.createClient){
+    ocsSupabase=window.supabase.createClient(OCS_SUPABASE_URL,OCS_SUPABASE_KEY,{
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+    });
+  }
+}catch(e){console.error('OCS Supabase init failed',e)}
+
+async function getOcsSession(){
+  if(!ocsSupabase)return null;
+  try{
+    const {data,error}=await ocsSupabase.auth.getSession();
+    if(error)throw error;
+    return data&&data.session?data.session:null;
+  }catch(e){console.error('OCS session read failed',e);return null}
+}
+async function refreshOcsEmailStatus(){
+  const session=await getOcsSession();
+  const email=(session&&session.user&&session.user.email)||'';
+  const p=document.getElementById('providerEmailStatus');
+  if(p){
+    const entered=(document.getElementById('paEmail')?.value||'').trim().toLowerCase();
+    const ok=!!email&&(!entered||entered===email.toLowerCase());
+    if(ok){
+      accountVerified.providerEmail=true;
+      p.textContent='✓ Email verified • '+email;
+      p.style.color='#16815d';
+      if(document.getElementById('paEmail')&&!entered)document.getElementById('paEmail').value=email;
+    }else{
+      accountVerified.providerEmail=false;
+      p.textContent=email?'Signed in as '+email+' • enter same email':'Email login required';
+      p.style.color='#6f8188';
+    }
+  }
+  return session;
+}
+async function sendOcsEmailLink(role){
+  if(!ocsSupabase){alert('Online login service load nahi hua. Internet check karke page reopen karein.');return false}
+  const input=document.getElementById(role==='provider'?'paEmail':'caEmail');
+  const email=(input?.value||'').trim();
+  if(!email.includes('@')){alert('Valid email ID enter karein.');return false}
+  const redirect=location.origin+location.pathname;
+  const {error}=await ocsSupabase.auth.signInWithOtp({
+    email,
+    options:{
+      shouldCreateUser:true,
+      emailRedirectTo:redirect,
+      data:{role:role==='provider'?'service_provider':'customer'}
+    }
+  });
+  if(error){alert('Email login link send nahi hua: '+error.message);return false}
+  const id=role==='provider'?'providerEmailStatus':'customerEmailStatus';
+  const st=document.getElementById(id);
+  if(st){st.textContent='✓ Login link sent • email open karke link press karein';st.style.color='#b7791f'}
+  alert('Login link email par bhej diya. Email open karke OCS login link press karein, phir registration continue karein.');
+  return true;
+}
+function providerSkillLabels(){
+  let skills=[...document.querySelectorAll('input[name="paSkill"]:checked')].map(x=>x.value);
+  const otherChecked=skills.includes('Other');
+  const otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
+  if(otherChecked){
+    skills=skills.filter(x=>x!=='Other');
+    if(otherSkill)skills.push(otherSkill);
+  }
+  return skills;
+}
+async function syncProviderRegistrationToBackend(name,mobile,skills){
+  if(!ocsSupabase)throw new Error('Online service not connected');
+  const session=await getOcsSession();
+  if(!session||!session.user)throw new Error('Email login required');
+  const entered=(document.getElementById('paEmail')?.value||'').trim().toLowerCase();
+  const signed=(session.user.email||'').toLowerCase();
+  if(!signed||entered!==signed)throw new Error('Same verified email se login karein');
+  const {data,error}=await ocsSupabase.rpc('complete_service_provider_registration',{
+    p_full_name:name,
+    p_phone:mobile,
+    p_skill_labels:skills
+  });
+  if(error)throw error;
+  return data;
+}
+if(ocsSupabase){
+  ocsSupabase.auth.onAuthStateChange(()=>setTimeout(refreshOcsEmailStatus,0));
+  setTimeout(refreshOcsEmailStatus,0);
+}
 function openAccount(role){
  const isProvider=role==='provider';
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
@@ -1421,6 +1511,7 @@ function openAccount(role){
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  if(isProvider){
+   refreshOcsEmailStatus();
    const p=getProviderProfile();
    const st=document.getElementById('paSelfieStatus'),pv=document.getElementById('paSelfiePreview');
    if(p&&p.selfieCaptured){
@@ -1434,14 +1525,17 @@ function openAccount(role){
  document.getElementById('accountModal').classList.add('show');
 }
 function closeAccount(){document.getElementById('accountModal').classList.remove('show')}
-function demoVerify(kind){
+async function demoVerify(kind){
  const isMobile=kind.toLowerCase().includes('mobile');
  const id=kind+'Status';
  let inputId=kind==='customerMobile'?'caMobile':kind==='customerEmail'?'caEmail':kind==='providerMobile'?'paMobile':'paEmail';
  const v=(document.getElementById(inputId).value||'').trim();
- if(isMobile&&v.replace(/\D/g,'').length<10){alert('Valid mobile number enter karein.');return}
- if(!isMobile&&!v.includes('@')){alert('Valid email ID enter karein.');return}
- accountVerified[kind]=true;document.getElementById(id).textContent='✓ Verified for prototype';document.getElementById(id).style.color='#16815d';
+ if(isMobile){
+   if(v.replace(/\D/g,'').length<10){alert('Valid mobile number enter karein.');return}
+   accountVerified[kind]=true;document.getElementById(id).textContent='✓ Mobile entered';document.getElementById(id).style.color='#16815d';return;
+ }
+ if(!v.includes('@')){alert('Valid email ID enter karein.');return}
+ await sendOcsEmailLink(kind==='providerEmail'?'provider':'customer');
 }
 function saveCustomerAccount(){
  const email=caEmail.value.trim(),name=caName.value.trim(),mobile=caMobile.value.trim();
@@ -1466,25 +1560,40 @@ function handleProviderSelfie(input){
    box.innerHTML='<img alt="Service Provider selfie preview" src="'+url+'">';
  }
 }
-function saveProviderAccount(){
+async function saveProviderAccount(){
  const name=paName.value.trim(),mobile=paMobile.value.trim(),email=paEmail.value.trim(),area=paArea.value.trim(),radius=paRadius.value;
  const existingProvider=getProviderProfile();
  const selfieOk=!!providerSelfieFile||!!(existingProvider&&existingProvider.selfieCaptured);
- let skills=[...document.querySelectorAll('input[name="paSkill"]:checked')].map(x=>x.value);
- const otherChecked=skills.includes('Other'),otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
- if(otherChecked){
-   if(!otherSkill){alert('Other select kiya hai to apni skill / service ka naam likhein.');return}
-   skills=skills.filter(x=>x!=='Other');skills.push('Other: '+otherSkill);
- }
+ let skills=providerSkillLabels();
+ const otherChecked=[...document.querySelectorAll('input[name="paSkill"]:checked')].some(x=>x.value==='Other');
+ const otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
+ if(otherChecked&&!otherSkill){alert('Other select kiya hai to apni skill / service ka naam likhein.');return}
  const bankHolder=paBankHolder.value.trim(),bankName=paBankName.value.trim(),accountNo=paAccountNo.value.replace(/\s/g,''),accountNo2=paAccountNo2.value.replace(/\s/g,''),ifsc=paIfsc.value.trim().toUpperCase(),upi=paUpi.value.trim();
  if(!name||mobile.replace(/\D/g,'').length<10||!email.includes('@')||!area||!skills.length){alert('Name, valid mobile, email, service area aur kam se kam 1 skill required.');return}
  if(!selfieOk){alert('Live selfie required for Service Provider verification.');return}
  if(!bankHolder||!bankName||accountNo.length<6||accountNo!==accountNo2||!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)){alert('Valid bank details required. Account number dono jagah same aur IFSC sahi enter karein.');return}
- if(!accountVerified.providerEmail){alert('Email verify karein.');return}
- const last4=accountNo.slice(-4);
- localStorage.setItem('ocsProviderProfile',JSON.stringify({name,mobile,email,area,radius,skills,selfieCaptured:true,selfieMeta:providerSelfieFile?{name:providerSelfieFile.name||'selfie',type:providerSelfieFile.type||'image',size:providerSelfieFile.size||0}:((existingProvider&&existingProvider.selfieMeta)||null),bank:{holder:bankHolder,bankName,last4,ifsc,upi,verification:'Pending'},status:'Verification Pending'}));
- paAccountNo.value='';paAccountNo2.value='';
- closeAccount();openModule('Home Services','provider');
+ const session=await refreshOcsEmailStatus();
+ if(!session||!accountVerified.providerEmail){alert('Email login/verification complete karein. Email me bheja OCS Login Link press karein.');return}
+ try{
+   const sync=await syncProviderRegistrationToBackend(name,mobile,skills);
+   const last4=accountNo.slice(-4);
+   localStorage.setItem('ocsProviderProfile',JSON.stringify({
+     name,mobile,email,area,radius,skills,
+     backendConnected:true,
+     backendProviderId:sync&&sync.provider_id?sync.provider_id:(session.user&&session.user.id),
+     skillsSaved:sync&&sync.skills_saved?sync.skills_saved:0,
+     selfieCaptured:true,
+     selfieMeta:providerSelfieFile?{name:providerSelfieFile.name||'selfie',type:providerSelfieFile.type||'image',size:providerSelfieFile.size||0}:((existingProvider&&existingProvider.selfieMeta)||null),
+     bank:{holder:bankHolder,bankName,last4,ifsc,upi,verification:'Pending'},
+     status:'Skills Pending Verification'
+   }));
+   paAccountNo.value='';paAccountNo2.value='';
+   alert('Service Provider profile saved. Selected services OCS verification ke liye send ho gaye.');
+   closeAccount();openModule('Home Services','provider');
+ }catch(e){
+   console.error('Provider registration sync failed',e);
+   alert('Profile online save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
+ }
 }
 function getCustomerProfile(){try{return JSON.parse(localStorage.getItem('ocsCustomerProfile')||'null')}catch(e){return null}}
 function getProviderProfile(){try{return JSON.parse(localStorage.getItem('ocsProviderProfile')||'null')}catch(e){return null}}
