@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>OCS Customer UI Preview</title>
+<style>
+:root{
+  --ink:#142326;--muted:#667578;--line:#e7eceb;--soft:#f6f8f7;
+  --brand:#0a7568;--brand-dark:#07594f;--accent:#ec7a2b;--white:#fff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#eef2f1;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+.app{max-width:430px;min-height:100vh;margin:auto;background:#fff;position:relative;overflow-x:hidden;padding-bottom:82px}
+.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top-row{height:62px;display:flex;align-items:center;padding:0 16px;gap:11px}
+.logo{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;border:1px solid #dfe7e5;background:#fff;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:cover}
+.brand{min-width:0;flex:1}
+.brand b{display:block;font-size:15px;letter-spacing:.2px}
+.brand small{display:block;margin-top:2px;color:var(--muted);font-size:11px}
+.icon-btn{width:38px;height:38px;border:1px solid var(--line);border-radius:12px;background:#fff;display:grid;place-items:center;color:#33484a}
+svg{display:block}
+.content{padding:14px 16px 24px}
+.location{display:flex;align-items:center;gap:8px;color:#3d5355;font-size:12px;margin-bottom:12px}
+.location b{font-size:12px;color:#24383a}
+.search{height:48px;border:1px solid var(--line);background:#f8faf9;border-radius:14px;display:flex;align-items:center;gap:10px;padding:0 13px}
+.search svg{color:#6f7f81}
+.search input{border:0;outline:0;background:transparent;width:100%;font-size:14px;color:var(--ink)}
+.hero{margin-top:15px;border-radius:20px;overflow:hidden;background:#0d615a;position:relative;min-height:174px;box-shadow:0 12px 28px rgba(21,53,52,.13)}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.36;filter:saturate(.78) contrast(1.04)}
+.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,55,51,.95) 0%,rgba(4,55,51,.78) 52%,rgba(4,55,51,.2) 100%)}
+.hero-copy{position:relative;z-index:2;padding:21px 19px;color:#fff;max-width:72%}
+.hero-kicker{font-size:10px;text-transform:uppercase;letter-spacing:1.4px;font-weight:800;color:#c9ebe5}
+.hero h1{font-size:23px;line-height:1.08;margin:7px 0 8px;letter-spacing:-.6px}
+.hero p{font-size:12px;line-height:1.45;margin:0;color:#e2f3f0}
+.hero button{margin-top:14px;border:0;border-radius:11px;background:#fff;color:#07594f;padding:10px 13px;font-size:12px;font-weight:800}
+.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.trust div{border:1px solid var(--line);border-radius:13px;padding:10px 7px;text-align:center;background:#fff}
+.trust b{display:block;font-size:11px;margin-top:5px}
+.trust span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+.section-head{display:flex;align-items:end;justify-content:space-between;margin:22px 0 11px}
+.section-head h2{font-size:17px;margin:0;letter-spacing:-.25px}
+.section-head button{border:0;background:none;color:var(--brand);font-size:11px;font-weight:800;padding:0}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 10px}
+.cat{border:0;background:none;padding:0;text-align:center;color:var(--ink)}
+.cat-ico{width:58px;height:58px;margin:auto;border-radius:16px;background:#f3f6f5;border:1px solid #e9edec;display:grid;place-items:center;color:#0b6e63;transition:.15s}
+.cat:active .cat-ico{transform:scale(.97);background:#edf6f3}
+.cat span{display:block;margin-top:7px;font-size:10.5px;font-weight:700;line-height:1.18}
+.quick{margin-top:22px;border:1px solid var(--line);border-radius:17px;padding:15px;display:flex;align-items:center;gap:12px}
+.quick-ico{width:46px;height:46px;border-radius:13px;background:#fff4ec;display:grid;place-items:center;color:#b65920;flex:0 0 46px}
+.quick b{display:block;font-size:13px}
+.quick p{font-size:10.5px;color:var(--muted);margin:3px 0 0;line-height:1.35}
+.quick button{margin-left:auto;border:0;border-radius:10px;background:#0a7568;color:#fff;padding:9px 10px;font-weight:800;font-size:11px}
+.bottom{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:30;width:min(430px,100%);height:72px;padding-bottom:max(5px,env(safe-area-inset-bottom));background:rgba(255,255,255,.98);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr)}
+.nav{border:0;background:none;color:#758284;font-size:9px;font-weight:700;display:grid;place-items:center;align-content:center;gap:4px}
+.nav svg{width:20px;height:20px}
+.nav.on{color:var(--brand)}
+.hidden{display:none!important}
+
+/* service list */
+.service-page{min-height:100vh;background:#fff;padding-bottom:98px}
+.svc-top{height:60px;display:flex;align-items:center;gap:11px;padding:0 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:10}
+.svc-top h2{font-size:17px;margin:0}
+.svc-top small{font-size:10px;color:var(--muted)}
+.back{width:38px;height:38px;border:1px solid var(--line);border-radius:12px;background:#fff;display:grid;place-items:center}
+.svc-body{padding:13px 16px 120px}
+.svc-search{height:45px;border:1px solid var(--line);border-radius:13px;background:#f7f9f8;display:flex;align-items:center;gap:9px;padding:0 12px;margin-bottom:11px}
+.svc-search input{border:0;outline:0;width:100%;background:transparent;font-size:13px}
+.info{font-size:10px;line-height:1.4;color:#7c888a;margin:0 0 7px}
+.svc-list{border-top:1px solid var(--line)}
+.svc{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.svc-copy{flex:1;min-width:0}
+.svc-copy b{display:block;font-size:13px;line-height:1.3}
+.svc-copy span{display:block;margin-top:4px;font-size:12px;color:#58676a;font-weight:700}
+.svc-copy small{display:block;margin-top:3px;font-size:9.5px;color:#8a9596}
+.add{width:72px;height:36px;border:1px solid #0a7568;border-radius:9px;background:#fff;color:#0a7568;font-size:11px;font-weight:850}
+.step{height:36px;border:1px solid #dbe5e3;border-radius:9px;display:flex;align-items:center;overflow:hidden;background:#fff}
+.step button{width:32px;height:34px;border:0;background:#f5f8f7;color:#234345;font-size:17px;font-weight:800}
+.step b{width:28px;text-align:center;font-size:12px}
+.quote{min-width:82px;width:auto;padding:0 10px}
+.note{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:#fafbfb}
+.note summary{font-size:11px;font-weight:800;color:#48595b}
+.note p{font-size:10px;color:#728083;line-height:1.45;margin:8px 0 0}
+.cart{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;width:min(402px,calc(100% - 24px));z-index:40;background:#183c3a;color:#fff;border-radius:15px;box-shadow:0 10px 26px rgba(18,47,45,.25);display:flex;align-items:center;padding:11px 12px;gap:10px}
+.cart div{flex:1}
+.cart b{display:block;font-size:12px}
+.cart small{font-size:9.5px;color:#c9d9d7}
+.cart button{border:0;border-radius:10px;background:#fff;color:#123e39;font-size:11px;font-weight:850;padding:10px 14px}
+.cart.empty{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <section id="home">
+    <div class="top">
+      <div class="top-row">
+        <div class="logo"><img src="assets/ocs-logo-mark.svg" alt="OCS"></div>
+        <div class="brand"><b>One Call Solution</b><small>Home services at your doorstep</small></div>
+        <button class="icon-btn" aria-label="Notifications">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="location">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <div><span>Service location</span><br><b>Current area ▾</b></div>
+      </div>
+
+      <div class="search">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input placeholder="Search for electrician, plumber, AC..." />
+      </div>
+
+      <div class="hero">
+        <img src="assets/home-services-card-final.jpg" alt="">
+        <div class="hero-copy">
+          <div class="hero-kicker">Verified home professionals</div>
+          <h1>Reliable service. Clear pricing.</h1>
+          <p>Book trusted professionals with start OTP, service history and secure payment records.</p>
+          <button onclick="openCategory('Electrical')">Book a service</button>
+        </div>
+      </div>
+
+      <div class="trust">
+        <div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a7568" stroke-width="1.8" style="margin:auto"><path d="M12 3 5 6v5c0 5 3.5 8 7 10 3.5-2 7-5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+          <b>Verified</b><span>Service Providers</span>
+        </div>
+        <div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a7568" stroke-width="1.8" style="margin:auto"><path d="M4 7h16v10H4z"/><path d="M8 7V5h8v2"/><path d="M8 12h8"/></svg>
+          <b>Clear rates</b><span>Before booking</span>
+        </div>
+        <div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a7568" stroke-width="1.8" style="margin:auto"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <b>Quick help</b><span>OCS support</span>
+        </div>
+      </div>
+
+      <div class="section-head"><h2>Home services</h2><button>View all</button></div>
+      <div class="grid">
+        <button class="cat" onclick="openCategory('Electrical')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v5m0 10v5M4.9 4.9l3.5 3.5m7.2 7.2 3.5 3.5M2 12h5m10 0h5M4.9 19.1l3.5-3.5m7.2-7.2 3.5-3.5"/></svg></div><span>Electrical</span></button><button class="cat" onclick="alert('Plumbing preview next')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10v4H7zM9 7v4h6V7M12 11v10M8 21h8"/></svg></div><span>Plumbing</span></button><button class="cat" onclick="alert('AC Service preview next')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v9H4zM8 18c1-1 2-1 3 0s2 1 3 0 2-1 3 0"/></svg></div><span>AC Service</span></button><button class="cat" onclick="alert('Carpenter preview next')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M14 5h5v5M6 15l3 3-2 2-3-3z"/></svg></div><span>Carpenter</span></button><button class="cat" onclick="alert('Appliance preview next')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18H6zM9 7h6M9 11h.01M12 11h.01M15 11h.01M9 16h6"/></svg></div><span>Appliance</span></button><button class="cat" onclick="alert('Cleaning preview next')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 6H10L9 4ZM8 10h8l2 10H6l2-10Z"/></svg></div><span>Cleaning</span></button><button class="cat" onclick="alert('Maid Service preview next')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6ZM6 21v-5a6 6 0 0 1 12 0v5"/></svg></div><span>Maid Service</span></button><button class="cat" onclick="alert('Pest Control preview next')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M7 8l5 4 5-4M7 16l5-4 5 4M5 12h14"/></svg></div><span>Pest Control</span></button><button class="cat" onclick="alert('CCTV preview next')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h11l5 4-5 4H4zM8 16l-2 4M15 8l2-4"/></svg></div><span>CCTV</span></button><button class="cat" onclick="alert('Gas Stove preview next')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14v12H5zM8 4v3M16 4v3M8 12a2 2 0 1 0 0 .1M16 12a2 2 0 1 0 0 .1"/></svg></div><span>Gas Stove</span></button><button class="cat" onclick="alert('Painter preview next')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h11v5H4zM15 8h3v5h-5v7h-2v-9"/></svg></div><span>Painter</span></button><button class="cat" onclick="alert('More preview next')"><div class="cat-ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></div><span>More</span></button>
+      </div>
+
+      <div class="quick">
+        <div class="quick-ico"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></div>
+        <div><b>Need something not listed?</b><p>Describe the work and receive a quote from a matching Service Provider.</p></div>
+        <button>Request</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="services" class="service-page hidden">
+    <div class="svc-top">
+      <button class="back" onclick="backHome()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 18-6-6 6-6"/></svg></button>
+      <div><h2 id="svcTitle">Electrical</h2><small id="svcCount">45 services</small></div>
+    </div>
+    <div class="svc-body">
+      <div class="svc-search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#718083" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="filter" placeholder="Search electrical service" oninput="filterRows(this.value)"></div>
+      <p class="info">Labour/service charges shown below. Material and parts are separate where applicable.</p>
+      <div id="svcList" class="svc-list"></div>
+      <details class="note"><summary>Visit & no-work charge information</summary><p>Visit / Inspection ₹249. Eligible no-work visit charge: 1–6 km ₹199, above 6–12 km ₹249. Provider-side issue: customer ₹0.</p></details>
+    </div>
+  </section>
+
+  <div id="cart" class="cart empty"><div><b id="cartText">0 services • ₹0</b><small>Review before booking</small></div><button onclick="alert('Next screen: Booking summary')">Continue</button></div>
+
+  <nav id="bottomNav" class="bottom">
+    <button class="nav on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3Z"/></svg>Home</button>
+    <button class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg>Services</button>
+    <button class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>Bookings</button>
+    <button class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 12a8 8 0 0 1 16 0v5a2 2 0 0 1-2 2h-2v-6h4M4 13h4v6H6a2 2 0 0 1-2-2Z"/></svg>Support</button>
+    <button class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>Profile</button>
+  </nav>
+</div>
+
+<script>
+const electrical=[
+["Fan Fitting / Capacitor Change",239,"₹239"],
+["Fan Hook / Anchor Fastener Fitting",300,"₹300"],
+["Fan + Anchor Fastener Fitting",450,"₹450"],
+["Regulator Fitting – Concealed",239,"₹239"],
+["Regulator Fitting – Normal",239,"₹239"],
+["Switch Change – 1 No.",239,"₹239"],
+["1 Switch + 1 Socket Change",250,"₹250"],
+["Geyser Fitting – Normal",300,"₹300"],
+["Geyser + Angle Cock",350,"₹350"],
+["15/16 Amp Board Fitting",239,"₹239"],
+["Inverter Wiring – 1 BHK Casing/Patti",500,"₹500"],
+["Inverter Wiring – 1 BHK Concealed",700,"₹700"],
+["Normal Inverter Fitting",300,"₹300"],
+["MCB Single/Double Pole Fitting",300,"₹300"],
+["Tube/LED Light Fitting",239,"₹239"],
+["Holder Fitting",239,"₹239"],
+["Electric Board Change",300,"₹300"],
+["Exhaust Fan Installation/Replacement",239,"₹239"],
+["Wall Fan Installation/Replacement",239,"₹239"],
+["BLDC/Smart Fan Installation",239,"₹239"],
+["Switchboard Repair",300,"₹300"],
+["Doorbell Installation/Replacement",239,"₹239"],
+["Smart/Wi-Fi Switch Installation",239,"₹239"],
+["MCB Tripping / Electrical Fault Diagnosis",400,"₹400"],
+["Short Circuit / Fault Finding",400,"₹400"],
+["Main Distribution Board Work",0,"Get Quote"],
+["Full House Rewiring",0,"Get Quote"],
+["Chandelier / Heavy Decorative Light",0,"Get Quote / starts ₹800"],
+["Any Other Electrical Work",0,"Get Quote"]
+];
+const selected={};
+function openCategory(){
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("services").classList.remove("hidden");
+  document.getElementById("bottomNav").classList.add("hidden");
+  renderServices();
+  window.scrollTo(0,0);
+}
+function backHome(){
+  document.getElementById("services").classList.add("hidden");
+  document.getElementById("home").classList.remove("hidden");
+  document.getElementById("bottomNav").classList.remove("hidden");
+  document.getElementById("cart").classList.add("empty");
+  window.scrollTo(0,0);
+}
+function renderServices(){
+  const q=(document.getElementById("filter")?.value||"").toLowerCase();
+  const list=document.getElementById("svcList");
+  list.innerHTML=electrical.map((x,i)=>{
+    if(q&&!x[0].toLowerCase().includes(q))return "";
+    const qty=selected[i]||0,quote=x[1]===0;
+    return '<div class="svc" data-name="'+x[0].toLowerCase()+'"><div class="svc-copy"><b>'+x[0]+'</b><span>'+x[2]+'</span><small>'+(quote?'Price after inspection / quote':'Labour charge')+'</small></div>'+
+    (quote?'<button class="add quote" onclick="alert(\'Get Quote flow\')">Get Quote</button>':
+    qty?'<div class="step"><button onclick="qty('+i+',-1)">−</button><b>'+qty+'</b><button onclick="qty('+i+',1)">+</button></div>':
+    '<button class="add" onclick="qty('+i+',1)">Add</button>')+'</div>';
+  }).join("");
+  updateCart();
+}
+function qty(i,d){selected[i]=Math.max(0,(selected[i]||0)+d);if(!selected[i])delete selected[i];renderServices()}
+function updateCart(){
+  const ids=Object.keys(selected),cart=document.getElementById("cart");
+  if(!ids.length){cart.classList.add("empty");return}
+  const total=ids.reduce((a,k)=>a+electrical[k][1]*selected[k],0);
+  const count=ids.reduce((a,k)=>a+selected[k],0);
+  document.getElementById("cartText").textContent=count+" service"+(count>1?"s":"")+" • ₹"+total;
+  cart.classList.remove("empty");
+}
+function filterRows(){renderServices()}
+</script>
+</body>
+</html>
