@@ -209,7 +209,7 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 <div class="card">
 <h2>Service Provider</h2>
 <div class="row">
-<div><b id="providerName">SP1</b><div class="muted">Verified Service Provider</div><div class="muted" id="providerRatingLine">No ratings yet</div></div>
+<div><b id="providerName">SP1</b><div class="muted" id="providerVerificationLine">Service Provider Profile</div><div class="muted" id="providerRatingLine">No ratings yet</div></div>
 <button class="btn gray" id="availabilityBtn" onclick="toggleAvailability()">Available: ON</button>
 </div>
 <div class="notice good" style="margin:10px 0"><b>Get Paid Online. Earn More. Win Rewards.</b></div>
@@ -306,11 +306,12 @@ service:"",category:"",serviceType:"fixed",quantity:1,address:"Customer Address"
 startOtp:null,quote:null,quoteDecision:null,reschedule:null,rescheduleBy:null,
 cancelReason:null,cancelBy:null,visitCharge:0,distanceSlab:null,
 payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",supportTickets:[],logs:[],
-wallet:100,welcomeBonus:100,welcomeBonusGranted:true,welcomeBonusWithdrawable:false,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:10,
+wallet:100,welcomeBonus:100,welcomeBonusGranted:true,welcomeBonusWithdrawable:false,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:11,
 providerRatings:[],customerRating:null,pendingRatingStars:0,pendingRatingComment:"",customerRatingComment:"",
 currentJob:null,nextJob:null,pendingNextRequest:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null,
-customerName:"Customer 1",customerMobile:"Not added",customerEmail:"Not added",
-providerMobile:"Not added",providerEmail:"Not added",providerVerified:true
+customerName:"Customer 1",customerMobile:"Not added",customerEmail:"Not added",customerProfileAvailable:false,customerVerified:false,
+providerMobile:"Not added",providerEmail:"Not added",providerVerified:true,providerProfileAvailable:false,
+registeredProviderName:"",registeredProviderSkills:[],providerArea:"",providerRadius:0,providerVerificationStatus:"Not registered",providerBackendConnected:false,providerRequestForThisProfile:false
 };
 
 const OCS_HOME_STATE_KEY="ocsHomeServiceFullState";
@@ -382,6 +383,14 @@ function saveHomeState(){
    const raw=JSON.stringify(S);
    try{localStorage.setItem(OCS_HOME_STATE_KEY,raw)}catch(e){}
    try{if(window.parent&&window.parent.localStorage)window.parent.localStorage.setItem(OCS_HOME_STATE_KEY,raw)}catch(e){}
+   const bookingSummary={
+     flowVersion:11,id:S.activeBookingId||"",bookingId:S.activeBookingId||"",status:S.status,state:S.status,
+     category:S.category||"",service:S.service||S.serviceName||"",total:Number(S.total||0),base:Number(S.base||0),
+     paymentChoice:S.paymentChoice||"",provider:S.provider||"",customer:S.customerName||"Customer",
+     currentJob:S.currentJob||null,visitCharge:Number(S.visitCharge||0),updatedAt:Date.now()
+   };
+   try{localStorage.setItem("ocsCurrentBooking",JSON.stringify(bookingSummary))}catch(e){}
+   try{if(window.parent&&window.parent.localStorage)window.parent.localStorage.setItem("ocsCurrentBooking",JSON.stringify(bookingSummary))}catch(e){}
  }catch(e){console.error("OCS booking save failed",e)}
 }
 loadSavedHomeState();
@@ -402,6 +411,7 @@ S.beforeWorkProof=Array.isArray(S.beforeWorkProof)?S.beforeWorkProof:[];
 S.afterWorkProof=Array.isArray(S.afterWorkProof)?S.afterWorkProof:[];
 S.pendingNextRequest=S.pendingNextRequest&&typeof S.pendingNextRequest==="object"?S.pendingNextRequest:null;
 S.nextJob=S.nextJob&&typeof S.nextJob==="object"?S.nextJob:null;
+syncRegisteredProfiles();
 
 const $=id=>document.getElementById(id);
 const OCS_ACTION_GUARD={};
@@ -464,6 +474,69 @@ function ocsCloseBooking(reason){
  archiveOcsWorkHistory();
 }
 
+
+function readSharedLocalJson(key){
+ let raw="";
+ try{raw=localStorage.getItem(key)||""}catch(e){}
+ if(!raw)try{raw=window.parent&&window.parent.localStorage?window.parent.localStorage.getItem(key)||"":""
+}catch(e){}
+ if(!raw)return null;
+ try{return JSON.parse(raw)}catch(e){return null}
+}
+function normalSkill(v){return String(v||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim()}
+function requiredSkillsForBooking(){
+ const cat=String(S.category||"").trim(),svc=String(S.service||S.serviceName||"").trim();
+ if(cat==="AC Service")return ["AC","AC Service"];
+ if(cat==="Appliance Repair"){
+   if(/washing/i.test(svc))return ["Washing Machine"];
+   if(/refrigerator|fridge/i.test(svc))return ["Refrigerator"];
+   if(/chimney/i.test(svc))return ["Chimney"];
+   if(/ro|water purifier/i.test(svc))return ["RO / Water Purifier"];
+   return ["Washing Machine","Refrigerator","Chimney","RO / Water Purifier"];
+ }
+ if(cat==="Maid Service")return /cook/i.test(svc)?["Maid","Cook"]:["Maid"];
+ if(cat==="Wi-Fi / TV Installation & Setup")return ["Wi-Fi / TV Setup","Wi-Fi / TV Installation & Setup"];
+ if(cat==="Tiles / Stone")return ["Tiles / Stone Work","Tiles / Stone"];
+ return cat?[cat]:[];
+}
+function syncRegisteredProfiles(){
+ const cp=readSharedLocalJson("ocsCustomerProfile");
+ if(cp&&typeof cp==="object"){
+   S.customerProfileAvailable=true;S.customerVerified=!!(cp.verified||cp.emailVerified);
+   S.customerName=cp.name||S.customerName||"Customer";
+   S.customerMobile=cp.mobile||"Not added";S.customerEmail=cp.email||"Not added";
+ }else{S.customerProfileAvailable=false;S.customerVerified=false}
+ const pp=readSharedLocalJson("ocsProviderProfile");
+ if(pp&&typeof pp==="object"){
+   S.providerProfileAvailable=true;S.registeredProviderName=pp.name||"Service Provider";
+   S.providerMobile=pp.mobile||"Not added";S.providerEmail=pp.email||"Not added";
+   S.registeredProviderSkills=Array.isArray(pp.skills)?pp.skills:[];
+   S.providerArea=pp.area||"";S.providerRadius=Number(pp.radius||0);
+   S.providerVerificationStatus=pp.status||"Verification Pending";
+   S.providerBackendConnected=!!pp.backendConnected;
+   S.providerVerified=/approved|verified|active/i.test(String(pp.status||""));
+   if(!S.provider||/^SP\d+$/i.test(S.provider)||S.provider==="Matching Provider")S.provider=S.registeredProviderName;
+ }else{
+   S.providerProfileAvailable=false;S.registeredProviderName="";S.registeredProviderSkills=[];
+   S.providerArea="";S.providerRadius=0;S.providerVerificationStatus="Not registered";S.providerBackendConnected=false;
+ }
+}
+function providerMatchesCurrentBooking(){
+ if(!S.providerProfileAvailable)return false;
+ const need=requiredSkillsForBooking().map(normalSkill).filter(Boolean);
+ const have=(S.registeredProviderSkills||[]).map(normalSkill).filter(Boolean);
+ if(!need.length)return true;
+ return need.some(n=>have.some(h=>h===n||h.includes(n)||n.includes(h)));
+}
+function prepareProfileMatching(){
+ syncRegisteredProfiles();
+ const match=providerMatchesCurrentBooking();
+ S.providerRequestForThisProfile=!!(S.providerProfileAvailable&&match);
+ S.matchingRequiredSkills=requiredSkillsForBooking();
+ if(S.providerRequestForThisProfile&&S.registeredProviderName)S.provider=S.registeredProviderName;
+ else if(!S.providerRequestForThisProfile)S.provider="Matching Provider";
+ return match;
+}
 
 const services={
  'Electrical':{icon:'⚡',items:[{"name": "Fan Fitting / Capacitor Change", "type": "fixed", "price": 239, "display": "₹239", "fanBundle": false}, {"name": "Fan Hook / Anchor Fastener Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Fan + Anchor Fastener Fitting", "type": "fixed", "price": 450, "display": "₹450"}, {"name": "Regulator Fitting – Concealed", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Regulator Fitting – Normal", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Switch Change – 1 No.", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "1 Switch + 1 Socket Change", "type": "fixed", "price": 250, "display": "₹250"}, {"name": "Geyser Fitting – Normal", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Geyser + Angle Cock", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "15/16 Amp Board Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Inverter Wiring – 1 BHK Casing/Patti", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "Inverter Wiring – 1 BHK Concealed", "type": "fixed", "price": 700, "display": "₹700"}, {"name": "Normal Inverter Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Inverter + Overhead Battery Load", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "MCB Single/Double Pole Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Tube/LED Light Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Holder Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Electric Board Change", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Bulb Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Building Street Light – 1", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "Earthing Maintenance / Check", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "New Earthing Installation Wiring – 1 BHK", "type": "fixed", "price": 700, "display": "₹700"}, {"name": "Visit / Inspection – Work Checking", "type": "fixed", "price": 249, "display": "₹249"}, {"name": "Exhaust Fan Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Wall Fan Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "BLDC/Smart Fan Installation", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Decorative Fan Installation", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "New Switch Box Installation", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Switchboard Repair", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Plug Top Replacement/Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Doorbell Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Smart/Wi-Fi Switch Installation", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Submeter Installation", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Stabiliser Installation", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "External Wiring with Casing/Patti – per 5m", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Internal/Concealed Wiring – per 5m", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "New Normal Power Point Wiring", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "AC Dedicated Power Point Wiring", "type": "fixed", "price": 800, "display": "₹800"}, {"name": "MCB Tripping / Electrical Fault Diagnosis", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Short Circuit / Fault Finding", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Main Distribution Board Work", "type": "quote", "display": "Get Quote"}, {"name": "Full House Rewiring", "type": "quote", "display": "Get Quote"}, {"name": "New Complete Earthing", "type": "quote", "display": "Get Quote"}, {"name": "Chandelier / Heavy Decorative Light", "type": "quote", "price": 800, "display": "Get Quote / starts ₹800"}, {"name": "Any Other Electrical Work", "type": "quote", "display": "Get Quote"}]},
@@ -562,6 +635,9 @@ function saveAfterWorkProof(){
 }
 function providerAcceptQuoteRequest(){
  if(S.status!=="QUOTE_WAIT")return;
+ syncRegisteredProfiles();
+ if(!S.providerProfileAvailable){alert("Service Provider profile registration required hai.");return}
+ if(!S.providerRequestForThisProfile||!providerMatchesCurrentBooking()){alert("Ye Get Quote request aapke registered skills se match nahi karti.");return}
  S.quoteProviderAccepted=true;S.quoteResponseDeadline=0;
  hist(S.provider+" accepted Get Quote request • Discussion / quote preparation started");
 }
@@ -718,7 +794,9 @@ function submitCustomRequest(){
  const videos=Array.from($("customVideo")?.files||[]).slice(0,1).map(function(x){return {kind:"video",name:x.name}});
  S.requestMedia=photos.concat(videos);S.chatMessages=[];S.customDescription=d;S.customSchedule=sch;
  S.service=S.service&&S.serviceType==="quote"?S.service:(S.category+" • New Service Request");
- S.serviceType="quote";S.isQuoteBooking=true;S.status="QUOTE_WAIT";S.currentJob="Quote Request";
+ S.serviceType="quote";S.isQuoteBooking=true;prepareProfileMatching();S.status="QUOTE_WAIT";S.currentJob="Quote Request";
+ S.customerSnapshot={name:S.customerName,mobile:S.customerMobile,email:S.customerEmail,address:S.address};
+ S.providerMatchSnapshot={name:S.registeredProviderName||"",skills:(S.registeredProviderSkills||[]).slice(),area:S.providerArea||"",radius:Number(S.providerRadius||0),matched:!!S.providerRequestForThisProfile};
  S.quoteProviderAccepted=false;S.quoteResponseDeadline=Date.now()+60*60*1000;S.quoteValidUntil=0;
  hist("Get Quote request sent • "+S.category+" • Photo/Video "+S.requestMedia.length+" • "+sch+" • Provider response window 60 min")
 }
@@ -1171,8 +1249,11 @@ function booking(){
  if(!ocsRequireStage(["BOOKING_DETAILS","READY"],"Create booking"))return;
  if(!ocsGuardAction("create-booking",1600))return;
  if(S.activeBookingId&&!S.bookingClosedAt){alert("Ek active booking already hai. Duplicate booking create nahi hogi.");return}
+ prepareProfileMatching();
  ensureBookingAmount();
  S.activeBookingId="OCS-JOB-"+Date.now().toString(36).toUpperCase();
+ S.customerSnapshot={name:S.customerName,mobile:S.customerMobile,email:S.customerEmail,address:S.address};
+ S.providerMatchSnapshot={name:S.registeredProviderName||"",skills:(S.registeredProviderSkills||[]).slice(),area:S.providerArea||"",radius:Number(S.providerRadius||0),matched:!!S.providerRequestForThisProfile};
  S.bookingClosedAt=0;S.paymentFinalized=false;S.startOtpVerifiedAt=0;S.workFinishedAt=0;S.customerCompletionAt=0;
  // Customer should never see Service Provider wallet/admin/internal eligibility details.
  // Matching eligibility is handled internally/provider-side.
@@ -1180,19 +1261,22 @@ function booking(){
  S.currentJob="Incoming • "+(S.service||S.category||"Home Service");
  S.requestCreatedAt=Date.now();
  S.providerRequestSeen=false;
- hist("Customer created booking "+S.activeBookingId+" • ₹"+S.base+" • Payment choice: "+S.paymentChoice+" • OCS matching eligible provider")
+ hist("Customer created booking "+S.activeBookingId+" • "+S.customerName+" • ₹"+S.base+" • Payment choice: "+S.paymentChoice+" • "+(S.providerRequestForThisProfile?("Matched registered SP "+S.registeredProviderName):"OCS checking another skill-matched provider"))
 }
 
 function providerDecision(d){
  if(!ocsRequireStage("REQUESTED",d==="accept"?"Accept booking":"Reject booking"))return;
  if(!ocsGuardAction("provider-"+d,1200))return;
 if(d==="accept"){
+ if(!S.providerProfileAvailable){alert("Service Provider profile registration required hai.");return}
+ if(!S.providerRequestForThisProfile||!providerMatchesCurrentBooking()){alert("Ye request aapke registered skills se match nahi karti. OCS isko matching Service Provider ko bhejega.");return}
  if(!S.available){alert("Available for Work OFF hai. New job accept karne ke liye ON karein.");return}
  if(S.adminPaused||!S.jobAccess){alert("OCS Admin ne new jobs temporarily pause kiye hain.");return}
  S.status="ASSIGNED";S.providerAssignedAt=Date.now();S.providerReleasedNotice=null;hist(S.provider+" accepted booking")
 }else{
- let old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";
- S.status="REQUESTED";S.providerRequestSeen=false;hist(old+" rejected • OCS checking next eligible provider")
+ let old=S.provider;
+ S.providerRequestForThisProfile=false;S.provider="Next Eligible SP";
+ S.status="REQUESTED";S.providerRequestSeen=false;hist(old+" rejected • OCS checking next eligible skill-matched provider")
 }
 }
 
@@ -1744,14 +1828,16 @@ function resetAll(){
    providerRatings:providerState.providerRatings,customerRating:null,pendingRatingStars:0,customerRatingComment:"",
    wallet:providerState.wallet,welcomeBonus:providerState.welcomeBonus,walletWarningLevel:providerState.walletWarningLevel,
    platformCharge:providerState.platformCharge,commissionDue:0,
-   adminPaused:providerState.adminPaused,jobAccess:!providerState.adminPaused,rulesVersion:9,flowVersion:10,
+   adminPaused:providerState.adminPaused,jobAccess:!providerState.adminPaused,rulesVersion:9,flowVersion:11,
    currentJob:null,nextJob:providerState.nextJob||null,pendingNextRequest:null,completionRequested:false,
    providerChangeReason:null,providerChangeTicket:null,previousProvider:null,
+   customerProfileAvailable:false,customerVerified:false,providerProfileAvailable:false,registeredProviderName:"",registeredProviderSkills:[],providerArea:"",providerRadius:0,providerVerificationStatus:"Not registered",providerBackendConnected:false,providerRequestForThisProfile:false,
    wncTicket:null,wncFault:null,providerReleasedNotice:null
  });
  try{localStorage.removeItem(OCS_HOME_STATE_KEY)}catch(e){}
  try{if(window.parent&&window.parent.localStorage)window.parent.localStorage.removeItem(OCS_HOME_STATE_KEY)}catch(e){}
  try{if(window.parent&&window.parent.localStorage)window.parent.localStorage.removeItem("ocsCurrentBooking")}catch(e){}
+ syncRegisteredProfiles();
  render()
 }
 
@@ -2072,18 +2158,25 @@ if(S.status==="BOOKING_DETAILS"){
  ?`<div class="card"><h3>Accepted Get Quote</h3><div class="money">${money(S.total)}</div><div class="muted">Customer booking details complete kar raha hai.</div><button class="btn alt" onclick="providerRequestQuoteRevision()">Request Quote Revision</button></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`
  :`<p class="muted">No active job.</p>`;
 }
-if(S.status==="QUOTE_WAIT")h=`<div class="card"><h3>Get Quote Request</h3><b>${S.category}</b><p>${ocsSafe(S.customDescription||"Custom work")}</p><div class="muted">Preferred: ${ocsSafe(S.customSchedule||"")}</div>${quoteTimerHTML()}<div class="notice"><b>OCS Rule:</b> Verbal/Chat amount official nahi hai. Customer app me quote accept kare tabhi amount official hoga.</div>${quoteMediaHTML()}${S.quoteProviderAccepted?"":'<button class="btn ok" onclick="providerAcceptQuoteRequest()">Accept & Discuss</button>'}<button class="btn" onclick="sendInitialQuote()">Send Official Quote</button><button class="btn gray" onclick="askExpert()">Ask to Expert</button></div>${quoteChatHTML("provider")}`;
+if(S.status==="QUOTE_WAIT")h=(!S.providerProfileAvailable||!S.providerRequestForThisProfile||!providerMatchesCurrentBooking())
+ ?`<div class="card"><h3>No Matching Get Quote</h3><div class="notice">Ye request aapke registered skills ke liye nahi hai. OCS matching Service Provider ko bhej raha hai.</div></div>`
+ :`<div class="card"><h3>Get Quote Request</h3><b>${S.category}</b><p>${ocsSafe(S.customDescription||"Custom work")}</p><div class="muted">Customer: ${ocsSafe(S.customerName||"Customer")} • Preferred: ${ocsSafe(S.customSchedule||"")}</div>${quoteTimerHTML()}<div class="notice"><b>OCS Rule:</b> Verbal/Chat amount official nahi hai. Customer app me quote accept kare tabhi amount official hoga.</div>${quoteMediaHTML()}${S.quoteProviderAccepted?"":'<button class="btn ok" onclick="providerAcceptQuoteRequest()">Accept & Discuss</button>'}<button class="btn" onclick="sendInitialQuote()">Send Official Quote</button><button class="btn gray" onclick="askExpert()">Ask to Expert</button></div>${quoteChatHTML("provider")}`;
 
 if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice">No incoming request.<br>Customer provider-change request is under OCS Support review. Another provider will receive it only after Admin approval.</div>`;
 
 if(S.status==="REQUESTED"){
- const canReceive=S.available&&!S.adminPaused&&S.jobAccess;
+ const skillMatch=providerMatchesCurrentBooking();
+ const canReceive=S.available&&!S.adminPaused&&S.jobAccess&&S.providerProfileAvailable&&S.providerRequestForThisProfile&&skillMatch;
  const walletLow=Number(S.wallet)<Number(S.walletWarningLevel||200);
- if(canReceive){
+ if(!S.providerProfileAvailable){
+   h=`<div class="card"><h3>Service Provider Registration Required</h3><div class="notice">New Home Service request receive karne ke liye pehle Service Provider profile complete karein.</div></div>`;
+ }else if(!S.providerRequestForThisProfile||!skillMatch){
+   h=`<div class="card"><h3>No Matching Request</h3><div class="notice">Current request <b>${ocsSafe(S.category||"Home Service")}</b> aapke registered skills se match nahi karti. OCS matching provider ko request bhej raha hai.</div><div class="muted">Your skills: ${ocsSafe((S.registeredProviderSkills||[]).join(", ")||"None")}</div></div>`;
+ }else if(canReceive){
    h=`
 <div class="card"><h3>Incoming Request</h3>
 ${walletLow?'<div class="notice"><b>Wallet Warning</b><br>Maintain wallet to continue booking smoothly. This warning does not block this job.</div>':''}
-<b>${S.service}</b><div class="muted">${S.address}</div>
+<b>${S.service}</b><div class="muted">Customer: ${ocsSafe(S.customerName||"Customer")} • ${ocsSafe(S.address)}</div>
 <div class="money">₹${S.base}</div>
 <div class="row">
 <button class="btn ok" onclick="providerDecision('accept')">Accept</button>
@@ -2428,7 +2521,8 @@ function providerCustomerExtraHTML(){
  return `<div class="card"><div class="status" style="display:inline-block;margin-bottom:8px">NEW REQUEST</div><h3>Customer Add Work Request</h3>${rows}<div class="muted" style="margin:7px 0 10px">Customer ne running booking me extra work bheja hai.</div><div class="row"><button class="btn ok" onclick="providerProcessCustomerAddWork()">${fixed?"Accept & Add":"Enter Quote & Send"}</button><button class="btn gray" onclick="providerReturnCustomerAddWork()">Send Back / Change</button><button class="btn red" onclick="providerRejectCustomerAddWork()">Reject</button></div></div>`;
 }
 function renderCore(){
-$("providerName").textContent=S.provider;
+$("providerName").textContent=S.registeredProviderName||S.provider||"Service Provider";
+const pvl=$("providerVerificationLine");if(pvl)pvl.textContent=(S.providerVerificationStatus||"Verification Pending")+(S.providerArea?(" • "+S.providerArea+" • "+(S.providerRadius||0)+" km"):"");
 const prl=$("providerRatingLine");if(prl)prl.innerHTML=providerRatingSummary();
 const prv=$("providerReviews");if(prv)prv.innerHTML=providerRatingCommentsHTML();
 $("availabilityBtn").textContent="Available: "+(S.available?"ON":"OFF");
@@ -2470,7 +2564,7 @@ function render(){
  saveHomeState();
  renderCore();
  updateSelectionTray();
- try{window.parent.postMessage({type:"OCS_BOOKING_STATE",booking:{flowVersion:10,updatedAt:Date.now(),status:S.status,provider:S.provider,category:S.category,service:S.service||S.serviceName||"",total:S.total,base:S.base,paymentChoice:S.paymentChoice,currentJob:S.currentJob,rescheduleTime:S.rescheduleTime||null,visitCharge:S.visitCharge||0},fullState:S},"*")}catch(e){}
+ try{window.parent.postMessage({type:"OCS_BOOKING_STATE",booking:{flowVersion:11,updatedAt:Date.now(),status:S.status,provider:S.provider,category:S.category,service:S.service||S.serviceName||"",total:S.total,base:S.base,paymentChoice:S.paymentChoice,currentJob:S.currentJob,rescheduleTime:S.rescheduleTime||null,visitCharge:S.visitCharge||0},fullState:S},"*")}catch(e){}
 }
 
 // Direct category route from Home screen shortcuts (?cat=Plumbing etc.)
@@ -2509,10 +2603,13 @@ document.addEventListener("click",function(e){
 },true);
 
 document.body.classList.add('customer-locked-ui');
+let OCS_ROUTE_TAB="customer";
+try{const rt=new URLSearchParams(window.location.search||"").get("tab");if(rt==="provider"||rt==="customer")OCS_ROUTE_TAB=rt}catch(e){}
 setInterval(function(){
  if(["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_REVISION_PENDING"].includes(S.status))render();
 },30000);
 render();
+if(OCS_ROUTE_TAB==="provider")showTab("provider");
 </script>
 </body>
 </html>
