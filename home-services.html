@@ -379,6 +379,10 @@ S.heldAmount=Number(S.heldAmount||0);
 S.paymentHeld=!!S.paymentHeld;
 S.paymentReleased=!!S.paymentReleased;
 S.commissionApplied=!!S.commissionApplied;
+S.quoteHistory=Array.isArray(S.quoteHistory)?S.quoteHistory:[];
+S.quoteRevision=S.quoteRevision||null;
+S.pendingRevisionTopUp=Number(S.pendingRevisionTopUp||0);
+S.quoteRevisionRefund=Number(S.quoteRevisionRefund||0);
 
 const $=id=>document.getElementById(id);
 
@@ -430,12 +434,28 @@ function quoteMediaHTML(){
    return '<div class="notice" style="margin:6px 0"><b>'+(x.kind==="video"?"🎥 Video":"📷 Photo")+'</b><br>'+ocsSafe(x.name)+'</div>';
  }).join("")+'</div>';
 }
+function quoteHistoryHTML(){
+ const a=Array.isArray(S.quoteHistory)?S.quoteHistory:[];
+ if(!a.length)return "";
+ return '<div class="card"><h3>Quote History</h3>'+a.slice(-6).reverse().map(function(x){
+   return '<div class="row"><span>Version '+ocsSafe(x.version||"—")+' • '+ocsSafe(x.status||"")+'</span><b>'+money(x.amount)+'</b></div>'+
+   (x.reason?'<div class="muted" style="margin:-4px 0 8px">'+ocsSafe(x.reason)+'</div>':'');
+ }).join("")+'</div>';
+}
 function quoteChatHTML(side){
  const a=Array.isArray(S.chatMessages)?S.chatMessages:[];
  let body=a.length?'<div class="log" style="margin-top:8px">'+a.slice(-8).map(function(x){
    return '<div><b>'+ocsSafe(x.from)+':</b> '+ocsSafe(x.text)+'</div>';
  }).join("")+'</div>':'<div class="muted" style="margin-top:8px">No messages yet.</div>';
- return '<div class="card"><h3>Booking Chat</h3><div class="muted">Customer ↔ Service Provider • OCS booking record</div>'+body+'<button class="btn alt" onclick="quoteChat(\''+side+'\')">💬 Chat</button></div>';
+ return '<div class="card"><h3>Discuss Get Quote</h3><div class="muted">Call / Video / Chat discussion ke liye. Final amount sirf OCS quote approval se change hoga.</div>'+body+
+ '<div class="row" style="margin-top:8px"><button class="btn gray" onclick="quoteCall(\''+side+'\')">📞 Call</button><button class="btn gray" onclick="quoteVideoCall(\''+side+'\')">🎥 Video Call</button></div>'+
+ '<button class="btn alt" onclick="quoteChat(\''+side+'\')">💬 Chat</button></div>';
+}
+function quoteCall(side){
+ alert((side==="provider"?"Customer":"Service Provider")+" verified booking call yahan open hoga. Production app me masked/secure calling connect hogi.");
+}
+function quoteVideoCall(side){
+ alert((side==="provider"?"Customer":"Service Provider")+" video call yahan open hogi. Production app me secure video-call service connect hogi.");
 }
 function quoteChat(side){
  const from=side==="provider"?S.provider:"Customer";
@@ -536,16 +556,99 @@ function submitCustomRequest(){
 }
 function sendInitialQuote(){
  let a=Number(prompt("Service Provider quote ₹"));if(!a||a<=0)return;
- S.quote={desc:S.customDescription||S.service,amount:a,initial:true};S.quoteDecision="PENDING";S.status="INITIAL_QUOTE";
+ S.quote={desc:S.customDescription||S.service,amount:a,initial:true};
+ S.quoteHistory=Array.isArray(S.quoteHistory)?S.quoteHistory:[];
+ S.quoteHistory.push({version:S.quoteHistory.length+1,amount:a,status:"SENT",reason:"Initial quote",at:Date.now()});
+ S.quoteDecision="PENDING";S.status="INITIAL_QUOTE";
  hist(S.provider+" sent quote "+money(a)+" • Customer approval + OCS secure payment pending")
 }
 function initialQuoteDecision(d){
  if(d==="APPROVED"){
-   S.quoteDecision="APPROVED";S.base=Number(S.quote.amount||0);S.total=S.base;S.isQuoteBooking=true;S.status="QUOTE_SECURE_PAYMENT";
+   S.quoteDecision="APPROVED";S.base=Number(S.quote.amount||0);S.total=S.base;S.bookingAmount=S.total;S.isQuoteBooking=true;S.status="QUOTE_SECURE_PAYMENT";
+   if(Array.isArray(S.quoteHistory)&&S.quoteHistory.length)S.quoteHistory[S.quoteHistory.length-1].status="ACCEPTED";
    hist("Customer accepted quote • Amount locked "+money(S.total)+" • OCS secure payment required")
  }else{
-   S.quoteDecision="REJECTED";S.status="CUSTOM_REQUEST";hist("Customer rejected quote")
+   S.quoteDecision="REJECTED";
+   if(Array.isArray(S.quoteHistory)&&S.quoteHistory.length)S.quoteHistory[S.quoteHistory.length-1].status="REJECTED";
+   S.status="CUSTOM_REQUEST";hist("Customer rejected quote")
  }
+}
+
+function providerRequestQuoteRevision(){
+ const allowed=["QUOTE_SECURE_PAYMENT","BOOKING_DETAILS","REQUESTED","ASSIGNED","ON_WAY","REACHED"];
+ if(!S.isQuoteBooking||!S.quote||S.quoteDecision!=="APPROVED"||!allowed.includes(S.status)){
+   alert("Accepted Get Quote ko Work Start se pehle hi revise kiya ja sakta hai. Work start ke baad Add More Work / New Quote use karein.");return;
+ }
+ const reason=(prompt("Quote badalne ka reason *")||"").trim();if(!reason)return;
+ const oldAmount=Number(S.total||S.quote.amount||0);
+ const newAmount=Number(prompt("Revised quote amount ₹",String(oldAmount)));if(!newAmount||newAmount<=0||newAmount===oldAmount)return;
+ S.quoteRevision={oldAmount,newAmount,reason,returnStatus:S.status,requestedBy:S.provider,at:Date.now()};
+ S.quoteHistory=Array.isArray(S.quoteHistory)?S.quoteHistory:[];
+ S.quoteHistory.push({version:S.quoteHistory.length+1,amount:newAmount,status:"REVISION PENDING",reason:reason,at:Date.now()});
+ S.status="QUOTE_REVISION_PENDING";
+ hist(S.provider+" requested quote revision • "+money(oldAmount)+" → "+money(newAmount)+" • "+reason);
+}
+
+function customerQuoteRevisionDecision(action){
+ const r=S.quoteRevision;if(!r)return;
+ if(action==="DISCUSS"){quoteChat("customer");return}
+ if(action==="REJECT"){
+   if(Array.isArray(S.quoteHistory)&&S.quoteHistory.length)S.quoteHistory[S.quoteHistory.length-1].status="REVISION REJECTED";
+   S.status=r.returnStatus||"QUOTE_SECURE_PAYMENT";S.quoteRevision=null;
+   hist("Customer rejected quote revision • Original amount remains "+money(r.oldAmount));return;
+ }
+ const delta=Number(r.newAmount)-Number(r.oldAmount);
+ S.quote={...(S.quote||{}),amount:Number(r.newAmount),revised:true};
+ S.base=Number(r.newAmount);S.total=Number(r.newAmount);S.bookingAmount=S.total;S.finalAmount=S.total;S.amount=S.total;
+ if(Array.isArray(S.quoteHistory)&&S.quoteHistory.length)S.quoteHistory[S.quoteHistory.length-1].status="REVISION ACCEPTED";
+ if(S.paymentHeld&&delta>0){
+   S.pendingRevisionTopUp=delta;S.status="QUOTE_REVISION_TOPUP";
+   hist("Customer accepted revised quote • Extra "+money(delta)+" secure payment required");return;
+ }
+ if(S.paymentHeld&&delta<0){
+   const refund=Math.abs(delta);
+   S.heldAmount=Math.max(0,Number(S.heldAmount||0)-refund);
+   S.quoteRevisionRefund=refund;
+   S.status=r.returnStatus||"REQUESTED";S.quoteRevision=null;
+   hist("Customer accepted lower revised quote • "+money(refund)+" refund/adjustment prepared • New amount "+money(S.total));return;
+ }
+ S.status=r.returnStatus||"QUOTE_SECURE_PAYMENT";S.quoteRevision=null;
+ hist("Customer accepted revised quote • Official amount "+money(S.total));
+}
+
+function secureQuoteRevisionTopUp(){
+ const r=S.quoteRevision,extra=Number(S.pendingRevisionTopUp||0);if(!r||extra<=0)return;
+ S.heldAmount=Number(S.heldAmount||0)+extra;S.paymentHeld=true;S.paymentChoice="ONLINE";S.payment="OCS_SECURE_HOLD";
+ S.pendingRevisionTopUp=0;S.status=r.returnStatus||"REQUESTED";S.quoteRevision=null;
+ hist("Customer secured revised quote extra "+money(extra)+" with OCS • Total held "+money(S.heldAmount));
+}
+
+function cancelAcceptedQuoteBeforeWork(){
+ const allowed=["QUOTE_SECURE_PAYMENT","BOOKING_DETAILS","REQUESTED","ASSIGNED","ON_WAY","REACHED","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP"];
+ if(!S.isQuoteBooking||!allowed.includes(S.status)){alert("Work Start ke baad Cancel ke bajay Work Not Completed / Resolve Here use karein.");return}
+ const reason=(prompt("Cancel reason *")||"").trim();if(!reason)return;
+ if(!confirm("Accepted Get Quote booking cancel karna hai?"))return;
+ const travelStarted=["ON_WAY","REACHED"].includes(S.status)||(S.quoteRevision&&["ON_WAY","REACHED"].includes(S.quoteRevision.returnStatus));
+ S.cancelReason=reason;S.cancelBy="customer";
+ if(S.paymentHeld&&Number(S.heldAmount||0)>0){
+   let charge=0;
+   if(travelStarted){
+     const km=Number(S.oneWayDistanceKm||0);
+     charge=km>0?calculateNoWorkVisitCharge(km):199;
+   }
+   S.visitCharge=charge;
+   settleHeldNoWork(charge,travelStarted?"Customer cancelled after Service Provider travel started":"Customer cancelled before Service Provider travel");
+   return;
+ }
+ if(travelStarted){
+   const km=Number(S.oneWayDistanceKm||0);
+   S.visitCharge=km>0?calculateNoWorkVisitCharge(km):199;
+   S.distanceSlab=km>6?">6–12 km":"1–6 km";
+   S.status="VISIT_PAYMENT";
+   hist("Customer cancelled accepted quote after provider travel • Applicable visit charge "+money(S.visitCharge));return;
+ }
+ S.status="CANCELLED";S.payment="No payment collected";
+ hist("Customer cancelled accepted quote before provider travel • No visit charge");
 }
 function backToCategories(){S.status="SELECT_SERVICE";S.category="";S.service="";S.base=0;S.total=0;render()}
 
@@ -1242,7 +1345,7 @@ function resetAll(){
    available:providerState.available,
    base:0,total:0,service:"",category:"",serviceType:"fixed",quantity:1,address:"Customer Address",
    selectedItems:[],
-   startOtp:null,quote:null,quoteDecision:null,
+   startOtp:null,quote:null,quoteDecision:null,quoteHistory:[],quoteRevision:null,pendingRevisionTopUp:0,quoteRevisionRefund:0,
    customDescription:"",customSchedule:"",
    customerAddingWork:false,addWorkSelected:{},addWorkQty:{},
    customerExtraItems:[],customerExtraRequest:"",customerExtraStatus:"",extraQuote:null,lastAddedWork:null,
@@ -1354,9 +1457,11 @@ if(S.status==="SELECT_ITEM"){
 }
 if(S.status==="CUSTOM_REQUEST"){h=`<button class="backbtn" onclick="S.status='SELECT_ITEM';render()">← ${S.category}</button><div class="card"><h3>Get Quote • New Service Request</h3><div class="muted">Koi bhi Get Quote work ke liye details + photo/video bhejein. Provider reply ke baad isi booking me Chat rahega.</div><label>Describe your work / problem *</label><textarea id="customDesc" rows="4" placeholder="Kaam ki poori detail likhiye"></textarea><label>Work Photos (up to 5)</label><input id="customPhoto" type="file" accept="image/*" multiple><label>Work Video (up to 1 minute)</label><input id="customVideo" type="file" accept="video/*"><div class="notice good"><b>Photo • Video • Chat</b><br>Ye sab isi OCS booking record ke saath rahega.</div><label>Preferred Schedule *</label><div class="schedule-grid"><label><input type="radio" name="customSchedule" value="Morning 8 AM–12 PM">Morning • 8 AM–12 PM</label><label><input type="radio" name="customSchedule" value="Afternoon 12–4 PM">Afternoon • 12–4 PM</label><label><input type="radio" name="customSchedule" value="Evening 4–8 PM">Evening • 4–8 PM</label></div><button class="btn" onclick="submitCustomRequest()">Send Get Quote Request</button></div>`;return h}
 if(S.status==="QUOTE_WAIT"){h=`<div class="notice good"><b>Get Quote Request Sent</b><br>Matching verified Service Provider ko work details + attachments bheje gaye. Quote isi OCS booking me aayega.</div><div class="card"><b>${S.service||S.category}</b><p>${ocsSafe(S.customDescription||"")}</p><div class="muted">Preferred: ${ocsSafe(S.customSchedule||"")}</div></div>${quoteMediaHTML()}${quoteChatHTML("customer")}`;return h}
-if(S.status==="INITIAL_QUOTE"){h=`<div class="card"><h3>Service Provider Quote</h3><p>${ocsSafe(S.quote.desc)}</p><div class="money">${money(S.quote.amount)}</div><div class="notice good"><b>🔒 OCS Trust Flow</b><br>Accept ke baad amount OCS Secure Payment me lock hoga. Service Provider ko work complete + Customer confirmation se pehle release nahi hoga.</div><div class="row"><button class="btn ok" onclick="initialQuoteDecision('APPROVED')">Accept & Lock Amount</button><button class="btn red" onclick="initialQuoteDecision('REJECTED')">Reject</button></div></div>${quoteMediaHTML()}${quoteChatHTML("customer")}`;return h}
-if(S.status==="QUOTE_SECURE_PAYMENT"){h=`<div class="card"><h3>Secure Quote Payment</h3><div class="money">${money(S.total)}</div><div class="notice good"><b>🔒 OCS Secure Payment</b><br>Online amount OCS record me secured rahega. Provider ko payment work complete hone aur Customer confirmation ke baad hi release hoga.</div><button class="btn ok" onclick="secureQuotePayment('ONLINE')">Pay Online & Secure with OCS</button><button class="btn gray" onclick="secureQuotePayment('CASH')">Network Issue • Cash at Completion</button><div class="muted" style="margin-top:8px">Cash fallback me OCS money hold possible nahi hota.</div></div>${quoteMediaHTML()}${quoteChatHTML("customer")}`;return h}
-if(S.status==="BOOKING_DETAILS"){let fixed=S.serviceType==='fixed';h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><b>${S.service}</b><div class="muted">${S.category}</div>${fixed?`<div class="qtyrow"><div><label>Rate</label><div class="money">${money(S.base/S.quantity)}</div></div><div><label>Quantity</label><select onchange="setQty(this.value)">${Array.from({length:10},(_,i)=>`<option value="${i+1}" ${S.quantity===i+1?'selected':''}>${i+1}</option>`).join('')}</select></div></div>`:''}<div class="money">Total: ${money(S.total)}</div>${S.paymentHeld?secureHoldHTML():""}<label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button></div>`;return h}
+if(S.status==="INITIAL_QUOTE"){h=`<div class="card"><h3>Service Provider Quote</h3><p>${ocsSafe(S.quote.desc)}</p><div class="money">${money(S.quote.amount)}</div><div class="notice good"><b>🔒 OCS Trust Flow</b><br>Accept ke baad amount OCS Secure Payment me lock hoga. Service Provider ko work complete + Customer confirmation se pehle release nahi hoga.</div><div class="row"><button class="btn ok" onclick="initialQuoteDecision('APPROVED')">Accept & Lock Amount</button><button class="btn red" onclick="initialQuoteDecision('REJECTED')">Reject</button></div></div>${quoteHistoryHTML()}${quoteMediaHTML()}${quoteChatHTML("customer")}`;return h}
+if(S.status==="QUOTE_REVISION_PENDING"){const r=S.quoteRevision;h=`<div class="card"><h3>Quote Revision Requested</h3><div class="row"><span>Old Quote</span><b>${money(r.oldAmount)}</b></div><div class="row"><span>Revised Quote</span><b>${money(r.newAmount)}</b></div><div class="row"><span>Difference</span><b>${r.newAmount>=r.oldAmount?"+":""}${money(r.newAmount-r.oldAmount)}</b></div><div class="notice"><b>Reason:</b> ${ocsSafe(r.reason)}</div><div class="row"><button class="btn ok" onclick="customerQuoteRevisionDecision('APPROVE')">Accept Revised Quote</button><button class="btn red" onclick="customerQuoteRevisionDecision('REJECT')">Reject Revision</button></div><button class="btn alt" onclick="customerQuoteRevisionDecision('DISCUSS')">Discuss in Chat</button><button class="btn gray" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Booking</button></div>${quoteHistoryHTML()}${quoteChatHTML("customer")}`;return h}
+if(S.status==="QUOTE_REVISION_TOPUP"){h=`<div class="card"><h3>Secure Revised Quote Difference</h3><div class="row"><span>New Official Quote</span><b>${money(S.total)}</b></div><div class="row"><span>Already Secured</span><b>${money(S.heldAmount)}</b></div><div class="row"><span>Extra to Secure</span><b>${money(S.pendingRevisionTopUp)}</b></div><button class="btn ok" onclick="secureQuoteRevisionTopUp()">Pay Extra & Secure with OCS</button><button class="btn gray" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Booking</button></div>${quoteHistoryHTML()}${quoteChatHTML("customer")}`;return h}
+if(S.status==="QUOTE_SECURE_PAYMENT"){h=`<div class="card"><h3>Secure Quote Payment</h3><div class="money">${money(S.total)}</div><div class="notice good"><b>🔒 OCS Secure Payment</b><br>Online amount OCS record me secured rahega. Provider ko payment work complete hone aur Customer confirmation ke baad hi release hoga.</div><button class="btn ok" onclick="secureQuotePayment('ONLINE')">Pay Online & Secure with OCS</button><button class="btn gray" onclick="secureQuotePayment('CASH')">Network Issue • Cash at Completion</button><button class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button><div class="muted" style="margin-top:8px">Cash fallback me OCS money hold possible nahi hota.</div></div>${quoteHistoryHTML()}${quoteMediaHTML()}${quoteChatHTML("customer")}`;return h}
+if(S.status==="BOOKING_DETAILS"){let fixed=S.serviceType==='fixed';h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><b>${S.service}</b><div class="muted">${S.category}</div>${fixed?`<div class="qtyrow"><div><label>Rate</label><div class="money">${money(S.base/S.quantity)}</div></div><div><label>Quantity</label><select onchange="setQty(this.value)">${Array.from({length:10},(_,i)=>`<option value="${i+1}" ${S.quantity===i+1?'selected':''}>${i+1}</option>`).join('')}</select></div></div>`:''}<div class="money">Total: ${money(S.total)}</div>${S.paymentHeld?secureHoldHTML():""}<label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h}
 
 if(S.status==="READY")h=`
 <div class="card">
@@ -1375,8 +1480,10 @@ if(S.status==="READY")h=`
 
 if(S.status==="REQUESTED")h=`<div class="notice"><b>Finding an eligible Service Provider&</b><br>OCS nearby available providers check kar raha hai.</div>`;
 
-if(S.status==="INITIAL_QUOTE")h=`<div class="notice good"><b>Quote Sent • ${money(S.quote&&S.quote.amount)}</b><br>Customer approval aur OCS secure payment ka wait hai.</div>${quoteMediaHTML()}${quoteChatHTML("provider")}`;
-if(S.status==="QUOTE_SECURE_PAYMENT")h=`<div class="notice"><b>Quote Accepted</b><br>Customer OCS Secure Payment complete kar raha hai. Amount secured hone ke baad booking provider matching me jayegi.</div>${quoteChatHTML("provider")}`;
+if(S.status==="INITIAL_QUOTE")h=`<div class="notice good"><b>Quote Sent • ${money(S.quote&&S.quote.amount)}</b><br>Customer approval aur OCS secure payment ka wait hai.</div>${quoteHistoryHTML()}${quoteMediaHTML()}${quoteChatHTML("provider")}`;
+if(S.status==="QUOTE_SECURE_PAYMENT")h=`<div class="card"><div class="notice"><b>Quote Accepted</b><br>Customer OCS Secure Payment complete kar raha hai.</div><button class="btn alt" onclick="providerRequestQuoteRevision()">Request Quote Revision</button></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`;
+if(S.status==="QUOTE_REVISION_PENDING")h=`<div class="card"><h3>Quote Revision Sent</h3><div class="row"><span>Old</span><b>${money(S.quoteRevision.oldAmount)}</b></div><div class="row"><span>Revised</span><b>${money(S.quoteRevision.newAmount)}</b></div><div class="notice">Waiting for Customer approval. Original amount remains official until accepted.</div></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`;
+if(S.status==="QUOTE_REVISION_TOPUP")h=`<div class="notice"><b>Revised Quote Accepted</b><br>Customer is securing the extra ${money(S.pendingRevisionTopUp)} with OCS.</div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`;
 if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="card"><h3>Provider Change Requested</h3><div class="notice"><b>OCS Support is reviewing your request.</b><br>Current work is on HOLD. No new Service Provider has been assigned automatically.</div><p><b>Reason:</b> ${S.providerChangeReason}</p><p><b>Ticket:</b> ${S.providerChangeTicket}</p><button class="btn" onclick="openSupport('customer')">Contact OCS Support</button></div>`;
 
 if(S.status==="ASSIGNED"||S.status==="ON_WAY")h=`
@@ -1555,6 +1662,9 @@ if(S.status==="CANCELLED")h=`
 <div class="notice bad"><b>Job Cancelled</b><br>${S.cancelReason}</div>
 <button class="btn gray" onclick="resetAll()">Book Another Service</button>`;
 
+if(S.isQuoteBooking&&S.quoteDecision==="APPROVED"&&["REQUESTED","ASSIGNED","ON_WAY","REACHED"].includes(S.status)){
+ h+=`<div class="card"><h3>Accepted Quote Control</h3><div class="row"><span>Official Quote</span><b>${money(S.total)}</b></div>${S.quoteRevisionRefund?'<div class="notice good">Refund / adjustment prepared: '+money(S.quoteRevisionRefund)+'</div>':""}<button class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Booking</button></div>`+quoteHistoryHTML();
+}
 if(["ASSIGNED","ON_WAY","REACHED","WORKING"].includes(S.status))h+=customerProviderContactHTML();
 return h;
 }
@@ -1562,7 +1672,12 @@ return h;
 function providerHTML(){
 let h="";
 
-if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQUEST"||S.status==="BOOKING_DETAILS")h=`<p class="muted">No active job.</p>`;
+if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQUEST")h=`<p class="muted">No active job.</p>`;
+if(S.status==="BOOKING_DETAILS"){
+ h=S.isQuoteBooking&&S.quoteDecision==="APPROVED"
+ ?`<div class="card"><h3>Accepted Get Quote</h3><div class="money">${money(S.total)}</div><div class="muted">Customer booking details complete kar raha hai.</div><button class="btn alt" onclick="providerRequestQuoteRevision()">Request Quote Revision</button></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`
+ :`<p class="muted">No active job.</p>`;
+}
 if(S.status==="QUOTE_WAIT")h=`<div class="card"><h3>Get Quote Request</h3><b>${S.category}</b><p>${ocsSafe(S.customDescription||"Custom work")}</p><div class="muted">Preferred: ${ocsSafe(S.customSchedule||"")}</div>${quoteMediaHTML()}<button class="btn" onclick="sendInitialQuote()">Send Quote</button><button class="btn gray" onclick="askExpert()">Ask to Expert</button></div>${quoteChatHTML("provider")}`;
 
 if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice">No incoming request.<br>Customer provider-change request is under OCS Support review. Another provider will receive it only after Admin approval.</div>`;
@@ -1681,6 +1796,9 @@ if(S.status==="CANCELLED")h=`<div class="notice bad"><b>Job Cancelled</b><br>${S
 if(S.status==="WORKING"&&S.quote&&S.quoteDecision==="RETURNED")h+=`
 <div class="card"><h3>Customer requested Add Work change</h3><div class="notice"><b>${S.quoteReturnNote||"Revision requested"}</b></div><button class="btn" onclick="providerEditReturnedQuote()">Edit & Resend →</button></div>`;
 
+if(S.isQuoteBooking&&S.quoteDecision==="APPROVED"&&["REQUESTED","ASSIGNED","ON_WAY","REACHED"].includes(S.status)){
+ h+=`<div class="card"><h3>Accepted Quote</h3><div class="row"><span>Official Amount</span><b>${money(S.total)}</b></div><button class="btn alt" onclick="providerRequestQuoteRevision()">Request Quote Revision</button><div class="muted" style="margin-top:8px">Work Start ke baad original quote edit nahi hoga; extra work ke liye Add Work / New Quote use karein.</div></div>`+quoteHistoryHTML()+quoteChatHTML("provider");
+}
 if(S.paymentHeld&&Number(S.heldAmount||0)>0&&["REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","COMPLETION_CONFIRM","SUPPORT_REVIEW"].includes(S.status))h=secureHoldHTML()+h;
 return h;
 }
