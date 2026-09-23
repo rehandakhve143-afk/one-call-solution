@@ -2207,7 +2207,7 @@ function openModule(n,role,serviceCat){
    frame.src='property.html?v=20260921-3';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260924-welcome1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260924-quotecontrol1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    frame.srcdoc=decode64(modulesB64[n]);
