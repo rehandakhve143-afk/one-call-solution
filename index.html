@@ -1908,7 +1908,9 @@ function renderMyOcs(tab){
    return;
  }
  if(tab==='inbox'){
-   body.innerHTML='<div class="myocs-card"><b>One OCS Inbox</b><small>Home Service support, Property enquiry, Shop enquiry, Hotel/Restaurant, Beauty aur other business chats ko ek common inbox me rakhne ka structure. Prototype me live backend messages abhi connected nahi hain.</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Home Service Support</button><button class="primary-mini" onclick="openCustomerDashboard();closeMyOcs()">Customer Dashboard</button></div></div>';
+   const bizChats=readBizChats();
+   const chatCards=bizChats.length?bizChats.slice(0,12).map(x=>'<div class="myocs-card"><b>💬 '+ocsSavedText(x.business||x.category||'Business')+'</b><small>'+ocsSavedText(x.category||'Business')+' • '+ocsSavedText(x.text||'')+'</small><div class="myocs-actions"><button class="primary-mini" onclick="myOcsOpenModule('+JSON.stringify(x.category||'Local Shop')+')">Open Business</button></div></div>').join(''):'<div class="myocs-card"><b>No business chats yet</b><small>Kisi business window me Chat dabakar product/service enquiry bhejein.</small></div>';
+   body.innerHTML='<div class="myocs-card"><b>One OCS Inbox</b><small>Property ko chhodkar business windows me Product/Service enquiry ke liye Call, Chat aur WhatsApp available hain. Prototype Chat is device par save hoti hai; real cross-device messaging backend launch se pehle connect hoga.</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Home Service Support</button><button class="primary-mini" onclick="openCustomerDashboard();closeMyOcs()">Customer Dashboard</button></div></div>'+chatCards;
    return;
  }
  renderMyOcs('saved');
@@ -2200,6 +2202,7 @@ function openModule(n,role,serviceCat){
  frame.onload=function(){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role);if(role==='customer'&&serviceCat)frame.contentWindow.selectCategory(serviceCat)}catch(e){}}
    if(n!=='Home Services'){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
+   if(n!=='Home Services'&&n!=='Property'){try{injectBusinessContactBar(n)}catch(e){console.warn('OCS Business Contact UI',e)}}
    if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch="";setTimeout(()=>runWindowSearch(q),180)}
  };
  if(n==='Property'){
@@ -2311,6 +2314,57 @@ function injectBusinessLikeBar(cat){
  if(!bar){bar=doc.createElement('div');bar.id='ocsBusinessLikeBar';bar.innerHTML='<button id="ocsBusinessLikeBtn" type="button" aria-label="Like this business" aria-pressed="false"></button><span id="ocsBusinessLikeCount">0 Likes</span>';doc.body.appendChild(bar)}
  const btn=doc.getElementById('ocsBusinessLikeBtn');if(btn)btn.onclick=()=>parent.toggleBusinessLike(cat);
  refreshBusinessLikeUI(cat);
+}
+const OCS_BIZ_CHATS_KEY='ocsBusinessChatsV1';
+function readBizChats(){try{const a=JSON.parse(localStorage.getItem(OCS_BIZ_CHATS_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+function writeBizChats(a){try{localStorage.setItem(OCS_BIZ_CHATS_KEY,JSON.stringify(a||[]))}catch(e){}}
+function businessContactDraft(cat){
+ const d=readBizDrafts()[cat]||{};
+ return {name:String(d.name||cat||'Business').trim(),phone:String(d.phone||'').replace(/\D/g,''),area:String(d.area||'').trim(),listingId:d.listingId||getBizListingId(cat)};
+}
+function businessProductCall(cat){
+ const d=businessContactDraft(cat);
+ if(d.phone.length<10){alert('Business owner ka Call number abhi add nahi hai. Listing owner profile me Mobile/WhatsApp add karega to Call active hoga.');return}
+ window.location.href='tel:'+d.phone;
+}
+function businessProductWhatsApp(cat){
+ const d=businessContactDraft(cat);
+ if(d.phone.length<10){alert('Business owner ka WhatsApp number abhi add nahi hai. Listing owner profile me Mobile/WhatsApp add karega to WhatsApp active hoga.');return}
+ const q=(prompt('Kis product / service ke bare me WhatsApp par puchna hai?')||'').trim();
+ if(!q)return;
+ const msg='Hello '+d.name+', mujhe OCS par '+cat+' me iske bare me enquiry chahiye: '+q;
+ window.open('https://wa.me/'+d.phone+'?text='+encodeURIComponent(msg),'_blank');
+}
+function businessProductChat(cat){
+ const d=businessContactDraft(cat);
+ const q=(prompt('Product / service enquiry likhiye')||'').trim();if(!q)return;
+ const chats=readBizChats();
+ chats.unshift({id:'OCSCHAT'+Date.now(),listingId:d.listingId,category:cat,business:d.name,from:'Customer',text:q,status:'SENT',createdAt:new Date().toISOString()});
+ writeBizChats(chats.slice(0,200));
+ alert('Enquiry OCS Chat me save ho gayi. Business owner reply backend connect hone ke baad cross-device live hoga.');
+}
+function injectBusinessContactBar(cat){
+ if(!cat||cat==='Home Services'||cat==='Property')return;
+ const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;if(!doc||!doc.body)return;
+ let style=doc.getElementById('ocsBusinessContactStyle');
+ if(!style){
+   style=doc.createElement('style');style.id='ocsBusinessContactStyle';style.textContent=
+   'body{padding-bottom:88px!important}#ocsBusinessContactBar{position:fixed;left:10px;right:10px;bottom:12px;z-index:2147483001;display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;padding:8px;background:rgba(255,255,255,.98);border:1px solid #dce8e6;border-radius:18px;box-shadow:0 10px 28px rgba(20,45,55,.22);font-family:system-ui,Arial,sans-serif}'+
+   '#ocsBusinessContactBar button{border:0;border-radius:12px;min-height:44px;font-weight:900;font-size:12px;cursor:pointer}'+
+   '#ocsBizCall{background:#eef5f4;color:#134b48}#ocsBizChat{background:#0a7c73;color:#fff}#ocsBizWa{background:#dcf8e7;color:#13743b}'+
+   '#ocsBusinessLikeBar{bottom:78px!important}';
+   (doc.head||doc.documentElement).appendChild(style);
+ }
+ let bar=doc.getElementById('ocsBusinessContactBar');
+ if(!bar){
+   bar=doc.createElement('div');bar.id='ocsBusinessContactBar';
+   bar.innerHTML='<button id="ocsBizCall" type="button">📞 Call</button><button id="ocsBizChat" type="button">💬 Chat</button><button id="ocsBizWa" type="button">WhatsApp</button>';
+   doc.body.appendChild(bar);
+ }
+ const call=doc.getElementById('ocsBizCall'),chat=doc.getElementById('ocsBizChat'),wa=doc.getElementById('ocsBizWa');
+ if(call)call.onclick=()=>parent.businessProductCall(cat);
+ if(chat)chat.onclick=()=>parent.businessProductChat(cat);
+ if(wa)wa.onclick=()=>parent.businessProductWhatsApp(cat);
 }
 function loadBizDraft(cat){
  const d=readBizDrafts()[cat]||{};
