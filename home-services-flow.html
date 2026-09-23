@@ -47,7 +47,7 @@ background-color:#fff}
     <div class="headrow">
       <button class="back" data-action="home">‹</button>
       <div class="brand"><b>ONE CALL SOLUTION</b><small>Home Services</small></div>
-      <span class="ver">FLOW 25.6</span>
+      <span class="ver">FLOW 25.7</span>
     </div>
     <div class="tabs">
       <button class="tab on" data-tab="customer">Customer</button>
@@ -276,6 +276,7 @@ function customerHTML(){
    const t=addWorkTotal(), q=selected.reduce((a,x)=>a+Number(x.qty||1),0);
    return `<button class="btn gray" data-action="add-work-cancel">← Back to Running Job</button>
    <div class="card"><h3>Add More Work • ${esc(S.category)}</h3><div class="muted">Listed Add Work Service Provider ko request ke roop me jayega. SP Accept karega tabhi amount booking me add hoga. Get Quote me Customer approval ke baad amount official hoga.</div></div>
+   ${contactActionsHTML("customer")}${chatHTML("customer")}
    <div class="list">${rows}</div>
    ${selected.length?`<div class="bar"><div class="copy"><b>${q} Add-on Service${q>1?"s":""}</b><small>Add-on Total: ${money(t)}</small></div><button data-action="add-work-continue">Send Add Work Request →</button></div>`:""}`;
  }
@@ -283,9 +284,10 @@ function customerHTML(){
    return `<button class="btn gray" data-action="add-work-rate-back">← Back to Rate Card</button>
    <div class="card"><h3>Get Quote • Add More Work</h3><b>${esc(S.addWorkQuoteItem&&S.addWorkQuoteItem.name||"Extra Work")}</b>
    <label>Work details *</label><textarea id="addWorkQuoteDesc" placeholder="Extra work ki detail likhiye"></textarea>
-   <button class="btn" data-action="send-add-work-quote-request">Send to Service Provider</button></div>`;
+   <button class="btn" data-action="send-add-work-quote-request">Send to Service Provider</button></div>
+   ${contactActionsHTML("customer")}${chatHTML("customer")}`;
  }
- if(S.status==="WORKING") return `<div class="notice"><b>Work In Progress</b><br>Service Provider: ${esc(S.provider)} • Amount ${money(S.total)}</div>\n ${latestTicketHTML("Customer")}
+ if(S.status==="WORKING") return `<div class="notice"><b>Work In Progress</b><br>Service Provider: ${esc(S.provider)} • Amount ${money(S.total)}</div>\n ${contactActionsHTML("customer")}${chatHTML("customer")} ${latestTicketHTML("Customer")}
  ${S.addonNotice?`<div class="notice"><b>Add Work Update</b><br>${esc(S.addonNotice)}</div>`:""}
  ${S.addonRequest&&S.addonRequest.type==="LISTED"&&S.addonRequest.status==="PENDING_PROVIDER"?`<div class="notice"><b>Add Work Request Sent</b><br>${esc(S.addonRequest.desc)}<br>${money(S.addonRequest.amount)} • Waiting for ${esc(S.provider)} Accept / Reject.</div>`:""}
  ${S.addonRequest&&S.addonRequest.type==="QUOTE"&&S.addonRequest.status==="PENDING_PROVIDER_QUOTE"?`<div class="notice"><b>Get Quote Request Sent</b><br>${esc(S.addonRequest.desc)}<br>Waiting for Service Provider quote.</div>`:""}
@@ -376,7 +378,7 @@ function providerHTML(){
  if(S.status==="ASSIGNED") return `<div class="card"><h3>Current Job</h3><div class="muted">Booking ID: ${esc(S.bookingId||"—")}</div><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><button class="btn" data-action="on-way">Start Journey / On the Way</button></div>${providerLocationHTML()}`;
  if(S.status==="ON_WAY") return `<div class="card"><h3>On the Way</h3><button class="btn" data-action="reached">GPS Reached</button></div>${providerLocationHTML()}`;
  if(S.status==="REACHED") return `<div class="card"><h3>Start Work OTP</h3><label>Customer OTP</label><input id="otpIn" inputmode="numeric" maxlength="4" placeholder="4 digit OTP"><button class="btn" data-action="verify-otp">Verify OTP & Start Work</button></div>`;
- if(S.status==="WORKING") return `<div class="card"><h3>Work In Progress</h3><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div>\n ${latestTicketHTML("Service Provider")}
+ if(S.status==="WORKING") return `<div class="card"><h3>Work In Progress</h3><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div>\n ${contactActionsHTML("provider")}${chatHTML("provider")} ${latestTicketHTML("Service Provider")}
  ${S.addonRequest&&S.addonRequest.type==="LISTED"&&S.addonRequest.status==="PENDING_PROVIDER"?`<div class="card"><h3>Customer Add Work Request</h3><div class="notice">${esc(S.addonRequest.desc)}</div><div class="money">${money(S.addonRequest.amount)}</div><div class="row"><button class="btn ok" data-action="provider-addon-accept">Accept Add Work</button><button class="btn red" data-action="provider-addon-reject">Reject Add Work</button></div></div>`:""}
  ${S.addonRequest&&S.addonRequest.type==="QUOTE"&&S.addonRequest.status==="PENDING_PROVIDER_QUOTE"?`<div class="card"><h3>Customer Get Quote Request</h3><div class="notice">${esc(S.addonRequest.desc)}</div><label>Quote Amount ₹ *</label><input id="addonQuoteAmt" type="number" min="1" inputmode="numeric" placeholder="Enter quote amount"><button class="btn" data-action="provider-send-addon-quote">Send Quote to Customer</button></div>`:""}
  ${S.addonRequest&&S.addonRequest.type==="QUOTE"&&S.addonRequest.status==="QUOTE_SENT"?`<div class="notice"><b>Quote Sent:</b> ${money(S.addonRequest.amount)}<br>Waiting for Customer Accept / Reject.</div>`:""}
@@ -423,7 +425,7 @@ document.addEventListener("click",e=>{
  const tab=e.target.closest("[data-tab]");if(tab){setTab(tab.dataset.tab);return}
  const b=e.target.closest("[data-action]");if(!b)return;
  const a=b.dataset.action;
- if(a==="home"){location.href="index.html?v=20260923-flow256";return}
+ if(a==="home"){location.href="index.html?v=20260923-flow257";return}
  if(a==="category"){S.category=b.dataset.cat;S.cart=[];S.status="SELECT_ITEM";save();render();return}
  if(a==="categories"){S.category="";S.cart=[];S.status="SELECT_SERVICE";save();render();return}
  if(a==="add"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.cart.push({i,name:it.name,price:Number(it.price||0),qty:1});save();render();return}
