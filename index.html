@@ -2182,6 +2182,7 @@ function openModule(n,role){
  const manageBtn=document.getElementById('windowManageBtn');if(manageBtn)manageBtn.style.display=n==='Home Services'?'none':'block';
  document.body.classList.add("module-open");
  const gs=document.getElementById("globalSearch");if(gs){gs.placeholder="Search in "+n+"...";if(pendingWindowSearch)gs.value=pendingWindowSearch}
+ const viewer=document.getElementById('viewer');if(viewer)viewer.classList.add('show');
  frame.onload=function(){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role)}catch(e){}}
    if(n!=='Home Services'){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
@@ -2190,11 +2191,13 @@ function openModule(n,role){
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
    frame.src='property.html?v=20260921-3';
+ }else if(n==='Home Services'){
+   frame.removeAttribute('srcdoc');
+   frame.src='home-services.html?v=20260923-1';
  }else{
    frame.removeAttribute('src');
    frame.srcdoc=decode64(modulesB64[n]);
  }
- document.getElementById('viewer').classList.add('show')
 }
 function closeModule(){
  document.getElementById('viewer').classList.remove('show');const f=document.getElementById('frame');f.srcdoc='';f.removeAttribute('src');currentModuleName="";pendingWindowSearch="";
