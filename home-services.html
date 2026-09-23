@@ -167,6 +167,9 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 #selectionTray .traybtn{width:auto!important;min-height:44px!important;margin:0!important;padding:0 12px!important;border-radius:9px!important;background:#0ba59a!important;color:#fff!important;font-size:10px!important}
 #selectionTray .traypanel{margin-top:9px!important;max-height:34vh!important;overflow:auto!important;background:#fff!important;color:#193134!important;border-radius:11px!important;padding:8px!important}
 #selectionTray .continue{min-height:39px!important;border-radius:9px!important;background:#08786e!important;font-size:11px!important}
+.ocs-inline-booking{position:sticky;top:58px;z-index:11;display:flex;align-items:center;gap:10px;margin:10px 0 12px;padding:11px 12px;border-radius:14px;background:#123f49;color:#fff;box-shadow:0 8px 22px rgba(10,48,52,.22)}
+.ocs-inline-booking .ib-copy{flex:1;min-width:0}.ocs-inline-booking .ib-copy b{display:block;font-size:12px}.ocs-inline-booking .ib-copy small{display:block;margin-top:2px;font-size:10px;color:#d8e7e5}
+.ocs-inline-booking button{border:0;border-radius:10px;background:#0ba59a;color:#fff;font-weight:900;min-height:44px;padding:0 14px;white-space:nowrap}
 </style></head>
 <body>
 
@@ -478,12 +481,6 @@ function toggleSelectionTray(){continueSelectedItems()}
 function updateSelectionTray(){
  let old=document.getElementById("selectionTray");if(old)old.remove();
  document.body.classList.remove("selection-active");
- if(S.status!=="SELECT_ITEM"||!S.selectedItems||!S.selectedItems.length)return;
- let total=S.selectedItems.reduce((a,x)=>a+Number(x.price||0)*Number(x.qty||1),0);
- let qty=S.selectedItems.reduce((a,x)=>a+Number(x.qty||1),0);
- let tray=document.createElement("div");tray.id="selectionTray";
- tray.innerHTML=`<div class="trayrow"><div class="trayinfo"><b>${qty} Service${qty>1?"s":""} Selected</b><small>Grand Total: ${money(total)}</small></div><button id="selectionTrayBtn" class="traybtn" onclick="continueSelectedItems()">Continue Booking →</button></div>`;
- document.body.appendChild(tray);document.body.classList.add("selection-active")
 }
 function bookCategorySiteVisit(){
  if(!S.category){alert("Please select a service category first.");return}
@@ -1204,6 +1201,9 @@ if(S.status==="SELECT_SERVICE"){
 }
 if(S.status==="SELECT_ITEM"){
  let d=services[S.category];S.selectedItems=S.selectedItems||[];
+ let selectedQty=S.selectedItems.reduce((a,x)=>a+Number(x.qty||1),0);
+ let selectedTotal=S.selectedItems.reduce((a,x)=>a+Number(x.price||0)*Number(x.qty||1),0);
+ let bookingBar=S.selectedItems.length?`<div class="ocs-inline-booking"><div class="ib-copy"><b>${selectedQty} Service${selectedQty>1?'s':''} Selected</b><small>Grand Total: ${money(selectedTotal)}</small></div><button type="button" onclick="continueSelectedItems()">Continue Booking →</button></div>`:'';
  let rows=d.items.map((it,i)=>{
    const x=S.selectedItems.find(v=>v.i===i);
    if(it.type!=="fixed")return `<div class="ocs-svc-row svc-card" data-search="${it.name.toLowerCase()}"><span class="ocs-svc-thumb">${ocsServiceIcon()}</span><span class="ocs-svc-copy"><b>${it.name}</b><span>${it.display||'Get Quote'}</span><small>Price after inspection / quote</small></span><button class="ocs-svc-add quote" onclick="selectServiceItem(${i})">Get Quote</button></div>`;
@@ -1215,6 +1215,7 @@ if(S.status==="SELECT_ITEM"){
      <div class="ocs-svc-banner"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Safe ${S.category} Solutions For Your Home</b><span>Verified Service Providers • clear OCS rates</span></div></div>
      <div class="ocs-hs-search"><span>⌕</span><input id="svcSearch" placeholder="Search ${S.category.toLowerCase()} service..." oninput="filterServiceCards(this.value)"></div>
      <p class="ocs-svc-note">Material/parts separate where applicable. Visit / Inspection and no-work charges follow OCS rules.</p>
+     ${bookingBar}
      <div class="ocs-svc-list">${rows}</div>
      <button class="ocs-other-request" onclick="S.status='CUSTOM_REQUEST';render()">Can’t find your work? Request another service →</button>
    </div>
