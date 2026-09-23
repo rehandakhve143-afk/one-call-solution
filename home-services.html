@@ -707,33 +707,45 @@ function secureQuoteRevisionTopUp(){
  hist("Customer secured revised quote extra "+money(extra)+" with OCS • Total held "+money(S.heldAmount));
 }
 
-function cancelAcceptedQuoteBeforeWork(){
- const allowed=["QUOTE_SECURE_PAYMENT","BOOKING_DETAILS","REQUESTED","ASSIGNED","ON_WAY","REACHED","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP"];
- if(!S.isQuoteBooking||!allowed.includes(S.status)){alert("Work Start ke baad Cancel ke bajay Work Not Completed / Resolve Here use karein.");return}
+function customerCancelBeforeStart(){
+ const allowed=["BOOKING_DETAILS","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","REQUESTED","ASSIGNED","ON_WAY","REACHED"];
+ const effectiveStatus=(S.quoteRevision&&S.quoteRevision.returnStatus)||S.status;
+ if(!allowed.includes(S.status)||effectiveStatus==="WORKING"){alert("Start OTP ke baad normal Cancel available nahi hai. Work Not Completed / Resolve Here use karein.");return}
  const reason=(prompt("Cancel reason *")||"").trim();if(!reason)return;
- if(!confirm("Accepted Get Quote booking cancel karna hai?"))return;
- const travelStarted=["ON_WAY","REACHED"].includes(S.status)||(S.quoteRevision&&["ON_WAY","REACHED"].includes(S.quoteRevision.returnStatus));
- S.cancelReason=reason;S.cancelBy="customer";
+ if(!confirm("Booking cancel karna hai?"))return;
+
+ const travelStarted=["ON_WAY","REACHED"].includes(effectiveStatus);
+ const providerWasAssigned=["ASSIGNED","ON_WAY","REACHED"].includes(effectiveStatus);
+ S.cancelReason=reason;S.cancelBy="customer";S.customerCancelledBeforeStart=true;
+ S.customerCancelStage=effectiveStatus;S.startOtp=null;S.quoteValidUntil=0;
+
  if(S.paymentHeld&&Number(S.heldAmount||0)>0){
    let charge=0;
    if(travelStarted){
      const km=Number(S.oneWayDistanceKm||0);
      charge=km>0?calculateNoWorkVisitCharge(km):199;
+     if(!charge)charge=199;
    }
    S.visitCharge=charge;
-   settleHeldNoWork(charge,travelStarted?"Customer cancelled after Service Provider travel started":"Customer cancelled before Service Provider travel");
+   S.currentJob=null;
+   hist("Customer cancelled before Start OTP • "+(providerWasAssigned?S.provider+" notified • ":"")+(travelStarted?"Travel/visit settlement applies":"No visit charge"));
+   settleHeldNoWork(charge,travelStarted?"Customer cancelled before Start OTP after Service Provider started travelling":"Customer cancelled before Service Provider started travelling");
    return;
  }
+
  if(travelStarted){
    const km=Number(S.oneWayDistanceKm||0);
-   S.visitCharge=km>0?calculateNoWorkVisitCharge(km):199;
-   S.distanceSlab=km>6?">6–12 km":"1–6 km";
-   S.status="VISIT_PAYMENT";
-   hist("Customer cancelled accepted quote after provider travel • Applicable visit charge "+money(S.visitCharge));return;
+   let charge=km>0?calculateNoWorkVisitCharge(km):199;if(!charge)charge=199;
+   S.visitCharge=charge;S.distanceSlab=charge===249?">6–12 km":"1–6 km";
+   S.currentJob=null;S.status="VISIT_PAYMENT";
+   hist("Customer cancelled before Start OTP • "+S.provider+" notified • Applicable travel/visit charge "+money(charge)+" • Provider should stop travel");
+   return;
  }
- S.status="CANCELLED";S.payment="No payment collected";
- hist("Customer cancelled accepted quote before provider travel • No visit charge");
+
+ S.visitCharge=0;S.currentJob=null;S.status="CANCELLED";S.payment=S.paymentHeld?"Refund pending":"No payment collected";
+ hist("Customer cancelled before Service Provider travel • "+(providerWasAssigned?S.provider+" notified • ":"")+"No visit charge");
 }
+function cancelAcceptedQuoteBeforeWork(){customerCancelBeforeStart()}
 function backToCategories(){S.status="SELECT_SERVICE";S.category="";S.service="";S.base=0;S.total=0;render()}
 
 
@@ -1541,7 +1553,7 @@ function resetAll(){
    customerAddingWork:false,addWorkSelected:{},addWorkQty:{},
    customerExtraItems:[],customerExtraRequest:"",customerExtraStatus:"",extraQuote:null,lastAddedWork:null,
    providerAddingWork:false,providerAddSelected:{},providerAddQty:{},
-   reschedule:null,rescheduleBy:null,rescheduleTime:null,cancelReason:null,cancelBy:null,
+   reschedule:null,rescheduleBy:null,rescheduleTime:null,cancelReason:null,cancelBy:null,customerCancelledBeforeStart:false,customerCancelStage:null,
    visitCharge:0,distanceSlab:null,payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",
    logs:[],supportTickets:providerState.supportTickets,
    providerRatings:providerState.providerRatings,customerRating:null,pendingRatingStars:0,customerRatingComment:"",
@@ -1670,7 +1682,7 @@ if(S.status==="READY")h=`
 <button class="btn" onclick="booking()">Find Service Provider</button>
 </div>`;
 
-if(S.status==="REQUESTED")h=`<div class="notice"><b>Finding an eligible Service Provider&</b><br>OCS nearby available providers check kar raha hai.</div>`;
+if(S.status==="REQUESTED")h=`<div class="notice"><b>Finding an eligible Service Provider</b><br>OCS nearby available providers check kar raha hai.</div><button class="btn red" onclick="customerCancelBeforeStart()">Cancel Booking</button><div class="muted" style="margin-top:7px">Provider On the Way hone se pehle cancel par visit charge ₹0.</div>`;
 
 if(S.status==="INITIAL_QUOTE")h=`<div class="notice good"><b>Quote Sent • ${money(S.quote&&S.quote.amount)}</b><br>Customer approval aur OCS secure payment ka wait hai.</div>${quoteTimerHTML()}<div class="notice"><b>Official rule:</b> Customer accept kiye bina rate official nahi hai.</div>${quoteHistoryHTML()}${quoteMediaHTML()}${quoteChatHTML("provider")}`;
 if(S.status==="QUOTE_SECURE_PAYMENT")h=`<div class="card"><div class="notice"><b>Quote Accepted</b><br>Customer OCS Secure Payment complete kar raha hai.</div><button class="btn alt" onclick="providerRequestQuoteRevision()">Request Quote Revision</button></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`;
@@ -1681,12 +1693,14 @@ if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="card"><h3>Provider Change Re
 if(S.status==="ASSIGNED"||S.status==="ON_WAY")h=`
 <div class="notice good"><b>${S.provider}</b> assigned<br>
 ${S.status==="ON_WAY"?"Service Provider On the Way":"Waiting for Provider"}</div>
-${S.status==="ON_WAY"?`<div class="ocs-route"><div class="ocs-route-head"><b>Service Provider Live GPS</b><span class="ocs-pill">On the Way</span></div><div class="ocs-live"><b>${S.provider}</b> is travelling to your service address. Live route appears here in production.</div><button class="btn" onclick="ocsTrack()">Track / Live GPS</button></div>`:""}`;
+${S.status==="ON_WAY"?`<div class="ocs-route"><div class="ocs-route-head"><b>Service Provider Live GPS</b><span class="ocs-pill">On the Way</span></div><div class="ocs-live"><b>${S.provider}</b> is travelling to your service address. Live route appears here in production.</div><button class="btn" onclick="ocsTrack()">Track / Live GPS</button></div>`:""}
+<div class="card"><h3>Need to Cancel?</h3><div class="muted">${S.status==="ASSIGNED"?"Provider ne travel start nahi kiya: cancellation par visit charge ₹0.":"Provider travel start kar chuka hai: applicable ₹199 / ₹249 travel-visit charge lag sakta hai."}</div><button class="btn red" onclick="customerCancelBeforeStart()">Cancel Booking</button></div>`;
 
 if(S.status==="REACHED")h=`
 <div class="notice good"><b>GPS Reached Verified • ${S.provider}</b><br>
 Start OTP: <b style="font-size:26px">${S.startOtp}</b><br>
-<span class="muted">OTP only after GPS Reached verification.</span></div>`;
+<span class="muted">OTP only after GPS Reached verification.</span></div>
+<div class="card"><h3>Cancel Before Work Starts</h3><div class="muted">Start OTP abhi verify nahi hua. Cancel karne par applicable ₹199 / ₹249 visit charge lagega.</div><button class="btn red" onclick="customerCancelBeforeStart()">Cancel Booking</button></div>`;
 
 if(S.status==="WORKING"){
 h=`<div class="notice good"><b>Customer • Work In Progress</b><br>Service Provider: ${S.provider}<br>Current Booking Total: ₹${S.total}</div>
@@ -1857,7 +1871,7 @@ if(S.status==="CANCELLED")h=`
 <button class="btn gray" onclick="resetAll()">Book Another Service</button>`;
 
 if(S.isQuoteBooking&&S.quoteDecision==="APPROVED"&&["REQUESTED","ASSIGNED","ON_WAY","REACHED"].includes(S.status)){
- h+=`<div class="card"><h3>Accepted Quote Control</h3><div class="row"><span>Official Quote</span><b>${money(S.total)}</b></div>${S.quoteRevisionRefund?'<div class="notice good">Refund / adjustment prepared: '+money(S.quoteRevisionRefund)+'</div>':""}<button class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Booking</button></div>`+quoteHistoryHTML();
+ h+=`<div class="card"><h3>Accepted Quote Control</h3><div class="row"><span>Official Quote</span><b>${money(S.total)}</b></div>${S.quoteRevisionRefund?'<div class="notice good">Refund / adjustment prepared: '+money(S.quoteRevisionRefund)+'</div>':""}<div class="muted">Cancellation option current booking status card me available hai.</div></div>`+quoteHistoryHTML();
 }
 if(["ASSIGNED","ON_WAY","REACHED","WORKING"].includes(S.status))h+=customerProviderContactHTML();
 return h;
@@ -1977,8 +1991,12 @@ if(S.status==="WNC_CUSTOMER_CONFIRM")h=`<div class="notice">Reason sent to Custo
 
 if(S.status==="VISIT_REVIEW")h=`<div class="notice">Work Not Completed request opened.<br>Waiting for Customer visit-charge resolution.</div>`;
 
-if(S.status==="VISIT_PAYMENT"||S.status==="SUPPORT_REVIEW")h=`<div class="notice">Waiting for Customer / OCS Support.</div>`;
-if(S.status==="HELD_WNC_SETTLEMENT")h=`<div class="notice"><b>OCS Secure Payment is on hold.</b><br>Work Not Completed settlement: visit charge/refund Customer confirmation pending.</div>`;
+if(S.status==="VISIT_PAYMENT"||S.status==="SUPPORT_REVIEW")h=S.customerCancelledBeforeStart
+ ?`<div class="notice bad"><b>Customer Cancelled Before Start OTP</b><br>${ocsSafe(S.cancelReason||"Customer cancelled booking")}<br>Do not continue travel / do not start work.</div><div class="notice">Applicable visit/travel charge: <b>${money(S.visitCharge||0)}</b> • Waiting for Customer / OCS settlement.</div>`
+ :`<div class="notice">Waiting for Customer / OCS Support.</div>`;
+if(S.status==="HELD_WNC_SETTLEMENT")h=S.customerCancelledBeforeStart
+ ?`<div class="notice bad"><b>Customer Cancelled Before Start OTP</b><br>${ocsSafe(S.cancelReason||"Customer cancelled booking")}<br>Do not continue travel / do not start work.</div><div class="notice"><b>OCS Secure Payment is on hold.</b><br>Visit charge/refund settlement pending.</div>`
+ :`<div class="notice"><b>OCS Secure Payment is on hold.</b><br>Work Not Completed settlement: visit charge/refund Customer confirmation pending.</div>`;
 
 if(S.status==="VISIT_CASH_WAIT")h=`
 <div class="notice">Customer marked Visit Charge Cash Paid ₹${S.visitCharge}</div>
