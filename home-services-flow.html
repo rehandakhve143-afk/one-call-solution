@@ -20,6 +20,13 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}.app{max-width:5
 .card{border:1px solid var(--line);border-radius:17px;background:#fff;padding:14px;margin-bottom:12px;box-shadow:0 5px 16px rgba(20,58,61,.05)}.card h3{margin:0 0 9px;font-size:16px}.muted{color:var(--muted);font-size:11px}.money{font-size:24px;font-weight:950;color:var(--green);margin:6px 0}
 label{display:block;font-weight:800;font-size:11px;margin:10px 0 5px}input,textarea,select{width:100%;padding:12px;border:1px solid #cededb;border-radius:11px;background:#fff}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn{width:100%;border:0;border-radius:12px;padding:12px;background:var(--green);color:#fff;font-weight:900;margin-top:8px}.btn.gray{background:#64777d}.btn.red{background:var(--danger)}.btn.ok{background:#16875d}.notice{padding:11px;border-radius:12px;background:#eef8f5;border-left:4px solid var(--green);font-size:12px;line-height:1.4;margin:10px 0}.empty{text-align:center;padding:34px 15px;color:var(--muted)}
 .log{font-size:10px;line-height:1.5;background:#f6f9f8;border-radius:12px;padding:9px;max-height:120px;overflow:auto}
+.payqr{width:178px;height:178px;margin:14px auto;border:10px solid #fff;outline:1px solid #cad8d6;border-radius:10px;background:
+linear-gradient(90deg,#17383d 10px,transparent 10px) 0 0/28px 28px,
+linear-gradient(#17383d 10px,transparent 10px) 0 0/28px 28px,
+linear-gradient(90deg,transparent 18px,#17383d 18px 28px,transparent 28px) 0 0/28px 28px,
+linear-gradient(transparent 18px,#17383d 18px 28px,transparent 28px) 0 0/28px 28px;
+background-color:#fff}
+.pay-note{text-align:center;font-size:10px;color:#718185;margin:4px 0 10px}
 @media(max-width:380px){.grid{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -29,7 +36,7 @@ label{display:block;font-weight:800;font-size:11px;margin:10px 0 5px}input,texta
     <div class="headrow">
       <button class="back" data-action="home">‹</button>
       <div class="brand"><b>ONE CALL SOLUTION</b><small>Home Services</small></div>
-      <span class="ver">FLOW 25.1</span>
+      <span class="ver">FLOW 25.2</span>
     </div>
     <div class="tabs">
       <button class="tab on" data-tab="customer">Customer</button>
@@ -73,9 +80,9 @@ const services={
 'Waterproofing':{icon:'💧',items:[{"name":"Terrace / Roof Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Bathroom Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"Balcony Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"External Wall Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Internal Damp Wall Treatment – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Water Tank Waterproofing","type":"quote","display":"Get Quote"},{"name":"Crack / Joint Waterproofing","type":"quote","display":"Get Quote"},{"name":"PU Injection / Special Waterproofing","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
 'False Ceiling / POP / Gypsum / PVC':{icon:'🏠',items:[{"name":"Gypsum Board False Ceiling – Labour Only","type":"fixed","display":"₹75 / sq.ft.","price":75},{"name":"POP Ceiling – Labour Only","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"PVC Ceiling – Labour Only","type":"fixed","display":"₹70 / sq.ft.","price":70},{"name":"Cove / Designer Ceiling Work","type":"quote","display":"Get Quote"},{"name":"Repair / Patch Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
 };
-const KEY="ocsHomeFlowV251";
-const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","VISIT_PAYMENT","COMPLETION_CONFIRM","PAYMENT"]);
-function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addonRequest:null,addonNotice:"",addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",rescheduleBy:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,visitPaymentChoice:"ONLINE",visitPaymentStatus:"",supportTickets:[],expertRequests:[],actionPanel:""}}
+const KEY="ocsHomeFlowV252";
+const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","VISIT_PAYMENT","VISIT_CASH_WAIT","COMPLETION_CONFIRM","PAYMENT","CASH_WAIT"]);
+function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",paymentView:"SELECT",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addonRequest:null,addonNotice:"",addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",rescheduleBy:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,visitPaymentChoice:"ONLINE",visitPaymentView:"SELECT",visitPaymentStatus:"",supportTickets:[],expertRequests:[],actionPanel:""}}
 let S=fresh();
 try{
  const raw=localStorage.getItem(KEY);
@@ -195,9 +202,17 @@ function customerHTML(){
  if(S.status==="RESCHEDULED") return `<div class="notice"><b>Work Pending / Rescheduled</b><br>${esc(S.rescheduleAt)}<br>Same Service Provider: ${esc(S.provider)} • Visit charge ₹0 now.</div><div class="muted">Next visit me fresh GPS Reached + Start OTP hoga.</div>${logsHTML()}`;
  if(S.status==="PROVIDER_CHANGE_HOLD") return `<div class="notice"><b>Change Service Provider request sent to OCS.</b><br>Current booking HOLD par hai. Automatic reassignment nahi hoga jab tak OCS approves.</div>${latestTicketHTML("Customer")}<div class="card"><b>Reason:</b> ${esc(S.providerChangeReason)}</div><button class="btn gray" data-action="customer-support">Contact OCS Support</button>`;
  if(S.status==="WNC_REVIEW") return `<div class="card"><h3>Work Not Completed</h3><div class="notice"><b>Reason:</b> ${esc(S.wncReason)}<br>Start OTP completion proof nahi hai.</div><h3 style="margin-top:14px">Visit Charge Decision</h3><div class="muted">Verified distance/fault ke hisab se select karein.</div><button class="btn" data-action="visit-charge-select" data-charge="199">1–6 km • ₹199</button><button class="btn" data-action="visit-charge-select" data-charge="249">Above 6–12 km • ₹249</button><button class="btn gray" data-action="visit-charge-select" data-charge="0">Provider-side issue / No Charge • ₹0</button><button class="btn gray" data-action="customer-support">Dispute / OCS Support</button></div>`;
- if(S.status==="VISIT_PAYMENT") return `<div class="card"><h3>Visit Charge Payment</h3><div class="money">${money(S.visitCharge)}</div><div class="muted">Work Not Completed • ${esc(S.wncReason)}</div><label>Payment Method</label><div class="row"><button class="btn ${S.visitPaymentChoice==="ONLINE"?"ok":"gray"}" data-action="visit-pay-choice" data-v="ONLINE">Online</button><button class="btn ${S.visitPaymentChoice==="CASH"?"ok":"gray"}" data-action="visit-pay-choice" data-v="CASH">Cash</button></div><button class="btn" data-action="visit-pay-done">${S.visitPaymentChoice==="ONLINE"?"Pay Visit Charge (Demo)":"Confirm Cash Paid"}</button><button class="btn gray" data-action="customer-support">Dispute / OCS Support</button></div>`;
+ if(S.status==="VISIT_PAYMENT"){
+   if(S.visitPaymentView==="ONLINE") return `<div class="card"><h3>Visit Charge • Online Payment</h3><div class="money">${money(S.visitCharge)}</div><div class="payqr" aria-label="OCS Company QR"></div><div class="pay-note">OCS Company QR • Prototype/Test</div><button class="btn" data-action="visit-payment-link">Open Company Payment Link</button><button class="btn ok" data-action="visit-online-success">Payment Success (Demo)</button><button class="btn gray" data-action="visit-payment-back">← Online / Cash</button><button class="btn gray" data-action="customer-support">Payment Problem / OCS Support</button></div>`;
+   return `<div class="card"><h3>Visit Charge Payment</h3><div class="money">${money(S.visitCharge)}</div><div class="muted">Work Not Completed • ${esc(S.wncReason)}</div><div class="notice">Payment last step: Online preferred. Network/payment issue ho to Cash allowed.</div><div class="row"><button class="btn ok" data-action="visit-open-online">Online Payment</button><button class="btn gray" data-action="visit-start-cash">Cash Payment</button></div><button class="btn gray" data-action="customer-support">Dispute / OCS Support</button></div>`;
+ }
+ if(S.status==="VISIT_CASH_WAIT") return `<div class="notice"><b>Visit Charge Cash Payment</b><br>Customer ne Cash select kiya hai • ${money(S.visitCharge)}<br>Waiting for Service Provider to confirm cash received.</div>`;
  if(S.status==="COMPLETION_CONFIRM") return `<div class="card"><h3>Work Completed?</h3><div class="notice">Service Provider ne work complete mark kiya hai.</div><div class="row"><button class="btn ok" data-action="confirm-complete">Confirm Completed</button><button class="btn red" data-action="not-complete">Not Completed</button></div></div>`;
- if(S.status==="PAYMENT") return `<div class="card"><h3>Payment</h3><div class="money">${money(S.total)}</div><div class="muted">Selected: ${esc(S.paymentChoice)}</div><button class="btn" data-action="pay-done">${S.paymentChoice==="CASH"?"Confirm Cash Paid":"Pay Online (Demo)"}</button></div>`;
+ if(S.status==="PAYMENT"){
+   if(S.paymentView==="ONLINE") return `<div class="card"><h3>Online Payment</h3><div class="money">${money(S.total)}</div><div class="payqr" aria-label="OCS Company QR"></div><div class="pay-note">OCS Company QR • Prototype/Test</div><button class="btn" data-action="payment-link">Open Company Payment Link</button><button class="btn ok" data-action="online-payment-success">Payment Success (Demo)</button><button class="btn gray" data-action="payment-back">← Online / Cash</button><button class="btn gray" data-action="customer-support">Payment Problem / OCS Support</button></div>`;
+   return `<div class="card"><h3>Final Payment</h3><div class="money">${money(S.total)}</div><div class="notice">Work completion confirmed. Online preferred; network/payment issue ho to Cash allowed.</div><div class="row"><button class="btn ok" data-action="open-online-payment">Online Payment</button><button class="btn gray" data-action="start-cash-payment">Cash Payment</button></div></div>`;
+ }
+ if(S.status==="CASH_WAIT") return `<div class="notice"><b>Cash Payment Selected</b><br>Waiting for Service Provider to confirm cash received • ${money(S.total)}</div><button class="btn gray" data-action="switch-cash-to-online">Pay Online Instead • QR / Link</button>`;
  if(S.status==="DONE") return `<div class="notice"><b>Booking Completed ✅</b><br>Customer + Service Provider flow complete.</div><button class="btn" data-action="new-booking">Book Another Service • Clear Old Booking</button>${logsHTML()}`;
  return `<div class="empty">Customer flow ready.</div>`;
 }
@@ -248,7 +263,9 @@ function providerHTML(){
  if(S.status==="WNC_REVIEW") return `<div class="notice"><b>Work Not Completed under review.</b><br>Reason: ${esc(S.wncReason)}<br>Waiting for Customer/OCS visit-charge decision.</div>${latestTicketHTML("Service Provider")}`;
  if(S.status==="VISIT_PAYMENT") return `<div class="notice"><b>Visit Charge Selected: ${money(S.visitCharge)}</b><br>Waiting for Customer payment / settlement.</div>`;
  if(S.status==="COMPLETION_CONFIRM") return `<div class="notice">Waiting for Customer completion confirmation.</div>`;
- if(S.status==="PAYMENT") return `<div class="notice">Waiting for Customer payment.</div>`;
+ if(S.status==="PAYMENT") return `<div class="notice"><b>Work Completed / Customer Confirmed</b><br>Waiting for Customer to choose Online or Cash payment.</div>`;
+ if(S.status==="CASH_WAIT") return `<div class="card"><h3>Cash Payment</h3><div class="money">${money(S.total)}</div><div class="notice">Customer selected Cash. Cash receive hone ke baad hi confirm karein.</div><button class="btn ok" data-action="confirm-cash-received">Confirm Cash Received</button></div>`;
+ if(S.status==="VISIT_CASH_WAIT") return `<div class="card"><h3>Visit Charge • Cash</h3><div class="money">${money(S.visitCharge)}</div><button class="btn ok" data-action="confirm-visit-cash-received">Confirm Visit Charge Cash Received</button></div>`;
  if(S.status==="DONE") return `<div class="notice"><b>Job Completed ✅</b><br>Payment recorded.</div>${logsHTML()}`;
  return `<div class="empty"><b>No active job.</b><br>Customer booking bhejega to yahan Incoming Request aayega.</div>`;
 }
@@ -260,7 +277,7 @@ document.addEventListener("click",e=>{
  const tab=e.target.closest("[data-tab]");if(tab){setTab(tab.dataset.tab);return}
  const b=e.target.closest("[data-action]");if(!b)return;
  const a=b.dataset.action;
- if(a==="home"){location.href="index.html?v=20260923-flow251";return}
+ if(a==="home"){location.href="index.html?v=20260923-flow252";return}
  if(a==="category"){S.category=b.dataset.cat;S.cart=[];S.status="SELECT_ITEM";save();render();return}
  if(a==="categories"){S.category="";S.cart=[];S.status="SELECT_SERVICE";save();render();return}
  if(a==="add"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.cart.push({i,name:it.name,price:Number(it.price||0),qty:1});save();render();return}
@@ -281,7 +298,7 @@ document.addEventListener("click",e=>{
  if(a==="reached"){S.startOtp=String(Math.floor(1000+Math.random()*9000));S.status="REACHED";hist(S.provider+" reached • Start OTP generated");render();return}
  if(a==="verify-otp"){const v=(document.getElementById("otpIn").value||"").trim();if(v!==S.startOtp){alert("Wrong OTP");return}S.status="WORKING";hist("Start OTP verified • Work started");render();return}
  if(a==="mark-complete"){if(S.addonRequest){S.addonNotice="Pending Add Work request/quote ka decision pehle complete karein.";save();render();return}S.status="COMPLETION_CONFIRM";hist("Service Provider marked work complete");render();return}
- if(a==="confirm-complete"){S.status="PAYMENT";hist("Customer confirmed work completed");render();return}
+ if(a==="confirm-complete"){S.paymentView="SELECT";S.status="PAYMENT";hist("Customer confirmed work completed • Final payment opened");save();render();return}
  if(a==="not-complete"){S.status="WORKING";hist("Customer did not confirm completion");render();return}
  if(a==="reschedule"){S.actionPanel="RESCHEDULE";save();render();return}
  if(a==="submit-reschedule"){const when=(document.getElementById("rescheduleAtInput")?.value||"").trim();if(!when)return;S.rescheduleAt=when;S.rescheduleBy=S.tab;S.actionPanel="";S.status="RESCHEDULE_PENDING";hist((S.tab==="customer"?"Customer":S.provider)+" requested reschedule • "+when+" • Same Provider retained");save();render();return}
@@ -307,9 +324,13 @@ document.addEventListener("click",e=>{
  if(a==="submit-wnc-customer"){const reason=(document.getElementById("wncCustomerReason")?.value||"").trim();if(!reason)return;S.wncBy="CUSTOMER";S.wncReason=reason;S.actionPanel="";S.status="WNC_REVIEW";hist("Customer marked Work Not Completed • "+reason);render();return}
  if(a==="work-not-completed-provider"){S.actionPanel="WNC_PROVIDER";save();render();return}
  if(a==="submit-wnc-provider"){const reason=(document.getElementById("wncProviderReason")?.value||"").trim();if(!reason)return;S.wncBy="PROVIDER";S.wncReason=reason;S.actionPanel="";S.status="WNC_REVIEW";hist("Service Provider marked Work Not Completed • "+reason);render();return}
- if(a==="visit-charge-select"){S.visitCharge=Number(b.dataset.charge||0);if(S.visitCharge===0){S.visitPaymentStatus="NO_CHARGE";S.status="DONE";hist("Work Not Completed closed • No visit charge");save();render();return}S.visitPaymentChoice="ONLINE";S.visitPaymentStatus="PENDING";S.status="VISIT_PAYMENT";hist("Visit Charge selected • "+money(S.visitCharge));save();render();return}
- if(a==="visit-pay-choice"){S.visitPaymentChoice=b.dataset.v;save();render();return}
- if(a==="visit-pay-done"){S.visitPaymentStatus="PAID";S.status="DONE";hist("Visit Charge settled • "+S.visitPaymentChoice+" • "+money(S.visitCharge));save();render();return}
+ if(a==="visit-charge-select"){S.visitCharge=Number(b.dataset.charge||0);if(S.visitCharge===0){S.visitPaymentStatus="NO_CHARGE";S.status="DONE";hist("Work Not Completed closed • No visit charge");save();render();return}S.visitPaymentChoice="ONLINE";S.visitPaymentView="SELECT";S.visitPaymentStatus="PENDING";S.status="VISIT_PAYMENT";hist("Visit Charge selected • "+money(S.visitCharge));save();render();return}
+ if(a==="visit-open-online"){S.visitPaymentChoice="ONLINE";S.visitPaymentView="ONLINE";save();render();return}
+ if(a==="visit-payment-back"){S.visitPaymentView="SELECT";save();render();return}
+ if(a==="visit-payment-link"){S.visitPaymentStatus="LINK_OPEN";hist("OCS Visit Charge Payment Link opened • Prototype");save();render();return}
+ if(a==="visit-online-success"){S.visitPaymentStatus="PAID";S.status="DONE";hist("Visit Charge Online payment success • "+money(S.visitCharge));save();render();return}
+ if(a==="visit-start-cash"){S.visitPaymentChoice="CASH";S.visitPaymentView="SELECT";S.status="VISIT_CASH_WAIT";hist("Customer selected Cash for Visit Charge • "+money(S.visitCharge));save();render();return}
+ if(a==="confirm-visit-cash-received"){S.visitPaymentStatus="PAID";S.status="DONE";hist(S.provider+" confirmed Visit Charge Cash Received • "+money(S.visitCharge));save();render();return}
  if(a==="customer-support"){S.actionPanel="SUPPORT_CUSTOMER";save();render();return}
  if(a==="provider-support"){S.actionPanel="SUPPORT_PROVIDER";save();render();return}
  if(a==="submit-customer-support"){const msg=(document.getElementById("customerSupportMsg")?.value||"").trim();if(!msg)return;const cb=!!document.getElementById("customerSupportCb")?.checked;const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Customer",msg,callback:cb,createdAt:Date.now()});S.actionPanel="";hist("Customer support ticket "+ticket+" created"+(cb?" • Callback requested":""));render();return}
@@ -317,7 +338,13 @@ document.addEventListener("click",e=>{
  if(a==="ask-expert"){S.actionPanel="ASK_EXPERT";save();render();return}
  if(a==="submit-expert"){const q=(document.getElementById("expertQuestion")?.value||"").trim();if(!q)return;S.expertRequests.push({q,at:Date.now()});S.actionPanel="";hist("Ask to Expert request sent");render();return}
  if(a==="close-action-panel"){S.actionPanel="";save();render();return}
- if(a==="pay-done"){S.status="DONE";hist("Payment recorded • "+S.paymentChoice+" • "+money(S.total));render();return}
+ if(a==="open-online-payment"){S.paymentChoice="ONLINE";S.paymentView="ONLINE";save();render();return}
+ if(a==="payment-back"){S.paymentView="SELECT";save();render();return}
+ if(a==="payment-link"){hist("OCS Company Payment Link opened • Prototype");save();render();return}
+ if(a==="online-payment-success"){S.paymentChoice="ONLINE";S.status="DONE";hist("Online payment success • "+money(S.total));save();render();return}
+ if(a==="start-cash-payment"){S.paymentChoice="CASH";S.paymentView="SELECT";S.status="CASH_WAIT";hist("Customer selected Cash Payment • "+money(S.total));save();render();return}
+ if(a==="switch-cash-to-online"){S.paymentChoice="ONLINE";S.paymentView="ONLINE";S.status="PAYMENT";hist("Customer switched Cash to Online • QR / Link opened");save();render();return}
+ if(a==="confirm-cash-received"){S.status="DONE";hist(S.provider+" confirmed Cash Received • "+money(S.total));save();render();return}
  if(a==="new-booking"){resetNew();return}
 });
 try{
