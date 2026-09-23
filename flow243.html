@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>OCS Home Services</title>
+<style>
+:root{--green:#08786e;--navy:#123f49;--soft:#f4f8f7;--line:#e2ece9;--muted:#718185;--danger:#c83c3c}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:#fff;color:#17383d}
+button,input,textarea,select{font:inherit}button{cursor:pointer}.app{max-width:560px;margin:auto;min-height:100vh;background:#fff;padding-bottom:24px}
+.top{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:10px 12px 8px}
+.headrow{display:flex;align-items:center;gap:10px}.back{width:38px;height:38px;border:0;border-radius:11px;background:#eef5f3;font-size:23px;color:#24484d}.brand{flex:1}.brand b{display:block;font-size:16px}.brand small{font-size:10px;color:var(--muted)}.ver{font-size:8px;color:#95a4a5}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.tab{border:1px solid var(--line);background:#f5f8f7;color:#466167;border-radius:11px;padding:10px;font-weight:900}.tab.on{background:var(--green);color:#fff;border-color:var(--green)}
+.main{padding:12px}.hero{height:124px;border-radius:18px;background:linear-gradient(135deg,#0b3039,#08786e);color:#fff;padding:18px;display:flex;align-items:end;margin-bottom:12px}.hero b{font-size:20px;line-height:1.05}.hero small{display:block;margin-top:5px;color:#d7efeb}
+.search{display:flex;gap:8px;background:#f4f7f6;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px}.search input{width:100%;border:0;outline:0;background:transparent}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cat{min-height:108px;border:1px solid var(--line);border-radius:16px;background:#fff;padding:12px 8px;text-align:center;box-shadow:0 4px 12px rgba(21,70,67,.06)}.cat .ico{width:42px;height:42px;margin:0 auto 7px;border-radius:12px;background:#eff7f5;display:grid;place-items:center;font-size:22px}.cat b{display:block;font-size:12.5px}.cat small{font-size:9px;color:var(--muted)}
+.list{border-top:1px solid #edf1f0}.svc{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #edf1f0}.svc-copy{flex:1;min-width:0}.svc-copy b{display:block;font-size:12.5px;line-height:1.25}.svc-copy span{display:block;margin-top:4px;font-size:12px;font-weight:900}.svc-copy small{display:block;margin-top:2px;font-size:9px;color:#879496}.add{min-width:70px;height:38px;border:0;border-radius:10px;background:var(--green);color:#fff;font-weight:900;font-size:11px}.add.quote{background:#fff;color:var(--green);border:1px solid var(--green)}
+.step{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}.step button{width:31px;height:36px;border:0;background:#f4f7f6;font-size:18px}.step b{min-width:26px;text-align:center;font-size:11px}
+.bar{position:sticky;bottom:8px;z-index:40;background:var(--navy);color:#fff;border-radius:15px;padding:11px 12px;display:flex;align-items:center;gap:10px;box-shadow:0 10px 25px rgba(8,45,50,.25);margin-top:12px}.bar .copy{flex:1}.bar .copy b{display:block;font-size:12px}.bar .copy small{font-size:9px;color:#cee0dd}.bar button{border:0;background:#0ba59a;color:#fff;border-radius:10px;min-height:44px;padding:0 13px;font-weight:900;font-size:11px}
+.card{border:1px solid var(--line);border-radius:17px;background:#fff;padding:14px;margin-bottom:12px;box-shadow:0 5px 16px rgba(20,58,61,.05)}.card h3{margin:0 0 9px;font-size:16px}.muted{color:var(--muted);font-size:11px}.money{font-size:24px;font-weight:950;color:var(--green);margin:6px 0}
+label{display:block;font-weight:800;font-size:11px;margin:10px 0 5px}input,textarea,select{width:100%;padding:12px;border:1px solid #cededb;border-radius:11px;background:#fff}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn{width:100%;border:0;border-radius:12px;padding:12px;background:var(--green);color:#fff;font-weight:900;margin-top:8px}.btn.gray{background:#64777d}.btn.red{background:var(--danger)}.btn.ok{background:#16875d}.notice{padding:11px;border-radius:12px;background:#eef8f5;border-left:4px solid var(--green);font-size:12px;line-height:1.4;margin:10px 0}.empty{text-align:center;padding:34px 15px;color:var(--muted)}
+.log{font-size:10px;line-height:1.5;background:#f6f9f8;border-radius:12px;padding:9px;max-height:120px;overflow:auto}
+@media(max-width:380px){.grid{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="headrow">
+      <button class="back" data-action="home">‹</button>
+      <div class="brand"><b>ONE CALL SOLUTION</b><small>Home Services</small></div>
+      <span class="ver">FLOW 24.3</span>
+    </div>
+    <div class="tabs">
+      <button class="tab on" data-tab="customer">Customer</button>
+      <button class="tab" data-tab="provider">Service Provider</button>
+    </div>
+  </header>
+  <main id="main" class="main"></main>
+</div>
+<script>
+const services={
+ 'Electrical':{icon:'⚡',items:[{"name": "Fan Fitting / Capacitor Change", "type": "fixed", "price": 239, "display": "₹239", "fanBundle": false}, {"name": "Fan Hook / Anchor Fastener Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Fan + Anchor Fastener Fitting", "type": "fixed", "price": 450, "display": "₹450"}, {"name": "Regulator Fitting – Concealed", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Regulator Fitting – Normal", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Switch Change – 1 No.", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "1 Switch + 1 Socket Change", "type": "fixed", "price": 250, "display": "₹250"}, {"name": "Geyser Fitting – Normal", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Geyser + Angle Cock", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "15/16 Amp Board Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Inverter Wiring – 1 BHK Casing/Patti", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "Inverter Wiring – 1 BHK Concealed", "type": "fixed", "price": 700, "display": "₹700"}, {"name": "Normal Inverter Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Inverter + Overhead Battery Load", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "MCB Single/Double Pole Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Tube/LED Light Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Holder Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Electric Board Change", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Bulb Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Building Street Light – 1", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "Earthing Maintenance / Check", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "New Earthing Installation Wiring – 1 BHK", "type": "fixed", "price": 700, "display": "₹700"}, {"name": "Visit / Inspection – Work Checking", "type": "fixed", "price": 249, "display": "₹249"}, {"name": "Exhaust Fan Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Wall Fan Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "BLDC/Smart Fan Installation", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Decorative Fan Installation", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "New Switch Box Installation", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Switchboard Repair", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Plug Top Replacement/Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Doorbell Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Smart/Wi-Fi Switch Installation", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Submeter Installation", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Stabiliser Installation", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "External Wiring with Casing/Patti – per 5m", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Internal/Concealed Wiring – per 5m", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "New Normal Power Point Wiring", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "AC Dedicated Power Point Wiring", "type": "fixed", "price": 800, "display": "₹800"}, {"name": "MCB Tripping / Electrical Fault Diagnosis", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Short Circuit / Fault Finding", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Main Distribution Board Work", "type": "quote", "display": "Get Quote"}, {"name": "Full House Rewiring", "type": "quote", "display": "Get Quote"}, {"name": "New Complete Earthing", "type": "quote", "display": "Get Quote"}, {"name": "Chandelier / Heavy Decorative Light", "type": "quote", "price": 800, "display": "Get Quote / starts ₹800"}, {"name": "Any Other Electrical Work", "type": "quote", "display": "Get Quote"}]},
+ 'Plumbing':{icon:'🚰',items:[{"name":"Tap / Faucet Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Tap Washer / Minor Leakage Repair","type":"fixed","price":239,"display":"₹239"},{"name":"Mixer Tap Installation","type":"fixed","price":400,"display":"₹400"},{"name":"Basin / Sink Mixer Installation","type":"fixed","price":400,"display":"₹400"},{"name":"Basin Waste / Connection Pipe Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Kitchen Sink Blockage Removal","type":"fixed","price":350,"display":"₹350"},{"name":"Wash Basin Blockage Removal","type":"fixed","price":300,"display":"₹300"},{"name":"Bathroom Floor Drain Blockage","type":"fixed","price":400,"display":"₹400"},{"name":"Drain Cover Installation / Replacement","type":"fixed","price":239,"display":"₹239"},{"name":"PVC / CPVC Open Pipe Leakage Repair","type":"fixed","price":400,"display":"₹400"},{"name":"Concealed Pipe Leakage Repair","type":"fixed","price":800,"display":"₹800+"},{"name":"Connection Hose / Flexible Pipe Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Flush Tank Internal Repair","type":"fixed","price":350,"display":"₹350"},{"name":"External Flush Tank Replacement","type":"fixed","price":450,"display":"₹450"},{"name":"Flush Tank / Commode Leakage Repair","type":"fixed","price":300,"display":"₹300"},{"name":"Jet Spray Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Toilet Seat Cover Fitting / Replacement","type":"fixed","price":239,"display":"₹239"},{"name":"Western Commode Installation","type":"fixed","price":1000,"display":"₹1,000"},{"name":"Indian Toilet Installation","type":"fixed","price":1000,"display":"₹1,000"},{"name":"Wall-Mounted Toilet Repair","type":"fixed","price":700,"display":"₹700"},{"name":"Toilet / Pot Blockage Removal","type":"quote","price":700,"display":"₹700–₹1,300"},{"name":"Overhead Shower Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Hand Shower Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Shower Repair","type":"fixed","price":239,"display":"₹239"},{"name":"Shower Mixer Installation","type":"fixed","price":400,"display":"₹400"},{"name":"Diverter Installation / Replacement","type":"fixed","price":600,"display":"₹600"},{"name":"Soap Holder Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Towel Rod / Holder Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Bathroom Shelf Fitting","type":"fixed","price":300,"display":"₹300"},{"name":"Wash Basin Installation","type":"fixed","price":500,"display":"₹500"},{"name":"Kitchen Sink Installation","type":"fixed","price":500,"display":"₹500"},{"name":"Waste Coupling Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Geyser Inlet / Outlet Connection","type":"fixed","price":350,"display":"₹350"},{"name":"Geyser Connection Leakage Repair","type":"fixed","price":250,"display":"₹250"},{"name":"Washing Machine Inlet / Outlet Connection","type":"fixed","price":300,"display":"₹300"},{"name":"RO Water Connection","type":"fixed","price":250,"display":"₹250"},{"name":"Shut-off Valve Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Water Tank Cleaning","type":"quote","price":1500,"display":"₹1,500 / Get Quote"},{"name":"New PVC / CPVC Pipeline Work","type":"quote","display":"Get Quote"},{"name":"Full Bathroom Plumbing / Fitting","type":"quote","display":"Get Quote"},{"name":"Full House Plumbing / Re-plumbing","type":"quote","display":"Get Quote"},{"name":"Concealed Leakage Detection","type":"quote","display":"Get Quote"},{"name":"High-Rise / External Hanging Pipe Work","type":"quote","display":"Get Quote"},{"name":"Emergency / Major Drain Blockage","type":"quote","display":"Get Quote"},{"name":"Any Other Plumbing Work","type":"quote","display":"Get Quote"},{"name":"Plumber Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+ 'AC Service':{icon:'❄️',items:[
+{"name":"Split AC General / Water Jet Service","type":"fixed","display":"₹499","price":499},
+{"name":"Window AC General / Water Jet Service","type":"fixed","display":"₹449","price":449},
+{"name":"AC Deep Foam + Power Jet Service","type":"fixed","display":"₹599","price":599},
+{"name":"Split AC Installation","type":"fixed","display":"₹1,499","price":1499},
+{"name":"Split AC Uninstallation","type":"fixed","display":"₹649","price":649},
+{"name":"Window AC Installation","type":"fixed","display":"₹599","price":599},
+{"name":"Window AC Uninstallation","type":"fixed","display":"₹449","price":449},
+{"name":"Cooling Problem / Gas Related Issue","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Gas Leakage Detection / Repair","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Water Leakage / Chokage","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Noise / Vibration Problem","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Copper Piping / Major Piping Work","type":"quote","display":"Discussion • Get Quote"},
+{"name":"PCB / Major Electronic Repair","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Major AC Repair","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Any Other AC Work","type":"quote","display":"Discussion • Get Quote"}
+,{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Cleaning':{icon:'🧹',items:[{"name":"Full Home Deep Cleaning – 1 BHK","type":"fixed","display":"₹999","price":999},{"name":"Full Home Deep Cleaning – 2 BHK","type":"fixed","display":"₹1,499","price":1499},{"name":"Full Home Deep Cleaning – 3 BHK","type":"fixed","display":"₹1,999","price":1999},{"name":"Full Home Deep Cleaning – 4 BHK","type":"fixed","display":"₹2,499","price":2499},{"name":"Full Home Deep Cleaning – 5 BHK / Bungalow","type":"quote","display":"Get Quote"},{"name":"Kitchen Deep Cleaning – Labour Only","type":"fixed","display":"₹499","price":499},{"name":"Bathroom Deep Cleaning – 1 Bathroom","type":"fixed","display":"₹399","price":399},{"name":"Bathroom Deep Cleaning – 2 Bathrooms","type":"fixed","display":"₹699 total","price":699},{"name":"Bathroom Deep Cleaning – 3 Bathrooms","type":"fixed","display":"₹999 total","price":999},{"name":"Sofa / Mattress / Water Tank Cleaning","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+ 'Carpenter':{icon:'🪚',items:[{"name":"Door Repair / Alignment / Plane Fixing","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Hinge Fitting / Replacement","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Lock / Latch / Handle Work","type":"quote","display":"Discussion • Get Quote"},{"name":"New Door Installation","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Closer Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Wardrobe / Cupboard Hinge or Channel Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Bed Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Window Latch / Channel / Glass Beading","type":"quote","display":"Discussion • Get Quote"},{"name":"Small Prefabricated Furniture Assembly","type":"quote","display":"Discussion • Get Quote"},{"name":"Heavy / Large Furniture Assembly","type":"quote","display":"Discussion • Get Quote"},{"name":"Modular Kitchen Cabinet Adjustment / Hinge Fixing","type":"quote","display":"Discussion • Get Quote"},{"name":"Tower Bolt / Kadi / Konda","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Stopper","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Handle Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Lock Installation","type":"quote","display":"Discussion • Get Quote"},{"name":"Digital / Smart Lock Work","type":"quote","display":"Discussion • Get Quote"},{"name":"Cupboard Lock","type":"quote","display":"Discussion • Get Quote"},{"name":"Cupboard Hinge","type":"quote","display":"Discussion • Get Quote"},{"name":"Drawer Channel","type":"quote","display":"Discussion • Get Quote"},{"name":"Drawer Lock / Handle","type":"quote","display":"Discussion • Get Quote"},{"name":"Shelf Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Wall Cabinet Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"TV Wall Panel / Unit Minor Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Curtain Rod Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Blinds Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Mosquito Net Frame / Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Mirror Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Photo Frame / Clock / Wall Décor Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Wooden Chair Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Table Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Sofa Wooden Frame Minor Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Bed Hydraulic / Storage Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Window Wooden Frame Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Wooden Door Frame Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Furniture Dismantling","type":"quote","display":"Discussion • Get Quote"},{"name":"Furniture Reassembly","type":"quote","display":"Discussion • Get Quote"},{"name":"Wood Polish","type":"quote","display":"Discussion • Get Quote"},{"name":"Wardrobe New Making","type":"quote","display":"Discussion • Get Quote"},{"name":"Modular Kitchen New Work","type":"quote","display":"Discussion • Get Quote"},{"name":"TV Unit / Bookshelf New Making","type":"quote","display":"Discussion • Get Quote"},{"name":"Custom Furniture","type":"quote","display":"Discussion • Get Quote"},{"name":"Any Other Carpenter Work","type":"quote","display":"Discussion • Get Quote"},{"name":"Carpenter Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+ 'Appliance Repair':{icon:'🔧',items:[{"name":"Washing Machine Repair / Service","type":"quote","display":"Get Quote"},{"name":"Refrigerator Repair / Service","type":"quote","display":"Get Quote"},{"name":"Chimney Repair / Service","type":"quote","display":"Get Quote"},{"name":"RO / Water Purifier Repair / Service","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+ 'Pest Control':{icon:'🐜',items:[{"name":"General Pest Control – 1 BHK","type":"fixed","display":"₹899","price":899},{"name":"General Pest Control – 2 BHK","type":"fixed","display":"₹1,299","price":1299},{"name":"General Pest Control – 3 BHK","type":"fixed","display":"₹1,699","price":1699},{"name":"General Pest Control – 4 BHK","type":"fixed","display":"₹2,199","price":2199},{"name":"Bungalow / Villa Pest Control","type":"quote","display":"Get Quote"},{"name":"Termite Treatment","type":"quote","display":"Get Quote"},{"name":"Bed Bug Treatment","type":"quote","display":"Get Quote"},{"name":"Cockroach Gel Treatment","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Maid Service':{icon:'🧼',items:[{"name":"Jhadu + Pocha","type":"fixed","display":"₹399","price":399},{"name":"Bhandi / Utensils","type":"fixed","display":"₹349","price":349},{"name":"Kapde Dhona / Laundry Help","type":"fixed","display":"₹399","price":399},{"name":"Dusting / Basic Cleaning","type":"fixed","display":"₹299","price":299},{"name":"Clothes Folding / Ironing Help","type":"fixed","display":"₹299","price":299},{"name":"Cooking – Per Visit","type":"quote","display":"Per Visit • Get Quote"},{"name":"4-Hour Half Day","type":"fixed","display":"₹699","price":699},{"name":"8-Hour Full Day","type":"fixed","display":"₹1,199","price":1199},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Painter':{icon:'🎨',items:[{"name":"Interior Basic Painting – Labour Only","type":"fixed","display":"₹8 / sq.ft.","price":8},{"name":"Interior Emulsion – Labour Only","type":"fixed","display":"₹10 / sq.ft.","price":10},{"name":"Premium / Luxury Painting – Labour Only","type":"fixed","display":"₹14 / sq.ft.","price":14},{"name":"Ceiling Painting – Labour Only","type":"fixed","display":"₹8 / sq.ft.","price":8},{"name":"Putty + Sanding – Labour Only","type":"fixed","display":"₹8 / sq.ft.","price":8},{"name":"Door / Window Enamel – Labour Only","type":"fixed","display":"₹100 / sq.ft.","price":100},{"name":"Grill / Gate Painting – Labour Only","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"Exterior / Texture / Damp Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'CCTV':{icon:'📹',items:[{"name":"Camera Installation","type":"fixed","display":"₹449 / No.","price":449},{"name":"Camera Uninstallation","type":"fixed","display":"₹239 / No.","price":239},{"name":"Camera Relocation","type":"fixed","display":"₹399 / No.","price":399},{"name":"Camera Cleaning + Angle Adjustment","type":"fixed","display":"₹239 / No.","price":239},{"name":"DVR / NVR Setup","type":"fixed","display":"₹699","price":699},{"name":"Hard Disk Fitting","type":"fixed","display":"₹299","price":299},{"name":"Mobile App / Remote Viewing Setup","type":"fixed","display":"₹399","price":399},{"name":"IP / Network Configuration","type":"fixed","display":"₹499","price":499},{"name":"Monitor Setup","type":"fixed","display":"₹299","price":299},{"name":"CCTV Wiring","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Gas Stove':{icon:'🔥',items:[{"name":"General Service","type":"fixed","display":"₹399","price":399},{"name":"Deep Cleaning","type":"fixed","display":"₹699","price":699},{"name":"Low Flame Repair","type":"fixed","display":"₹239","price":239},{"name":"Burner Cleaning","type":"fixed","display":"₹239","price":239},{"name":"Burner Fit / Replace – Labour","type":"fixed","display":"₹239","price":239},{"name":"Knob Repair","type":"fixed","display":"₹239","price":239},{"name":"Leakage Check","type":"fixed","display":"₹239","price":239},{"name":"Gas Pipe Fit / Replace – Labour","type":"fixed","display":"₹239","price":239},{"name":"Auto-Ignition Repair","type":"fixed","display":"₹239","price":239},{"name":"Major Gas Stove Repair","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Wi-Fi / TV Installation & Setup':{icon:'📶',items:[{"name":"TV Wall Mount – up to 43 inch","type":"fixed","display":"₹399","price":399},{"name":"TV Wall Mount – 44–55 inch","type":"fixed","display":"₹499","price":499},{"name":"TV Wall Mount – 56–65 inch","type":"fixed","display":"₹699","price":699},{"name":"TV Wall Mount – above 65 inch","type":"quote","display":"Get Quote"},{"name":"TV Uninstallation","type":"fixed","display":"₹239","price":239},{"name":"TV Height Adjustment","type":"fixed","display":"₹239","price":239},{"name":"Wi-Fi Router Setup","type":"fixed","display":"₹239","price":239},{"name":"Range Extender Setup","type":"fixed","display":"₹239","price":239},{"name":"Cable Management","type":"quote","display":"Get Quote"},{"name":"Other Wi-Fi / TV Setup Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Packers & Movers':{icon:'📦',items:[{"name":"Few Items / Small Shifting","type":"quote","display":"Get Quote"},{"name":"1 RK / Studio Local Shifting","type":"quote","display":"Get Quote"},{"name":"1 BHK Local Shifting","type":"quote","display":"Get Quote"},{"name":"2 BHK Local Shifting","type":"quote","display":"Get Quote"},{"name":"3 BHK Local Shifting","type":"quote","display":"Get Quote"},{"name":"4 BHK Local Shifting","type":"quote","display":"Get Quote"},{"name":"Only Packing","type":"quote","display":"Get Quote"},{"name":"Loading + Unloading","type":"quote","display":"Get Quote"},{"name":"Furniture Dismantling / Reassembly","type":"quote","display":"Get Quote"},{"name":"Intercity Shifting","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Tiles / Stone':{icon:'◻️',items:[{"name":"Ceramic Floor Tile Laying","type":"fixed","display":"₹40 / sq.ft.","price":40},{"name":"Vitrified Floor Tile Laying","type":"fixed","display":"₹45 / sq.ft.","price":45},{"name":"Bathroom Wall Tile Laying","type":"fixed","display":"₹50 / sq.ft.","price":50},{"name":"Kitchen Dado Tile Work","type":"fixed","display":"₹50 / sq.ft.","price":50},{"name":"Large Format Tile Laying","type":"fixed","display":"₹70 / sq.ft.","price":70},{"name":"Balcony / Outdoor Tile Laying","type":"fixed","display":"₹45 / sq.ft.","price":45},{"name":"Tile Skirting","type":"fixed","display":"₹20 / RFT","price":20},{"name":"Old Tile Removal","type":"fixed","display":"₹25 / sq.ft.","price":25},{"name":"Granite / Marble Floor Work","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"Granite Platform Slab – Labour","type":"fixed","display":"₹200 / RFT","price":200},{"name":"Designer / Pattern Tile Work","type":"quote","display":"Get Quote"},{"name":"Full Bathroom Tile Work","type":"quote","display":"Get Quote"},{"name":"Full House Tile Work","type":"quote","display":"Get Quote"},{"name":"Small Tile / Stone Repair","type":"fixed","display":"₹499 onwards","price":499},{"name":"Granite / Marble Door Frame","type":"quote","display":"Get Quote"},{"name":"Window Granite / Marble Border","type":"quote","display":"Get Quote"},{"name":"Tiles / Stone Visit / Measurement","type":"quote","display":"₹199–₹249"},{"name":"Any Other Tiles / Stone Work","type":"quote","display":"Get Quote"}]},
+'Waterproofing':{icon:'💧',items:[{"name":"Terrace / Roof Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Bathroom Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"Balcony Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"External Wall Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Internal Damp Wall Treatment – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Water Tank Waterproofing","type":"quote","display":"Get Quote"},{"name":"Crack / Joint Waterproofing","type":"quote","display":"Get Quote"},{"name":"PU Injection / Special Waterproofing","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'False Ceiling / POP / Gypsum / PVC':{icon:'🏠',items:[{"name":"Gypsum Board False Ceiling – Labour Only","type":"fixed","display":"₹75 / sq.ft.","price":75},{"name":"POP Ceiling – Labour Only","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"PVC Ceiling – Labour Only","type":"fixed","display":"₹70 / sq.ft.","price":70},{"name":"Cove / Designer Ceiling Work","type":"quote","display":"Get Quote"},{"name":"Repair / Patch Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+};
+const KEY="ocsHomeFlowCleanV1";
+const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","COMPLETION_CONFIRM","PAYMENT"]);
+function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,rescheduleAt:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,supportTickets:[],expertRequests:[]}}
+let S=fresh();
+try{
+ const raw=localStorage.getItem(KEY);
+ if(raw){
+   const saved=JSON.parse(raw);
+   if(saved&&saved.status==="DONE"){
+     clearBookingStorage();
+     S=fresh();
+   }else if(saved&&activeStatuses.has(saved.status)){
+     S=Object.assign(fresh(),saved);
+   }
+ }
+}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function money(n){return "₹"+Number(n||0).toLocaleString("en-IN")}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function lineTotal(x){
+  if(S.category==="Electrical"&&x.name==="Fan Fitting / Capacitor Change"&&Number(x.qty)===3)return 600;
+  return Number(x.price||0)*Number(x.qty||1)
+}
+function cartTotal(){return (S.cart||[]).reduce((a,x)=>a+lineTotal(x),0)}
+function hist(t){S.logs=S.logs||[];S.logs.unshift(new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+" • "+t);save()}
+function setTab(t){S.tab=t;save();render()}
+function clearBookingStorage(){
+  try{localStorage.removeItem(KEY)}catch(e){}
+  try{localStorage.removeItem("ocsHomeServiceStateV8")}catch(e){}
+  try{localStorage.removeItem("ocsCurrentBooking")}catch(e){}
+  try{localStorage.removeItem("ocsHomeBookingState")}catch(e){}
+}
+function resetNew(){
+  clearBookingStorage();
+  S=fresh();
+  save();
+  render();
+}
+function catIcon(k){return services[k]&&services[k].icon?services[k].icon:"🛠️"}
+function render(){
+ document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("on",b.dataset.tab===S.tab));
+ document.getElementById("main").innerHTML=S.tab==="customer"?customerHTML():providerHTML();
+}
+function customerHTML(){
+ if(S.status==="SELECT_SERVICE"){
+   const cats=Object.keys(services);
+   return `<div class="hero"><div><b>Professional Home Services</b><small>Select a category to book</small></div></div>
+   <div class="search"><input id="catSearch" placeholder="Search home services..."></div>
+   <div class="grid">${cats.map(k=>`<button class="cat" data-action="category" data-cat="${esc(k)}"><span class="ico">${catIcon(k)}</span><b>${esc(k)}</b><small>${services[k].items.length}+ Services</small></button>`).join("")}</div>`;
+ }
+ if(S.status==="SELECT_ITEM"){
+   const d=services[S.category];
+   const rows=d.items.map((it,i)=>{
+     const x=S.cart.find(v=>v.i===i);
+     if(it.type!=="fixed") return `<div class="svc"><div class="svc-copy"><b>${esc(it.name)}</b><span>${esc(it.display||"Get Quote")}</span><small>Price after quote</small></div><button class="add quote" data-action="quote-item" data-i="${i}">Get Quote</button></div>`;
+     return `<div class="svc"><div class="svc-copy"><b>${esc(it.name)}</b><span>${esc(it.display||money(it.price))}</span><small>Labour / service charge</small></div>${x?`<div class="step"><button data-action="qty" data-i="${i}" data-d="-1">−</button><b>${x.qty}</b><button data-action="qty" data-i="${i}" data-d="1">+</button></div>`:`<button class="add" data-action="add" data-i="${i}">Add</button>`}</div>`;
+   }).join("");
+   const total=cartTotal(),qty=S.cart.reduce((a,x)=>a+Number(x.qty||1),0);
+   return `<button class="btn gray" data-action="categories">← All Categories</button><div class="card"><h3>${esc(S.category)} Services</h3><div class="muted">Select one or multiple services.</div></div><div class="list">${rows}</div>${S.cart.length?`<div class="bar"><div class="copy"><b>${qty} Service${qty>1?"s":""} Selected</b><small>Grand Total: ${money(total)}</small></div><button data-action="continue">Continue Booking →</button></div>`:""}`;
+ }
+ if(S.status==="CUSTOM_REQUEST"){
+   return `<button class="btn gray" data-action="items">← Services</button><div class="card"><h3>New Service Request</h3><div class="muted">${esc(S.service||S.category)}</div><label>Describe work *</label><textarea id="customDesc" placeholder="Work details"></textarea><label>Preferred time</label><select id="customTime"><option>Morning</option><option>Afternoon</option><option>Evening</option></select><button class="btn" data-action="send-quote-request">Send Request to Service Provider</button></div>`;
+ }
+ if(S.status==="QUOTE_WAIT") return `<div class="notice"><b>Quote request sent.</b><br>Service Provider tab open karke quote bhejiye.</div>${logsHTML()}`;
+ if(S.status==="INITIAL_QUOTE"){
+   return `<div class="card"><h3>Service Provider Quote</h3><b>${esc(S.quote&&S.quote.desc||S.service)}</b><div class="money">${money(S.quote&&S.quote.amount)}</div><div class="row"><button class="btn ok" data-action="accept-quote">Accept Quote</button><button class="btn red" data-action="reject-quote">Reject</button></div></div>`;
+ }
+ if(S.status==="BOOKING_DETAILS"){
+   return `<button class="btn gray" data-action="items">← Services</button><div class="card"><h3>Booking Summary</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.category)}</div><div class="money">Total: ${money(S.total)}</div><label>Address / Location *</label><input id="address" value="${esc(S.address)}" placeholder="Enter service address"><label>Payment Method</label><div class="row"><button class="btn ${S.paymentChoice==="ONLINE"?"ok":"gray"}" data-action="pay-choice" data-v="ONLINE">Online</button><button class="btn ${S.paymentChoice==="CASH"?"ok":"gray"}" data-action="pay-choice" data-v="CASH">Cash</button></div><div class="notice"><b>Visit charge if no work:</b> 1–6 km ₹199 • above 6–12 km ₹249.</div><button class="btn" data-action="find-provider">Find Service Provider</button></div>`;
+ }
+ if(S.status==="REQUESTED") return `<div class="notice"><b>${S.rejectedProvider?esc(S.rejectedProvider)+" rejected this request. OCS is matching the next eligible Service Provider.":"Booking sent to Service Provider."}</b><br>${S.rejectedProvider?"No action needed from Customer.":"Service Provider tab open karke request test karein."}</div><div class="card"><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div><div class="muted">${esc(S.address)}</div></div>${logsHTML()}`;
+ if(S.status==="ASSIGNED") return `<div class="notice"><b>${esc(S.provider)} accepted booking.</b><br>Waiting for Service Provider to start journey.</div>${logsHTML()}`;
+ if(S.status==="ON_WAY") return `<div class="notice"><b>${esc(S.provider)} is On the Way.</b><br>Live GPS will connect in production.</div>${logsHTML()}`;
+ if(S.status==="REACHED") return `<div class="card"><h3>Service Provider Reached</h3><div class="notice">Start OTP: <b style="font-size:26px">${esc(S.startOtp)}</b><br>OTP sirf work start ke liye hai, completion proof nahi.</div><div class="muted">OTP Service Provider ko batayein.</div></div>`;
+ if(S.status==="WORKING") return `<div class="notice"><b>Work In Progress</b><br>Service Provider: ${esc(S.provider)} • Amount ${money(S.total)}</div>
+ ${S.extraQuote?`<div class="card"><h3>Extra Work Quote</h3><b>${esc(S.extraQuote.desc)}</b><div class="money">${money(S.extraQuote.amount)}</div><div class="row"><button class="btn ok" data-action="extra-quote-accept">Accept</button><button class="btn red" data-action="extra-quote-reject">Reject</button></div></div>`:""}
+ ${S.extraRequest&&!S.extraQuote?`<div class="notice"><b>Extra Work Request Sent</b><br>Waiting for Service Provider quote.</div>`:""}
+ <div class="card"><h3>Customer Actions</h3>
+ <button class="btn" data-action="customer-add-work">+ Add More Work</button>
+ <button class="btn gray" data-action="reschedule">Work Pending / Reschedule</button>
+ <button class="btn gray" data-action="change-provider">Change Service Provider</button>
+ <button class="btn red" data-action="work-not-completed-customer">Work Not Completed</button>
+ <button class="btn gray" data-action="customer-support">OCS Customer Support / Callback</button>
+ </div>`;
+ if(S.status==="RESCHEDULED") return `<div class="notice"><b>Work Pending / Rescheduled</b><br>${esc(S.rescheduleAt)}<br>Same Service Provider: ${esc(S.provider)} • Visit charge ₹0 now.</div><div class="muted">Next visit me fresh GPS Reached + Start OTP hoga.</div>${logsHTML()}`;
+ if(S.status==="PROVIDER_CHANGE_HOLD") return `<div class="notice"><b>Change Service Provider request sent to OCS.</b><br>Current booking HOLD par hai. Automatic reassignment nahi hoga jab tak OCS approves.</div><div class="card"><b>Reason:</b> ${esc(S.providerChangeReason)}</div><button class="btn gray" data-action="customer-support">Contact OCS Support</button>`;
+ if(S.status==="WNC_REVIEW") return `<div class="card"><h3>Work Not Completed</h3><div class="notice"><b>Reason:</b> ${esc(S.wncReason)}<br>Start OTP completion proof nahi hai.</div><div class="muted">Visit charge rule: 1–6 km ₹199 • >6–12 km ₹249. Provider-side issue ₹0.</div><div class="row"><button class="btn" data-action="wnc-close" data-charge="199">₹199</button><button class="btn" data-action="wnc-close" data-charge="249">₹249</button></div><button class="btn gray" data-action="wnc-close" data-charge="0">Provider-side issue • ₹0</button></div>`;
+ if(S.status==="COMPLETION_CONFIRM") return `<div class="card"><h3>Work Completed?</h3><div class="notice">Service Provider ne work complete mark kiya hai.</div><div class="row"><button class="btn ok" data-action="confirm-complete">Confirm Completed</button><button class="btn red" data-action="not-complete">Not Completed</button></div></div>`;
+ if(S.status==="PAYMENT") return `<div class="card"><h3>Payment</h3><div class="money">${money(S.total)}</div><div class="muted">Selected: ${esc(S.paymentChoice)}</div><button class="btn" data-action="pay-done">${S.paymentChoice==="CASH"?"Confirm Cash Paid":"Pay Online (Demo)"}</button></div>`;
+ if(S.status==="DONE") return `<div class="notice"><b>Booking Completed ✅</b><br>Customer + Service Provider flow complete.</div><button class="btn" data-action="new-booking">Book Another Service • Clear Old Booking</button>${logsHTML()}`;
+ return `<div class="empty">Customer flow ready.</div>`;
+}
+function providerHTML(){
+ if(S.status==="QUOTE_WAIT") return `<div class="card"><h3>Get Quote Request</h3><b>${esc(S.quoteRequest&&S.quoteRequest.service||S.category)}</b><p>${esc(S.quoteRequest&&S.quoteRequest.desc)}</p><button class="btn" data-action="send-quote">Send Quote</button></div>`;
+ if(S.status==="INITIAL_QUOTE") return `<div class="notice">Quote sent. Customer response ka wait hai.</div>`;
+ if(S.status==="REQUESTED"){
+   if(S.rejectedProvider&&!S.nextRequestReady) return `<div class="notice"><b>${esc(S.rejectedProvider)} rejected the request ✅</b><br>OCS sent it to the next eligible Service Provider: <b>${esc(S.provider)}</b>.</div><button class="btn" data-action="open-next-request">Open Next Provider Request</button>`;
+   return `<div class="card"><h3>Incoming Request • ${esc(S.provider)}</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><div class="money">${money(S.total)}</div><div class="row"><button class="btn ok" data-action="provider-accept">Accept</button><button class="btn red" data-action="provider-reject">Reject</button></div></div>`;
+ }
+ if(S.status==="ASSIGNED") return `<div class="card"><h3>Current Job</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><button class="btn" data-action="on-way">Start Journey / On the Way</button></div>`;
+ if(S.status==="ON_WAY") return `<div class="card"><h3>On the Way</h3><button class="btn" data-action="reached">GPS Reached</button></div>`;
+ if(S.status==="REACHED") return `<div class="card"><h3>Start Work OTP</h3><label>Customer OTP</label><input id="otpIn" inputmode="numeric" maxlength="4" placeholder="4 digit OTP"><button class="btn" data-action="verify-otp">Verify OTP & Start Work</button></div>`;
+ if(S.status==="WORKING") return `<div class="card"><h3>Work In Progress</h3><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div>
+ ${S.extraRequest&&!S.extraQuote?`<div class="notice"><b>Customer Add Work Request</b><br>${esc(S.extraRequest.desc)}</div><button class="btn" data-action="send-extra-quote">Send Extra Work Quote</button>`:""}
+ ${S.extraQuote?`<div class="notice"><b>Extra Quote Sent:</b> ${money(S.extraQuote.amount)} • Waiting for Customer response.</div>`:""}
+ <button class="btn ok" data-action="mark-complete">Mark Work Completed</button>
+ <button class="btn gray" data-action="reschedule">Work Pending / Reschedule</button>
+ <button class="btn red" data-action="work-not-completed-provider">Work Not Completed</button>
+ <button class="btn gray" data-action="ask-expert">Ask to Expert</button>
+ <button class="btn gray" data-action="provider-support">Service Provider Support / Callback</button>
+ </div>`;
+ if(S.status==="RESCHEDULED") return `<div class="notice"><b>Job Rescheduled</b><br>${esc(S.rescheduleAt)} • Same customer • Visit charge ₹0 now.</div><button class="btn" data-action="resume-visit">Continue Rescheduled Visit</button>`;
+ if(S.status==="PROVIDER_CHANGE_HOLD") return `<div class="notice"><b>Booking on HOLD</b><br>Customer requested Service Provider change. Wait for OCS decision.</div>`;
+ if(S.status==="WNC_REVIEW") return `<div class="notice"><b>Work Not Completed under review.</b><br>Reason: ${esc(S.wncReason)}<br>Waiting for Customer/OCS visit-charge decision.</div>`;
+ if(S.status==="COMPLETION_CONFIRM") return `<div class="notice">Waiting for Customer completion confirmation.</div>`;
+ if(S.status==="PAYMENT") return `<div class="notice">Waiting for Customer payment.</div>`;
+ if(S.status==="DONE") return `<div class="notice"><b>Job Completed ✅</b><br>Payment recorded.</div>${logsHTML()}`;
+ return `<div class="empty"><b>No active job.</b><br>Customer booking bhejega to yahan Incoming Request aayega.</div>`;
+}
+function logsHTML(){return S.logs&&S.logs.length?`<div class="card"><h3>Activity</h3><div class="log">${S.logs.map(x=>"<div>"+esc(x)+"</div>").join("")}</div></div>`:""}
+document.addEventListener("input",e=>{
+ if(e.target.id==="address"){S.address=e.target.value;save()}
+});
+document.addEventListener("click",e=>{
+ const tab=e.target.closest("[data-tab]");if(tab){setTab(tab.dataset.tab);return}
+ const b=e.target.closest("[data-action]");if(!b)return;
+ const a=b.dataset.action;
+ if(a==="home"){location.href="index.html?v=20260923-clean1";return}
+ if(a==="category"){S.category=b.dataset.cat;S.cart=[];S.status="SELECT_ITEM";save();render();return}
+ if(a==="categories"){S.category="";S.cart=[];S.status="SELECT_SERVICE";save();render();return}
+ if(a==="add"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.cart.push({i,name:it.name,price:Number(it.price||0),qty:1});save();render();return}
+ if(a==="qty"){const i=Number(b.dataset.i),x=S.cart.find(v=>v.i===i);if(!x)return;x.qty=Math.max(0,Number(x.qty||1)+Number(b.dataset.d||0));if(x.qty===0)S.cart=S.cart.filter(v=>v.i!==i);save();render();return}
+ if(a==="continue"){if(!S.cart.length)return;S.service=S.cart.map(x=>x.name+" × "+x.qty).join(", ");S.total=cartTotal();S.status="BOOKING_DETAILS";save();render();return}
+ if(a==="items"){S.status="SELECT_ITEM";save();render();return}
+ if(a==="quote-item"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.service=it.name;S.serviceType="quote";S.status="CUSTOM_REQUEST";save();render();return}
+ if(a==="send-quote-request"){const d=document.getElementById("customDesc").value.trim();if(!d){alert("Work details likhiye.");return}S.quoteRequest={service:S.service,desc:d,time:document.getElementById("customTime").value};S.status="QUOTE_WAIT";hist("Customer sent Get Quote request");render();return}
+ if(a==="send-quote"){const amt=Number(prompt("Quote amount ₹"));if(!amt||amt<=0)return;S.quote={desc:S.quoteRequest&&S.quoteRequest.desc||S.service,amount:amt};S.status="INITIAL_QUOTE";hist("Service Provider sent quote ₹"+amt);render();return}
+ if(a==="accept-quote"){S.total=Number(S.quote.amount);S.service=(S.service||S.category)+" • Accepted Quote";S.status="BOOKING_DETAILS";hist("Customer accepted quote ₹"+S.total);render();return}
+ if(a==="reject-quote"){S.status="CUSTOM_REQUEST";hist("Customer rejected quote");render();return}
+ if(a==="pay-choice"){S.paymentChoice=b.dataset.v;save();render();return}
+ if(a==="find-provider"){const addr=document.getElementById("address").value.trim();if(!addr){alert("Address / Location fill karein.");return}S.address=addr;S.status="REQUESTED";hist("Customer created booking • "+money(S.total));render();return}
+ if(a==="provider-accept"){S.rejectedProvider="";S.nextRequestReady=false;S.status="ASSIGNED";hist(S.provider+" accepted booking");render();return}
+ if(a==="provider-reject"){const old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";S.rejectedProvider=old;S.nextRequestReady=false;S.status="REQUESTED";hist(old+" rejected • OCS sent request to "+S.provider);render();return}
+ if(a==="open-next-request"){S.nextRequestReady=true;save();render();return}
+ if(a==="on-way"){S.status="ON_WAY";hist(S.provider+" is On the Way");render();return}
+ if(a==="reached"){S.startOtp=String(Math.floor(1000+Math.random()*9000));S.status="REACHED";hist(S.provider+" reached • Start OTP generated");render();return}
+ if(a==="verify-otp"){const v=(document.getElementById("otpIn").value||"").trim();if(v!==S.startOtp){alert("Wrong OTP");return}S.status="WORKING";hist("Start OTP verified • Work started");render();return}
+ if(a==="mark-complete"){if(S.extraQuote){alert("Extra Work quote par Customer decision pending hai.");return}S.status="COMPLETION_CONFIRM";hist("Service Provider marked work complete");render();return}
+ if(a==="confirm-complete"){S.status="PAYMENT";hist("Customer confirmed work completed");render();return}
+ if(a==="not-complete"){S.status="WORKING";hist("Customer did not confirm completion");render();return}
+ if(a==="reschedule"){const when=prompt("Next visit date/time");if(!when)return;S.rescheduleAt=when;S.status="RESCHEDULED";hist("Work Pending / Reschedule • "+when+" • Visit charge ₹0 now");render();return}
+ if(a==="resume-visit"){S.startOtp="";S.status="ON_WAY";hist("Rescheduled visit resumed • fresh GPS Reached + Start OTP required");render();return}
+ if(a==="customer-add-work"){const d=prompt("Extra work / new work detail likhiye");if(!d)return;S.extraRequest={desc:d};S.extraQuote=null;hist("Customer added extra work request");render();return}
+ if(a==="send-extra-quote"){const amt=Number(prompt("Extra work quote ₹"));if(!amt||amt<=0)return;S.extraQuote={desc:S.extraRequest&&S.extraRequest.desc||"Extra Work",amount:amt};hist("Service Provider sent extra work quote ₹"+amt);render();return}
+ if(a==="extra-quote-accept"){S.total+=Number(S.extraQuote.amount||0);S.service=S.service+", Extra Work: "+S.extraQuote.desc;hist("Customer accepted extra work quote ₹"+S.extraQuote.amount);S.extraRequest=null;S.extraQuote=null;render();return}
+ if(a==="extra-quote-reject"){hist("Customer rejected extra work quote");S.extraRequest=null;S.extraQuote=null;render();return}
+ if(a==="change-provider"){const reason=prompt("Service Provider change reason");if(!reason)return;S.providerChangeReason=reason;S.status="PROVIDER_CHANGE_HOLD";hist("Customer requested Service Provider change • booking HOLD");render();return}
+ if(a==="work-not-completed-customer"){const reason=prompt("Work Not Completed reason");if(!reason)return;S.wncBy="CUSTOMER";S.wncReason=reason;S.status="WNC_REVIEW";hist("Customer marked Work Not Completed • "+reason);render();return}
+ if(a==="work-not-completed-provider"){const reason=prompt("Work Not Completed reason");if(!reason)return;S.wncBy="PROVIDER";S.wncReason=reason;S.status="WNC_REVIEW";hist("Service Provider marked Work Not Completed • "+reason);render();return}
+ if(a==="wnc-close"){S.visitCharge=Number(b.dataset.charge||0);S.status="DONE";hist("Work Not Completed closed • Visit charge "+money(S.visitCharge));render();return}
+ if(a==="customer-support"||a==="provider-support"){const role=a==="customer-support"?"Customer":"Service Provider";const msg=prompt(role+" Support problem/message");if(!msg)return;const cb=confirm("OCS callback chahiye?");const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role,msg,callback:cb});hist(role+" support ticket "+ticket+" created"+(cb?" • Callback requested":""));alert("Ticket: "+ticket);render();return}
+ if(a==="ask-expert"){const q=prompt("Expert ko kya puchna hai?");if(!q)return;S.expertRequests.push({q,at:Date.now()});hist("Ask to Expert request sent");alert("Ask to Expert request sent to OCS.");render();return}
+ if(a==="pay-done"){S.status="DONE";hist("Payment recorded • "+S.paymentChoice+" • "+money(S.total));render();return}
+ if(a==="new-booking"){resetNew();return}
+});
+try{
+ const qp=new URLSearchParams(location.search);
+ const qt=qp.get("tab"), qc=qp.get("cat");
+ if(qt==="provider"||qt==="customer") S.tab=qt;
+ if(qc&&services[qc]&&!activeStatuses.has(S.status)){
+   S.category=qc;S.cart=[];S.status="SELECT_ITEM";
+ }
+}catch(e){}
+render();
+</script>
+</body>
+</html>
