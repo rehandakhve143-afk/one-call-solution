@@ -2181,6 +2181,13 @@ function setSuperSlide(n){
 }
 setTimeout(()=>setSuperSlide(0),100);
 function openModule(n,role,serviceCat){
+ if(n==='Home Services'){
+   const qs=[];
+   if(role)qs.push('tab='+encodeURIComponent(role));
+   if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
+   location.href='home-services-flow.html?v=20260923-clean1'+(qs.length?'&'+qs.join('&'):'');
+   return;
+ }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
  const manageBtn=document.getElementById('windowManageBtn');if(manageBtn)manageBtn.style.display=n==='Home Services'?'none':'block';
  document.body.classList.add("module-open");
