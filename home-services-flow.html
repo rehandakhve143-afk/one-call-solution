@@ -29,7 +29,7 @@ label{display:block;font-weight:800;font-size:11px;margin:10px 0 5px}input,texta
     <div class="headrow">
       <button class="back" data-action="home">‹</button>
       <div class="brand"><b>ONE CALL SOLUTION</b><small>Home Services</small></div>
-      <span class="ver">FLOW 24.2</span>
+      <span class="ver">FLOW 24.3</span>
     </div>
     <div class="tabs">
       <button class="tab on" data-tab="customer">Customer</button>
@@ -74,14 +74,19 @@ const services={
 'False Ceiling / POP / Gypsum / PVC':{icon:'🏠',items:[{"name":"Gypsum Board False Ceiling – Labour Only","type":"fixed","display":"₹75 / sq.ft.","price":75},{"name":"POP Ceiling – Labour Only","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"PVC Ceiling – Labour Only","type":"fixed","display":"₹70 / sq.ft.","price":70},{"name":"Cove / Designer Ceiling Work","type":"quote","display":"Get Quote"},{"name":"Repair / Patch Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
 };
 const KEY="ocsHomeFlowCleanV1";
-const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","COMPLETION_CONFIRM","PAYMENT","DONE"]);
+const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","COMPLETION_CONFIRM","PAYMENT"]);
 function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,rescheduleAt:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,supportTickets:[],expertRequests:[]}}
 let S=fresh();
 try{
  const raw=localStorage.getItem(KEY);
  if(raw){
    const saved=JSON.parse(raw);
-   if(saved&&activeStatuses.has(saved.status)) S=Object.assign(fresh(),saved);
+   if(saved&&saved.status==="DONE"){
+     clearBookingStorage();
+     S=fresh();
+   }else if(saved&&activeStatuses.has(saved.status)){
+     S=Object.assign(fresh(),saved);
+   }
  }
 }catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -94,7 +99,18 @@ function lineTotal(x){
 function cartTotal(){return (S.cart||[]).reduce((a,x)=>a+lineTotal(x),0)}
 function hist(t){S.logs=S.logs||[];S.logs.unshift(new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+" • "+t);save()}
 function setTab(t){S.tab=t;save();render()}
-function resetNew(){S=fresh();save();render()}
+function clearBookingStorage(){
+  try{localStorage.removeItem(KEY)}catch(e){}
+  try{localStorage.removeItem("ocsHomeServiceStateV8")}catch(e){}
+  try{localStorage.removeItem("ocsCurrentBooking")}catch(e){}
+  try{localStorage.removeItem("ocsHomeBookingState")}catch(e){}
+}
+function resetNew(){
+  clearBookingStorage();
+  S=fresh();
+  save();
+  render();
+}
 function catIcon(k){return services[k]&&services[k].icon?services[k].icon:"🛠️"}
 function render(){
  document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("on",b.dataset.tab===S.tab));
@@ -146,7 +162,7 @@ function customerHTML(){
  if(S.status==="WNC_REVIEW") return `<div class="card"><h3>Work Not Completed</h3><div class="notice"><b>Reason:</b> ${esc(S.wncReason)}<br>Start OTP completion proof nahi hai.</div><div class="muted">Visit charge rule: 1–6 km ₹199 • >6–12 km ₹249. Provider-side issue ₹0.</div><div class="row"><button class="btn" data-action="wnc-close" data-charge="199">₹199</button><button class="btn" data-action="wnc-close" data-charge="249">₹249</button></div><button class="btn gray" data-action="wnc-close" data-charge="0">Provider-side issue • ₹0</button></div>`;
  if(S.status==="COMPLETION_CONFIRM") return `<div class="card"><h3>Work Completed?</h3><div class="notice">Service Provider ne work complete mark kiya hai.</div><div class="row"><button class="btn ok" data-action="confirm-complete">Confirm Completed</button><button class="btn red" data-action="not-complete">Not Completed</button></div></div>`;
  if(S.status==="PAYMENT") return `<div class="card"><h3>Payment</h3><div class="money">${money(S.total)}</div><div class="muted">Selected: ${esc(S.paymentChoice)}</div><button class="btn" data-action="pay-done">${S.paymentChoice==="CASH"?"Confirm Cash Paid":"Pay Online (Demo)"}</button></div>`;
- if(S.status==="DONE") return `<div class="notice"><b>Booking Completed ✅</b><br>Customer + Service Provider flow complete.</div><button class="btn" data-action="new-booking">Book Another Service</button>${logsHTML()}`;
+ if(S.status==="DONE") return `<div class="notice"><b>Booking Completed ✅</b><br>Customer + Service Provider flow complete.</div><button class="btn" data-action="new-booking">Book Another Service • Clear Old Booking</button>${logsHTML()}`;
  return `<div class="empty">Customer flow ready.</div>`;
 }
 function providerHTML(){
