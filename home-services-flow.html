@@ -245,7 +245,8 @@ function providerHTML(){
  }
  if(S.status==="RESCHEDULED") return `<div class="notice"><b>Job Rescheduled</b><br>${esc(S.rescheduleAt)} • Same customer • Visit charge ₹0 now.</div><button class="btn" data-action="resume-visit">Continue Rescheduled Visit</button>`;
  if(S.status==="PROVIDER_CHANGE_HOLD") return `<div class="notice"><b>Booking on HOLD</b><br>Customer requested Service Provider change. Wait for OCS decision.</div>`;
- if(S.status==="WNC_REVIEW") return `<div class="notice"><b>Work Not Completed under review.</b><br>Reason: ${esc(S.wncReason)}<br>Waiting for Customer/OCS visit-charge decision.</div>${latestTicketHTML("Service Provider")}`;\n if(S.status==="VISIT_PAYMENT") return `<div class="notice"><b>Visit Charge Selected: ${money(S.visitCharge)}</b><br>Waiting for Customer payment / settlement.</div>`;
+ if(S.status==="WNC_REVIEW") return `<div class="notice"><b>Work Not Completed under review.</b><br>Reason: ${esc(S.wncReason)}<br>Waiting for Customer/OCS visit-charge decision.</div>${latestTicketHTML("Service Provider")}`;
+ if(S.status==="VISIT_PAYMENT") return `<div class="notice"><b>Visit Charge Selected: ${money(S.visitCharge)}</b><br>Waiting for Customer payment / settlement.</div>`;
  if(S.status==="COMPLETION_CONFIRM") return `<div class="notice">Waiting for Customer completion confirmation.</div>`;
  if(S.status==="PAYMENT") return `<div class="notice">Waiting for Customer payment.</div>`;
  if(S.status==="DONE") return `<div class="notice"><b>Job Completed ✅</b><br>Payment recorded.</div>${logsHTML()}`;
