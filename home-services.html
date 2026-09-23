@@ -1006,7 +1006,9 @@ function confirmWncReasonBy(side,agree){
    return;
  }
  if(S.wncFault==="PROVIDER"){
-   S.visitCharge=0;S.distanceSlab="No visit charge";S.status="CANCELLED_SETTLED";S.payment="₹0 • Provider-side reason";
+   S.visitCharge=0;S.distanceSlab="No visit charge";
+   if(S.paymentHeld&&Number(S.heldAmount||0)>0){settleHeldNoWork(0,"Provider-side reason • Full customer refund");return}
+   S.status="CANCELLED_SETTLED";S.payment="₹0 • Provider-side reason";
    hist(who+" confirmed provider-side reason • Booking closed • Visit charge ₹0");
    return;
  }
@@ -1026,10 +1028,9 @@ function confirmWncReasonBy(side,agree){
    hist(who+" confirmed reason • GPS distance needs OCS review • Charge HOLD • Ticket "+id);
    return;
  }
- S.visitCharge=charge;
- S.distanceSlab=km<=6?"1–6 km":">6–12 km";
- S.status="VISIT_PAYMENT";
- hist(who+" confirmed Work Not Completed reason • "+S.distanceSlab+" • Visit Charge ₹"+charge);
+ const slab=km<=6?"1–6 km":">6–12 km";
+ setVisitCharge(charge,slab);
+ hist(who+" confirmed Work Not Completed reason • "+slab+" • Visit Charge "+money(charge));
 }
 function confirmWncReason(agree){confirmWncReasonBy("customer",agree)}
 
@@ -1062,8 +1063,10 @@ hist("Work Not Completed custom reason • No automatic charge • Support Ticke
 }
 
 function setVisitCharge(amount,slab){
-S.visitCharge=amount;S.distanceSlab=slab;S.status="VISIT_PAYMENT";
-hist("Customer-side Work Not Completed • Visit Charge • "+slab+" • ₹"+amount)
+ S.visitCharge=amount;S.distanceSlab=slab;
+ if(S.paymentHeld&&Number(S.heldAmount||0)>0){settleHeldNoWork(amount,"Customer-side Work Not Completed • "+slab);return}
+ S.status="VISIT_PAYMENT";
+ hist("Customer-side Work Not Completed • Visit Charge • "+slab+" • "+money(amount))
 }
 
 function disputeVisit(){
@@ -1091,11 +1094,6 @@ function confirmCompletion(ok){
    let id=createTicket("customer","Work Completion Dispute",true);
    hist("Customer did not confirm completion • OCS payment remains on hold • Support Ticket "+id)
  }
-}else{
-  S.status="SUPPORT_REVIEW";S.completionRequested=false;
-  let id=createTicket("customer","Work Completion Dispute",true);
-  hist("Customer did not confirm completion • Support Ticket "+id)
-}
 }
 
 function openOnline(purpose){
@@ -1417,12 +1415,12 @@ if(S.status==="COMPLETION_CONFIRM")h=`
 </div></div>`;
 
 if(S.status==="PAYMENT")h=`
-<div class="card"><h3>Payment</h3><div class="money">₹${S.total}</div>
+<div class="card"><h3>Payment</h3>${S.paymentHeld?secureHoldHTML():""}<div class="muted">Remaining to pay</div><div class="money">${money(paymentDueAmount())}</div>
 <button class="btn" onclick="openOnline('JOB')">Online Payment</button>
 <button class="btn alt" onclick="payCash('JOB')">Cash</button></div>`;
 
 if(S.status==="ONLINE_PAY"){
-let amt=S.payPurpose==="VISIT"?S.visitCharge:S.total;
+let amt=S.payPurpose==="VISIT"?S.visitCharge:paymentDueAmount();
 h=`<div class="card"><h3>OCS Online Payment</h3>
 <div class="money">₹${amt}</div>
 <div class="notice"><b>OCS Online Payment</b><br>Company QR / Payment Link merchant setup connect hone ke baad yahan available hoga.</div>
@@ -1494,6 +1492,14 @@ if(S.status==="VISIT_REVIEW")h=`
 <button class="btn" onclick="setVisitCharge(199,'1–6 km')">1–6 km • ₹199</button>
 <button class="btn alt" onclick="setVisitCharge(249,'>6–12 km')">Above 6–12 km • ₹249</button>
 <button class="btn red" onclick="disputeVisit()">Need OCS Help</button>
+</div>`;
+
+if(S.status==="HELD_WNC_SETTLEMENT")h=`
+<div class="card"><h3>OCS Secure Hold Settlement</h3>
+<div class="notice good"><b>Held with OCS: ${money(Number(S.heldAmount||0))}</b><br>Applicable Visit Charge: <b>${money(Number(S.heldNoWorkCharge||0))}</b><br>Customer Refund: <b>${money(Number(S.refundAmount||0))}</b></div>
+<div class="muted">${ocsSafe(S.heldSettlementReason||"Work Not Completed")}</div>
+<button class="btn ok" onclick="confirmHeldNoWorkSettlement()">Confirm Settlement</button>
+<button class="btn red" onclick="disputeVisit()">Dispute • OCS Support</button>
 </div>`;
 
 if(S.status==="VISIT_PAYMENT")h=`
@@ -1636,6 +1642,7 @@ if(S.status==="WNC_CUSTOMER_CONFIRM")h=`<div class="notice">Reason sent to Custo
 if(S.status==="VISIT_REVIEW")h=`<div class="notice">Work Not Completed request opened.<br>Waiting for Customer visit-charge resolution.</div>`;
 
 if(S.status==="VISIT_PAYMENT"||S.status==="SUPPORT_REVIEW")h=`<div class="notice">Waiting for Customer / OCS Support.</div>`;
+if(S.status==="HELD_WNC_SETTLEMENT")h=`<div class="notice"><b>OCS Secure Payment is on hold.</b><br>Work Not Completed settlement: visit charge/refund Customer confirmation pending.</div>`;
 
 if(S.status==="VISIT_CASH_WAIT")h=`
 <div class="notice">Customer marked Visit Charge Cash Paid ₹${S.visitCharge}</div>
