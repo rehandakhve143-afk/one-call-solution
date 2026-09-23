@@ -296,7 +296,7 @@ cancelReason:null,cancelBy:null,visitCharge:0,distanceSlab:null,
 payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",supportTickets:[],logs:[],
 wallet:100,welcomeBonus:100,welcomeBonusGranted:true,welcomeBonusWithdrawable:false,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:9,
 providerRatings:[],customerRating:null,pendingRatingStars:0,pendingRatingComment:"",customerRatingComment:"",
-currentJob:null,nextJob:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null,
+currentJob:null,nextJob:providerState.nextJob||null,pendingNextRequest:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null,
 customerName:"Customer 1",customerMobile:"Not added",customerEmail:"Not added",
 providerMobile:"Not added",providerEmail:"Not added",providerVerified:true
 };
@@ -388,6 +388,8 @@ S.quoteProviderAccepted=!!S.quoteProviderAccepted;
 S.quoteValidUntil=Number(S.quoteValidUntil||0);
 S.beforeWorkProof=Array.isArray(S.beforeWorkProof)?S.beforeWorkProof:[];
 S.afterWorkProof=Array.isArray(S.afterWorkProof)?S.afterWorkProof:[];
+S.pendingNextRequest=S.pendingNextRequest&&typeof S.pendingNextRequest==="object"?S.pendingNextRequest:null;
+S.nextJob=S.nextJob&&typeof S.nextJob==="object"?S.nextJob:null;
 
 const $=id=>document.getElementById(id);
 
@@ -769,7 +771,55 @@ function syncHomeState(){
 
 function toggleAvailability(){
  S.available=!S.available;
+ if(!S.available&&S.pendingNextRequest){
+   hist("Available for Work OFF • Pending new request moved to another eligible Service Provider");
+   S.pendingNextRequest=null;
+ }
+ if(!S.available) hist("Available for Work OFF • Current/accepted job continues • No new requests");
+ else hist("Available for Work ON • Eligible for new requests");
  render()
+}
+
+function receiveNextWorkRequest(job){
+ if(S.status!=="WORKING"||!S.available||S.adminPaused||!S.jobAccess||S.nextJob)return false;
+ const j=job&&typeof job==="object"?job:{};
+ S.pendingNextRequest={
+   id:j.id||("OCS-NEXT-"+Date.now().toString().slice(-6)),
+   service:j.service||"New Home Service",
+   category:j.category||"Home Service",
+   amount:Number(j.amount||0),
+   customer:j.customer||"New Customer",
+   address:j.address||"Area shared after accept"
+ };
+ hist("New work request received while current job is running • Can accept as 1 Next Job");
+ render();
+ return true;
+}
+function acceptNextWorkRequest(){
+ if(S.status!=="WORKING"||!S.pendingNextRequest)return;
+ if(S.nextJob){alert("1 Next Job already accepted. Current job complete hone tak aur job accept nahi kar sakte.");return}
+ S.nextJob={...S.pendingNextRequest,acceptedAt:Date.now(),status:"QUEUED"};
+ S.pendingNextRequest=null;
+ hist(S.provider+" accepted 1 Next Job • It will stay queued until current job is completed");
+ render();
+}
+function rejectNextWorkRequest(){
+ if(!S.pendingNextRequest)return;
+ hist(S.provider+" rejected Next Job request • OCS moved it to another eligible Service Provider");
+ S.pendingNextRequest=null;render();
+}
+function providerNextJobQueueHTML(){
+ if(S.status!=="WORKING")return "";
+ if(!S.available)return '<div class="card"><h3>New Work Requests</h3><div class="notice">Available for Work is OFF. Current job continues, but no new/next request will come.</div></div>';
+ if(S.nextJob){
+   const j=S.nextJob;
+   return '<div class="card"><h3>Next Job • Accepted</h3><div class="notice good"><b>'+ocsSafe(j.service)+'</b><br>'+ocsSafe(j.category)+' • '+(j.amount?money(j.amount):'Amount pending')+'</div><div class="muted">Queued safely. Current job complete hone se pehle On the Way / Start Work nahi hoga. Max 1 Current Job + 1 Next Job.</div></div>';
+ }
+ if(S.pendingNextRequest){
+   const j=S.pendingNextRequest;
+   return '<div class="card"><h3>NEW • Next Work Request</h3><b>'+ocsSafe(j.service)+'</b><div class="muted">'+ocsSafe(j.category)+' • '+ocsSafe(j.customer)+'</div><div class="money">'+(j.amount?money(j.amount):'Amount pending')+'</div><div class="row"><button class="btn ok" onclick="acceptNextWorkRequest()">Accept as Next Job</button><button class="btn red" onclick="rejectNextWorkRequest()">Reject</button></div><div class="muted">Accept karne par ye queue me rahega. Current job ke saath second job start nahi ho sakta.</div></div>';
+ }
+ return '<div class="card"><h3>New Work Requests</h3><div class="notice good"><b>Available: ON</b><br>Current job chal raha hai. OCS ek time par maximum <b>1 Next Job</b> request allow karega.</div><div class="muted">Next Job accept kar sakte hain, lekin current job complete hone se pehle us par On the Way / Start Work nahi hoga.</div></div>';
 }
 
 function toggleSelectionTray(){continueSelectedItems()}
@@ -1413,6 +1463,7 @@ function resetAll(){
    welcomeBonus:100,
    walletWarningLevel:200,
    platformCharge:9,
+   nextJob:S.nextJob&&typeof S.nextJob==="object"?S.nextJob:null,
    adminPaused:!!S.adminPaused,
    rulesVersion:9,
    supportTickets:Array.isArray(S.supportTickets)?S.supportTickets:[],
@@ -1799,6 +1850,7 @@ ${S.isQuoteBooking?'<div class="card"><h3>Before Work Proof</h3><div class="mute
 
 if(S.status==="WORKING"){
 h=`<div class="notice good"><b>Service Provider • Work In Progress</b><br>Current Booking Total: ₹${S.total}</div>
+${providerNextJobQueueHTML()}
 <div class="card"><h3>Service Provider Actions</h3>
 <div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div>
 <div class="muted" style="margin-bottom:10px">Customer ke booking par kaam chal raha hai. Extra work ke liye OCS Rate Card use karein.</div>
@@ -2119,7 +2171,7 @@ $("availabilityBtn").textContent="Available: "+(S.available?"ON":"OFF");
 $("availabilityBtn").style.background=S.available?"#16a34a":"#64748b";
 $("walletBalance").textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 $("currentJob").textContent=S.currentJob||((["WORKING","ON_WAY","REACHED","ASSIGNED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?"Current Booking":"None");
-$("nextJob").textContent=S.nextJob||"None";
+$("nextJob").textContent=S.nextJob?(S.nextJob.service||"Accepted Next Job"):(S.pendingNextRequest?"NEW REQUEST":"None");
 const walletLow=Number(S.wallet)<Number(S.walletWarningLevel||200);
 $("walletWarning").classList.toggle("hide",!S.adminPaused&&!walletLow);
 $("walletWarning").innerHTML=S.adminPaused
@@ -2127,7 +2179,7 @@ $("walletWarning").innerHTML=S.adminPaused
  :(walletLow?"<b>Wallet Warning</b><br>Current wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+". Maintain wallet to continue booking smoothly. Warning only; jobs automatically stop nahi hongi.":"");
 $("cStatus").textContent=S.status;
 $("pStatus").textContent=S.status;
-const pt=$("ptab");const normalBookingNew=S.status==="REQUESTED";const extraWorkNew=S.customerExtraStatus==="SENT_TO_PROVIDER"&&S.customerExtraRequest;if(pt)pt.textContent=(normalBookingNew||extraWorkNew)?"Service Provider • NEW":"Service Provider";
+const pt=$("ptab");const normalBookingNew=S.status==="REQUESTED";const extraWorkNew=S.customerExtraStatus==="SENT_TO_PROVIDER"&&S.customerExtraRequest;const nextWorkNew=!!S.pendingNextRequest;if(pt)pt.textContent=(normalBookingNew||extraWorkNew||nextWorkNew)?"Service Provider • NEW":"Service Provider";
 $("cBody").innerHTML=customerHTML();
 $("pBody").innerHTML=providerHTML();
 $("cLog").innerHTML=S.logs.length?S.logs.map(x=>"<div>"+x+"</div>").join(""):"No history yet.";
