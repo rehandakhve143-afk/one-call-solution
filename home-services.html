@@ -1353,6 +1353,8 @@ if(S.status==="READY")h=`
 
 if(S.status==="REQUESTED")h=`<div class="notice"><b>Finding an eligible Service Provider&</b><br>OCS nearby available providers check kar raha hai.</div>`;
 
+if(S.status==="INITIAL_QUOTE")h=`<div class="notice good"><b>Quote Sent • ${money(S.quote&&S.quote.amount)}</b><br>Customer approval aur OCS secure payment ka wait hai.</div>${quoteMediaHTML()}${quoteChatHTML("provider")}`;
+if(S.status==="QUOTE_SECURE_PAYMENT")h=`<div class="notice"><b>Quote Accepted</b><br>Customer OCS Secure Payment complete kar raha hai. Amount secured hone ke baad booking provider matching me jayegi.</div>${quoteChatHTML("provider")}`;
 if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="card"><h3>Provider Change Requested</h3><div class="notice"><b>OCS Support is reviewing your request.</b><br>Current work is on HOLD. No new Service Provider has been assigned automatically.</div><p><b>Reason:</b> ${S.providerChangeReason}</p><p><b>Ticket:</b> ${S.providerChangeTicket}</p><button class="btn" onclick="openSupport('customer')">Contact OCS Support</button></div>`;
 
 if(S.status==="ASSIGNED"||S.status==="ON_WAY")h=`
@@ -1530,8 +1532,8 @@ return h;
 function providerHTML(){
 let h="";
 
-if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQUEST"||S.status==="BOOKING_DETAILS"||S.status==="INITIAL_QUOTE")h=`<p class="muted">No active job.</p>`;
-if(S.status==="QUOTE_WAIT")h=`<div class="card"><h3>Get Quote Request</h3><b>${S.category}</b><p>${S.customDescription||"Custom work"}</p><div class="muted">Preferred: ${S.customSchedule||""}</div><button class="btn" onclick="sendInitialQuote()">Send Quote</button><button class="btn gray" onclick="askExpert()">Ask to Expert</button></div>`;
+if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQUEST"||S.status==="BOOKING_DETAILS")h=`<p class="muted">No active job.</p>`;
+if(S.status==="QUOTE_WAIT")h=`<div class="card"><h3>Get Quote Request</h3><b>${S.category}</b><p>${ocsSafe(S.customDescription||"Custom work")}</p><div class="muted">Preferred: ${ocsSafe(S.customSchedule||"")}</div>${quoteMediaHTML()}<button class="btn" onclick="sendInitialQuote()">Send Quote</button><button class="btn gray" onclick="askExpert()">Ask to Expert</button></div>${quoteChatHTML("provider")}`;
 
 if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice">No incoming request.<br>Customer provider-change request is under OCS Support review. Another provider will receive it only after Admin approval.</div>`;
 
@@ -1648,6 +1650,7 @@ if(S.status==="CANCELLED")h=`<div class="notice bad"><b>Job Cancelled</b><br>${S
 if(S.status==="WORKING"&&S.quote&&S.quoteDecision==="RETURNED")h+=`
 <div class="card"><h3>Customer requested Add Work change</h3><div class="notice"><b>${S.quoteReturnNote||"Revision requested"}</b></div><button class="btn" onclick="providerEditReturnedQuote()">Edit & Resend →</button></div>`;
 
+if(S.paymentHeld&&Number(S.heldAmount||0)>0&&["REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","COMPLETION_CONFIRM","SUPPORT_REVIEW"].includes(S.status))h=secureHoldHTML()+h;
 return h;
 }
 
