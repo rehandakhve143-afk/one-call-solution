@@ -223,6 +223,10 @@ Status: <span class="status" id="pStatus">WAITING</span>
   <div id="walletWarning" class="notice hide"></div>
   <div class="muted" style="margin:12px 0 8px"><b>OCS Wallet</b><br>New approved Service Provider ko ₹100 Welcome Bonus one-time OCS Wallet credit milega. Ye withdrawable cash nahi hai. Recommended wallet level ₹200. Low/negative wallet par warning + reminder jayega. New jobs Pause/Resume ka control OCS Admin ke paas rahega.</div><button class="btn alt" onclick="rechargeWallet()">Top Up Wallet</button>
 </div></details>
+<details class="card" style="margin-top:10px">
+  <summary><b>⭐ Ratings & Customer Comments</b> <span class="muted">Tap to view</span></summary>
+  <div id="providerReviews" style="margin-top:10px"></div>
+</details>
 <div id="pBody"></div>
 </div>
 <div id="providerCustomerExtraMount"></div>
@@ -327,7 +331,7 @@ function loadSavedHomeState(){
        S.providerRatings=Array.isArray(saved.providerRatings)?saved.providerRatings:[];
        S.supportTickets=Array.isArray(saved.supportTickets)?saved.supportTickets:[];
        S.rulesVersion=9;
-       S.flowVersion=9;
+       S.flowVersion=10;
        try{localStorage.removeItem(OCS_HOME_STATE_KEY)}catch(e){}
        try{if(window.parent&&window.parent.localStorage){window.parent.localStorage.removeItem(OCS_HOME_STATE_KEY);window.parent.localStorage.removeItem("ocsCurrentBooking")}}catch(e){}
        return;
@@ -351,7 +355,7 @@ function loadSavedHomeState(){
      S.pendingRatingComment=S.pendingRatingComment||"";
      S.customerRatingComment=S.customerRatingComment||"";
      S.rulesVersion=9;
-     S.flowVersion=9;
+     S.flowVersion=10;
      S.adminPaused=!!saved.adminPaused;
      S.jobAccess=!S.adminPaused;
      // Do not restore an unfinished cart on refresh. Active bookings remain preserved.
@@ -1627,6 +1631,20 @@ function providerRatingSummary(){
  const avg=list.reduce((a,x)=>a+Number(x.stars),0)/list.length;
  return summaryStarsHTML(avg)+' <b>'+avg.toFixed(1)+'</b> <span class="muted">('+list.length+' review'+(list.length===1?'':'s')+')</span>';
 }
+function providerRatingCommentsHTML(){
+ const list=(Array.isArray(S.providerRatings)?S.providerRatings:[]).filter(x=>x&&x.provider===S.provider&&Number(x.stars)>0).slice().reverse();
+ if(!list.length)return '<div class="muted">Abhi koi Customer rating/comment nahi hai.</div>';
+ const avg=list.reduce((a,x)=>a+Number(x.stars),0)/list.length;
+ const head='<div class="notice good"><b>'+avg.toFixed(1)+' / 5 • '+list.length+' Rating'+(list.length===1?'':'s')+'</b><br>Completed booking reviews yahan dikhte hain.</div>';
+ const rows=list.slice(0,8).map(x=>{
+   const stars=summaryStarsHTML(Number(x.stars)||0);
+   const comment=ocsSafe(x.comment||'No comment');
+   const verified=x.verifiedBooking!==false?'<span class="status" style="font-size:9px;margin-left:5px">Verified Booking ✓</span>':'';
+   const dt=x.at?new Date(x.at).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}):"";
+   return '<div class="card" style="padding:11px;margin:8px 0"><div>'+stars+' <b>'+Number(x.stars).toFixed(0)+'/5</b>'+verified+'</div><div style="margin-top:7px;font-size:12px">'+comment+'</div><div class="muted" style="margin-top:6px">'+dt+(x.bookingId?' • '+ocsSafe(x.bookingId):'')+'</div></div>';
+ }).join('');
+ return head+rows;
+}
 function rateProvider(stars){
  stars=Number(stars);
  if(stars<1||stars>5||S.status!=="DONE")return;
@@ -1638,7 +1656,7 @@ function submitProviderRating(){
  if(stars<1||stars>5){alert("Pehle 1 se 5 star select karein.");return}
  const comment=(document.getElementById("ratingComment")?.value||S.pendingRatingComment||"").trim();
  S.providerRatings=Array.isArray(S.providerRatings)?S.providerRatings:[];
- S.providerRatings.push({provider:S.provider,stars:stars,comment:comment,at:new Date().toISOString()});
+ S.providerRatings.push({provider:S.provider,stars:stars,comment:comment,verifiedBooking:true,bookingId:S.activeBookingId||"",at:new Date().toISOString()});
  S.customerRating=stars;
  S.customerRatingComment=comment;
  S.pendingRatingStars=0;S.pendingRatingComment="";
@@ -2126,7 +2144,7 @@ if(S.status==="VISIT_CASH_WAIT")h=`
 <div class="notice">Customer marked Visit Charge Cash Paid ₹${S.visitCharge}</div>
 <button class="btn ok" onclick="cashReceived()">Visit Charge Cash Received</button>`;
 
-if(S.status==="DONE")h=`<div class="notice good"><b>Job Completed</b><br>₹${S.total}</div>${S.customerRating?'<div class="ocs-rating-box"><b>Customer Rating</b>'+yellowStarsHTML(S.customerRating,false)+'</div>':''}`+nextJobReadyHTML();
+if(S.status==="DONE")h=`<div class="notice good"><b>Job Completed</b><br>₹${S.total}</div>${S.customerRating?'<div class="ocs-rating-box"><b>Customer Rating</b>'+yellowStarsHTML(S.customerRating,false)+(S.customerRatingComment?'<div class="muted" style="margin-top:8px">“'+ocsSafe(S.customerRatingComment)+'”</div>':'')+'<div class="ocs-rating-note">Verified Booking ✓</div></div>':''}`+nextJobReadyHTML();
 
 if(S.status==="CANCELLED_SETTLED")h=`<div class="notice good"><b>Work Not Completed • Settled</b><br>Visit Charge ₹${S.visitCharge}</div>`;
 
@@ -2368,6 +2386,7 @@ function providerCustomerExtraHTML(){
 function renderCore(){
 $("providerName").textContent=S.provider;
 const prl=$("providerRatingLine");if(prl)prl.innerHTML=providerRatingSummary();
+const prv=$("providerReviews");if(prv)prv.innerHTML=providerRatingCommentsHTML();
 $("availabilityBtn").textContent="Available: "+(S.available?"ON":"OFF");
 $("availabilityBtn").style.background=S.available?"#16a34a":"#64748b";
 $("walletBalance").textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
