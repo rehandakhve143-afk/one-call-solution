@@ -36,7 +36,7 @@ background-color:#fff}
     <div class="headrow">
       <button class="back" data-action="home">‹</button>
       <div class="brand"><b>ONE CALL SOLUTION</b><small>Home Services</small></div>
-      <span class="ver">FLOW 25.4</span>
+      <span class="ver">FLOW 25.5</span>
     </div>
     <div class="tabs">
       <button class="tab on" data-tab="customer">Customer</button>
@@ -83,7 +83,7 @@ const services={
 };
 const KEY="ocsHomeFlowV254";
 const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","VISIT_PAYMENT","VISIT_CASH_WAIT","COMPLETION_CONFIRM","PAYMENT","CASH_WAIT"]);
-function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",paymentView:"SELECT",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addonRequest:null,addonNotice:"",addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",rescheduleBy:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,visitPaymentChoice:"ONLINE",visitPaymentView:"SELECT",visitPaymentStatus:"",supportTickets:[],expertRequests:[],actionPanel:"",customerLat:null,customerLng:null,locationSharedAt:"",locationError:""}}
+function fresh(){return {tab:"customer",bookingId:"",bookingCreatedAt:"",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",paymentView:"SELECT",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addonRequest:null,addonNotice:"",addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",rescheduleBy:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,visitPaymentChoice:"ONLINE",visitPaymentView:"SELECT",visitPaymentStatus:"",supportTickets:[],expertRequests:[],actionPanel:"",customerLat:null,customerLng:null,locationSharedAt:"",locationError:""}}
 let S=fresh();
 try{
  const raw=localStorage.getItem(KEY);
@@ -97,6 +97,10 @@ try{
    }
  }
 }catch(e){}
+if(activeStatuses.has(S.status)||S.status==="DONE"){
+ ensureBookingId();
+ syncCurrentTicketsToAdmin();
+}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function money(n){return "₹"+Number(n||0).toLocaleString("en-IN")}
 function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
@@ -107,7 +111,57 @@ function lineTotal(x){
 function cartTotal(){return (S.cart||[]).reduce((a,x)=>a+lineTotal(x),0)}
 function addWorkLineTotal(x){return Number(x.price||0)*Number(x.qty||1)}
 function addWorkTotal(){return (S.addWorkCart||[]).reduce((a,x)=>a+addWorkLineTotal(x),0)}
-function hist(t){S.logs=S.logs||[];S.logs.unshift(new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+" • "+t);save()}
+const ADMIN_KEY="ocsAdminRecordsV1";
+function adminStore(){
+ try{
+   const x=JSON.parse(localStorage.getItem(ADMIN_KEY)||'{"bookings":[],"tickets":[]}');
+   return {bookings:Array.isArray(x.bookings)?x.bookings:[],tickets:Array.isArray(x.tickets)?x.tickets:[]};
+ }catch(e){return {bookings:[],tickets:[]}}
+}
+function saveAdminStore(x){try{localStorage.setItem(ADMIN_KEY,JSON.stringify(x))}catch(e){}}
+function ensureBookingId(){
+ if(!S.bookingId){
+   S.bookingId="OCS-BK-"+String(Date.now()).slice(-8);
+   S.bookingCreatedAt=new Date().toISOString();
+ }
+ return S.bookingId;
+}
+function syncBookingToAdmin(){
+ if(!S.bookingId)return;
+ const A=adminStore();
+ const rec={
+   bookingId:S.bookingId,createdAt:S.bookingCreatedAt||new Date().toISOString(),
+   status:S.status,category:S.category||"",service:S.service||"",amount:Number(S.total||0),
+   address:S.address||"",provider:S.provider||"",payment:S.paymentChoice||"",
+   customerLat:S.customerLat,customerLng:S.customerLng
+ };
+ const i=A.bookings.findIndex(x=>x.bookingId===S.bookingId);
+ if(i>=0)A.bookings[i]=Object.assign(A.bookings[i],rec);else A.bookings.push(rec);
+ saveAdminStore(A);
+}
+function createSupportTicket(role,msg,callback){
+ const ticket="OCS-TKT-"+String(Date.now()).slice(-8);
+ const bookingId=ensureBookingId();
+ const rec={ticket,bookingId,role,msg,callback:!!callback,status:"NEW",createdAt:Date.now()};
+ S.supportTickets=S.supportTickets||[];
+ S.supportTickets.push(rec);
+ const A=adminStore();
+ if(!A.tickets.some(x=>x.ticket===ticket))A.tickets.push(rec);
+ saveAdminStore(A);
+ syncBookingToAdmin();
+ return ticket;
+}
+function syncCurrentTicketsToAdmin(){
+ if(!S.bookingId&&!(S.supportTickets||[]).length)return;
+ const A=adminStore();
+ (S.supportTickets||[]).forEach(t=>{
+   const rec=Object.assign({bookingId:S.bookingId||"UNLINKED",status:"NEW"},t);
+   if(!A.tickets.some(x=>(x.ticket||x.id)===(rec.ticket||rec.id)))A.tickets.push(rec);
+ });
+ saveAdminStore(A);
+ syncBookingToAdmin();
+}
+function hist(t){S.logs=S.logs||[];S.logs.unshift(new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+" • "+t);save();if(S.bookingId)syncBookingToAdmin()}
 function setTab(t){S.tab=t;save();render()}
 function clearBookingStorage(){
   try{localStorage.removeItem(KEY)}catch(e){}
@@ -172,8 +226,8 @@ function customerHTML(){
  if(S.status==="BOOKING_DETAILS"){
    return `<button class="btn gray" data-action="items">← Services</button><div class="card"><h3>Booking Summary</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.category)}</div><div class="money">Total: ${money(S.total)}</div><label>Address / Location *</label><input id="address" value="${esc(S.address)}" placeholder="Enter service address"><button class="btn gray" type="button" data-action="share-location">📍 Share Current Location</button>${customerLocationHTML()}<label>Payment Method</label><div class="row"><button class="btn ${S.paymentChoice==="ONLINE"?"ok":"gray"}" data-action="pay-choice" data-v="ONLINE">Online</button><button class="btn ${S.paymentChoice==="CASH"?"ok":"gray"}" data-action="pay-choice" data-v="CASH">Cash</button></div><div class="notice"><b>Visit charge if no work:</b> 1–6 km ₹199 • above 6–12 km ₹249.</div><button class="btn" data-action="find-provider">Find Service Provider</button></div>`;
  }
- if(S.status==="REQUESTED") return `<div class="notice"><b>${S.rejectedProvider?esc(S.rejectedProvider)+" rejected this request. OCS is matching the next eligible Service Provider.":"Booking sent to Service Provider."}</b><br>${S.rejectedProvider?"No action needed from Customer.":"Service Provider tab open karke request test karein."}</div><div class="card"><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div><div class="muted">${esc(S.address)}</div></div>${logsHTML()}`;
- if(S.status==="ASSIGNED") return `<div class="notice"><b>${esc(S.provider)} accepted booking.</b><br>Waiting for Service Provider to start journey.</div>${customerLocationHTML()}${logsHTML()}`;
+ if(S.status==="REQUESTED") return `<div class="notice"><b>Booking ID: ${esc(S.bookingId||"—")}</b><br><b>${S.rejectedProvider?esc(S.rejectedProvider)+" rejected this request. OCS is matching the next eligible Service Provider.":"Booking sent to Service Provider."}</b><br>${S.rejectedProvider?"No action needed from Customer.":"Service Provider tab open karke request test karein."}</div><div class="card"><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div><div class="muted">${esc(S.address)}</div></div>${logsHTML()}`;
+ if(S.status==="ASSIGNED") return `<div class="notice"><b>Booking ID: ${esc(S.bookingId||"—")}</b><br><b>${esc(S.provider)} accepted booking.</b><br>Waiting for Service Provider to start journey.</div>${customerLocationHTML()}${logsHTML()}`;
  if(S.status==="ON_WAY") return `<div class="notice"><b>${esc(S.provider)} is On the Way.</b><br>Customer shared location Service Provider ko available hai.</div>${customerLocationHTML()}${logsHTML()}`;
  if(S.status==="REACHED") return `<div class="card"><h3>Service Provider Reached</h3><div class="notice">Start OTP: <b style="font-size:26px">${esc(S.startOtp)}</b><br>OTP sirf work start ke liye hai, completion proof nahi.</div><div class="muted">OTP Service Provider ko batayein.</div></div>`;
  if(S.status==="WORKING"&&S.addWorkMode==="RATE"){
@@ -248,38 +302,40 @@ function providerActionPanelHTML(){
  return "";
 }
 function adminHTML(){
- const tickets=S.supportTickets||[];
+ syncCurrentTicketsToAdmin();
+ const A=adminStore(),tickets=A.tickets||[],bookings=A.bookings||[];
  const newCount=tickets.filter(t=>(t.status||"NEW")==="NEW").length;
  const reviewCount=tickets.filter(t=>t.status==="IN_REVIEW").length;
  const resolvedCount=tickets.filter(t=>t.status==="RESOLVED").length;
- const rows=tickets.length?tickets.slice().reverse().map(t=>{
-   const id=t.ticket||t.id||"";
-   const st=t.status||"NEW";
+ const bookingRows=bookings.length?bookings.slice().reverse().map(b=>`<div class="card">
+   <h3>${esc(b.bookingId)}</h3>
+   <div class="muted">${esc(b.category||"")} • ${esc(b.status||"")}</div>
+   <b>${esc(b.service||"Booking")}</b>
+   <div class="money">${money(b.amount||0)}</div>
+   <div class="muted">Provider: ${esc(b.provider||"—")} • ${esc(b.address||"")}</div>
+ </div>`).join(""):`<div class="empty"><b>No booking record yet.</b><br>Customer Find Service Provider press karega tab Booking ID yahan aayega.</div>`;
+ const ticketRows=tickets.length?tickets.slice().reverse().map(t=>{
+   const id=t.ticket||t.id||"",st=t.status||"NEW";
    return `<div class="card">
-     <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
-       <div><h3 style="margin-bottom:3px">${esc(id)}</h3><div class="muted">${esc(t.role||"Support")} • ${t.callback?"📞 Callback Requested":"No Callback"}</div></div>
-       <b>${esc(st)}</b>
-     </div>
-     <div class="notice" style="margin-top:10px">${esc(t.msg||t.category||"Support request")}</div>
-     <div class="row">
-       <button class="btn gray" data-action="admin-ticket-review" data-ticket="${esc(id)}">In Review</button>
-       <button class="btn ok" data-action="admin-ticket-resolve" data-ticket="${esc(id)}">Resolved</button>
-     </div>
+     <h3>${esc(id)}</h3>
+     <div class="muted"><b>Booking ID: ${esc(t.bookingId||"UNLINKED")}</b></div>
+     <div class="muted">${esc(t.role||"Support")} • ${t.callback?"📞 Callback Requested":"No Callback"} • ${esc(st)}</div>
+     <div class="notice">${esc(t.msg||t.category||"Support request")}</div>
+     <div class="row"><button class="btn gray" data-action="admin-ticket-review" data-ticket="${esc(id)}">In Review</button><button class="btn ok" data-action="admin-ticket-resolve" data-ticket="${esc(id)}">Resolved</button></div>
    </div>`;
- }).join(""):`<div class="empty"><b>No support tickets yet.</b><br>Customer / Service Provider complaint aayegi to yahan dikhegi.</div>`;
- const expert=(S.expertRequests||[]).length?`<div class="card"><h3>Ask to Expert Requests</h3>${S.expertRequests.slice().reverse().map((x,i)=>`<div class="notice"><b>Expert Request ${S.expertRequests.length-i}</b><br>${esc(x.q||"")}</div>`).join("")}</div>`:"";
- return `<div class="hero"><div><b>Admin • Ticket Check</b><small>Customer & Service Provider support</small></div></div>
- <div class="card"><h3>Ticket Summary</h3><div class="row"><div class="notice"><b>New: ${newCount}</b></div><div class="notice"><b>In Review: ${reviewCount}</b></div></div><div class="notice"><b>Resolved: ${resolvedCount}</b> • Total: ${tickets.length}</div></div>
- ${rows}${expert}`;
+ }).join(""):`<div class="empty"><b>No support tickets yet.</b><br>Complaint create hone ke baad Ticket ID + Booking ID yahan dikhega.</div>`;
+ return `<div class="hero"><div><b>Admin Panel</b><small>Bookings + Ticket Check</small></div></div>
+ <div class="card"><h3>Admin Summary</h3><div class="notice"><b>Bookings: ${bookings.length}</b> • Tickets: ${tickets.length}</div><div class="row"><div class="notice"><b>New: ${newCount}</b></div><div class="notice"><b>In Review: ${reviewCount}</b></div></div><div class="notice"><b>Resolved: ${resolvedCount}</b></div></div>
+ <h3>Booking IDs</h3>${bookingRows}<h3>Support Tickets</h3>${ticketRows}`;
 }
 function providerHTML(){
  if(S.status==="QUOTE_WAIT") return `<div class="card"><h3>Get Quote Request</h3><b>${esc(S.quoteRequest&&S.quoteRequest.service||S.category)}</b><p>${esc(S.quoteRequest&&S.quoteRequest.desc)}</p><button class="btn" data-action="send-quote">Send Quote</button></div>`;
  if(S.status==="INITIAL_QUOTE") return `<div class="notice">Quote sent. Customer response ka wait hai.</div>`;
  if(S.status==="REQUESTED"){
    if(S.rejectedProvider&&!S.nextRequestReady) return `<div class="notice"><b>${esc(S.rejectedProvider)} rejected the request ✅</b><br>OCS sent it to the next eligible Service Provider: <b>${esc(S.provider)}</b>.</div><button class="btn" data-action="open-next-request">Open Next Provider Request</button>`;
-   return `<div class="card"><h3>Incoming Request • ${esc(S.provider)}</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><div class="money">${money(S.total)}</div><div class="row"><button class="btn ok" data-action="provider-accept">Accept</button><button class="btn red" data-action="provider-reject">Reject</button></div></div>${providerLocationHTML()}`;
+   return `<div class="card"><h3>Incoming Request • ${esc(S.provider)}</h3><div class="muted">Booking ID: ${esc(S.bookingId||"—")}</div><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><div class="money">${money(S.total)}</div><div class="row"><button class="btn ok" data-action="provider-accept">Accept</button><button class="btn red" data-action="provider-reject">Reject</button></div></div>${providerLocationHTML()}`;
  }
- if(S.status==="ASSIGNED") return `<div class="card"><h3>Current Job</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><button class="btn" data-action="on-way">Start Journey / On the Way</button></div>${providerLocationHTML()}`;
+ if(S.status==="ASSIGNED") return `<div class="card"><h3>Current Job</h3><div class="muted">Booking ID: ${esc(S.bookingId||"—")}</div><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><button class="btn" data-action="on-way">Start Journey / On the Way</button></div>${providerLocationHTML()}`;
  if(S.status==="ON_WAY") return `<div class="card"><h3>On the Way</h3><button class="btn" data-action="reached">GPS Reached</button></div>${providerLocationHTML()}`;
  if(S.status==="REACHED") return `<div class="card"><h3>Start Work OTP</h3><label>Customer OTP</label><input id="otpIn" inputmode="numeric" maxlength="4" placeholder="4 digit OTP"><button class="btn" data-action="verify-otp">Verify OTP & Start Work</button></div>`;
  if(S.status==="WORKING") return `<div class="card"><h3>Work In Progress</h3><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div>\n ${latestTicketHTML("Service Provider")}
@@ -345,7 +401,7 @@ document.addEventListener("click",e=>{
    window.open(url,"_blank","noopener");
    return;
  }
- if(a==="find-provider"){const addr=document.getElementById("address").value.trim();if(!addr){alert("Address / Location fill karein.");return}S.address=addr;S.status="REQUESTED";hist("Customer created booking • "+money(S.total));render();return}
+ if(a==="find-provider"){const addr=document.getElementById("address").value.trim();if(!addr){alert("Address / Location fill karein.");return}S.address=addr;ensureBookingId();S.status="REQUESTED";hist("Customer created booking • "+S.bookingId+" • "+money(S.total));syncBookingToAdmin();save();render();return}
  if(a==="provider-accept"){S.rejectedProvider="";S.nextRequestReady=false;S.status="ASSIGNED";hist(S.provider+" accepted booking");render();return}
  if(a==="provider-reject"){const old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";S.rejectedProvider=old;S.nextRequestReady=false;S.status="REQUESTED";hist(old+" rejected • OCS sent request to "+S.provider);render();return}
  if(a==="open-next-request"){S.nextRequestReady=true;save();render();return}
@@ -374,7 +430,7 @@ document.addEventListener("click",e=>{
  if(a==="addon-quote-accept"){if(!S.addonRequest||S.addonRequest.status!=="QUOTE_SENT")return;S.total+=Number(S.addonRequest.amount||0);S.service=S.service+", Extra Work: "+S.addonRequest.desc;S.addonNotice="Add Work quote accepted • "+money(S.addonRequest.amount)+" added to booking.";hist("Customer accepted Add Work quote • New total "+money(S.total));S.addonRequest=null;save();render();return}
  if(a==="addon-quote-reject"){if(!S.addonRequest)return;S.addonNotice="Add Work quote rejected. Booking amount unchanged.";hist("Customer rejected Add Work quote • Total remains "+money(S.total));S.addonRequest=null;save();render();return}
  if(a==="change-provider"){S.actionPanel="CHANGE_PROVIDER";save();render();return}
- if(a==="submit-change-provider"){const r=(document.getElementById("changeProviderReason")?.value||"").trim();const d=(document.getElementById("changeProviderDetails")?.value||"").trim();if(!r)return;S.providerChangeReason=r+(d?" • "+d:"");const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Customer",msg:"Provider Change: "+S.providerChangeReason,callback:true,status:"NEW",createdAt:Date.now()});S.actionPanel="";S.status="PROVIDER_CHANGE_HOLD";hist("Customer requested Service Provider change • Ticket "+ticket+" • booking HOLD");save();render();return}
+ if(a==="submit-change-provider"){const r=(document.getElementById("changeProviderReason")?.value||"").trim();const d=(document.getElementById("changeProviderDetails")?.value||"").trim();if(!r)return;S.providerChangeReason=r+(d?" • "+d:"");const ticket=createSupportTicket("Customer","Provider Change: "+S.providerChangeReason,true);S.actionPanel="";S.status="PROVIDER_CHANGE_HOLD";hist("Customer requested Service Provider change • Ticket "+ticket+" • booking HOLD");syncBookingToAdmin();save();render();return}
  if(a==="work-not-completed-customer"){S.actionPanel="WNC_CUSTOMER";save();render();return}
  if(a==="submit-wnc-customer"){const reason=(document.getElementById("wncCustomerReason")?.value||"").trim();if(!reason)return;S.wncBy="CUSTOMER";S.wncReason=reason;S.actionPanel="";S.status="WNC_REVIEW";hist("Customer marked Work Not Completed • "+reason);render();return}
  if(a==="work-not-completed-provider"){S.actionPanel="WNC_PROVIDER";save();render();return}
@@ -388,8 +444,8 @@ document.addEventListener("click",e=>{
  if(a==="confirm-visit-cash-received"){S.visitPaymentStatus="PAID";S.status="DONE";hist(S.provider+" confirmed Visit Charge Cash Received • "+money(S.visitCharge));save();render();return}
  if(a==="customer-support"){S.actionPanel="SUPPORT_CUSTOMER";save();render();return}
  if(a==="provider-support"){S.actionPanel="SUPPORT_PROVIDER";save();render();return}
- if(a==="submit-customer-support"){const msg=(document.getElementById("customerSupportMsg")?.value||"").trim();if(!msg)return;const cb=!!document.getElementById("customerSupportCb")?.checked;const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Customer",msg,callback:cb,status:"NEW",createdAt:Date.now()});S.actionPanel="";hist("Customer support ticket "+ticket+" created"+(cb?" • Callback requested":""));render();return}
- if(a==="submit-provider-support"){const msg=(document.getElementById("providerSupportMsg")?.value||"").trim();if(!msg)return;const cb=!!document.getElementById("providerSupportCb")?.checked;const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Service Provider",msg,callback:cb,status:"NEW",createdAt:Date.now()});S.actionPanel="";hist("Service Provider support ticket "+ticket+" created"+(cb?" • Callback requested":""));render();return}
+ if(a==="submit-customer-support"){const msg=(document.getElementById("customerSupportMsg")?.value||"").trim();if(!msg)return;const cb=!!document.getElementById("customerSupportCb")?.checked;const ticket=createSupportTicket("Customer",msg,cb);S.actionPanel="";hist("Customer support ticket "+ticket+" • Booking "+S.bookingId+(cb?" • Callback requested":""));save();render();return}
+ if(a==="submit-provider-support"){const msg=(document.getElementById("providerSupportMsg")?.value||"").trim();if(!msg)return;const cb=!!document.getElementById("providerSupportCb")?.checked;const ticket=createSupportTicket("Service Provider",msg,cb);S.actionPanel="";hist("Service Provider support ticket "+ticket+" • Booking "+S.bookingId+(cb?" • Callback requested":""));save();render();return}
  if(a==="ask-expert"){S.actionPanel="ASK_EXPERT";save();render();return}
  if(a==="submit-expert"){const q=(document.getElementById("expertQuestion")?.value||"").trim();if(!q)return;S.expertRequests.push({q,at:Date.now()});S.actionPanel="";hist("Ask to Expert request sent");render();return}
  if(a==="close-action-panel"){S.actionPanel="";save();render();return}
@@ -400,8 +456,8 @@ document.addEventListener("click",e=>{
  if(a==="start-cash-payment"){S.paymentChoice="CASH";S.paymentView="SELECT";S.status="CASH_WAIT";hist("Customer selected Cash Payment • "+money(S.total));save();render();return}
  if(a==="switch-cash-to-online"){S.paymentChoice="ONLINE";S.paymentView="ONLINE";S.status="PAYMENT";hist("Customer switched Cash to Online • QR / Link opened");save();render();return}
  if(a==="confirm-cash-received"){S.status="DONE";hist(S.provider+" confirmed Cash Received • "+money(S.total));save();render();return}
- if(a==="admin-ticket-review"){const id=b.dataset.ticket;const t=(S.supportTickets||[]).find(x=>(x.ticket||x.id)===id);if(t){t.status="IN_REVIEW";hist("Admin marked ticket "+id+" In Review");save();render()}return}
- if(a==="admin-ticket-resolve"){const id=b.dataset.ticket;const t=(S.supportTickets||[]).find(x=>(x.ticket||x.id)===id);if(t){t.status="RESOLVED";hist("Admin resolved ticket "+id);save();render()}return}
+ if(a==="admin-ticket-review"){const id=b.dataset.ticket;const A=adminStore();const t=A.tickets.find(x=>(x.ticket||x.id)===id);if(t)t.status="IN_REVIEW";const st=(S.supportTickets||[]).find(x=>(x.ticket||x.id)===id);if(st)st.status="IN_REVIEW";saveAdminStore(A);hist("Admin marked ticket "+id+" In Review");save();render();return}
+ if(a==="admin-ticket-resolve"){const id=b.dataset.ticket;const A=adminStore();const t=A.tickets.find(x=>(x.ticket||x.id)===id);if(t)t.status="RESOLVED";const st=(S.supportTickets||[]).find(x=>(x.ticket||x.id)===id);if(st)st.status="RESOLVED";saveAdminStore(A);hist("Admin resolved ticket "+id);save();render();return}
  if(a==="new-booking"){resetNew();return}
 });
 try{
