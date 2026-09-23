@@ -1209,6 +1209,31 @@ body.module-open .common-search{display:none!important}
  .ocs-super-main{padding:11px 11px 24px}.ocs-super-hero{height:168px}.ocs-super-hero-copy h1{font-size:21px}
  .ocs-super-service .icon{width:57px;height:57px}.ocs-market-card{height:114px}
 }
+
+/* OCS ordered home flow: Slider → Slider Ad → Property/Builder → Home Services → Windows */
+body:not(.module-open) .ocs-super-main .slider-business-cta{
+  margin:10px 0 14px!important;
+  min-height:64px!important;
+  padding:12px 13px!important;
+  gap:10px!important;
+  border-radius:16px!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+.ocs-feature-property{
+  display:block!important;
+  width:100%!important;
+  height:132px!important;
+  margin:0 0 2px!important;
+}
+@media(max-width:390px){
+  body:not(.module-open) .ocs-super-main .slider-business-cta{
+    margin:9px 0 13px!important;
+    min-height:62px!important;
+    padding:11px 12px!important;
+  }
+  .ocs-feature-property{height:124px!important}
+}
 </style></head><body><div class="app ocs-approved-home">
 <section class="ocs-super-home" id="ocsSuperHome">
   <header class="ocs-super-top">
@@ -1243,7 +1268,9 @@ body.module-open .common-search{display:none!important}
       <button type="button" onclick="event.stopPropagation();openBannerAd()">Promote Now</button>
     </section>
 
-    <div class="ocs-super-head"><h2>Home Services</h2><button onclick="openModule('Home Services','customer')">View All</button></div>
+    <button class="ocs-market-card ocs-market-card-wide ocs-feature-property" onclick="openModule('Property')"><span class="photo" style="background-image:url('https://img.squareyards.com/secondaryPortal/optImages/IN_639108210862157805-0304260151265126.jpg?aio=w-300%3Bh-300%3Bfill%3B')"></span><span class="ocs-market-badge">PROPERTY • BUILDER</span><span class="ocs-market-copy"><b>Property / Builder</b><small>Rent • Buy • Builder Listings</small></span></button>
+
+    <div class="ocs-super-head"><h2>Home Services</h2><button onclick="openModule('Home Services','customer')">View Home Services</button></div>
     <div class="ocs-super-services">
       <button class="ocs-super-service" onclick="openModule('Home Services','customer')"><span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8Z"/></svg></span><b>Electrical</b></button>
       <button class="ocs-super-service" onclick="openModule('Home Services','customer')"><span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4H7zM9 8v4h6V8M12 12v9M8 21h8"/></svg></span><b>Plumbing</b></button>
@@ -1259,7 +1286,7 @@ body.module-open .common-search{display:none!important}
 
     <div class="ocs-super-head"><h2>Explore One Call Solution</h2><button onclick="document.getElementById('ocsMarketGrid').scrollIntoView({behavior:'smooth'})">View All</button></div>
     <div class="ocs-super-market" id="ocsMarketGrid">
-      <button class="ocs-market-card ocs-market-card-wide" onclick="openModule('Property')"><span class="photo" style="background-image:url('https://img.squareyards.com/secondaryPortal/optImages/IN_639108210862157805-0304260151265126.jpg?aio=w-300%3Bh-300%3Bfill%3B')"></span><span class="ocs-market-badge">PROPERTY</span><span class="ocs-market-copy"><b>Property</b><small>Rent • Buy • Builder</small></span></button>
+      
       <button class="ocs-market-card" onclick="openModule('Local Shop')"><span class="photo" style="background-image:url('https://www.dolarlc.com/_next/image?q=75&url=%2Fimages%2Fassets%2Felectricidad-3.webp&w=3840')"></span><span class="ocs-market-badge">NEARBY</span><span class="ocs-market-copy"><b>Local Shop</b><small>Electrical • Hardware</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Modular Kitchen')"><span class="photo" style="background-image:url('https://indiframe-cms-media.s3.ap-south-1.amazonaws.com/blog122_26d5a6b6f3.jpg')"></span><span class="ocs-market-copy"><b>Modular Kitchen</b><small>Design • Measurement • Quote</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Sliding / Aluminium')"><span class="photo" style="background-image:url('https://alukhome.com/getmedia/91e760ec-478f-4946-95ad-9d816394422c/Aluk-home-showroom-Lucknow-7.jpg')"></span><span class="ocs-market-copy"><b>Sliding / Aluminium</b><small>Windows • Doors • Glass</small></span></button>
