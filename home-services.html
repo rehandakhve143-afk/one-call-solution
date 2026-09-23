@@ -209,10 +209,11 @@ Status: <span class="status" id="pStatus">WAITING</span>
 <details class="card" style="margin-top:12px">
   <summary><b>OCS Wallet & Job Queue</b> <span class="muted">Tap to view</span></summary><div style="margin-top:10px">
   <div class="row"><span>Wallet Balance</span><b id="walletBalance">₹100.00</b></div>
+  <div class="row"><span>Welcome Bonus</span><b>₹100 • One-time</b></div>
     <div class="row"><span>Current Job</span><b id="currentJob">None</b></div>
   <div class="row"><span>Next Job</span><b id="nextJob">None</b></div>
   <div id="walletWarning" class="notice hide"></div>
-  <div class="muted" style="margin:12px 0 8px"><b>OCS Wallet</b><br>Recommended wallet level &#8377;200. Low/negative wallet par warning + reminder jayega. New jobs Pause/Resume ka control OCS Admin ke paas rahega.</div><button class="btn alt" onclick="rechargeWallet()">Top Up Wallet</button>
+  <div class="muted" style="margin:12px 0 8px"><b>OCS Wallet</b><br>New approved Service Provider ko ₹100 Welcome Bonus one-time OCS Wallet credit milega. Ye withdrawable cash nahi hai. Recommended wallet level ₹200. Low/negative wallet par warning + reminder jayega. New jobs Pause/Resume ka control OCS Admin ke paas rahega.</div><button class="btn alt" onclick="rechargeWallet()">Top Up Wallet</button>
 </div></details>
 <div id="pBody"></div>
 </div>
@@ -293,7 +294,7 @@ service:"",category:"",serviceType:"fixed",quantity:1,address:"Customer Address"
 startOtp:null,quote:null,quoteDecision:null,reschedule:null,rescheduleBy:null,
 cancelReason:null,cancelBy:null,visitCharge:0,distanceSlab:null,
 payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",supportTickets:[],logs:[],
-wallet:100,welcomeBonus:100,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:9,
+wallet:100,welcomeBonus:100,welcomeBonusGranted:true,welcomeBonusWithdrawable:false,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:9,
 providerRatings:[],customerRating:null,pendingRatingStars:0,pendingRatingComment:"",customerRatingComment:"",
 currentJob:null,nextJob:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null,
 customerName:"Customer 1",customerMobile:"Not added",customerEmail:"Not added",
@@ -334,6 +335,8 @@ function loadSavedHomeState(){
      S.providerEmail=S.providerEmail||"Not added";
      S.providerVerified=S.providerVerified!==false;
      S.welcomeBonus=100;
+     S.welcomeBonusGranted=true;
+     S.welcomeBonusWithdrawable=false;
      S.providerRatings=Array.isArray(S.providerRatings)?S.providerRatings:[];
      S.customerRating=S.customerRating||null;
      S.pendingRatingStars=Number(S.pendingRatingStars||0);
@@ -1744,6 +1747,7 @@ function adminHTMLState(){
  <div class="row"><span>Skill / Category</span><b>${ocsSafe(S.category||"—")}</b></div>
  <div class="row"><span>Available for Work</span><b>${S.available?"ON":"OFF"}</b></div>
  <div class="row"><span>Wallet Balance</span><b>${walletText}</b></div>
+ <div class="row"><span>Welcome Bonus</span><b>₹100 • One-time • Non-withdrawable</b></div>
  <div class="row"><span>OCS Commission</span><b>9%</b></div>`;
  let provider=`<div><b>${S.provider}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div>
  <div class="muted">Wallet Balance: ${walletText} • OCS Commission: 9%</div>`;
