@@ -354,6 +354,12 @@ function saveHomeState(){
  }catch(e){console.error("OCS booking save failed",e)}
 }
 loadSavedHomeState();
+S.requestMedia=Array.isArray(S.requestMedia)?S.requestMedia:[];
+S.chatMessages=Array.isArray(S.chatMessages)?S.chatMessages:[];
+S.heldAmount=Number(S.heldAmount||0);
+S.paymentHeld=!!S.paymentHeld;
+S.paymentReleased=!!S.paymentReleased;
+S.commissionApplied=!!S.commissionApplied;
 
 const $=id=>document.getElementById(id);
 
@@ -393,6 +399,75 @@ const services={
 };
 
 function money(n){return "₹"+Number(n||0).toLocaleString("en-IN")}
+function ocsSafe(v){
+ return String(v==null?"":v).replace(/[&<>"']/g,function(m){
+   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];
+ });
+}
+function quoteMediaHTML(){
+ const a=Array.isArray(S.requestMedia)?S.requestMedia:[];
+ if(!a.length)return '<div class="muted">No photo/video attached.</div>';
+ return '<div class="card" style="margin-top:10px"><h3>Photo / Video</h3>'+a.map(function(x){
+   return '<div class="notice" style="margin:6px 0"><b>'+(x.kind==="video"?"🎥 Video":"📷 Photo")+'</b><br>'+ocsSafe(x.name)+'</div>';
+ }).join("")+'</div>';
+}
+function quoteChatHTML(side){
+ const a=Array.isArray(S.chatMessages)?S.chatMessages:[];
+ let body=a.length?'<div class="log" style="margin-top:8px">'+a.slice(-8).map(function(x){
+   return '<div><b>'+ocsSafe(x.from)+':</b> '+ocsSafe(x.text)+'</div>';
+ }).join("")+'</div>':'<div class="muted" style="margin-top:8px">No messages yet.</div>';
+ return '<div class="card"><h3>Booking Chat</h3><div class="muted">Customer ↔ Service Provider • OCS booking record</div>'+body+'<button class="btn alt" onclick="quoteChat(\''+side+'\')">💬 Chat</button></div>';
+}
+function quoteChat(side){
+ const from=side==="provider"?S.provider:"Customer";
+ const m=prompt("Message from "+from);if(!m)return;
+ S.chatMessages=Array.isArray(S.chatMessages)?S.chatMessages:[];
+ S.chatMessages.push({from:from,text:m,at:Date.now()});
+ hist(from+" sent booking chat message");
+}
+function secureHoldHTML(){
+ const held=Number(S.heldAmount||0);
+ if(!held)return "";
+ return '<div class="notice good"><b>🔒 OCS Secure Payment: '+money(held)+'</b><br>Amount Service Provider ko abhi release nahi hoga. Work complete + Customer confirmation ke baad settlement hoga.</div>';
+}
+function paymentDueAmount(){
+ return Math.max(0,Number(S.total||0)-Number(S.heldAmount||0));
+}
+function secureQuotePayment(mode){
+ const amt=Number(S.total||(S.quote&&S.quote.amount)||0);if(!amt)return;
+ if(mode==="CASH"){
+   S.paymentChoice="CASH";S.cashFallback=true;S.paymentHeld=false;S.heldAmount=0;S.payment="CASH_AT_COMPLETION";
+   S.status="BOOKING_DETAILS";hist("Network issue fallback selected • Cash at completion • OCS secure hold not available for cash");return;
+ }
+ S.paymentChoice="ONLINE";S.cashFallback=false;S.paymentHeld=true;S.heldAmount=amt;S.payment="OCS_SECURE_HOLD";
+ S.status="BOOKING_DETAILS";hist("Customer secured "+money(amt)+" with OCS • Provider release only after completed work confirmation");
+}
+function secureExtraQuoteAmount(amount,desc){
+ amount=Number(amount)||0;if(amount<=0)return;
+ S.total=Number(S.total||0)+amount;
+ S.heldAmount=Number(S.heldAmount||0)+amount;
+ S.paymentHeld=true;S.paymentChoice="ONLINE";S.payment="OCS_SECURE_HOLD";
+ hist("Customer approved Get Quote Add Work and secured "+money(amount)+" with OCS • "+(desc||"Extra work"));
+}
+function releaseHeldJobPayment(){
+ const total=Number(S.total||0),held=Number(S.heldAmount||0);
+ S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held;S.heldAmount=0;S.currentJob=null;
+ if(total>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(total)}
+ hist("Customer confirmed Work Completed • OCS released "+money(held||total)+" for settlement to "+S.provider);
+}
+function settleHeldNoWork(charge,reason){
+ const held=Number(S.heldAmount||0),cc=Math.max(0,Number(charge)||0);
+ S.heldNoWorkCharge=cc;S.refundAmount=Math.max(0,held-cc);S.heldSettlementReason=reason||"Work Not Completed";
+ S.status="HELD_WNC_SETTLEMENT";
+ hist("OCS Secure Hold settlement prepared • Visit charge "+money(cc)+" • Customer refund "+money(S.refundAmount));
+}
+function confirmHeldNoWorkSettlement(){
+ const charge=Number(S.heldNoWorkCharge||0),refund=Number(S.refundAmount||0);
+ S.paymentHeld=false;S.heldAmount=0;S.status="CANCELLED_SETTLED";S.payment="OCS_HOLD_SETTLED";
+ if(charge>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(charge)}
+ hist("OCS hold settled • Provider visit charge "+money(charge)+" • Customer refund "+money(refund));
+}
+
 function selectCategory(cat){
  if(!services[cat]){alert("Service category not found: "+cat);return}
  S.category=cat;
