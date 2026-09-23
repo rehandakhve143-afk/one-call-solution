@@ -1189,7 +1189,7 @@ body.module-open .common-search{display:none!important}
 .ocs-super-trust div{border:1px solid #e7eeec;border-radius:11px;background:#fff;padding:9px 5px;text-align:center}
 .ocs-super-trust svg{margin:auto;color:#087c73}.ocs-super-trust b{display:block;margin-top:4px;font-size:8px}.ocs-super-trust small{display:block;margin-top:2px;font-size:6.5px;color:#7a8789}
 .ocs-super-market{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.ocs-market-card{position:relative;height:119px;border:0;border-radius:15px;overflow:hidden;background:#dfe8e7;padding:0;text-align:left;color:#fff;box-shadow:0 5px 14px rgba(22,50,54,.08)}
+.ocs-market-card{position:relative;height:119px;border:0;border-radius:15px;overflow:hidden;background:#dfe8e7;padding:0;text-align:left;color:#fff;box-shadow:0 5px 14px rgba(22,50,54,.08)}.ocs-market-card-wide{grid-column:1/-1;height:132px}.ocs-market-card-wide .photo{background-position:center 55%}
 .ocs-market-card .photo{position:absolute;inset:0;background-size:cover;background-position:center}
 .ocs-market-card:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,28,34,.05) 32%,rgba(7,28,34,.82) 100%)}
 .ocs-market-copy{position:absolute;z-index:2;left:10px;right:9px;bottom:9px}
@@ -1259,7 +1259,7 @@ body.module-open .common-search{display:none!important}
 
     <div class="ocs-super-head"><h2>Explore One Call Solution</h2><button onclick="document.getElementById('ocsMarketGrid').scrollIntoView({behavior:'smooth'})">View All</button></div>
     <div class="ocs-super-market" id="ocsMarketGrid">
-      <button class="ocs-market-card" onclick="openModule('Property')"><span class="photo" style="background-image:url('https://img.squareyards.com/secondaryPortal/optImages/IN_639108210862157805-0304260151265126.jpg?aio=w-300%3Bh-300%3Bfill%3B')"></span><span class="ocs-market-badge">PROPERTY</span><span class="ocs-market-copy"><b>Property</b><small>Rent • Buy • Builder</small></span></button>
+      <button class="ocs-market-card ocs-market-card-wide" onclick="openModule('Property')"><span class="photo" style="background-image:url('https://img.squareyards.com/secondaryPortal/optImages/IN_639108210862157805-0304260151265126.jpg?aio=w-300%3Bh-300%3Bfill%3B')"></span><span class="ocs-market-badge">PROPERTY</span><span class="ocs-market-copy"><b>Property</b><small>Rent • Buy • Builder</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Local Shop')"><span class="photo" style="background-image:url('https://www.dolarlc.com/_next/image?q=75&url=%2Fimages%2Fassets%2Felectricidad-3.webp&w=3840')"></span><span class="ocs-market-badge">NEARBY</span><span class="ocs-market-copy"><b>Local Shop</b><small>Electrical • Hardware</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Modular Kitchen')"><span class="photo" style="background-image:url('https://indiframe-cms-media.s3.ap-south-1.amazonaws.com/blog122_26d5a6b6f3.jpg')"></span><span class="ocs-market-copy"><b>Modular Kitchen</b><small>Design • Measurement • Quote</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Sliding / Aluminium')"><span class="photo" style="background-image:url('https://alukhome.com/getmedia/91e760ec-478f-4946-95ad-9d816394422c/Aluk-home-showroom-Lucknow-7.jpg')"></span><span class="ocs-market-copy"><b>Sliding / Aluminium</b><small>Windows • Doors • Glass</small></span></button>
