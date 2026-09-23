@@ -1195,7 +1195,7 @@ if(S.status==="SELECT_SERVICE"){
    <div class="ocs-hs-body">
      <div class="ocs-hs-hero"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Professional Home Services At Your Doorstep</b><span>Verified • Skilled • Reliable</span></div></div>
      <div class="ocs-hs-search"><span>⌕</span><input id="catSearch" placeholder="Search home services..." oninput="filterLockedCategories(this.value)"></div>
-     <div class="ocs-hs-cat-list">${cats.map(([k,v])=>`<button type="button" class="ocs-hs-cat" data-cat="${k.toLowerCase()}" data-category="${k}" onclick="event.preventDefault();selectCategory('${k.replace(/'/g,"\\'")}')"><span class="ico">${ocsUiIcon(k)}</span><span class="copy"><b>${k}</b><small>${v.items.length}+ Services</small></span><span class="arr">›</span></button>`).join('')}</div>
+     <div class="ocs-hs-cat-list">${cats.map(([k,v])=>`<button type="button" class="ocs-hs-cat" data-cat="${k.toLowerCase()}" data-ocs-category="${k}"><span class="ico">${ocsUiIcon(k)}</span><span class="copy"><b>${k}</b><small>${v.items.length}+ Services</small></span><span class="arr">›</span></button>`).join('')}</div>
    </div>
  </div>`;return h
 }
@@ -1210,7 +1210,7 @@ if(S.status==="SELECT_ITEM"){
    return `<div class="ocs-svc-row svc-card" data-search="${it.name.toLowerCase()}"><span class="ocs-svc-thumb">${ocsServiceIcon()}</span><span class="ocs-svc-copy"><b>${it.name}</b><span>${it.display||money(it.price)}</span><small>Labour / service charge</small></span>${x&&!it.noQty?`<span class="ocs-svc-step"><button type="button" data-ocs-qty="${i}" data-delta="-1">−</button><b>${x.qty}</b><button type="button" data-ocs-qty="${i}" data-delta="1">+</button></span>`:`<button type="button" class="ocs-svc-add" data-ocs-add="${i}">${x?'Added ✓':'Add'}</button>`}</div>`
  }).join('');
  h=`<div class="ocs-hs-page">
-   <div class="ocs-hs-head"><button type="button" class="ocs-hs-back" data-ocs-back-categories="1">‹</button><div><h2>${S.category} Services</h2><small>${d.items.length} services</small></div></div>
+   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 23.6</span><button type="button" class="ocs-hs-back" data-ocs-back-categories="1">‹</button><div><h2>${S.category} Services</h2><small>${d.items.length} services</small></div></div>
    <div class="ocs-hs-body">
      <div class="ocs-svc-banner"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Safe ${S.category} Solutions For Your Home</b><span>Verified Service Providers • clear OCS rates</span></div></div>
      <div class="ocs-hs-search"><span>⌕</span><input id="svcSearch" placeholder="Search ${S.category.toLowerCase()} service..." oninput="filterServiceCards(this.value)"></div>
