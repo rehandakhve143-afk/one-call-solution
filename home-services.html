@@ -212,7 +212,7 @@ Status: <span class="status" id="pStatus">WAITING</span>
     <div class="row"><span>Current Job</span><b id="currentJob">None</b></div>
   <div class="row"><span>Next Job</span><b id="nextJob">None</b></div>
   <div id="walletWarning" class="notice hide"></div>
-  <div class="muted" style="margin:12px 0 8px"><b>OCS Wallet</b><br>Minimum wallet balance to receive new jobs is &#8377;200. Below &#8377;200, new jobs stop. Current/accepted job continues. Recharge to resume new jobs.</div><button class="btn alt" onclick="rechargeWallet()">Top Up Wallet</button>
+  <div class="muted" style="margin:12px 0 8px"><b>OCS Wallet</b><br>Recommended wallet level &#8377;200. Low/negative wallet par warning + reminder jayega. New jobs Pause/Resume ka control OCS Admin ke paas rahega.</div><button class="btn alt" onclick="rechargeWallet()">Top Up Wallet</button>
 </div></details>
 <div id="pBody"></div>
 </div>
@@ -227,6 +227,14 @@ Status: <span class="status" id="pStatus">WAITING</span>
 <div class="card">
 <h3>Live Booking</h3>
 <div id="adminBooking"></div>
+</div>
+<div class="card">
+<h3>Customer Details</h3>
+<div id="adminCustomer"></div>
+</div>
+<div class="card">
+<h3>Service Provider Details</h3>
+<div id="adminProviderDetails"></div>
 </div>
 <div class="card">
 <h3>Provider Control</h3>
@@ -255,8 +263,8 @@ Status: <span class="status" id="pStatus">WAITING</span>
 </div>
 <div class="card">
 <h3>Internal Accounting</h3>
-<div class="muted">Platform charge setting is Admin-only.</div>
-<div><b>Platform Charge: 15%</b></div>
+<div class="muted">OCS commission for completed Home Service jobs.</div>
+<div><b>OCS Commission: 9%</b></div>
 <div id="adminAccounting" class="muted"></div>
 </div>
 <div class="card"><h3>Admin History</h3><div id="aLog" class="log"></div></div>
@@ -285,9 +293,11 @@ service:"",category:"",serviceType:"fixed",quantity:1,address:"Customer Address"
 startOtp:null,quote:null,quoteDecision:null,reschedule:null,rescheduleBy:null,
 cancelReason:null,cancelBy:null,visitCharge:0,distanceSlab:null,
 payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",supportTickets:[],logs:[],
-wallet:100,welcomeBonus:100,walletWarningLevel:200,platformCharge:15,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:9,
+wallet:100,welcomeBonus:100,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:9,
 providerRatings:[],customerRating:null,pendingRatingStars:0,pendingRatingComment:"",customerRatingComment:"",
-currentJob:null,nextJob:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null
+currentJob:null,nextJob:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null,
+customerName:"Customer 1",customerMobile:"Not added",customerEmail:"Not added",
+providerMobile:"Not added",providerEmail:"Not added",providerVerified:true
 };
 
 const OCS_HOME_STATE_KEY="ocsHomeServiceFullState";
@@ -316,7 +326,13 @@ function loadSavedHomeState(){
      Object.assign(S,saved);
      S.walletWarningLevel=200;
      delete S.walletMinimum;
-     S.platformCharge=15;
+     S.platformCharge=9;
+     S.customerName=S.customerName||"Customer 1";
+     S.customerMobile=S.customerMobile||"Not added";
+     S.customerEmail=S.customerEmail||"Not added";
+     S.providerMobile=S.providerMobile||"Not added";
+     S.providerEmail=S.providerEmail||"Not added";
+     S.providerVerified=S.providerVerified!==false;
      S.welcomeBonus=100;
      S.providerRatings=Array.isArray(S.providerRatings)?S.providerRatings:[];
      S.customerRating=S.customerRating||null;
@@ -665,7 +681,7 @@ function settleCollectedAmount(amount,label){
 
 function auditPlatformCharge(amount){
  const a=Number(amount)||0;
- return Math.round(a*0.15*100)/100;
+ return Math.round(a*0.09*100)/100;
 }
 function queueWalletMaintenanceEmail(){
  const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
@@ -676,11 +692,11 @@ function queueWalletMaintenanceEmail(){
  hist("Wallet warning + email reminder queued for "+S.provider+" • "+msg);
 }
 function applyCommission(amount){
- let charge=Math.round((Number(amount||0)*15/100)*100)/100;
- S.platformCharge=15;
+ let charge=Math.round((Number(amount||0)*9/100)*100)/100;
+ S.platformCharge=9;
  S.wallet=Math.round((Number(S.wallet||0)-charge)*100)/100;
  S.jobAccess=!S.adminPaused;
- hist("OCS platform commission 15% • ₹"+charge.toFixed(2)+" adjusted in Wallet");
+ hist("OCS platform commission 9% • ₹"+charge.toFixed(2)+" adjusted in Wallet");
  if(S.wallet<Number(S.walletWarningLevel||200)){
    hist("Wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+" • Warning level below ₹200 • Jobs remain active unless OCS Admin pauses them");
    queueWalletMaintenanceEmail();
@@ -1209,7 +1225,7 @@ function resetAll(){
    wallet:Number.isFinite(Number(S.wallet))?Number(S.wallet):100,
    welcomeBonus:100,
    walletWarningLevel:200,
-   platformCharge:15,
+   platformCharge:9,
    adminPaused:!!S.adminPaused,
    rulesVersion:9,
    supportTickets:Array.isArray(S.supportTickets)?S.supportTickets:[],
@@ -1706,16 +1722,35 @@ function adminCloseSupport(){
 }
 function adminHTMLState(){
  let amount=ensureBookingAmount();
+ const walletText=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
+ const charge=amount?auditPlatformCharge(amount):0;
  let booking=S.service?`
- <div><b>${S.category||"—"} • ${S.service}</b></div>
- <div class="muted">Status: ${S.status} • Assigned: ${S.provider||"—"} • Amount: ${amount?money(amount):"Pending"}</div>`:
+ <div class="row"><span>Service</span><b>${ocsSafe(S.category||"—")} • ${ocsSafe(S.service)}</b></div>
+ <div class="row"><span>Status</span><b>${ocsSafe(S.status)}</b></div>
+ <div class="row"><span>Booking Amount</span><b>${amount?money(amount):"Pending"}</b></div>
+ <div class="row"><span>Payment</span><b>${ocsSafe(S.paymentChoice||"—")}</b></div>`:
  `<div class="muted">No active booking.</div>`;
+ let customer=`
+ <div class="row"><span>Name</span><b>${ocsSafe(S.customerName||"Customer 1")}</b></div>
+ <div class="row"><span>Mobile</span><b>${ocsSafe(S.customerMobile||"Not added")}</b></div>
+ <div class="row"><span>Email</span><b>${ocsSafe(S.customerEmail||"Not added")}</b></div>
+ <div class="row"><span>Address</span><b>${ocsSafe(S.address||"Not added")}</b></div>
+ <div class="row"><span>Current Service</span><b>${ocsSafe(S.service||"—")}</b></div>`;
+ let providerDetails=`
+ <div class="row"><span>Service Provider</span><b>${ocsSafe(S.provider||"—")}</b></div>
+ <div class="row"><span>Verified</span><b>${S.providerVerified!==false?"YES ✓":"PENDING"}</b></div>
+ <div class="row"><span>Mobile</span><b>${ocsSafe(S.providerMobile||"Not added")}</b></div>
+ <div class="row"><span>Email</span><b>${ocsSafe(S.providerEmail||"Not added")}</b></div>
+ <div class="row"><span>Skill / Category</span><b>${ocsSafe(S.category||"—")}</b></div>
+ <div class="row"><span>Available for Work</span><b>${S.available?"ON":"OFF"}</b></div>
+ <div class="row"><span>Wallet Balance</span><b>${walletText}</b></div>
+ <div class="row"><span>OCS Commission</span><b>9%</b></div>`;
  let provider=`<div><b>${S.provider}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div>
- <div class="muted">OCS Wallet: ${S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2)}</div>`;
+ <div class="muted">Wallet Balance: ${walletText} • OCS Commission: 9%</div>`;
  let visit=`<div class="muted">GPS one-way: ${Number(S.oneWayDistanceKm||0).toFixed(1)} km • Suggested: ${S.suggestedVisitCharge?money(S.suggestedVisitCharge):"—"} • Final: ${S.visitCharge?money(S.visitCharge):"—"}</div>`;
  let support=S.supportTicket?`<b>${S.supportTicket}</b> • ${S.cancelReason||S.providerChangeReason||"Review required"}`:`<span class="muted">No open support ticket.</span>`;
- let charge=amount?auditPlatformCharge(amount):0;
- return {booking,provider,visit,support,accounting:`Current booking internal 15%: ${money(charge)}`};
+ let accounting=`Booking Amount: ${amount?money(amount):"₹0"} • OCS 9% Commission: ${money(charge)} • SP Wallet: ${walletText}`;
+ return {booking,customer,providerDetails,provider,visit,support,accounting};
 }
 
 function customerOpenAddMoreWork(){
@@ -1896,6 +1931,8 @@ if($("admin")){
  let A=adminHTMLState();
  $("aStatus").textContent=S.status;
  $("adminBooking").innerHTML=A.booking;
+ if($("adminCustomer")) $("adminCustomer").innerHTML=A.customer;
+ if($("adminProviderDetails")) $("adminProviderDetails").innerHTML=A.providerDetails;
  $("adminProvider").innerHTML=A.provider;
  $("adminVisit").innerHTML=A.visit;
  $("adminSupport").innerHTML=A.support;
