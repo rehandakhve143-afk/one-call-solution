@@ -158,9 +158,9 @@ function customerHTML(){
    }).join("");
    const t=addWorkTotal(), q=selected.reduce((a,x)=>a+Number(x.qty||1),0);
    return `<button class="btn gray" data-action="add-work-cancel">← Back to Running Job</button>
-   <div class="card"><h3>Add More Work • ${esc(S.category)}</h3><div class="muted">Same booking me listed work add karein. Get Quote amount Customer approval ke baad hi official hoga.</div></div>
+   <div class="card"><h3>Add More Work • ${esc(S.category)}</h3><div class="muted">Listed Add Work Service Provider ko request ke roop me jayega. SP Accept karega tabhi amount booking me add hoga. Get Quote me Customer approval ke baad amount official hoga.</div></div>
    <div class="list">${rows}</div>
-   ${selected.length?`<div class="bar"><div class="copy"><b>${q} Add-on Service${q>1?"s":""}</b><small>Add-on Total: ${money(t)}</small></div><button data-action="add-work-continue">Add to Current Booking →</button></div>`:""}`;
+   ${selected.length?`<div class="bar"><div class="copy"><b>${q} Add-on Service${q>1?"s":""}</b><small>Add-on Total: ${money(t)}</small></div><button data-action="add-work-continue">Send Add Work Request →</button></div>`:""}`;
  }
  if(S.status==="WORKING"&&S.addWorkMode==="QUOTE"){
    return `<button class="btn gray" data-action="add-work-rate-back">← Back to Rate Card</button>
