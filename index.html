@@ -1272,10 +1272,10 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
 
     <div class="ocs-super-head"><h2>Home Services</h2><button onclick="openModule('Home Services','customer')">View Home Services</button></div>
     <div class="ocs-super-services">
-      <button class="ocs-super-service" onclick="openModule('Home Services','customer')"><span class="icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.2 14.5A6 6 0 1 1 15.8 14.5C14.7 15.4 14 16.5 14 18h-4c0-1.5-.7-2.6-1.8-3.5Z"/><path d="M12 2v2"/></svg></span><b>Electrical</b></button>
-      <button class="ocs-super-service" onclick="openModule('Home Services','customer')"><span class="icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h11"/><path d="M7 8V5h5v3"/><path d="M15 8v4a3 3 0 0 1-3 3H9"/><path d="M9 12v6"/><path d="M6 18h6"/><path d="M18 13c1.3 1.7 2 2.8 2 4a2 2 0 0 1-4 0c0-1.2.7-2.3 2-4Z"/></svg></span><b>Plumbing</b></button>
-      <button class="ocs-super-service" onclick="openModule('Home Services','customer')"><span class="icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h5l2 3-3 3-4-2-8 8-3-3 8-8-2-4 3-3 2 6Z"/><path d="m5 16 3 3-2 2-3-3 2-2Z"/></svg></span><b>Carpenter</b></button>
-      <button class="ocs-super-service" onclick="openModule('Home Services','customer')"><span class="icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9"/><path d="m12 3 1.7 2.2M12 3 10.3 5.2M12 21l1.7-2.2M12 21l-1.7-2.2"/></svg></span><b>AC Service</b></button>
+      <button class="ocs-super-service" onclick="openModule('Home Services','customer','Electrical')"><span class="icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.2 14.5A6 6 0 1 1 15.8 14.5C14.7 15.4 14 16.5 14 18h-4c0-1.5-.7-2.6-1.8-3.5Z"/><path d="M12 2v2"/></svg></span><b>Electrical</b></button>
+      <button class="ocs-super-service" onclick="openModule('Home Services','customer','Plumbing')"><span class="icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h11"/><path d="M7 8V5h5v3"/><path d="M15 8v4a3 3 0 0 1-3 3H9"/><path d="M9 12v6"/><path d="M6 18h6"/><path d="M18 13c1.3 1.7 2 2.8 2 4a2 2 0 0 1-4 0c0-1.2.7-2.3 2-4Z"/></svg></span><b>Plumbing</b></button>
+      <button class="ocs-super-service" onclick="openModule('Home Services','customer','Carpenter')"><span class="icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h5l2 3-3 3-4-2-8 8-3-3 8-8-2-4 3-3 2 6Z"/><path d="m5 16 3 3-2 2-3-3 2-2Z"/></svg></span><b>Carpenter</b></button>
+      <button class="ocs-super-service" onclick="openModule('Home Services','customer','AC Service')"><span class="icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9"/><path d="m12 3 1.7 2.2M12 3 10.3 5.2M12 21l1.7-2.2M12 21l-1.7-2.2"/></svg></span><b>AC Service</b></button>
     </div>
 
     <div class="ocs-super-trust">
@@ -2177,14 +2177,14 @@ function setSuperSlide(n){
  ocsSuperSlideTimer=setInterval(()=>setSuperSlide(ocsSuperSlideIndex+1),5000);
 }
 setTimeout(()=>setSuperSlide(0),100);
-function openModule(n,role){
+function openModule(n,role,serviceCat){
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
  const manageBtn=document.getElementById('windowManageBtn');if(manageBtn)manageBtn.style.display=n==='Home Services'?'none':'block';
  document.body.classList.add("module-open");
  const gs=document.getElementById("globalSearch");if(gs){gs.placeholder="Search in "+n+"...";if(pendingWindowSearch)gs.value=pendingWindowSearch}
  const viewer=document.getElementById('viewer');if(viewer)viewer.classList.add('show');
  frame.onload=function(){
-   if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role)}catch(e){}}
+   if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role);if(role==='customer'&&serviceCat)frame.contentWindow.selectCategory(serviceCat)}catch(e){}}
    if(n!=='Home Services'){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
    if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch="";setTimeout(()=>runWindowSearch(q),180)}
  };
@@ -2193,7 +2193,7 @@ function openModule(n,role){
    frame.src='property.html?v=20260921-3';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260923-2';
+   frame.src='home-services.html?v=20260923-3';
  }else{
    frame.removeAttribute('src');
    frame.srcdoc=decode64(modulesB64[n]);
