@@ -2191,7 +2191,7 @@ function openModule(n,role,serviceCat){
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services-flow.html?v=20260923-clean4'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260924-flow-nav1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -2203,6 +2203,7 @@ function openModule(n,role,serviceCat){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role);if(role==='customer'&&serviceCat)frame.contentWindow.selectCategory(serviceCat)}catch(e){}}
    if(n!=='Home Services'){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
    if(n!=='Home Services'&&n!=='Property'){try{injectBusinessContactBar(n)}catch(e){console.warn('OCS Business Contact UI',e)}}
+   if(n!=='Home Services'){try{injectUniversalWindowNav(n)}catch(e){console.warn('OCS Window Navigation',e)}}
    if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch="";setTimeout(()=>runWindowSearch(q),180)}
  };
  if(n==='Property'){
@@ -2210,7 +2211,7 @@ function openModule(n,role,serviceCat){
    frame.src='property.html?v=20260921-3';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260924-cancelprestart1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260924-flow-nav1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    frame.srcdoc=decode64(modulesB64[n]);
@@ -2315,6 +2316,60 @@ function injectBusinessLikeBar(cat){
  const btn=doc.getElementById('ocsBusinessLikeBtn');if(btn)btn.onclick=()=>parent.toggleBusinessLike(cat);
  refreshBusinessLikeUI(cat);
 }
+function ocsFrameVisible(el){
+ try{
+   const s=el.ownerDocument.defaultView.getComputedStyle(el);
+   return !el.disabled&&s.display!=="none"&&s.visibility!=="hidden"&&el.getClientRects().length>0;
+ }catch(e){return false}
+}
+function ocsWindowNav(dir){
+ const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;
+ if(!doc)return;
+ const own=doc.getElementById('ocsUniversalWindowNav');
+ const controls=[...doc.querySelectorAll('input:not([type="hidden"]),textarea,select')].filter(ocsFrameVisible);
+ const active=doc.activeElement;
+ let i=controls.indexOf(active);
+ if(dir>0&&controls.length&&i>=0&&i<controls.length-1){
+   const x=controls[i+1];x.focus();x.scrollIntoView({behavior:'smooth',block:'center'});return;
+ }
+ if(dir<0&&controls.length&&i>0){
+   const x=controls[i-1];x.focus();x.scrollIntoView({behavior:'smooth',block:'center'});return;
+ }
+ if(dir>0&&controls.length&&i<0){
+   const x=controls[0];x.focus();x.scrollIntoView({behavior:'smooth',block:'center'});return;
+ }
+ const buttons=[...doc.querySelectorAll('button,a')].filter(x=>x!==own&&ocsFrameVisible(x));
+ const rx=dir>0?/\b(next|continue|review|proceed|forward|aage)\b/i:/\b(back|previous|prev|piche)\b/i;
+ const btn=buttons.find(x=>rx.test(String(x.innerText||x.textContent||'').trim()));
+ if(btn){btn.click();return}
+ try{doc.defaultView.scrollBy({top:dir*(doc.defaultView.innerHeight*.72),behavior:'smooth'})}catch(e){}
+}
+function injectUniversalWindowNav(cat){
+ if(!cat||cat==='Home Services')return;
+ const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;if(!doc||!doc.body)return;
+ let style=doc.getElementById('ocsUniversalWindowNavStyle');
+ if(!style){
+   style=doc.createElement('style');style.id='ocsUniversalWindowNavStyle';
+   const isProperty=cat==='Property';
+   style.textContent=
+   'body{padding-bottom:'+(isProperty?'82px':'154px')+'!important}'+
+   '#ocsUniversalWindowNav{position:fixed;left:10px;right:10px;bottom:'+(isProperty?'12px':'78px')+';z-index:2147483002;display:grid;grid-template-columns:.82fr 1.18fr;gap:8px;padding:8px;background:rgba(255,255,255,.98);border:1px solid #dbe8e5;border-radius:17px;box-shadow:0 10px 28px rgba(20,45,55,.22);font-family:system-ui,Arial,sans-serif}'+
+   '#ocsUniversalWindowNav button{border:0;border-radius:12px;min-height:45px;font-weight:900;font-size:12px}'+
+   '#ocsUniversalWindowBack{background:#edf3f2;color:#24494d}#ocsUniversalWindowNext{background:#087a70;color:#fff}'+
+   (isProperty?'':'#ocsBusinessLikeBar{bottom:142px!important}');
+   (doc.head||doc.documentElement).appendChild(style);
+ }
+ let bar=doc.getElementById('ocsUniversalWindowNav');
+ if(!bar){
+   bar=doc.createElement('div');bar.id='ocsUniversalWindowNav';
+   bar.innerHTML='<button id="ocsUniversalWindowBack" type="button">← Back</button><button id="ocsUniversalWindowNext" type="button">Next →</button>';
+   doc.body.appendChild(bar);
+ }
+ const back=doc.getElementById('ocsUniversalWindowBack'),next=doc.getElementById('ocsUniversalWindowNext');
+ if(back)back.onclick=()=>parent.ocsWindowNav(-1);
+ if(next)next.onclick=()=>parent.ocsWindowNav(1);
+}
+
 const OCS_BIZ_CHATS_KEY='ocsBusinessChatsV1';
 function readBizChats(){try{const a=JSON.parse(localStorage.getItem(OCS_BIZ_CHATS_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
 function writeBizChats(a){try{localStorage.setItem(OCS_BIZ_CHATS_KEY,JSON.stringify(a||[]))}catch(e){}}
