@@ -47,7 +47,7 @@ background-color:#fff}
     <div class="headrow">
       <button class="back" data-action="home">‹</button>
       <div class="brand"><b>ONE CALL SOLUTION</b><small>Home Services</small></div>
-      <span class="ver">FLOW 25.7</span>
+      <span class="ver">FLOW 25.8</span>
     </div>
     <div class="tabs">
       <button class="tab on" data-tab="customer">Customer</button>
@@ -94,7 +94,7 @@ const services={
 };
 const KEY="ocsHomeFlowV254";
 const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","VISIT_PAYMENT","VISIT_CASH_WAIT","COMPLETION_CONFIRM","PAYMENT","CASH_WAIT"]);
-function fresh(){return {tab:"customer",bookingId:"",bookingCreatedAt:"",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",paymentView:"SELECT",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addonRequest:null,addonNotice:"",addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",rescheduleBy:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,visitPaymentChoice:"ONLINE",visitPaymentView:"SELECT",visitPaymentStatus:"",supportTickets:[],expertRequests:[],actionPanel:"",customerLat:null,customerLng:null,locationSharedAt:"",locationError:"",requestMedia:[],customerPhone:"",providerPhone:"",chatMessages:[]}}
+function fresh(){return {tab:"customer",bookingId:"",bookingCreatedAt:"",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",paymentView:"SELECT",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addonRequest:null,addonNotice:"",addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",rescheduleBy:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,visitPaymentChoice:"ONLINE",visitPaymentView:"SELECT",visitPaymentStatus:"",supportTickets:[],expertRequests:[],actionPanel:"",customerLat:null,customerLng:null,locationSharedAt:"",locationError:"",requestMedia:[],chatMessages:[],commNotice:""}}
 let S=fresh();
 try{
  const raw=localStorage.getItem(KEY);
@@ -112,6 +112,11 @@ if(activeStatuses.has(S.status)||S.status==="DONE"){
  ensureBookingId();
  syncCurrentTicketsToAdmin();
 }
+try{
+ delete S.customerPhone;
+ delete S.providerPhone;
+ if(S.quoteRequest)delete S.quoteRequest.customerPhone;
+}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function money(n){return "₹"+Number(n||0).toLocaleString("en-IN")}
 function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
@@ -216,12 +221,13 @@ function mediaHTML(list){
  return `<div class="media-grid">${items.map(m=>`<div class="media-item">${m.kind==="video"?`<video controls src="${esc(m.url||"")}"></video>`:`<img src="${esc(m.url||"")}" alt="Work photo">`}<small>${esc(m.name||m.kind)}</small></div>`).join("")}</div>`;
 }
 function contactActionsHTML(side){
- const phone=side==="customer"?S.providerPhone:S.customerPhone;
  return `<div class="contact-grid">
-   <button class="btn gray" data-action="focus-chat">💬 Chat</button>
-   <button class="btn ${phone?"":"gray"}" data-action="call-contact" ${phone?"":"disabled"}>📞 Call</button>
-   <button class="btn ${phone?"":"gray"}" data-action="whatsapp-contact" ${phone?"":"disabled"}>🟢 WhatsApp</button>
- </div>${phone?"":`<div class="muted">Call/WhatsApp registered mobile available hone ke baad active hoga.</div>`}`;
+   <button class="btn gray" data-action="focus-chat">💬 OCS Chat</button>
+   <button class="btn" data-action="ocs-call">📞 OCS Call</button>
+   <button class="btn" data-action="ocs-whatsapp">🟢 OCS WhatsApp</button>
+ </div>
+ <div class="muted">🔒 Customer aur Service Provider ka personal mobile number ek-dusre ko show nahi hoga.</div>
+ ${S.commNotice?`<div class="notice"><b>OCS Communication</b><br>${esc(S.commNotice)}</div>`:""}`;
 }
 function chatHTML(side){
  const msgs=S.chatMessages||[];
@@ -250,8 +256,6 @@ function customerHTML(){
    <label>Photo</label><input id="customPhoto" type="file" accept="image/*" multiple>
    <label>Video</label><input id="customVideo" type="file" accept="video/*" multiple>
    ${mediaHTML(S.requestMedia)}
-   <label>Customer Mobile</label><input id="customerPhoneInput" inputmode="tel" value="${esc(S.customerPhone||"")}" placeholder="Registered mobile • Call/WhatsApp">
-   <div class="muted">Real app me registered mobile auto-fill hoga.</div>
    <label>Preferred time</label><select id="customTime"><option>Morning</option><option>Afternoon</option><option>Evening</option></select>
    <button class="btn" data-action="send-quote-request">Send Request to Service Provider</button></div>`;
  }
@@ -369,7 +373,7 @@ function adminHTML(){
 function providerHTML(){
  if(S.status==="QUOTE_WAIT") return `<div class="card"><h3>Any Other Service Request</h3><b>${esc(S.quoteRequest&&S.quoteRequest.service||S.category)}</b><p>${esc(S.quoteRequest&&S.quoteRequest.desc)}</p><div class="muted">Preferred: ${esc(S.quoteRequest&&S.quoteRequest.time||"")}</div><h3 style="margin-top:12px">Customer Photo / Video</h3>${mediaHTML(S.quoteRequest&&S.quoteRequest.media||[])}</div>
  ${contactActionsHTML("provider")}${chatHTML("provider")}
- <div class="card"><h3>Send Quote</h3><label>Your Mobile</label><input id="providerPhoneInput" inputmode="tel" value="${esc(S.providerPhone||"")}" placeholder="Registered SP mobile"><label>Quote Amount ₹ *</label><input id="quoteAmountInput" type="number" min="1" inputmode="numeric" placeholder="Enter quote amount"><button class="btn" data-action="send-quote-form">Send Quote to Customer</button></div>`;
+ <div class="card"><h3>Send Quote</h3><label>Quote Amount ₹ *</label><input id="quoteAmountInput" type="number" min="1" inputmode="numeric" placeholder="Enter quote amount"><button class="btn" data-action="send-quote-form">Send Quote to Customer</button></div>`;
  if(S.status==="INITIAL_QUOTE") return `<div class="notice"><b>Quote Sent</b><br>Customer Accept / Reject ka wait hai.</div>${contactActionsHTML("provider")}${chatHTML("provider")}`;
  if(S.status==="REQUESTED"){
    if(S.rejectedProvider&&!S.nextRequestReady) return `<div class="notice"><b>${esc(S.rejectedProvider)} rejected the request ✅</b><br>OCS sent it to the next eligible Service Provider: <b>${esc(S.provider)}</b>.</div><button class="btn" data-action="open-next-request">Open Next Provider Request</button>`;
@@ -407,8 +411,6 @@ function providerHTML(){
 function logsHTML(){return S.logs&&S.logs.length?`<div class="card"><h3>Activity</h3><div class="log">${S.logs.map(x=>"<div>"+esc(x)+"</div>").join("")}</div></div>`:""}
 document.addEventListener("input",e=>{
  if(e.target.id==="address"){S.address=e.target.value;save()}
- if(e.target.id==="customerPhoneInput"){S.customerPhone=e.target.value;save()}
- if(e.target.id==="providerPhoneInput"){S.providerPhone=e.target.value;save()}
 });
 document.addEventListener("change",e=>{
  if(e.target.id!=="customPhoto"&&e.target.id!=="customVideo")return;
@@ -425,7 +427,7 @@ document.addEventListener("click",e=>{
  const tab=e.target.closest("[data-tab]");if(tab){setTab(tab.dataset.tab);return}
  const b=e.target.closest("[data-action]");if(!b)return;
  const a=b.dataset.action;
- if(a==="home"){location.href="index.html?v=20260923-flow257";return}
+ if(a==="home"){location.href="index.html?v=20260923-flow258";return}
  if(a==="category"){S.category=b.dataset.cat;S.cart=[];S.status="SELECT_ITEM";save();render();return}
  if(a==="categories"){S.category="";S.cart=[];S.status="SELECT_SERVICE";save();render();return}
  if(a==="add"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.cart.push({i,name:it.name,price:Number(it.price||0),qty:1});save();render();return}
@@ -433,9 +435,9 @@ document.addEventListener("click",e=>{
  if(a==="continue"){if(!S.cart.length)return;S.service=S.cart.map(x=>x.name+" × "+x.qty).join(", ");S.total=cartTotal();S.status="BOOKING_DETAILS";save();render();return}
  if(a==="items"){S.status="SELECT_ITEM";save();render();return}
  if(a==="quote-item"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.service=it.name;S.serviceType="quote";S.status="CUSTOM_REQUEST";save();render();return}
- if(a==="any-other-service"){S.service="Any Other "+S.category+" Work";S.serviceType="quote";S.requestMedia=[];S.chatMessages=[];S.customerPhone="";S.providerPhone="";S.status="CUSTOM_REQUEST";save();render();return}
- if(a==="send-quote-request"){const d=document.getElementById("customDesc").value.trim();if(!d){alert("Work details likhiye.");return}S.customerPhone=(document.getElementById("customerPhoneInput")?.value||S.customerPhone||"").trim();S.quoteRequest={service:S.service,desc:d,time:document.getElementById("customTime").value,media:(S.requestMedia||[]).slice(),customerPhone:S.customerPhone};S.status="QUOTE_WAIT";hist("Customer sent Any Other Service request with "+(S.requestMedia||[]).length+" media file(s)");save();render();return}
- if(a==="send-quote-form"){const amt=Number(document.getElementById("quoteAmountInput")?.value||0);if(!amt||amt<=0)return;S.providerPhone=(document.getElementById("providerPhoneInput")?.value||S.providerPhone||"").trim();S.quote={desc:S.quoteRequest&&S.quoteRequest.desc||S.service,amount:amt};S.status="INITIAL_QUOTE";hist("Service Provider sent Any Other Service quote ₹"+amt);save();render();return}
+ if(a==="any-other-service"){S.service="Any Other "+S.category+" Work";S.serviceType="quote";S.requestMedia=[];S.chatMessages=[];S.commNotice="";S.status="CUSTOM_REQUEST";save();render();return}
+ if(a==="send-quote-request"){const d=document.getElementById("customDesc").value.trim();if(!d){alert("Work details likhiye.");return}S.quoteRequest={service:S.service,desc:d,time:document.getElementById("customTime").value,media:(S.requestMedia||[]).slice()};S.commNotice="";S.status="QUOTE_WAIT";hist("Customer sent Any Other Service request with "+(S.requestMedia||[]).length+" media file(s)");save();render();return}
+ if(a==="send-quote-form"){const amt=Number(document.getElementById("quoteAmountInput")?.value||0);if(!amt||amt<=0)return;S.quote={desc:S.quoteRequest&&S.quoteRequest.desc||S.service,amount:amt};S.commNotice="";S.status="INITIAL_QUOTE";hist("Service Provider sent Any Other Service quote ₹"+amt);save();render();return}
  if(a==="accept-quote"){S.total=Number(S.quote.amount);S.service=(S.service||S.category)+" • Accepted Quote";S.status="BOOKING_DETAILS";hist("Customer accepted quote ₹"+S.total);render();return}
  if(a==="reject-quote"){S.status="CUSTOM_REQUEST";hist("Customer rejected quote");render();return}
  if(a==="pay-choice"){S.paymentChoice=b.dataset.v;save();render();return}
@@ -457,8 +459,8 @@ document.addEventListener("click",e=>{
  }
  if(a==="send-chat"){const side=b.dataset.side||S.tab;const input=document.getElementById("chatInput");const txt=(input?.value||"").trim();if(!txt)return;S.chatMessages=S.chatMessages||[];S.chatMessages.push({side,text:txt,at:Date.now()});hist((side==="customer"?"Customer":"Service Provider")+" sent chat message");save();render();return}
  if(a==="focus-chat"){const x=document.getElementById("chatInput");if(x)x.focus();return}
- if(a==="call-contact"){const phone=(S.tab==="customer"?S.providerPhone:S.customerPhone||"").replace(/\D/g,"");if(phone)location.href="tel:"+phone;return}
- if(a==="whatsapp-contact"){let phone=(S.tab==="customer"?S.providerPhone:S.customerPhone||"").replace(/\D/g,"");if(!phone)return;if(phone.length===10)phone="91"+phone;window.open("https://wa.me/"+phone,"_blank","noopener");return}
+ if(a==="ocs-call"){S.commNotice="Masked Call request started. OCS relay ke through connect hoga; personal number hidden rahega.";hist("OCS masked call requested");save();render();return}
+ if(a==="ocs-whatsapp"){S.commNotice="OCS Business WhatsApp/relay route use hoga. Customer aur Service Provider ka personal WhatsApp number share nahi hoga.";hist("OCS WhatsApp relay requested");save();render();return}
  if(a==="find-provider"){const addr=document.getElementById("address").value.trim();if(!addr){alert("Address / Location fill karein.");return}S.address=addr;ensureBookingId();S.status="REQUESTED";hist("Customer created booking • "+S.bookingId+" • "+money(S.total));syncBookingToAdmin();save();render();return}
  if(a==="provider-accept"){S.rejectedProvider="";S.nextRequestReady=false;S.status="ASSIGNED";hist(S.provider+" accepted booking");render();return}
  if(a==="provider-reject"){const old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";S.rejectedProvider=old;S.nextRequestReady=false;S.status="REQUESTED";hist(old+" rejected • OCS sent request to "+S.provider);render();return}
@@ -474,7 +476,7 @@ document.addEventListener("click",e=>{
  if(a==="reschedule-accept"){S.status="RESCHEDULED";hist("Reschedule accepted • Same Service Provider "+S.provider);save();render();return}
  if(a==="reschedule-reject"){S.status="WORKING";S.rescheduleAt="";S.rescheduleBy="";hist("Reschedule rejected • Current job continues with "+S.provider);save();render();return}
  if(a==="resume-visit"){S.startOtp="";S.status="ON_WAY";hist("Rescheduled visit resumed • fresh GPS Reached + Start OTP required");render();return}
- if(a==="customer-add-work"){if(S.addonRequest)return;S.addonNotice="";S.actionPanel="";S.addWorkMode="RATE";S.addWorkCart=[];S.addWorkQuoteItem=null;save();render();return}
+ if(a==="customer-add-work"){if(S.addonRequest)return;S.commNotice="";S.addonNotice="";S.actionPanel="";S.addWorkMode="RATE";S.addWorkCart=[];S.addWorkQuoteItem=null;save();render();return}
  if(a==="add-work-cancel"){S.addWorkMode=false;S.addWorkCart=[];S.addWorkQuoteItem=null;save();render();return}
  if(a==="add-work-add"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.addWorkCart=S.addWorkCart||[];if(!S.addWorkCart.some(x=>x.i===i))S.addWorkCart.push({i,name:it.name,price:Number(it.price||0),qty:1});save();render();return}
  if(a==="add-work-qty"){const i=Number(b.dataset.i),x=(S.addWorkCart||[]).find(v=>v.i===i);if(!x)return;x.qty=Math.max(0,Number(x.qty||1)+Number(b.dataset.d||0));if(x.qty===0)S.addWorkCart=S.addWorkCart.filter(v=>v.i!==i);save();render();return}
