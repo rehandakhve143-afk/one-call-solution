@@ -27,6 +27,17 @@ linear-gradient(90deg,transparent 18px,#17383d 18px 28px,transparent 28px) 0 0/2
 linear-gradient(transparent 18px,#17383d 18px 28px,transparent 28px) 0 0/28px 28px;
 background-color:#fff}
 .pay-note{text-align:center;font-size:10px;color:#718185;margin:4px 0 10px}
+.media-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:9px 0}
+.media-item{border:1px solid var(--line);border-radius:12px;padding:7px;background:#f8faf9;overflow:hidden}
+.media-item img,.media-item video{width:100%;height:118px;object-fit:cover;border-radius:8px;background:#edf3f1}
+.media-item small{display:block;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:9px 0}
+.contact-grid .btn{margin-top:0;padding:10px 4px;font-size:10px}
+.chatbox{border:1px solid var(--line);border-radius:13px;padding:10px;background:#f8faf9;margin-top:10px}
+.chatlog{max-height:150px;overflow:auto;margin-bottom:8px}
+.chatmsg{padding:7px 9px;border-radius:10px;background:#fff;margin:5px 0;font-size:11px}
+.chatmsg.me{background:#e8f5f2}
+.any-other{margin-top:12px;border:1px dashed var(--green)!important;background:#f1faf8!important;color:var(--green)!important}
 @media(max-width:380px){.grid{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -36,7 +47,7 @@ background-color:#fff}
     <div class="headrow">
       <button class="back" data-action="home">‹</button>
       <div class="brand"><b>ONE CALL SOLUTION</b><small>Home Services</small></div>
-      <span class="ver">FLOW 25.5</span>
+      <span class="ver">FLOW 25.6</span>
     </div>
     <div class="tabs">
       <button class="tab on" data-tab="customer">Customer</button>
@@ -83,7 +94,7 @@ const services={
 };
 const KEY="ocsHomeFlowV254";
 const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","VISIT_PAYMENT","VISIT_CASH_WAIT","COMPLETION_CONFIRM","PAYMENT","CASH_WAIT"]);
-function fresh(){return {tab:"customer",bookingId:"",bookingCreatedAt:"",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",paymentView:"SELECT",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addonRequest:null,addonNotice:"",addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",rescheduleBy:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,visitPaymentChoice:"ONLINE",visitPaymentView:"SELECT",visitPaymentStatus:"",supportTickets:[],expertRequests:[],actionPanel:"",customerLat:null,customerLng:null,locationSharedAt:"",locationError:""}}
+function fresh(){return {tab:"customer",bookingId:"",bookingCreatedAt:"",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",paymentView:"SELECT",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addonRequest:null,addonNotice:"",addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",rescheduleBy:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,visitPaymentChoice:"ONLINE",visitPaymentView:"SELECT",visitPaymentStatus:"",supportTickets:[],expertRequests:[],actionPanel:"",customerLat:null,customerLng:null,locationSharedAt:"",locationError:"",requestMedia:[],customerPhone:"",providerPhone:"",chatMessages:[]}}
 let S=fresh();
 try{
  const raw=localStorage.getItem(KEY);
@@ -199,6 +210,23 @@ function providerLocationHTML(){
  }
  return `<div class="card"><h3>📍 Customer Location Shared</h3><div class="muted">${esc(S.address||"Customer address")}</div><button class="btn" data-action="open-directions">Open Directions / Maps</button></div>`;
 }
+function mediaHTML(list){
+ const items=list||[];
+ if(!items.length)return `<div class="muted">No photo/video attached.</div>`;
+ return `<div class="media-grid">${items.map(m=>`<div class="media-item">${m.kind==="video"?`<video controls src="${esc(m.url||"")}"></video>`:`<img src="${esc(m.url||"")}" alt="Work photo">`}<small>${esc(m.name||m.kind)}</small></div>`).join("")}</div>`;
+}
+function contactActionsHTML(side){
+ const phone=side==="customer"?S.providerPhone:S.customerPhone;
+ return `<div class="contact-grid">
+   <button class="btn gray" data-action="focus-chat">💬 Chat</button>
+   <button class="btn ${phone?"":"gray"}" data-action="call-contact" ${phone?"":"disabled"}>📞 Call</button>
+   <button class="btn ${phone?"":"gray"}" data-action="whatsapp-contact" ${phone?"":"disabled"}>🟢 WhatsApp</button>
+ </div>${phone?"":`<div class="muted">Call/WhatsApp registered mobile available hone ke baad active hoga.</div>`}`;
+}
+function chatHTML(side){
+ const msgs=S.chatMessages||[];
+ return `<div class="chatbox"><b>OCS Chat</b><div class="chatlog">${msgs.length?msgs.map(m=>`<div class="chatmsg ${m.side===side?"me":""}"><b>${m.side==="customer"?"Customer":"Service Provider"}:</b> ${esc(m.text)}</div>`).join(""):`<div class="muted">No messages yet.</div>`}</div><div class="row"><input id="chatInput" placeholder="Type message..."><button class="btn" data-action="send-chat" data-side="${side}">Send</button></div></div>`;
+}
 function customerHTML(){
  if(S.status==="SELECT_SERVICE"){
    const cats=Object.keys(services);
@@ -214,14 +242,22 @@ function customerHTML(){
      return `<div class="svc"><div class="svc-copy"><b>${esc(it.name)}</b><span>${esc(it.display||money(it.price))}</span><small>Labour / service charge</small></div>${x?`<div class="step"><button data-action="qty" data-i="${i}" data-d="-1">−</button><b>${x.qty}</b><button data-action="qty" data-i="${i}" data-d="1">+</button></div>`:`<button class="add" data-action="add" data-i="${i}">Add</button>`}</div>`;
    }).join("");
    const total=cartTotal(),qty=S.cart.reduce((a,x)=>a+Number(x.qty||1),0);
-   return `<button class="btn gray" data-action="categories">← All Categories</button><div class="card"><h3>${esc(S.category)} Services</h3><div class="muted">Select one or multiple services.</div></div><div class="list">${rows}</div>${S.cart.length?`<div class="bar"><div class="copy"><b>${qty} Service${qty>1?"s":""} Selected</b><small>Grand Total: ${money(total)}</small></div><button data-action="continue">Continue Booking →</button></div>`:""}`;
+   return `<button class="btn gray" data-action="categories">← All Categories</button><div class="card"><h3>${esc(S.category)} Services</h3><div class="muted">Select one or multiple services.</div></div><div class="list">${rows}</div><button class="btn any-other" data-action="any-other-service">＋ Any Other Service / New Service Request</button>${S.cart.length?`<div class="bar"><div class="copy"><b>${qty} Service${qty>1?"s":""} Selected</b><small>Grand Total: ${money(total)}</small></div><button data-action="continue">Continue Booking →</button></div>`:""}`;
  }
  if(S.status==="CUSTOM_REQUEST"){
-   return `<button class="btn gray" data-action="items">← Services</button><div class="card"><h3>New Service Request</h3><div class="muted">${esc(S.service||S.category)}</div><label>Describe work *</label><textarea id="customDesc" placeholder="Work details"></textarea><label>Preferred time</label><select id="customTime"><option>Morning</option><option>Afternoon</option><option>Evening</option></select><button class="btn" data-action="send-quote-request">Send Request to Service Provider</button></div>`;
+   return `<button class="btn gray" data-action="items">← Services</button><div class="card"><h3>Any Other Service / New Service Request</h3><div class="muted">${esc(S.service||S.category)}</div>
+   <label>Describe work *</label><textarea id="customDesc" placeholder="Work details"></textarea>
+   <label>Photo</label><input id="customPhoto" type="file" accept="image/*" multiple>
+   <label>Video</label><input id="customVideo" type="file" accept="video/*" multiple>
+   ${mediaHTML(S.requestMedia)}
+   <label>Customer Mobile</label><input id="customerPhoneInput" inputmode="tel" value="${esc(S.customerPhone||"")}" placeholder="Registered mobile • Call/WhatsApp">
+   <div class="muted">Real app me registered mobile auto-fill hoga.</div>
+   <label>Preferred time</label><select id="customTime"><option>Morning</option><option>Afternoon</option><option>Evening</option></select>
+   <button class="btn" data-action="send-quote-request">Send Request to Service Provider</button></div>`;
  }
- if(S.status==="QUOTE_WAIT") return `<div class="notice"><b>Quote request sent.</b><br>Service Provider tab open karke quote bhejiye.</div>${logsHTML()}`;
+ if(S.status==="QUOTE_WAIT") return `<div class="notice"><b>Any Other Service Request Sent</b><br>Photo/video + work details Service Provider ko bheje gaye.</div><div class="card"><h3>Request Media</h3>${mediaHTML(S.quoteRequest&&S.quoteRequest.media||S.requestMedia)}</div>${contactActionsHTML("customer")}${chatHTML("customer")}${logsHTML()}`;
  if(S.status==="INITIAL_QUOTE"){
-   return `<div class="card"><h3>Service Provider Quote</h3><b>${esc(S.quote&&S.quote.desc||S.service)}</b><div class="money">${money(S.quote&&S.quote.amount)}</div><div class="row"><button class="btn ok" data-action="accept-quote">Accept Quote</button><button class="btn red" data-action="reject-quote">Reject</button></div></div>`;
+   return `<div class="card"><h3>Service Provider Quote</h3><b>${esc(S.quote&&S.quote.desc||S.service)}</b><div class="money">${money(S.quote&&S.quote.amount)}</div><div class="row"><button class="btn ok" data-action="accept-quote">Accept Quote</button><button class="btn red" data-action="reject-quote">Reject</button></div></div><div class="card"><h3>Request Media</h3>${mediaHTML(S.quoteRequest&&S.quoteRequest.media||S.requestMedia)}</div>${contactActionsHTML("customer")}${chatHTML("customer")}`;
  }
  if(S.status==="BOOKING_DETAILS"){
    return `<button class="btn gray" data-action="items">← Services</button><div class="card"><h3>Booking Summary</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.category)}</div><div class="money">Total: ${money(S.total)}</div><label>Address / Location *</label><input id="address" value="${esc(S.address)}" placeholder="Enter service address"><button class="btn gray" type="button" data-action="share-location">📍 Share Current Location</button>${customerLocationHTML()}<label>Payment Method</label><div class="row"><button class="btn ${S.paymentChoice==="ONLINE"?"ok":"gray"}" data-action="pay-choice" data-v="ONLINE">Online</button><button class="btn ${S.paymentChoice==="CASH"?"ok":"gray"}" data-action="pay-choice" data-v="CASH">Cash</button></div><div class="notice"><b>Visit charge if no work:</b> 1–6 km ₹199 • above 6–12 km ₹249.</div><button class="btn" data-action="find-provider">Find Service Provider</button></div>`;
@@ -329,8 +365,10 @@ function adminHTML(){
  <h3>Booking IDs</h3>${bookingRows}<h3>Support Tickets</h3>${ticketRows}`;
 }
 function providerHTML(){
- if(S.status==="QUOTE_WAIT") return `<div class="card"><h3>Get Quote Request</h3><b>${esc(S.quoteRequest&&S.quoteRequest.service||S.category)}</b><p>${esc(S.quoteRequest&&S.quoteRequest.desc)}</p><button class="btn" data-action="send-quote">Send Quote</button></div>`;
- if(S.status==="INITIAL_QUOTE") return `<div class="notice">Quote sent. Customer response ka wait hai.</div>`;
+ if(S.status==="QUOTE_WAIT") return `<div class="card"><h3>Any Other Service Request</h3><b>${esc(S.quoteRequest&&S.quoteRequest.service||S.category)}</b><p>${esc(S.quoteRequest&&S.quoteRequest.desc)}</p><div class="muted">Preferred: ${esc(S.quoteRequest&&S.quoteRequest.time||"")}</div><h3 style="margin-top:12px">Customer Photo / Video</h3>${mediaHTML(S.quoteRequest&&S.quoteRequest.media||[])}</div>
+ ${contactActionsHTML("provider")}${chatHTML("provider")}
+ <div class="card"><h3>Send Quote</h3><label>Your Mobile</label><input id="providerPhoneInput" inputmode="tel" value="${esc(S.providerPhone||"")}" placeholder="Registered SP mobile"><label>Quote Amount ₹ *</label><input id="quoteAmountInput" type="number" min="1" inputmode="numeric" placeholder="Enter quote amount"><button class="btn" data-action="send-quote-form">Send Quote to Customer</button></div>`;
+ if(S.status==="INITIAL_QUOTE") return `<div class="notice"><b>Quote Sent</b><br>Customer Accept / Reject ka wait hai.</div>${contactActionsHTML("provider")}${chatHTML("provider")}`;
  if(S.status==="REQUESTED"){
    if(S.rejectedProvider&&!S.nextRequestReady) return `<div class="notice"><b>${esc(S.rejectedProvider)} rejected the request ✅</b><br>OCS sent it to the next eligible Service Provider: <b>${esc(S.provider)}</b>.</div><button class="btn" data-action="open-next-request">Open Next Provider Request</button>`;
    return `<div class="card"><h3>Incoming Request • ${esc(S.provider)}</h3><div class="muted">Booking ID: ${esc(S.bookingId||"—")}</div><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><div class="money">${money(S.total)}</div><div class="row"><button class="btn ok" data-action="provider-accept">Accept</button><button class="btn red" data-action="provider-reject">Reject</button></div></div>${providerLocationHTML()}`;
@@ -367,12 +405,25 @@ function providerHTML(){
 function logsHTML(){return S.logs&&S.logs.length?`<div class="card"><h3>Activity</h3><div class="log">${S.logs.map(x=>"<div>"+esc(x)+"</div>").join("")}</div></div>`:""}
 document.addEventListener("input",e=>{
  if(e.target.id==="address"){S.address=e.target.value;save()}
+ if(e.target.id==="customerPhoneInput"){S.customerPhone=e.target.value;save()}
+ if(e.target.id==="providerPhoneInput"){S.providerPhone=e.target.value;save()}
+});
+document.addEventListener("change",e=>{
+ if(e.target.id!=="customPhoto"&&e.target.id!=="customVideo")return;
+ const kind=e.target.id==="customVideo"?"video":"photo";
+ const files=Array.from(e.target.files||[]);
+ S.requestMedia=S.requestMedia||[];
+ const max=kind==="video"?2:6;
+ files.slice(0,max).forEach(f=>{
+   try{S.requestMedia.push({kind,name:f.name,url:URL.createObjectURL(f)})}catch(err){}
+ });
+ save();render();
 });
 document.addEventListener("click",e=>{
  const tab=e.target.closest("[data-tab]");if(tab){setTab(tab.dataset.tab);return}
  const b=e.target.closest("[data-action]");if(!b)return;
  const a=b.dataset.action;
- if(a==="home"){location.href="index.html?v=20260923-flow254";return}
+ if(a==="home"){location.href="index.html?v=20260923-flow256";return}
  if(a==="category"){S.category=b.dataset.cat;S.cart=[];S.status="SELECT_ITEM";save();render();return}
  if(a==="categories"){S.category="";S.cart=[];S.status="SELECT_SERVICE";save();render();return}
  if(a==="add"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.cart.push({i,name:it.name,price:Number(it.price||0),qty:1});save();render();return}
@@ -380,8 +431,9 @@ document.addEventListener("click",e=>{
  if(a==="continue"){if(!S.cart.length)return;S.service=S.cart.map(x=>x.name+" × "+x.qty).join(", ");S.total=cartTotal();S.status="BOOKING_DETAILS";save();render();return}
  if(a==="items"){S.status="SELECT_ITEM";save();render();return}
  if(a==="quote-item"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.service=it.name;S.serviceType="quote";S.status="CUSTOM_REQUEST";save();render();return}
- if(a==="send-quote-request"){const d=document.getElementById("customDesc").value.trim();if(!d){alert("Work details likhiye.");return}S.quoteRequest={service:S.service,desc:d,time:document.getElementById("customTime").value};S.status="QUOTE_WAIT";hist("Customer sent Get Quote request");render();return}
- if(a==="send-quote"){const amt=Number(prompt("Quote amount ₹"));if(!amt||amt<=0)return;S.quote={desc:S.quoteRequest&&S.quoteRequest.desc||S.service,amount:amt};S.status="INITIAL_QUOTE";hist("Service Provider sent quote ₹"+amt);render();return}
+ if(a==="any-other-service"){S.service="Any Other "+S.category+" Work";S.serviceType="quote";S.requestMedia=[];S.chatMessages=[];S.customerPhone="";S.providerPhone="";S.status="CUSTOM_REQUEST";save();render();return}
+ if(a==="send-quote-request"){const d=document.getElementById("customDesc").value.trim();if(!d){alert("Work details likhiye.");return}S.customerPhone=(document.getElementById("customerPhoneInput")?.value||S.customerPhone||"").trim();S.quoteRequest={service:S.service,desc:d,time:document.getElementById("customTime").value,media:(S.requestMedia||[]).slice(),customerPhone:S.customerPhone};S.status="QUOTE_WAIT";hist("Customer sent Any Other Service request with "+(S.requestMedia||[]).length+" media file(s)");save();render();return}
+ if(a==="send-quote-form"){const amt=Number(document.getElementById("quoteAmountInput")?.value||0);if(!amt||amt<=0)return;S.providerPhone=(document.getElementById("providerPhoneInput")?.value||S.providerPhone||"").trim();S.quote={desc:S.quoteRequest&&S.quoteRequest.desc||S.service,amount:amt};S.status="INITIAL_QUOTE";hist("Service Provider sent Any Other Service quote ₹"+amt);save();render();return}
  if(a==="accept-quote"){S.total=Number(S.quote.amount);S.service=(S.service||S.category)+" • Accepted Quote";S.status="BOOKING_DETAILS";hist("Customer accepted quote ₹"+S.total);render();return}
  if(a==="reject-quote"){S.status="CUSTOM_REQUEST";hist("Customer rejected quote");render();return}
  if(a==="pay-choice"){S.paymentChoice=b.dataset.v;save();render();return}
@@ -401,6 +453,10 @@ document.addEventListener("click",e=>{
    window.open(url,"_blank","noopener");
    return;
  }
+ if(a==="send-chat"){const side=b.dataset.side||S.tab;const input=document.getElementById("chatInput");const txt=(input?.value||"").trim();if(!txt)return;S.chatMessages=S.chatMessages||[];S.chatMessages.push({side,text:txt,at:Date.now()});hist((side==="customer"?"Customer":"Service Provider")+" sent chat message");save();render();return}
+ if(a==="focus-chat"){const x=document.getElementById("chatInput");if(x)x.focus();return}
+ if(a==="call-contact"){const phone=(S.tab==="customer"?S.providerPhone:S.customerPhone||"").replace(/\D/g,"");if(phone)location.href="tel:"+phone;return}
+ if(a==="whatsapp-contact"){let phone=(S.tab==="customer"?S.providerPhone:S.customerPhone||"").replace(/\D/g,"");if(!phone)return;if(phone.length===10)phone="91"+phone;window.open("https://wa.me/"+phone,"_blank","noopener");return}
  if(a==="find-provider"){const addr=document.getElementById("address").value.trim();if(!addr){alert("Address / Location fill karein.");return}S.address=addr;ensureBookingId();S.status="REQUESTED";hist("Customer created booking • "+S.bookingId+" • "+money(S.total));syncBookingToAdmin();save();render();return}
  if(a==="provider-accept"){S.rejectedProvider="";S.nextRequestReady=false;S.status="ASSIGNED";hist(S.provider+" accepted booking");render();return}
  if(a==="provider-reject"){const old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";S.rejectedProvider=old;S.nextRequestReady=false;S.status="REQUESTED";hist(old+" rejected • OCS sent request to "+S.provider);render();return}
