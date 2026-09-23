@@ -151,7 +151,12 @@ input{
 
   <div class="card stat">
     <b>9%</b>
-    <span>Platform Charge</span>
+    <span>OCS Commission</span>
+  </div>
+
+  <div class="card stat">
+    <b id="walletStat">₹100.00</b>
+    <span>SP Wallet Balance</span>
   </div>
 </div>
 
@@ -187,6 +192,27 @@ input{
     <span>Visit Charge</span>
     <b>₹0</b>
   </div>
+</div>
+
+<div class="card">
+  <h2>Customer Details</h2>
+  <div class="row"><span>Name</span><b>Customer 1</b></div>
+  <div class="row"><span>Mobile</span><b>Not added</b></div>
+  <div class="row"><span>Email</span><b>Not added</b></div>
+  <div class="row"><span>Address</span><b>Customer Address</b></div>
+  <div class="row"><span>Current Service</span><b>Electrical Service</b></div>
+  <div class="row"><span>Payment Mode</span><b>Online</b></div>
+</div>
+
+<div class="card">
+  <h2>Service Provider Details</h2>
+  <div class="row"><span>Provider</span><b>SP1</b></div>
+  <div class="row"><span>Verification</span><span class="badge green">VERIFIED</span></div>
+  <div class="row"><span>Mobile</span><b>Not added</b></div>
+  <div class="row"><span>Email</span><b>Not added</b></div>
+  <div class="row"><span>Skill / Category</span><b>Electrical</b></div>
+  <div class="row"><span>Wallet Balance</span><b id="walletBalanceAdmin">₹100.00</b></div>
+  <div class="row"><span>OCS Commission</span><b>9%</b></div>
 </div>
 
 <div class="card">
@@ -235,7 +261,17 @@ input{
   </div>
 
   <div class="row">
-    <span>Platform Charge Due</span>
+    <span>Wallet Balance</span>
+    <b id="providerWalletControl">₹100.00</b>
+  </div>
+
+  <div class="row">
+    <span>OCS Commission</span>
+    <b>9%</b>
+  </div>
+
+  <div class="row">
+    <span>Commission Due</span>
     <b>₹0.00</b>
   </div>
 
@@ -244,16 +280,12 @@ input{
 </div>
 
 <div class="card">
-  <h2>Platform Charge Setting</h2>
-
-  <label class="small">Current OCS Platform Charge %</label>
-  <input id="chargeInput" type="number" value="9">
-
-  <button class="primary" onclick="saveCharge()">Save Platform Charge</button>
-
-  <p id="chargeMessage" class="small">
-    Current setting: 9%
-  </p>
+  <h2>OCS Commission & Wallet</h2>
+  <div class="row"><span>OCS Commission Rate</span><b>9%</b></div>
+  <div class="row"><span>Current SP Wallet</span><b>₹100.00</b></div>
+  <div class="row"><span>Booking Amount</span><b>₹0.00</b></div>
+  <div class="row"><span>9% Commission</span><b>₹0.00</b></div>
+  <p class="small">Completed Home Service job par 9% OCS commission. Wallet low/negative ho to warning/reminder; new-job Pause/Resume Admin control se.</p>
 </div>
 
 <div class="card">
@@ -317,20 +349,6 @@ function pauseJobs(){
 function resumeJobs(){
   document.getElementById("jobAccess").textContent="ACTIVE";
   document.getElementById("jobAccess").className="badge green";
-}
-
-function saveCharge(){
-  let value=document.getElementById("chargeInput").value;
-
-  if(value==="" || Number(value)<0){
-    alert("Valid percentage enter karo");
-    return;
-  }
-
-  document.getElementById("chargeMessage").textContent=
-    "Current setting: "+value+"%";
-
-  alert("Platform Charge updated to "+value+"%");
 }
 
 function createTicket(){
