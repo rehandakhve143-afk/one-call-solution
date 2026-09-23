@@ -575,6 +575,7 @@ function releaseHeldJobPayment(){
  S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held;S.heldAmount=0;S.currentJob=null;S.payment="ONLINE • OCS Secure Payment Released";
  if(total>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(total)}
  hist("Customer confirmed Work Completed • OCS released "+money(held||total)+" for settlement to "+S.provider);
+ unlockQueuedNextJob();
 }
 function settleHeldNoWork(charge,reason){
  const held=Number(S.heldAmount||0),cc=Math.max(0,Number(charge)||0);
@@ -780,6 +781,25 @@ function toggleAvailability(){
  render()
 }
 
+function nextJobTimeClash(job){
+ const j=job||{};
+ const ns=Number(j.scheduleStart||0),ne=Number(j.scheduleEnd||0);
+ const cs=Number(S.currentJobScheduleStart||0),ce=Number(S.currentJobScheduleEnd||0);
+ if(ns&&ne&&cs&&ce&&Math.max(ns,cs)<Math.min(ne,ce))return true;
+ if(S.reschedule&&S.reschedule.date&&S.reschedule.time&&ns){
+   const rs=Date.parse(S.reschedule.date+"T"+S.reschedule.time);
+   if(Number.isFinite(rs)&&rs===ns)return true;
+ }
+ return false;
+}
+function nextJobScheduleText(j){
+ if(!j)return "Flexible time";
+ const s=Number(j.scheduleStart||0),e=Number(j.scheduleEnd||0);
+ if(!s)return j.scheduleLabel||"Flexible time";
+ const a=new Date(s).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+ const b=e?new Date(e).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}):"";
+ return a+(b?" – "+b:"");
+}
 function receiveNextWorkRequest(job){
  if(S.status!=="WORKING"||!S.available||S.adminPaused||!S.jobAccess||S.nextJob)return false;
  const j=job&&typeof job==="object"?job:{};
@@ -789,7 +809,11 @@ function receiveNextWorkRequest(job){
    category:j.category||"Home Service",
    amount:Number(j.amount||0),
    customer:j.customer||"New Customer",
-   address:j.address||"Area shared after accept"
+   address:j.address||"Area shared after accept",
+   scheduleStart:Number(j.scheduleStart||0),
+   scheduleEnd:Number(j.scheduleEnd||0),
+   scheduleLabel:j.scheduleLabel||"",
+   customerStatus:"Waiting for Service Provider response"
  };
  hist("New work request received while current job is running • Can accept as 1 Next Job");
  render();
@@ -798,9 +822,10 @@ function receiveNextWorkRequest(job){
 function acceptNextWorkRequest(){
  if(S.status!=="WORKING"||!S.pendingNextRequest)return;
  if(S.nextJob){alert("1 Next Job already accepted. Current job complete hone tak aur job accept nahi kar sakte.");return}
- S.nextJob={...S.pendingNextRequest,acceptedAt:Date.now(),status:"QUEUED"};
+ if(nextJobTimeClash(S.pendingNextRequest)){alert("Is Next Job ka time current/rescheduled job se clash kar raha hai. Isko accept nahi kar sakte.");return}
+ S.nextJob={...S.pendingNextRequest,acceptedAt:Date.now(),status:"QUEUED",customerStatus:"Service Provider is finishing another job • You are Next"};
  S.pendingNextRequest=null;
- hist(S.provider+" accepted 1 Next Job • It will stay queued until current job is completed");
+ hist(S.provider+" accepted 1 Next Job • Customer status: You are Next • It stays queued until current job is closed");
  render();
 }
 function rejectNextWorkRequest(){
@@ -813,11 +838,11 @@ function providerNextJobQueueHTML(){
  if(!S.available)return '<div class="card"><h3>New Work Requests</h3><div class="notice">Available for Work is OFF. Current job continues, but no new/next request will come.</div></div>';
  if(S.nextJob){
    const j=S.nextJob;
-   return '<div class="card"><h3>Next Job • Accepted</h3><div class="notice good"><b>'+ocsSafe(j.service)+'</b><br>'+ocsSafe(j.category)+' • '+(j.amount?money(j.amount):'Amount pending')+'</div><div class="muted">Queued safely. Current job complete hone se pehle On the Way / Start Work nahi hoga. Max 1 Current Job + 1 Next Job.</div></div>';
+   return '<div class="card"><h3>Next Job • Accepted</h3><div class="notice good"><b>'+ocsSafe(j.service)+'</b><br>'+ocsSafe(j.category)+' • '+(j.amount?money(j.amount):'Amount pending')+'<br>Schedule: '+ocsSafe(nextJobScheduleText(j))+'</div><div class="notice"><b>Next Customer Status:</b><br>'+ocsSafe(j.customerStatus||"Service Provider is finishing another job • You are Next")+'</div><div class="muted">Queued safely. Current job complete hone se pehle On the Way / Start Work nahi hoga. Max 1 Current Job + 1 Next Job.</div></div>';
  }
  if(S.pendingNextRequest){
    const j=S.pendingNextRequest;
-   return '<div class="card"><h3>NEW • Next Work Request</h3><b>'+ocsSafe(j.service)+'</b><div class="muted">'+ocsSafe(j.category)+' • '+ocsSafe(j.customer)+'</div><div class="money">'+(j.amount?money(j.amount):'Amount pending')+'</div><div class="row"><button class="btn ok" onclick="acceptNextWorkRequest()">Accept as Next Job</button><button class="btn red" onclick="rejectNextWorkRequest()">Reject</button></div><div class="muted">Accept karne par ye queue me rahega. Current job ke saath second job start nahi ho sakta.</div></div>';
+   return '<div class="card"><h3>NEW • Next Work Request</h3><b>'+ocsSafe(j.service)+'</b><div class="muted">'+ocsSafe(j.category)+' • '+ocsSafe(j.customer)+'</div><div class="money">'+(j.amount?money(j.amount):'Amount pending')+'</div><div class="muted">Schedule: '+ocsSafe(nextJobScheduleText(j))+'</div>'+(nextJobTimeClash(j)?'<div class="notice bad"><b>Time Clash</b><br>Current/rescheduled job ke time se clash hai. Accept blocked.</div>':'')+'<div class="row"><button class="btn ok" onclick="acceptNextWorkRequest()" '+(nextJobTimeClash(j)?'disabled style="opacity:.5"':'')+'>Accept as Next Job</button><button class="btn red" onclick="rejectNextWorkRequest()">Reject</button></div><div class="muted">Accept karne par ye queue me rahega. Current job ke saath second job start nahi ho sakta.</div></div>';
  }
  return '<div class="card"><h3>New Work Requests</h3><div class="notice good"><b>Available: ON</b><br>Current job chal raha hai. OCS ek time par maximum <b>1 Next Job</b> request allow karega.</div><div class="muted">Next Job accept kar sakte hain, lekin current job complete hone se pehle us par On the Way / Start Work nahi hoga.</div></div>';
 }
@@ -1329,6 +1354,37 @@ let id=createTicket("customer","Visit Charge Dispute",false);S.wncTicket=id;
 hist("Visit Charge disputed • Charge on hold • Support Ticket "+id)
 }
 
+function unlockQueuedNextJob(){
+ if(!S.nextJob)return;
+ S.nextJob.status="READY";
+ S.nextJob.readyAt=Date.now();
+ S.nextJob.customerStatus="Previous job completed • Service Provider will start your booking next";
+ S.currentJob="Next Job Ready • "+(S.nextJob.service||"Home Service");
+ hist("Current job closed • Next Job is now READY • Customer status updated");
+}
+function startQueuedNextJob(){
+ const j=S.nextJob;if(!j||j.status!=="READY"){alert("Next Job abhi ready nahi hai.");return}
+ const keepLogs=Array.isArray(S.logs)?S.logs:[];
+ S.service=j.service||"Home Service";
+ S.serviceName=S.service;
+ S.category=j.category||"Home Service";
+ S.base=Number(j.amount||0);S.total=S.base;S.bookingAmount=S.base;S.finalAmount=S.base;S.amount=S.base;
+ S.address=j.address||"Customer Address";
+ S.currentJob="Current • "+S.service;
+ S.nextJob=null;S.pendingNextRequest=null;
+ S.startOtp=null;S.quote=null;S.quoteDecision=null;S.quoteHistory=[];S.quoteRevision=null;
+ S.requestMedia=[];S.chatMessages=[];S.beforeWorkProof=[];S.afterWorkProof=[];
+ S.payment=null;S.paymentHeld=false;S.heldAmount=0;S.paymentReleased=false;S.commissionApplied=false;
+ S.cancelReason=null;S.cancelBy=null;S.visitCharge=0;S.distanceSlab=null;S.completionRequested=false;
+ S.status="ASSIGNED";S.logs=keepLogs;
+ hist("Next Job promoted to Current Job • "+S.service+" • Provider can now go On the Way");
+}
+function nextJobReadyHTML(){
+ if(!S.nextJob||S.nextJob.status!=="READY")return "";
+ const j=S.nextJob;
+ return '<div class="card"><h3>Next Job is Ready</h3><div class="notice good"><b>'+ocsSafe(j.service)+'</b><br>'+ocsSafe(j.customer||"Customer")+' • '+ocsSafe(nextJobScheduleText(j))+'</div><div class="muted">Previous job is closed. Tap below to make this the Current Job. It still will not start until you choose On the Way.</div><button class="btn ok" onclick="startQueuedNextJob()">Start Next Job / Make Current</button></div>';
+}
+
 function finish(){
  ensureBookingAmount();
 S.status="COMPLETION_CONFIRM";
@@ -1368,7 +1424,8 @@ function onlineSuccess(){
  const due=paymentDueAmount(),total=Number(S.total||0),held=Number(S.heldAmount||0);
  S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held+due;S.heldAmount=0;S.currentJob=null;S.payment="ONLINE • OCS Settlement Released";
  if(total>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(total)}
- hist("Online payment success • Remaining "+money(due)+" • OCS released total settlement "+money(total)+" after completion")
+ hist("Online payment success • Remaining "+money(due)+" • OCS released total settlement "+money(total)+" after completion");
+ unlockQueuedNextJob();
 }
 
 function payCash(purpose){
@@ -1388,7 +1445,8 @@ function cashReceived(){
  if(commissionBase>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(commissionBase)}
  if(!visit&&S.paymentHeld)S.payment="CASH + OCS Secure Amount Released";
  S.paymentHeld=false;S.heldAmount=0;S.currentJob=null;S.cashDue=0;
- hist(S.provider+" confirmed Cash Received • "+money(cashAmt)+(visit?" • Visit charge settled":" • OCS held amount released after completion"))
+ hist(S.provider+" confirmed Cash Received • "+money(cashAmt)+(visit?" • Visit charge settled":" • OCS held amount released after completion"));
+ if(!visit)unlockQueuedNextJob();
 }
 
 function createTicket(side,category,callback){
@@ -1786,6 +1844,7 @@ if(S.status==="DONE")h=`
 ${S.customerRating
 ?'<div class="ocs-rating-box"><h3>Thank you for your rating</h3>'+yellowStarsHTML(S.customerRating,false)+'<div class="ocs-rating-note">'+S.customerRating+' of 5 stars</div>'+(S.customerRatingComment?'<div class="muted" style="margin-top:8px">'+S.customerRatingComment+'</div>':'')+'</div>'
 :'<div class="ocs-rating-box"><h3>Rate Your Service Provider</h3><div class="muted">5 me se jitne star dene hain, utne number wale star par tap karein. Example: 4th star = 4 stars.</div>'+yellowStarsHTML(S.pendingRatingStars||0,true)+(S.pendingRatingStars?'<div class="ocs-rating-note">'+S.pendingRatingStars+' of 5 selected</div><textarea id="ratingComment" oninput="S.pendingRatingComment=this.value" placeholder="Comment / feedback (optional)" style="width:100%;min-height:82px;margin-top:10px;padding:10px;border:1px solid #d8e4e2;border-radius:12px;font:inherit">'+(S.pendingRatingComment||'')+'</textarea><button class="btn ok" style="margin-top:10px" onclick="submitProviderRating()">Submit Rating</button>':'')+'</div>'}
+${S.nextJob&&S.nextJob.status==="READY"?'<div class="muted" style="margin-top:8px">Your booking is complete. Service Provider may now continue to their next queued job.</div>':""}
 <button class="btn gray" onclick="resetAll()">Book Another Service</button>`;
 
 if(S.status==="CANCELLED_SETTLED")h=`
@@ -1925,7 +1984,7 @@ if(S.status==="VISIT_CASH_WAIT")h=`
 <div class="notice">Customer marked Visit Charge Cash Paid ₹${S.visitCharge}</div>
 <button class="btn ok" onclick="cashReceived()">Visit Charge Cash Received</button>`;
 
-if(S.status==="DONE")h=`<div class="notice good"><b>Job Completed</b><br>₹${S.total}</div>${S.customerRating?'<div class="ocs-rating-box"><b>Customer Rating</b>'+yellowStarsHTML(S.customerRating,false)+'</div>':''}`;
+if(S.status==="DONE")h=`<div class="notice good"><b>Job Completed</b><br>₹${S.total}</div>${S.customerRating?'<div class="ocs-rating-box"><b>Customer Rating</b>'+yellowStarsHTML(S.customerRating,false)+'</div>':''}`+nextJobReadyHTML();
 
 if(S.status==="CANCELLED_SETTLED")h=`<div class="notice good"><b>Work Not Completed • Settled</b><br>Visit Charge ₹${S.visitCharge}</div>`;
 
