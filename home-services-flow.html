@@ -29,7 +29,7 @@ label{display:block;font-weight:800;font-size:11px;margin:10px 0 5px}input,texta
     <div class="headrow">
       <button class="back" data-action="home">‹</button>
       <div class="brand"><b>ONE CALL SOLUTION</b><small>Home Services</small></div>
-      <span class="ver">FLOW 24.1</span>
+      <span class="ver">FLOW 24.2</span>
     </div>
     <div class="tabs">
       <button class="tab on" data-tab="customer">Customer</button>
@@ -74,8 +74,8 @@ const services={
 'False Ceiling / POP / Gypsum / PVC':{icon:'🏠',items:[{"name":"Gypsum Board False Ceiling – Labour Only","type":"fixed","display":"₹75 / sq.ft.","price":75},{"name":"POP Ceiling – Labour Only","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"PVC Ceiling – Labour Only","type":"fixed","display":"₹70 / sq.ft.","price":70},{"name":"Cove / Designer Ceiling Work","type":"quote","display":"Get Quote"},{"name":"Repair / Patch Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
 };
 const KEY="ocsHomeFlowCleanV1";
-const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","COMPLETION_CONFIRM","PAYMENT","DONE"]);
-function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[]}}
+const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","COMPLETION_CONFIRM","PAYMENT","DONE"]);
+function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,rescheduleAt:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,supportTickets:[],expertRequests:[]}}
 let S=fresh();
 try{
  const raw=localStorage.getItem(KEY);
@@ -127,11 +127,23 @@ function customerHTML(){
  if(S.status==="BOOKING_DETAILS"){
    return `<button class="btn gray" data-action="items">← Services</button><div class="card"><h3>Booking Summary</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.category)}</div><div class="money">Total: ${money(S.total)}</div><label>Address / Location *</label><input id="address" value="${esc(S.address)}" placeholder="Enter service address"><label>Payment Method</label><div class="row"><button class="btn ${S.paymentChoice==="ONLINE"?"ok":"gray"}" data-action="pay-choice" data-v="ONLINE">Online</button><button class="btn ${S.paymentChoice==="CASH"?"ok":"gray"}" data-action="pay-choice" data-v="CASH">Cash</button></div><div class="notice"><b>Visit charge if no work:</b> 1–6 km ₹199 • above 6–12 km ₹249.</div><button class="btn" data-action="find-provider">Find Service Provider</button></div>`;
  }
- if(S.status==="REQUESTED") return `<div class="notice"><b>Booking sent to Service Provider.</b><br>Ab Service Provider tab press karo. Wahan Incoming Request dikhega.</div><div class="card"><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div><div class="muted">${esc(S.address)}</div></div>${logsHTML()}`;
+ if(S.status==="REQUESTED") return `<div class="notice"><b>${S.rejectedProvider?esc(S.rejectedProvider)+" rejected this request. OCS is matching the next eligible Service Provider.":"Booking sent to Service Provider."}</b><br>${S.rejectedProvider?"No action needed from Customer.":"Service Provider tab open karke request test karein."}</div><div class="card"><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div><div class="muted">${esc(S.address)}</div></div>${logsHTML()}`;
  if(S.status==="ASSIGNED") return `<div class="notice"><b>${esc(S.provider)} accepted booking.</b><br>Waiting for Service Provider to start journey.</div>${logsHTML()}`;
  if(S.status==="ON_WAY") return `<div class="notice"><b>${esc(S.provider)} is On the Way.</b><br>Live GPS will connect in production.</div>${logsHTML()}`;
  if(S.status==="REACHED") return `<div class="card"><h3>Service Provider Reached</h3><div class="notice">Start OTP: <b style="font-size:26px">${esc(S.startOtp)}</b><br>OTP sirf work start ke liye hai, completion proof nahi.</div><div class="muted">OTP Service Provider ko batayein.</div></div>`;
- if(S.status==="WORKING") return `<div class="notice"><b>Work In Progress</b><br>Service Provider: ${esc(S.provider)} • Amount ${money(S.total)}</div><div class="card"><button class="btn gray" data-action="reschedule">Work Pending / Reschedule</button></div>`;
+ if(S.status==="WORKING") return `<div class="notice"><b>Work In Progress</b><br>Service Provider: ${esc(S.provider)} • Amount ${money(S.total)}</div>
+ ${S.extraQuote?`<div class="card"><h3>Extra Work Quote</h3><b>${esc(S.extraQuote.desc)}</b><div class="money">${money(S.extraQuote.amount)}</div><div class="row"><button class="btn ok" data-action="extra-quote-accept">Accept</button><button class="btn red" data-action="extra-quote-reject">Reject</button></div></div>`:""}
+ ${S.extraRequest&&!S.extraQuote?`<div class="notice"><b>Extra Work Request Sent</b><br>Waiting for Service Provider quote.</div>`:""}
+ <div class="card"><h3>Customer Actions</h3>
+ <button class="btn" data-action="customer-add-work">+ Add More Work</button>
+ <button class="btn gray" data-action="reschedule">Work Pending / Reschedule</button>
+ <button class="btn gray" data-action="change-provider">Change Service Provider</button>
+ <button class="btn red" data-action="work-not-completed-customer">Work Not Completed</button>
+ <button class="btn gray" data-action="customer-support">OCS Customer Support / Callback</button>
+ </div>`;
+ if(S.status==="RESCHEDULED") return `<div class="notice"><b>Work Pending / Rescheduled</b><br>${esc(S.rescheduleAt)}<br>Same Service Provider: ${esc(S.provider)} • Visit charge ₹0 now.</div><div class="muted">Next visit me fresh GPS Reached + Start OTP hoga.</div>${logsHTML()}`;
+ if(S.status==="PROVIDER_CHANGE_HOLD") return `<div class="notice"><b>Change Service Provider request sent to OCS.</b><br>Current booking HOLD par hai. Automatic reassignment nahi hoga jab tak OCS approves.</div><div class="card"><b>Reason:</b> ${esc(S.providerChangeReason)}</div><button class="btn gray" data-action="customer-support">Contact OCS Support</button>`;
+ if(S.status==="WNC_REVIEW") return `<div class="card"><h3>Work Not Completed</h3><div class="notice"><b>Reason:</b> ${esc(S.wncReason)}<br>Start OTP completion proof nahi hai.</div><div class="muted">Visit charge rule: 1–6 km ₹199 • >6–12 km ₹249. Provider-side issue ₹0.</div><div class="row"><button class="btn" data-action="wnc-close" data-charge="199">₹199</button><button class="btn" data-action="wnc-close" data-charge="249">₹249</button></div><button class="btn gray" data-action="wnc-close" data-charge="0">Provider-side issue • ₹0</button></div>`;
  if(S.status==="COMPLETION_CONFIRM") return `<div class="card"><h3>Work Completed?</h3><div class="notice">Service Provider ne work complete mark kiya hai.</div><div class="row"><button class="btn ok" data-action="confirm-complete">Confirm Completed</button><button class="btn red" data-action="not-complete">Not Completed</button></div></div>`;
  if(S.status==="PAYMENT") return `<div class="card"><h3>Payment</h3><div class="money">${money(S.total)}</div><div class="muted">Selected: ${esc(S.paymentChoice)}</div><button class="btn" data-action="pay-done">${S.paymentChoice==="CASH"?"Confirm Cash Paid":"Pay Online (Demo)"}</button></div>`;
  if(S.status==="DONE") return `<div class="notice"><b>Booking Completed ✅</b><br>Customer + Service Provider flow complete.</div><button class="btn" data-action="new-booking">Book Another Service</button>${logsHTML()}`;
@@ -140,11 +152,25 @@ function customerHTML(){
 function providerHTML(){
  if(S.status==="QUOTE_WAIT") return `<div class="card"><h3>Get Quote Request</h3><b>${esc(S.quoteRequest&&S.quoteRequest.service||S.category)}</b><p>${esc(S.quoteRequest&&S.quoteRequest.desc)}</p><button class="btn" data-action="send-quote">Send Quote</button></div>`;
  if(S.status==="INITIAL_QUOTE") return `<div class="notice">Quote sent. Customer response ka wait hai.</div>`;
- if(S.status==="REQUESTED") return `<div class="card"><h3>Incoming Request</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><div class="money">${money(S.total)}</div><div class="row"><button class="btn ok" data-action="provider-accept">Accept</button><button class="btn red" data-action="provider-reject">Reject</button></div></div>`;
+ if(S.status==="REQUESTED"){
+   if(S.rejectedProvider&&!S.nextRequestReady) return `<div class="notice"><b>${esc(S.rejectedProvider)} rejected the request ✅</b><br>OCS sent it to the next eligible Service Provider: <b>${esc(S.provider)}</b>.</div><button class="btn" data-action="open-next-request">Open Next Provider Request</button>`;
+   return `<div class="card"><h3>Incoming Request • ${esc(S.provider)}</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><div class="money">${money(S.total)}</div><div class="row"><button class="btn ok" data-action="provider-accept">Accept</button><button class="btn red" data-action="provider-reject">Reject</button></div></div>`;
+ }
  if(S.status==="ASSIGNED") return `<div class="card"><h3>Current Job</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><button class="btn" data-action="on-way">Start Journey / On the Way</button></div>`;
  if(S.status==="ON_WAY") return `<div class="card"><h3>On the Way</h3><button class="btn" data-action="reached">GPS Reached</button></div>`;
  if(S.status==="REACHED") return `<div class="card"><h3>Start Work OTP</h3><label>Customer OTP</label><input id="otpIn" inputmode="numeric" maxlength="4" placeholder="4 digit OTP"><button class="btn" data-action="verify-otp">Verify OTP & Start Work</button></div>`;
- if(S.status==="WORKING") return `<div class="card"><h3>Work In Progress</h3><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div><button class="btn ok" data-action="mark-complete">Mark Work Completed</button><button class="btn gray" data-action="reschedule">Work Pending / Reschedule</button></div>`;
+ if(S.status==="WORKING") return `<div class="card"><h3>Work In Progress</h3><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div>
+ ${S.extraRequest&&!S.extraQuote?`<div class="notice"><b>Customer Add Work Request</b><br>${esc(S.extraRequest.desc)}</div><button class="btn" data-action="send-extra-quote">Send Extra Work Quote</button>`:""}
+ ${S.extraQuote?`<div class="notice"><b>Extra Quote Sent:</b> ${money(S.extraQuote.amount)} • Waiting for Customer response.</div>`:""}
+ <button class="btn ok" data-action="mark-complete">Mark Work Completed</button>
+ <button class="btn gray" data-action="reschedule">Work Pending / Reschedule</button>
+ <button class="btn red" data-action="work-not-completed-provider">Work Not Completed</button>
+ <button class="btn gray" data-action="ask-expert">Ask to Expert</button>
+ <button class="btn gray" data-action="provider-support">Service Provider Support / Callback</button>
+ </div>`;
+ if(S.status==="RESCHEDULED") return `<div class="notice"><b>Job Rescheduled</b><br>${esc(S.rescheduleAt)} • Same customer • Visit charge ₹0 now.</div><button class="btn" data-action="resume-visit">Continue Rescheduled Visit</button>`;
+ if(S.status==="PROVIDER_CHANGE_HOLD") return `<div class="notice"><b>Booking on HOLD</b><br>Customer requested Service Provider change. Wait for OCS decision.</div>`;
+ if(S.status==="WNC_REVIEW") return `<div class="notice"><b>Work Not Completed under review.</b><br>Reason: ${esc(S.wncReason)}<br>Waiting for Customer/OCS visit-charge decision.</div>`;
  if(S.status==="COMPLETION_CONFIRM") return `<div class="notice">Waiting for Customer completion confirmation.</div>`;
  if(S.status==="PAYMENT") return `<div class="notice">Waiting for Customer payment.</div>`;
  if(S.status==="DONE") return `<div class="notice"><b>Job Completed ✅</b><br>Payment recorded.</div>${logsHTML()}`;
@@ -172,15 +198,27 @@ document.addEventListener("click",e=>{
  if(a==="reject-quote"){S.status="CUSTOM_REQUEST";hist("Customer rejected quote");render();return}
  if(a==="pay-choice"){S.paymentChoice=b.dataset.v;save();render();return}
  if(a==="find-provider"){const addr=document.getElementById("address").value.trim();if(!addr){alert("Address / Location fill karein.");return}S.address=addr;S.status="REQUESTED";hist("Customer created booking • "+money(S.total));render();return}
- if(a==="provider-accept"){S.status="ASSIGNED";hist(S.provider+" accepted booking");render();return}
- if(a==="provider-reject"){S.status="REQUESTED";S.provider=S.provider==="SP1"?"SP2":"SP1";hist("Provider rejected • next provider checking");render();return}
+ if(a==="provider-accept"){S.rejectedProvider="";S.nextRequestReady=false;S.status="ASSIGNED";hist(S.provider+" accepted booking");render();return}
+ if(a==="provider-reject"){const old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";S.rejectedProvider=old;S.nextRequestReady=false;S.status="REQUESTED";hist(old+" rejected • OCS sent request to "+S.provider);render();return}
+ if(a==="open-next-request"){S.nextRequestReady=true;save();render();return}
  if(a==="on-way"){S.status="ON_WAY";hist(S.provider+" is On the Way");render();return}
  if(a==="reached"){S.startOtp=String(Math.floor(1000+Math.random()*9000));S.status="REACHED";hist(S.provider+" reached • Start OTP generated");render();return}
  if(a==="verify-otp"){const v=(document.getElementById("otpIn").value||"").trim();if(v!==S.startOtp){alert("Wrong OTP");return}S.status="WORKING";hist("Start OTP verified • Work started");render();return}
- if(a==="mark-complete"){S.status="COMPLETION_CONFIRM";hist("Service Provider marked work complete");render();return}
+ if(a==="mark-complete"){if(S.extraQuote){alert("Extra Work quote par Customer decision pending hai.");return}S.status="COMPLETION_CONFIRM";hist("Service Provider marked work complete");render();return}
  if(a==="confirm-complete"){S.status="PAYMENT";hist("Customer confirmed work completed");render();return}
  if(a==="not-complete"){S.status="WORKING";hist("Customer did not confirm completion");render();return}
- if(a==="reschedule"){const when=prompt("Next visit date/time");if(!when)return;hist("Work Pending / Reschedule • "+when+" • Visit charge ₹0 now");alert("Reschedule saved. Demo me current job WORKING hi rahega.");render();return}
+ if(a==="reschedule"){const when=prompt("Next visit date/time");if(!when)return;S.rescheduleAt=when;S.status="RESCHEDULED";hist("Work Pending / Reschedule • "+when+" • Visit charge ₹0 now");render();return}
+ if(a==="resume-visit"){S.startOtp="";S.status="ON_WAY";hist("Rescheduled visit resumed • fresh GPS Reached + Start OTP required");render();return}
+ if(a==="customer-add-work"){const d=prompt("Extra work / new work detail likhiye");if(!d)return;S.extraRequest={desc:d};S.extraQuote=null;hist("Customer added extra work request");render();return}
+ if(a==="send-extra-quote"){const amt=Number(prompt("Extra work quote ₹"));if(!amt||amt<=0)return;S.extraQuote={desc:S.extraRequest&&S.extraRequest.desc||"Extra Work",amount:amt};hist("Service Provider sent extra work quote ₹"+amt);render();return}
+ if(a==="extra-quote-accept"){S.total+=Number(S.extraQuote.amount||0);S.service=S.service+", Extra Work: "+S.extraQuote.desc;hist("Customer accepted extra work quote ₹"+S.extraQuote.amount);S.extraRequest=null;S.extraQuote=null;render();return}
+ if(a==="extra-quote-reject"){hist("Customer rejected extra work quote");S.extraRequest=null;S.extraQuote=null;render();return}
+ if(a==="change-provider"){const reason=prompt("Service Provider change reason");if(!reason)return;S.providerChangeReason=reason;S.status="PROVIDER_CHANGE_HOLD";hist("Customer requested Service Provider change • booking HOLD");render();return}
+ if(a==="work-not-completed-customer"){const reason=prompt("Work Not Completed reason");if(!reason)return;S.wncBy="CUSTOMER";S.wncReason=reason;S.status="WNC_REVIEW";hist("Customer marked Work Not Completed • "+reason);render();return}
+ if(a==="work-not-completed-provider"){const reason=prompt("Work Not Completed reason");if(!reason)return;S.wncBy="PROVIDER";S.wncReason=reason;S.status="WNC_REVIEW";hist("Service Provider marked Work Not Completed • "+reason);render();return}
+ if(a==="wnc-close"){S.visitCharge=Number(b.dataset.charge||0);S.status="DONE";hist("Work Not Completed closed • Visit charge "+money(S.visitCharge));render();return}
+ if(a==="customer-support"||a==="provider-support"){const role=a==="customer-support"?"Customer":"Service Provider";const msg=prompt(role+" Support problem/message");if(!msg)return;const cb=confirm("OCS callback chahiye?");const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role,msg,callback:cb});hist(role+" support ticket "+ticket+" created"+(cb?" • Callback requested":""));alert("Ticket: "+ticket);render();return}
+ if(a==="ask-expert"){const q=prompt("Expert ko kya puchna hai?");if(!q)return;S.expertRequests.push({q,at:Date.now()});hist("Ask to Expert request sent");alert("Ask to Expert request sent to OCS.");render();return}
  if(a==="pay-done"){S.status="DONE";hist("Payment recorded • "+S.paymentChoice+" • "+money(S.total));render();return}
  if(a==="new-booking"){resetNew();return}
 });
