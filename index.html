@@ -1361,6 +1361,12 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <div id="bottomProfileBody"></div>
 </div></div>
 
+<div class="modal" id="workHistoryModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>Work History</h2><div class="muted">Customer + Service Provider completed/cancelled work</div></div><button class="x" onclick="closeWorkHistory()">×</button></div>
+  <div class="support-role-row"><button id="historyCustomerBtn" class="on" onclick="setWorkHistoryRole('CUSTOMER')">Customer</button><button id="historyProviderBtn" onclick="setWorkHistoryRole('PROVIDER')">Service Provider</button></div>
+  <div id="workHistoryBody"></div>
+</div></div>
+
 <div class="modal" id="settingsModal"><div class="sheet">
   <div class="bottom-hub-head"><div><h2>⚙️ Settings</h2><div class="muted">OCS app preferences</div></div><button class="x" onclick="closeSettings()">×</button></div>
   <div class="ocs-settings-grid">
@@ -1826,7 +1832,7 @@ function setBottomActive(id){
  const x=document.getElementById(id);if(x)x.classList.add('active');
 }
 function closeBottomHub(id){const m=document.getElementById(id);if(m)m.classList.remove('show')}
-function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','settingsModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
+function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','workHistoryModal','settingsModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
 function bottomHome(){
  closeAllBottomHubs();
  if(document.getElementById('viewer')?.classList.contains('show'))closeModule();
@@ -1886,13 +1892,55 @@ function openBottomProfile(){
  ? '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small><strong>'+((provider.name||'Service Provider'))+'</strong><br>📱 '+(provider.mobile||'—')+'<br>✉ '+(provider.email||'—')+'<br>📍 '+(provider.area||'—')+'<br>Skills: '+skills+'<br>Status: '+(provider.status||'Verification Pending')+'</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Edit / Verify</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openModule(\'Home Services\',\'provider\')">Open Provider</button></div></div>'
  : '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small>Service Provider account abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Register with Email</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
 
+ const history=readOcsWorkHistory();
+ const historyCard='<div class="bottom-hub-card"><b>🧾 Work History</b><small>'+history.length+' saved record'+(history.length===1?'':'s')+'<br>Customer bookings and Service Provider jobs in one place.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openWorkHistory(\'CUSTOMER\')">Customer History</button><button onclick="closeBottomHub(\'bottomProfileModal\');openWorkHistory(\'PROVIDER\')">SP History</button></div></div>';
  const feedback=getOcsFeedback();
  const avg=ocsFeedbackAverage(feedback);
  const ocsCard='<div class="bottom-hub-card"><b>❤️ OCS Public Feedback</b><small><strong>'+feedback.likes+' Likes</strong><br>'+(avg?avg.toFixed(1)+' / 5 ⭐ • '+feedback.ratings.length+' ratings':'No rating yet')+'<br>See public comments and rate One Call Solution.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openOcsFeedback()">Like / Rate OCS</button><button onclick="closeBottomHub(\'bottomProfileModal\');openOcsFeedback()">Comments</button></div></div>';
  const settingsCard='<div class="bottom-hub-card"><b>⚙️ Settings</b><small>Notifications, location, language, payment preference, privacy and support.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">Open Settings</button><button onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()">Help</button></div></div>';
  const shareCard='<div class="bottom-hub-card"><b>Share One Call Solution</b><small>Share OCS with family, friends, customers and Service Providers.</small><div class="bottom-hub-actions"><button class="main" onclick="shareOcsWhatsApp()">WhatsApp Share</button><button onclick="copyOcsLink()">Copy Link</button></div></div>';
- body.innerHTML=customerCard+providerCard+ocsCard+settingsCard+shareCard;
+ body.innerHTML=customerCard+providerCard+historyCard+ocsCard+settingsCard+shareCard;
  document.getElementById('bottomProfileModal').classList.add('show');
+}
+
+const OCS_WORK_HISTORY_KEY='ocsWorkHistoryV1';
+let workHistoryRole='CUSTOMER';
+function readOcsWorkHistory(){
+ try{const a=JSON.parse(localStorage.getItem(OCS_WORK_HISTORY_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}
+}
+function closeWorkHistory(){document.getElementById('workHistoryModal').classList.remove('show')}
+function openWorkHistory(role){
+ closeAllBottomHubs();
+ setWorkHistoryRole(role||'CUSTOMER');
+ document.getElementById('workHistoryModal').classList.add('show');
+}
+function setWorkHistoryRole(role){
+ workHistoryRole=role==='PROVIDER'?'PROVIDER':'CUSTOMER';
+ const cb=document.getElementById('historyCustomerBtn'),pb=document.getElementById('historyProviderBtn');
+ if(cb)cb.classList.toggle('on',workHistoryRole==='CUSTOMER');
+ if(pb)pb.classList.toggle('on',workHistoryRole==='PROVIDER');
+ renderWorkHistory();
+}
+function workHistoryStatusLabel(s){
+ s=String(s||'').toUpperCase();
+ if(s==='DONE')return 'Completed';
+ if(s==='CANCELLED_SETTLED')return 'Work Not Completed / Settled';
+ if(s==='CANCELLED')return 'Cancelled';
+ return s||'Closed';
+}
+function renderWorkHistory(){
+ const body=document.getElementById('workHistoryBody');if(!body)return;
+ const rows=readOcsWorkHistory().slice().sort((a,b)=>Number(b.closedAt||0)-Number(a.closedAt||0));
+ if(!rows.length){body.innerHTML='<div class="bottom-hub-card"><b>No Work History Yet</b><small>Completed, cancelled aur Work Not Completed jobs yahan save honge.</small></div>';return}
+ body.innerHTML=rows.map(r=>{
+   const d=r.closedAt?new Date(r.closedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
+   const status=workHistoryStatusLabel(r.status);
+   if(workHistoryRole==='PROVIDER'){
+     return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customerName||'Customer')+'<br>Earning: ₹'+Number(r.providerEarning||0).toFixed(2)+' • OCS Commission: ₹'+Number(r.commission||0).toFixed(2)+'<br>Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
+   }
+   const paid=Number(r.status==='DONE'?r.amount:r.visitCharge||0);
+   return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Service Provider: '+ocsSavedText(r.provider||'Service Provider')+'<br>Amount: ₹'+paid.toFixed(2)+' • Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Your Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
+ }).join('');
 }
 
 const OCS_SETTINGS_KEY='ocsSettingsV1';
@@ -2320,7 +2368,7 @@ function openModule(n,role,serviceCat){
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20260924-settingsrating1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260924-workhistory1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -2340,7 +2388,7 @@ function openModule(n,role,serviceCat){
    frame.src='property.html?v=20260921-3';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260924-settingsrating1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260924-workhistory1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    frame.srcdoc=decode64(modulesB64[n]);
