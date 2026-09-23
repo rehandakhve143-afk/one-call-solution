@@ -75,7 +75,7 @@ const services={
 };
 const KEY="ocsHomeFlowCleanV1";
 const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","COMPLETION_CONFIRM","PAYMENT"]);
-function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,supportTickets:[],expertRequests:[]}}
+function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,supportTickets:[],expertRequests:[],actionPanel:""}}
 let S=fresh();
 try{
  const raw=localStorage.getItem(KEY);
@@ -171,6 +171,7 @@ function customerHTML(){
  if(S.status==="WORKING") return `<div class="notice"><b>Work In Progress</b><br>Service Provider: ${esc(S.provider)} • Amount ${money(S.total)}</div>
  ${S.extraQuote?`<div class="card"><h3>Extra Work Quote</h3><b>${esc(S.extraQuote.desc)}</b><div class="money">${money(S.extraQuote.amount)}</div><div class="row"><button class="btn ok" data-action="extra-quote-accept">Accept</button><button class="btn red" data-action="extra-quote-reject">Reject</button></div></div>`:""}
  ${S.extraRequest&&!S.extraQuote?`<div class="notice"><b>Extra Work Request Sent</b><br>Waiting for Service Provider quote.</div>`:""}
+ ${customerActionPanelHTML()}
  <div class="card"><h3>Customer Actions</h3>
  <button class="btn" data-action="customer-add-work">+ Add More Work</button>
  <button class="btn gray" data-action="reschedule">Work Pending / Reschedule</button>
@@ -186,6 +187,23 @@ function customerHTML(){
  if(S.status==="DONE") return `<div class="notice"><b>Booking Completed ✅</b><br>Customer + Service Provider flow complete.</div><button class="btn" data-action="new-booking">Book Another Service • Clear Old Booking</button>${logsHTML()}`;
  return `<div class="empty">Customer flow ready.</div>`;
 }
+
+function customerActionPanelHTML(){
+ if(!S.actionPanel)return "";
+ if(S.actionPanel==="RESCHEDULE")return `<div class="card"><h3>Work Pending / Reschedule</h3><label>Next Visit Date & Time *</label><input id="rescheduleAtInput" type="datetime-local"><div class="row"><button class="btn" data-action="submit-reschedule">Save Reschedule</button><button class="btn gray" data-action="close-action-panel">Cancel</button></div></div>`;
+ if(S.actionPanel==="CHANGE_PROVIDER")return `<div class="card"><h3>Change Service Provider</h3><label>Reason *</label><select id="changeProviderReason"><option value="">Select reason</option><option>Service Provider not suitable</option><option>Delay / not responding</option><option>Behaviour issue</option><option>Skill mismatch</option><option>Other</option></select><label>More details</label><textarea id="changeProviderDetails" placeholder="Optional details"></textarea><div class="row"><button class="btn" data-action="submit-change-provider">Send to OCS</button><button class="btn gray" data-action="close-action-panel">Cancel</button></div></div>`;
+ if(S.actionPanel==="WNC_CUSTOMER")return `<div class="card"><h3>Work Not Completed</h3><div class="notice">Start OTP sirf work start prove karta hai, completion nahi.</div><label>Reason *</label><textarea id="wncCustomerReason" placeholder="Why was the work not completed?"></textarea><div class="row"><button class="btn red" data-action="submit-wnc-customer">Submit</button><button class="btn gray" data-action="close-action-panel">Cancel</button></div></div>`;
+ if(S.actionPanel==="SUPPORT_CUSTOMER")return `<div class="card"><h3>OCS Customer Support</h3><label>Problem / Message *</label><textarea id="customerSupportMsg" placeholder="Problem clearly likhiye"></textarea><label style="display:flex;gap:8px;align-items:center;font-weight:700"><input id="customerSupportCb" type="checkbox" style="width:auto"> OCS callback chahiye</label><div class="row"><button class="btn" data-action="submit-customer-support">Create Ticket</button><button class="btn gray" data-action="close-action-panel">Cancel</button></div></div>`;
+ return "";
+}
+function providerActionPanelHTML(){
+ if(!S.actionPanel)return "";
+ if(S.actionPanel==="RESCHEDULE")return `<div class="card"><h3>Work Pending / Reschedule</h3><label>Next Visit Date & Time *</label><input id="rescheduleAtInput" type="datetime-local"><div class="row"><button class="btn" data-action="submit-reschedule">Save Reschedule</button><button class="btn gray" data-action="close-action-panel">Cancel</button></div></div>`;
+ if(S.actionPanel==="WNC_PROVIDER")return `<div class="card"><h3>Work Not Completed</h3><label>Reason *</label><textarea id="wncProviderReason" placeholder="Why could the work not be completed?"></textarea><div class="row"><button class="btn red" data-action="submit-wnc-provider">Submit</button><button class="btn gray" data-action="close-action-panel">Cancel</button></div></div>`;
+ if(S.actionPanel==="ASK_EXPERT")return `<div class="card"><h3>Ask to Expert</h3><label>Your Question *</label><textarea id="expertQuestion" placeholder="Rate / technical issue / work detail"></textarea><div class="row"><button class="btn" data-action="submit-expert">Send to OCS Expert</button><button class="btn gray" data-action="close-action-panel">Cancel</button></div></div>`;
+ if(S.actionPanel==="SUPPORT_PROVIDER")return `<div class="card"><h3>Service Provider Support</h3><label>Problem / Message *</label><textarea id="providerSupportMsg" placeholder="Problem clearly likhiye"></textarea><label style="display:flex;gap:8px;align-items:center;font-weight:700"><input id="providerSupportCb" type="checkbox" style="width:auto"> OCS callback chahiye</label><div class="row"><button class="btn" data-action="submit-provider-support">Create Ticket</button><button class="btn gray" data-action="close-action-panel">Cancel</button></div></div>`;
+ return "";
+}
 function providerHTML(){
  if(S.status==="QUOTE_WAIT") return `<div class="card"><h3>Get Quote Request</h3><b>${esc(S.quoteRequest&&S.quoteRequest.service||S.category)}</b><p>${esc(S.quoteRequest&&S.quoteRequest.desc)}</p><button class="btn" data-action="send-quote">Send Quote</button></div>`;
  if(S.status==="INITIAL_QUOTE") return `<div class="notice">Quote sent. Customer response ka wait hai.</div>`;
@@ -197,8 +215,9 @@ function providerHTML(){
  if(S.status==="ON_WAY") return `<div class="card"><h3>On the Way</h3><button class="btn" data-action="reached">GPS Reached</button></div>`;
  if(S.status==="REACHED") return `<div class="card"><h3>Start Work OTP</h3><label>Customer OTP</label><input id="otpIn" inputmode="numeric" maxlength="4" placeholder="4 digit OTP"><button class="btn" data-action="verify-otp">Verify OTP & Start Work</button></div>`;
  if(S.status==="WORKING") return `<div class="card"><h3>Work In Progress</h3><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div>
- ${S.extraRequest&&!S.extraQuote?`<div class="notice"><b>Customer Add Work Request</b><br>${esc(S.extraRequest.desc)}</div><button class="btn" data-action="send-extra-quote">Send Extra Work Quote</button>`:""}
+ ${S.extraRequest&&!S.extraQuote?`<div class="card"><h3>Customer Add Work Request</h3><div class="notice">${esc(S.extraRequest.desc)}</div><label>Quote Amount ₹ *</label><input id="extraQuoteAmt" type="number" min="1" inputmode="numeric" placeholder="Enter amount"><button class="btn" data-action="send-extra-quote-form">Send Extra Work Quote</button></div>`:""}
  ${S.extraQuote?`<div class="notice"><b>Extra Quote Sent:</b> ${money(S.extraQuote.amount)} • Waiting for Customer response.</div>`:""}
+ ${providerActionPanelHTML()}
  <button class="btn ok" data-action="mark-complete">Mark Work Completed</button>
  <button class="btn gray" data-action="reschedule">Work Pending / Reschedule</button>
  <button class="btn red" data-action="work-not-completed-provider">Work Not Completed</button>
@@ -221,7 +240,7 @@ document.addEventListener("click",e=>{
  const tab=e.target.closest("[data-tab]");if(tab){setTab(tab.dataset.tab);return}
  const b=e.target.closest("[data-action]");if(!b)return;
  const a=b.dataset.action;
- if(a==="home"){location.href="index.html?v=20260923-clean1";return}
+ if(a==="home"){location.href="index.html?v=20260923-clean4";return}
  if(a==="category"){S.category=b.dataset.cat;S.cart=[];S.status="SELECT_ITEM";save();render();return}
  if(a==="categories"){S.category="";S.cart=[];S.status="SELECT_SERVICE";save();render();return}
  if(a==="add"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.cart.push({i,name:it.name,price:Number(it.price||0),qty:1});save();render();return}
@@ -244,9 +263,10 @@ document.addEventListener("click",e=>{
  if(a==="mark-complete"){if(S.extraQuote){alert("Extra Work quote par Customer decision pending hai.");return}S.status="COMPLETION_CONFIRM";hist("Service Provider marked work complete");render();return}
  if(a==="confirm-complete"){S.status="PAYMENT";hist("Customer confirmed work completed");render();return}
  if(a==="not-complete"){S.status="WORKING";hist("Customer did not confirm completion");render();return}
- if(a==="reschedule"){const when=prompt("Next visit date/time");if(!when)return;S.rescheduleAt=when;S.status="RESCHEDULED";hist("Work Pending / Reschedule • "+when+" • Visit charge ₹0 now");render();return}
+ if(a==="reschedule"){S.actionPanel="RESCHEDULE";save();render();return}
+ if(a==="submit-reschedule"){const when=(document.getElementById("rescheduleAtInput")?.value||"").trim();if(!when)return;S.rescheduleAt=when;S.actionPanel="";S.status="RESCHEDULED";hist("Work Pending / Reschedule • "+when+" • Visit charge ₹0 now");render();return}
  if(a==="resume-visit"){S.startOtp="";S.status="ON_WAY";hist("Rescheduled visit resumed • fresh GPS Reached + Start OTP required");render();return}
- if(a==="customer-add-work"){S.addWorkMode="RATE";S.addWorkCart=[];S.addWorkQuoteItem=null;save();render();return}
+ if(a==="customer-add-work"){S.actionPanel="";S.addWorkMode="RATE";S.addWorkCart=[];S.addWorkQuoteItem=null;save();render();return}
  if(a==="add-work-cancel"){S.addWorkMode=false;S.addWorkCart=[];S.addWorkQuoteItem=null;save();render();return}
  if(a==="add-work-add"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.addWorkCart=S.addWorkCart||[];if(!S.addWorkCart.some(x=>x.i===i))S.addWorkCart.push({i,name:it.name,price:Number(it.price||0),qty:1});save();render();return}
  if(a==="add-work-qty"){const i=Number(b.dataset.i),x=(S.addWorkCart||[]).find(v=>v.i===i);if(!x)return;x.qty=Math.max(0,Number(x.qty||1)+Number(b.dataset.d||0));if(x.qty===0)S.addWorkCart=S.addWorkCart.filter(v=>v.i!==i);save();render();return}
@@ -254,15 +274,23 @@ document.addEventListener("click",e=>{
  if(a==="add-work-quote"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.addWorkQuoteItem={i,name:it.name};S.addWorkMode="QUOTE";save();render();return}
  if(a==="add-work-rate-back"){S.addWorkMode="RATE";S.addWorkQuoteItem=null;save();render();return}
  if(a==="send-add-work-quote-request"){const d=(document.getElementById("addWorkQuoteDesc")?.value||"").trim();if(!d){alert("Work details likhiye.");return}S.extraRequest={desc:(S.addWorkQuoteItem?.name?S.addWorkQuoteItem.name+" • ":"")+d};S.extraQuote=null;S.addWorkMode=false;S.addWorkQuoteItem=null;hist("Customer sent Add Work Get Quote request");render();return}
- if(a==="send-extra-quote"){const amt=Number(prompt("Extra work quote ₹"));if(!amt||amt<=0)return;S.extraQuote={desc:S.extraRequest&&S.extraRequest.desc||"Extra Work",amount:amt};hist("Service Provider sent extra work quote ₹"+amt);render();return}
+ if(a==="send-extra-quote-form"){const amt=Number(document.getElementById("extraQuoteAmt")?.value||0);if(!amt||amt<=0)return;S.extraQuote={desc:S.extraRequest&&S.extraRequest.desc||"Extra Work",amount:amt};hist("Service Provider sent extra work quote ₹"+amt);render();return}
  if(a==="extra-quote-accept"){S.total+=Number(S.extraQuote.amount||0);S.service=S.service+", Extra Work: "+S.extraQuote.desc;hist("Customer accepted extra work quote ₹"+S.extraQuote.amount);S.extraRequest=null;S.extraQuote=null;S.addWorkMode=false;render();return}
  if(a==="extra-quote-reject"){hist("Customer rejected extra work quote");S.extraRequest=null;S.extraQuote=null;S.addWorkMode=false;render();return}
- if(a==="change-provider"){const reason=prompt("Service Provider change reason");if(!reason)return;S.providerChangeReason=reason;S.status="PROVIDER_CHANGE_HOLD";hist("Customer requested Service Provider change • booking HOLD");render();return}
- if(a==="work-not-completed-customer"){const reason=prompt("Work Not Completed reason");if(!reason)return;S.wncBy="CUSTOMER";S.wncReason=reason;S.status="WNC_REVIEW";hist("Customer marked Work Not Completed • "+reason);render();return}
- if(a==="work-not-completed-provider"){const reason=prompt("Work Not Completed reason");if(!reason)return;S.wncBy="PROVIDER";S.wncReason=reason;S.status="WNC_REVIEW";hist("Service Provider marked Work Not Completed • "+reason);render();return}
+ if(a==="change-provider"){S.actionPanel="CHANGE_PROVIDER";save();render();return}
+ if(a==="submit-change-provider"){const r=(document.getElementById("changeProviderReason")?.value||"").trim();const d=(document.getElementById("changeProviderDetails")?.value||"").trim();if(!r)return;S.providerChangeReason=r+(d?" • "+d:"");S.actionPanel="";S.status="PROVIDER_CHANGE_HOLD";hist("Customer requested Service Provider change • booking HOLD");render();return}
+ if(a==="work-not-completed-customer"){S.actionPanel="WNC_CUSTOMER";save();render();return}
+ if(a==="submit-wnc-customer"){const reason=(document.getElementById("wncCustomerReason")?.value||"").trim();if(!reason)return;S.wncBy="CUSTOMER";S.wncReason=reason;S.actionPanel="";S.status="WNC_REVIEW";hist("Customer marked Work Not Completed • "+reason);render();return}
+ if(a==="work-not-completed-provider"){S.actionPanel="WNC_PROVIDER";save();render();return}
+ if(a==="submit-wnc-provider"){const reason=(document.getElementById("wncProviderReason")?.value||"").trim();if(!reason)return;S.wncBy="PROVIDER";S.wncReason=reason;S.actionPanel="";S.status="WNC_REVIEW";hist("Service Provider marked Work Not Completed • "+reason);render();return}
  if(a==="wnc-close"){S.visitCharge=Number(b.dataset.charge||0);S.status="DONE";hist("Work Not Completed closed • Visit charge "+money(S.visitCharge));render();return}
- if(a==="customer-support"||a==="provider-support"){const role=a==="customer-support"?"Customer":"Service Provider";const msg=prompt(role+" Support problem/message");if(!msg)return;const cb=confirm("OCS callback chahiye?");const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role,msg,callback:cb});hist(role+" support ticket "+ticket+" created"+(cb?" • Callback requested":""));alert("Ticket: "+ticket);render();return}
- if(a==="ask-expert"){const q=prompt("Expert ko kya puchna hai?");if(!q)return;S.expertRequests.push({q,at:Date.now()});hist("Ask to Expert request sent");alert("Ask to Expert request sent to OCS.");render();return}
+ if(a==="customer-support"){S.actionPanel="SUPPORT_CUSTOMER";save();render();return}
+ if(a==="provider-support"){S.actionPanel="SUPPORT_PROVIDER";save();render();return}
+ if(a==="submit-customer-support"){const msg=(document.getElementById("customerSupportMsg")?.value||"").trim();if(!msg)return;const cb=!!document.getElementById("customerSupportCb")?.checked;const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Customer",msg,callback:cb});S.actionPanel="";hist("Customer support ticket "+ticket+" created"+(cb?" • Callback requested":""));render();return}
+ if(a==="submit-provider-support"){const msg=(document.getElementById("providerSupportMsg")?.value||"").trim();if(!msg)return;const cb=!!document.getElementById("providerSupportCb")?.checked;const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Service Provider",msg,callback:cb});S.actionPanel="";hist("Service Provider support ticket "+ticket+" created"+(cb?" • Callback requested":""));render();return}
+ if(a==="ask-expert"){S.actionPanel="ASK_EXPERT";save();render();return}
+ if(a==="submit-expert"){const q=(document.getElementById("expertQuestion")?.value||"").trim();if(!q)return;S.expertRequests.push({q,at:Date.now()});S.actionPanel="";hist("Ask to Expert request sent");render();return}
+ if(a==="close-action-panel"){S.actionPanel="";save();render();return}
  if(a==="pay-done"){S.status="DONE";hist("Payment recorded • "+S.paymentChoice+" • "+money(S.total));render();return}
  if(a==="new-booking"){resetNew();return}
 });
