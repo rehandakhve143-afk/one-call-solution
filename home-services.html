@@ -1,0 +1,1757 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One Call Solution</title>
+<style>
+:root{--p:#0f766e;--red:#dc2626;--ok:#16a34a;--bg:#f5f7fb;--mut:#64748b;--line:#dbe2ea}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Arial;background:var(--bg);color:#0f172a}
+.app{max-width:760px;margin:auto;padding-bottom:30px}
+.top{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px 14px;z-index:3}
+.brand{font-weight:900}.brand span{color:var(--p)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+button{border:0;border-radius:12px;padding:12px;font-weight:800}
+.tabs button{background:#e2e8f0}.tabs button.active{background:var(--p);color:#fff}
+.screen{padding:14px}.hide{display:none}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+h2,h3{margin:0 0 10px}
+.muted{color:var(--mut);font-size:13px}
+.status{display:inline-block;padding:5px 9px;border-radius:999px;background:#ecfeff;color:#155e75;font-size:12px;font-weight:800}
+.btn{width:100%;background:var(--p);color:#fff;margin-top:8px}
+.alt{background:#334155}.red{background:var(--red)}.gray{background:#64748b}.ok{background:var(--ok)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.notice{padding:10px;border-radius:10px;background:#fff7ed;border-left:4px solid #f59e0b;margin:8px 0;font-size:13px}
+.good{background:#f0fdf4;border-left-color:#16a34a}
+.bad{background:#fef2f2;border-left-color:#dc2626}
+.money{font-size:24px;font-weight:900}
+.log{font-size:12px;max-height:180px;overflow:auto;background:#f8fafc;padding:10px;border-radius:10px}
+.qr{width:190px;height:190px;margin:12px auto;background:
+linear-gradient(90deg,#111 10px,transparent 10px) 0 0/20px 20px,
+linear-gradient(#111 10px,transparent 10px) 0 0/20px 20px;
+border:10px solid #fff;outline:2px solid #111}
+
+.service-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.service-btn{background:#fff;border:1px solid var(--line);color:#0f172a;text-align:left;min-height:62px}.service-btn b{display:block}.service-btn small{color:var(--mut)}.item-btn{width:100%;background:#fff;border:1px solid var(--line);color:#0f172a;text-align:left;margin:5px 0}.item-btn b{display:block}.item-btn small{color:var(--mut)}select,input,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;margin:5px 0 9px;background:#fff}.qtyrow{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:end}.backbtn{background:#e2e8f0;color:#0f172a;margin-bottom:10px}.schedule-grid{display:grid;grid-template-columns:1fr;gap:7px}.schedule-grid label{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px}.schedule-grid input{width:auto;margin-right:8px}
+
+/* Premium OCS mobile shell */
+body{background:#eaf1f1;color:#102b35}
+.app{max-width:480px;min-height:100vh;background:#f7faf9;box-shadow:0 0 60px #092f3818;padding-bottom:90px}
+.top{position:sticky;top:0;border:0;padding:16px 16px 13px;background:linear-gradient(135deg,#062f3e,#075d61 58%,#0a8f75);color:#fff;box-shadow:0 8px 25px #062f3e25}
+.brand{font-size:21px;letter-spacing:.2px}.brand span{color:#6ce0b8}.tagline{font-size:11px;opacity:.78;margin-top:2px}
+.tabs{margin-top:13px;padding:4px;background:#ffffff17;border:1px solid #ffffff20;border-radius:15px;gap:4px}.tabs button{background:transparent;color:#d7eeee;padding:10px}.tabs button.active{background:#fff;color:#08756d;box-shadow:0 4px 14px #001b2020}
+.screen{padding:16px}.card{border:1px solid #e3eceb;border-radius:22px;padding:16px;box-shadow:0 8px 25px #143b4010;margin-bottom:14px}
+h2{font-size:21px}h3{font-size:16px}.muted{color:#718185}.status{background:#e3f8f0;color:#08755f;padding:6px 10px}
+button{border-radius:14px;min-height:44px}.btn{background:linear-gradient(135deg,#087a70,#0aa47e);box-shadow:0 6px 16px #087a7020}.alt{background:#163d4a}.gray{background:#64777d}.red{background:#c83c3c}.ok{background:#16875d}
+.service-grid{grid-template-columns:repeat(2,1fr);gap:10px}.service-btn{border-radius:18px;min-height:78px;padding:13px;box-shadow:0 5px 15px #173d4210}.service-btn b{font-size:14px}.item-btn{border-radius:16px;padding:14px;margin:6px 0}.item-btn b{font-size:13px}.item-btn small{font-size:11px}
+input,select,textarea{border-radius:13px;border-color:#dce7e6;padding:13px}.notice{border-radius:14px}.money{color:#087a70}.log{border-radius:14px;background:#f2f7f6}
+#customer>.card:first-child,#provider>.card:first-child{border-top:4px solid #0a9879}
+@media(max-width:380px){.service-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+#selectionTray{position:fixed;left:12px;right:12px;bottom:82px;z-index:9999;background:#fff;border:1px solid #d9e7e5;border-radius:18px;box-shadow:0 12px 32px rgba(0,56,62,.24);padding:11px 12px}#selectionTray .trayrow{display:flex;align-items:center;gap:10px}#selectionTray .trayinfo{flex:1;min-width:0}#selectionTray .trayinfo b{display:block;font-size:15px}#selectionTray .trayinfo small{color:#667}#selectionTray .traybtn{border:0;border-radius:12px;padding:11px 14px;background:#008f78;color:#fff;font-weight:800}#selectionTray .traypanel{margin-top:10px;border-top:1px solid #e1ecea;padding-top:8px;max-height:42vh;overflow:auto}#selectionTray .selrow{display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid #edf2f2}#selectionTray .selname{flex:1;font-size:13px;line-height:1.25}#selectionTray .mini{border:1px solid #cad9d7;background:#fff;border-radius:9px;min-width:30px;height:32px;font-weight:800}#selectionTray .remove{border:0;background:#fff;color:#b42318;font-weight:900;font-size:19px}#selectionTray .continue{width:100%;margin-top:10px;border:0;border-radius:12px;padding:13px;background:#008f78;color:#fff;font-weight:800;font-size:16px}body.selection-active{padding-bottom:190px}
+.ocs-rating-box{margin-top:12px;padding:14px;border:1px solid #e4ebec;border-radius:14px;background:#fff}
+.ocs-rating-box h3{margin:0 0 4px}
+.ocs-rating-stars{display:flex;gap:6px;align-items:center;margin-top:8px}
+.ocs-rating-stars button{border:0!important;background:transparent!important;box-shadow:none!important;padding:1px!important;margin:0!important;width:auto!important;font-size:35px;line-height:1;color:#d4dadd;cursor:pointer}
+.ocs-rating-stars button.on{color:#f4b400}
+.ocs-summary-stars{color:#f4b400;font-weight:900;letter-spacing:1px}
+.ocs-rating-note{font-size:11px;color:#718087;margin-top:5px}
+</style>
+
+<style>
+.dashboard-secondary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.compact-action{border:1px solid #e0ebe9;border-radius:16px;padding:12px;background:#f8fbfa}
+.compact-action b{display:block;font-size:13px;margin-bottom:3px}.compact-action small{color:#718185}
+.compact-action button{width:100%;margin-top:8px;min-height:38px;padding:8px 10px}
+#addWorkSheet,#providerAddWorkSheet{position:fixed;inset:0;z-index:12000;background:#f4f8f7;overflow:auto}
+#addWorkSheet.hide,#providerAddWorkSheet.hide{display:none}
+.sheetTop{position:sticky;top:0;z-index:3;background:#fff;border-bottom:1px solid #dfe9e7;padding:13px 15px;display:flex;align-items:center;gap:10px}
+.sheetTop h3{margin:0;flex:1;font-size:18px}.sheetClose{border:0;background:#edf4f2;color:#173f48;width:40px;height:40px;border-radius:12px;font-size:20px}
+.sheetBody{padding:14px 14px 30px;max-width:560px;margin:auto}
+.sheetSendTop{position:sticky;top:66px;z-index:12040;background:#fff;border-bottom:1px solid #dfe9e7;padding:10px 14px;box-shadow:0 6px 16px #173d4212}
+.sheetSendTop .btn{margin:0;min-height:48px}.addwork-nav{display:grid;grid-template-columns:.72fr 1.28fr;gap:9px}.addwork-nav .btn{width:100%}.addwork-review{border:1px solid #dbe8e5;border-radius:16px;background:#fff;padding:12px;margin-bottom:10px}.addwork-review .rowline{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #edf2f1}.addwork-review .rowline:last-child{border-bottom:0}.addwork-review-total{font-size:18px;font-weight:900;color:#087a70;text-align:right;margin-top:8px}
+.dashboard-tools{display:flex;gap:8px;overflow:auto;padding:2px 0 3px}.dashboard-tools button{white-space:nowrap;min-height:38px;padding:8px 12px}
+.pending-mini{margin-top:9px;padding:10px 12px;border-radius:13px;background:#eef9f5;border:1px solid #d2ebe2;font-size:12px}
+@media(max-width:380px){.dashboard-secondary{grid-template-columns:1fr}}
+</style>
+
+<style>
+:root{
+ --premium-navy:#0d2f38;--premium-teal:#087d72;--premium-soft:#f4f8f7;
+ --premium-gold:#d9a441;--premium-line:#dfe9e7;
+}
+body{background:linear-gradient(180deg,#eef6f4 0,#f8faf9 38%,#f4f7f6 100%)!important}
+.app{max-width:560px!important}
+.top{background:linear-gradient(135deg,#0b3039,#075f5b 58%,#087d72)!important;
+ border-radius:0 0 28px 28px!important;padding:20px 16px 24px!important;
+ box-shadow:0 14px 34px #123b401f!important}
+.top h1{letter-spacing:-.6px!important;font-size:25px!important}
+.top .muted{color:#d7efeb!important}
+.card{border:1px solid rgba(219,232,229,.9)!important;border-radius:20px!important;
+ box-shadow:0 8px 24px rgba(20,58,61,.065)!important;margin:12px!important;padding:15px!important}
+.card h3{color:#143c45!important;letter-spacing:-.2px}
+.btn{border-radius:13px!important;min-height:45px!important;font-weight:750!important;
+ box-shadow:0 5px 13px rgba(5,109,99,.10)}
+.btn.alt,.btn.gray{box-shadow:none}
+.service{border-radius:16px!important;border:1px solid #e2ece9!important;background:#fff!important;
+ margin:8px 0!important;padding:13px!important}
+.mini{border-radius:10px!important}
+.status{border-radius:999px!important;font-weight:700!important}
+.dashboard-secondary{gap:10px!important}
+.compact-action{background:linear-gradient(145deg,#fff,#f5faf8)!important;border:1px solid #deebe7!important;
+ border-radius:18px!important;padding:14px!important;box-shadow:0 6px 18px #173d420d}
+.compact-action b{font-size:14px!important;color:#123b44}
+.pending-mini{border-radius:14px!important}
+details.card summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary:after{content:"›";font-size:24px;color:#66817f;transform:rotate(90deg)}
+details.card[open] summary:after{transform:rotate(-90deg)}
+#addWorkSheet,#providerAddWorkSheet{background:linear-gradient(180deg,#edf6f4,#f8faf9)!important}
+.sheetTop{padding:14px 16px!important;box-shadow:0 6px 18px #173d420d!important}
+.sheetTop h3{color:#113b44!important}
+.sheetClose{background:#e8f3f0!important}
+.sheetFooter{padding-bottom:max(12px,env(safe-area-inset-bottom))!important}
+.premiumHero{margin:-10px 12px 12px;padding:16px;border-radius:20px;
+ background:linear-gradient(135deg,#123b45,#075f5b);color:#fff;box-shadow:0 12px 26px #123b4526}
+.premiumHero .eyebrow{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#bce5df;font-weight:800}
+.premiumHero .title{font-size:20px;font-weight:850;margin:5px 0}
+.premiumHero .sub{font-size:12px;color:#d6eeea;line-height:1.45}
+.premiumHero .livePill{display:inline-flex;align-items:center;gap:6px;margin-top:11px;background:#ffffff16;
+ border:1px solid #ffffff2b;padding:7px 10px;border-radius:999px;font-size:11px;font-weight:750}
+.premiumHero .dot{width:7px;height:7px;border-radius:50%;background:#9ce5a6;box-shadow:0 0 0 4px #9ce5a61f}
+#customerScreen .card:first-of-type,#providerScreen .card:first-of-type{margin-top:12px}
+@media(max-width:390px){.top h1{font-size:23px!important}.premiumHero .title{font-size:18px}}
+</style>
+<style>
+.ocs-route{margin:12px 0;padding:14px;border:1px solid #dbe9e5;border-radius:18px;background:linear-gradient(145deg,#fff,#f3faf8);box-shadow:0 8px 22px rgba(17,65,70,.06)}
+.ocs-route-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.ocs-route-head b{color:#173f46}.ocs-pill{font-size:10px;font-weight:800;padding:5px 8px;border-radius:999px;background:#e2f6ef;color:#08735f}
+.ocs-address{padding:11px;border:1px solid #e2ece9;border-radius:13px;background:#fff;line-height:1.45;color:#294d53;font-size:13px}.ocs-address small{display:block;color:#7a9296;font-size:10px;font-weight:800;text-transform:uppercase;margin-bottom:4px}
+.ocs-route-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.ocs-route-grid .btn{margin:0}.ocs-live{margin-top:9px;padding:10px 11px;border-radius:13px;background:#eef8f5;color:#456269;font-size:12px;border:1px solid #d9ebe6}
+.rs-overlay{position:fixed;inset:0;z-index:9999;background:rgba(7,34,40,.48);backdrop-filter:blur(7px);display:flex;align-items:flex-start;justify-content:center;padding:110px 12px 20px;box-sizing:border-box;overflow:auto}.rs-sheet{width:100%;max-width:560px;background:#f8fbfa;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(3,35,42,.28);padding-bottom:12px}.rs-head{padding:18px;background:linear-gradient(135deg,#103b45,#08786e);color:#fff;display:flex;align-items:center;justify-content:space-between}.rs-head b{font-size:18px}.rs-head small{display:block;color:#d4eeea;margin-top:3px}.rs-x{width:38px;height:38px;min-height:38px;border:0;border-radius:12px;background:#ffffff18;color:#fff;font-size:21px}.rs-body{padding:16px}.rs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rs-field{margin-bottom:12px}.rs-field label{display:block;font-size:11px;font-weight:800;color:#456168;margin:0 0 6px 2px}.rs-in{width:100%;box-sizing:border-box;padding:13px;border:1px solid #dbe8e5;border-radius:14px;background:#fff;font-size:14px}.rs-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.rs-slot{min-height:40px;border:1px solid #dbe8e5;border-radius:12px;background:#fff;color:#36575d;font-size:11px;font-weight:800;padding:7px}.rs-slot.on{background:#e2f6ef;color:#08735f;border-color:#86cdb9}.rs-note{padding:11px;border:1px solid #d9ebe6;border-radius:13px;background:#eef8f5;color:#456269;font-size:12px;line-height:1.45;margin-bottom:12px}.rs-actions{display:grid;grid-template-columns:.8fr 1.3fr;gap:8px}.rs-actions .btn{margin:0}@media(max-width:380px){.rs-grid{grid-template-columns:1fr}}
+</style>
+
+<style id="ocsSampleHomeServicesLock">
+body.customer-locked-ui{background:#fff!important;color:#152527!important}
+body.customer-locked-ui .top{display:none!important}
+body.customer-locked-ui .app{max-width:430px!important;padding-bottom:90px!important;background:#fff!important}
+body.customer-locked-ui #customer.screen{padding:0!important}
+body.customer-locked-ui #customer>.card{border:0!important;border-radius:0!important;box-shadow:none!important;margin:0!important;padding:0!important;background:#fff!important}
+body.customer-locked-ui #customer>.card>h2,
+body.customer-locked-ui #customer>.card>.muted,
+body.customer-locked-ui #customer>.card>.notice,
+body.customer-locked-ui #customer>.card>.customer-debug-status,
+body.customer-locked-ui #customer>details.card{display:none!important}
+.ocs-hs-page{background:#fff;min-height:100vh;padding-bottom:96px}
+.ocs-hs-head{height:58px;display:flex;align-items:center;gap:11px;padding:0 15px;border-bottom:1px solid #e7eceb;position:sticky;top:0;background:#fff;z-index:10}
+.ocs-hs-back{width:36px;height:36px;border:0;background:#fff;padding:0;display:grid;place-items:center;color:#263b3d}
+.ocs-hs-head h2{font-size:17px;margin:0;letter-spacing:-.2px}.ocs-hs-head small{font-size:9.5px;color:#788587}
+.ocs-hs-body{padding:12px 15px 26px}
+.ocs-hs-hero{height:126px;border-radius:16px;position:relative;overflow:hidden;background:#0a7568;margin-bottom:12px}
+.ocs-hs-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}.ocs-hs-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,73,67,.94),rgba(5,73,67,.55),rgba(5,73,67,.12))}
+.ocs-hs-hero div{position:relative;z-index:2;color:#fff;padding:19px 17px;width:70%}.ocs-hs-hero b{display:block;font-size:20px;line-height:1.05}.ocs-hs-hero span{display:block;margin-top:6px;font-size:9.5px;color:#dcefed}
+.ocs-hs-search{height:43px;border:1px solid #e6ecea;border-radius:12px;background:#f6f8f7;display:flex;align-items:center;gap:8px;padding:0 11px;margin-bottom:10px}.ocs-hs-search input{width:100%;border:0!important;outline:0!important;background:transparent!important;padding:0!important;font-size:12px!important}
+.ocs-hs-cat-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;border-top:0}.ocs-hs-cat{width:100%;min-height:106px;border:1px solid #e7eeec;border-radius:14px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:12px 8px;text-align:center;box-shadow:0 3px 10px rgba(21,70,67,.05)}
+.ocs-hs-cat .ico{width:34px;height:34px;border-radius:10px;background:#eff7f5;color:#08786e;display:grid;place-items:center;flex:0 0 34px}.ocs-hs-cat .ico svg{width:19px;height:19px}.ocs-hs-cat .copy{width:100%;min-width:0}.ocs-hs-cat b{display:block;font-size:12px;line-height:1.2}.ocs-hs-cat small{display:block;margin-top:3px;font-size:8.8px;color:#7a8789}.ocs-hs-cat .arr{display:none}
+.ocs-svc-banner{height:138px;border-radius:16px;overflow:hidden;position:relative;background:#0b6f66;margin-bottom:11px}.ocs-svc-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.58}.ocs-svc-banner:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,68,62,.96),rgba(4,68,62,.56),rgba(4,68,62,.08))}.ocs-svc-banner div{position:relative;z-index:2;color:#fff;padding:20px 16px;width:68%}.ocs-svc-banner b{font-size:19px;line-height:1.05}.ocs-svc-banner span{display:block;margin-top:6px;font-size:9.5px;color:#e0f0ed}
+.ocs-svc-note{font-size:9.5px;color:#7c8889;line-height:1.35;margin:0 0 7px}
+.ocs-svc-list{border-top:1px solid #edf1f0}
+.ocs-svc-row{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid #edf1f0;background:#fff}
+.ocs-svc-thumb{width:50px;height:50px;border-radius:12px;background:#f2f6f5;color:#0a7568;display:grid;place-items:center;flex:0 0 50px}
+.ocs-svc-copy{flex:1;min-width:0}.ocs-svc-copy b{display:block;font-size:12.5px;line-height:1.25}.ocs-svc-copy span{display:block;margin-top:4px;font-size:12px;font-weight:850;color:#253b3d}.ocs-svc-copy small{display:block;margin-top:2px;font-size:8.8px;color:#889294}
+.ocs-svc-add{height:34px;min-width:68px;padding:0 10px;border:1px solid #0b8b7d;border-radius:9px;background:#0b8b7d;color:#fff;font-size:10.5px;font-weight:900}
+.ocs-svc-add.quote{background:#fff;color:#08786e;min-width:78px}
+.ocs-svc-step{height:34px;border:1px solid #dce6e4;border-radius:9px;display:flex;align-items:center;overflow:hidden;background:#fff}.ocs-svc-step button{width:30px;height:32px;border:0;background:#f4f7f6;color:#1d4b49;font-size:17px;font-weight:900}.ocs-svc-step b{width:25px;text-align:center;font-size:11px}
+.ocs-other-request{width:100%;margin-top:13px;border:1px solid #e2e9e7;border-radius:11px;background:#fff;color:#365052;padding:11px 12px;text-align:left;font-size:10.5px;font-weight:800}
+#selectionTray{left:12px!important;right:12px!important;bottom:12px!important;width:auto!important;padding:10px 11px!important;border:0!important;border-radius:14px!important;background:#123f49!important;color:#fff!important;box-shadow:0 10px 26px rgba(10,48,52,.26)!important}
+#selectionTray .trayrow{display:flex!important;align-items:center!important;gap:9px!important}
+#selectionTray .trayinfo{flex:1!important}#selectionTray .trayinfo b{font-size:11.5px!important;color:#fff!important}#selectionTray .trayinfo small{font-size:8.5px!important;color:#c8dcda!important}
+#selectionTray .traybtn{width:auto!important;min-height:36px!important;margin:0!important;padding:0 12px!important;border-radius:9px!important;background:#0ba59a!important;color:#fff!important;font-size:10px!important}
+#selectionTray .traypanel{margin-top:9px!important;max-height:34vh!important;overflow:auto!important;background:#fff!important;color:#193134!important;border-radius:11px!important;padding:8px!important}
+#selectionTray .continue{min-height:39px!important;border-radius:9px!important;background:#08786e!important;font-size:11px!important}
+</style></head>
+<body>
+
+
+<div class="app">
+<div class="top">
+<div class="brand">ONE CALL <span>SOLUTION</span></div>
+<div class="tagline">One for All and All for One</div>
+<div class="tabs">
+<button id="ctab" class="active" onclick="showTab('customer')">Customer</button>
+<button id="ptab" onclick="showTab('provider')">Service Provider</button>
+
+</div>
+</div>
+
+<section id="customer" class="screen">
+<div class="card">
+<h2>Home Services</h2>
+<div class="muted" style="margin-bottom:8px">Book trusted Service Providers with clear rates and support.</div>
+<div class="notice good" style="margin-bottom:10px"><b>Pay Online. Keep Your Service & Payment History Safe.</b></div><span class="customer-debug-status">Status: <span class="status" id="cStatus">READY</span></span>
+<div id="cBody"></div>
+<div id="customerAddWorkMount"></div>
+</div>
+<details class="card"><summary><b>Booking Activity & History</b> <span class="muted">Tap to view</span></summary><div id="cLog" class="log" style="margin-top:10px"></div></details>
+</section>
+
+<section id="provider" class="screen hide">
+<div class="card">
+<h2>Service Provider</h2>
+<div class="row">
+<div><b id="providerName">SP1</b><div class="muted">Verified Service Provider</div><div class="muted" id="providerRatingLine">No ratings yet</div></div>
+<button class="btn gray" id="availabilityBtn" onclick="toggleAvailability()">Available: ON</button>
+</div>
+<div class="notice good" style="margin:10px 0"><b>Get Paid Online. Earn More. Win Rewards.</b></div>
+Status: <span class="status" id="pStatus">WAITING</span>
+<details class="card" style="margin-top:12px">
+  <summary><b>OCS Wallet & Job Queue</b> <span class="muted">Tap to view</span></summary><div style="margin-top:10px">
+  <div class="row"><span>Wallet Balance</span><b id="walletBalance">₹100.00</b></div>
+    <div class="row"><span>Current Job</span><b id="currentJob">None</b></div>
+  <div class="row"><span>Next Job</span><b id="nextJob">None</b></div>
+  <div id="walletWarning" class="notice hide"></div>
+  <div class="muted" style="margin:12px 0 8px"><b>OCS Wallet</b><br>Minimum wallet balance to receive new jobs is &#8377;200. Below &#8377;200, new jobs stop. Current/accepted job continues. Recharge to resume new jobs.</div><button class="btn alt" onclick="rechargeWallet()">Top Up Wallet</button>
+</div></details>
+<div id="pBody"></div>
+</div>
+<div id="providerCustomerExtraMount"></div>
+<div class="dashboard-tools"><button class="btn alt" onclick="openSupport('provider')">Support</button><button class="btn gray" onclick="askExpert()">Ask to Expert</button></div>
+<details class="card" style="margin-top:10px"><summary><b>Provider History</b> <span class="muted">Tap to view</span></summary><div id="pLog" class="log" style="margin-top:10px"></div></details>
+</section>
+
+<!-- Admin is internal only; no public tab. -->
+<section id="admin" class="screen hide">
+<div class="head"><div><h2>OCS Admin Control</h2><div class="muted">Admin Panel Active</div><div class="muted">Same live booking state • internal control</div></div><span class="status" id="aStatus">READY</span></div>
+<div class="card">
+<h3>Live Booking</h3>
+<div id="adminBooking"></div>
+</div>
+<div class="card">
+<h3>Provider Control</h3>
+<div id="adminProvider"></div>
+<button class="btn alt" onclick="adminToggleNewJobs()">Pause / Resume New Jobs</button>
+<div class="row" style="margin-top:8px">
+  <button class="btn gray" onclick="sendWalletReminder('SMS')">SMS Reminder</button>
+  <button class="btn gray" onclick="sendWalletReminder('EMAIL')">Email Reminder</button>
+  <button class="btn gray" onclick="sendWalletReminder('CALL')">Call Reminder</button>
+</div>
+</div>
+<div class="card">
+<h3>Visit / No-Work Review</h3>
+<div id="adminVisit"></div>
+<div class="row"><button class="btn gray" onclick="adminResolveVisitCharge(0)">₹0</button><button class="btn" onclick="adminResolveVisitCharge(199)">₹199</button><button class="btn" onclick="adminResolveVisitCharge(249)">₹249</button></div>
+</div>
+<div class="card">
+<h3>Provider Change / Reassign</h3>
+<div class="muted">Customer-requested provider change stays on HOLD. No automatic SP2.</div>
+<button class="btn" onclick="adminApproveReassign()">Admin Approve & Find Another Provider</button>
+</div>
+<div class="card">
+<h3>Support</h3>
+<div id="adminSupport"></div>
+<button class="btn gray" onclick="adminCloseSupport()">Close Support Ticket</button>
+</div>
+<div class="card">
+<h3>Internal Accounting</h3>
+<div class="muted">Platform charge setting is Admin-only.</div>
+<div><b>Platform Charge: 9%</b></div>
+<div id="adminAccounting" class="muted"></div>
+</div>
+<div class="card"><h3>Admin History</h3><div id="aLog" class="log"></div></div>
+</section>
+</div>
+
+
+<div id="addWorkSheet" class="hide">
+ <div class="sheetTop"><button class="sheetClose" onclick="customerCancelAddMoreWork()">←</button><h3>Add More Work</h3><span class="status" id="sheetCategory">Electrical</span></div>
+ <div class="sheetSendTop"><div class="addwork-nav"><button class="btn gray" id="customerAddBackBtn" onclick="customerAddBackNav()">← Back</button><button class="btn" id="sendExtraWorkBtn" onclick="customerAddForward()">Review →</button></div></div>
+ <div class="sheetBody"><div class="muted" style="margin-bottom:10px">Extra service select kare. Dashboard clean rahega; selection yahan hogi.</div><div id="addWorkSheetList"></div></div>
+</div>
+<div id="providerAddWorkSheet" class="hide">
+ <div class="sheetTop"><button class="sheetClose" onclick="providerCancelAddWork()">←</button><h3>Add Work / Rate Card</h3><span class="status" id="providerSheetCategory">Electrical</span></div>
+ <div class="sheetSendTop"><div class="addwork-nav"><button class="btn gray" id="providerAddBackBtn" onclick="providerAddBackNav()">← Back</button><button class="btn" id="providerSendAddWorkBtn" onclick="providerAddForward()">Review →</button></div></div>
+ <div class="sheetBody">
+   <div class="notice good"><b>Approved OCS Rate Card</b><br>Listed service ka rate manually yaad rakhne ki zarurat nahi. Service select karein aur quantity set karein.</div>
+   <div class="row" style="margin-bottom:12px"><button class="btn gray" onclick="askExpert()">Ask to Expert</button><button class="btn alt" onclick="providerCustomAddWork()">Any Other / Custom Work</button></div>
+   <div id="providerAddWorkSheetList"></div>
+ </div>
+</div>
+<script>
+const S={
+status:"SELECT_SERVICE",provider:"SP1",available:true,base:0,total:0,
+service:"",category:"",serviceType:"fixed",quantity:1,address:"Customer Address",
+startOtp:null,quote:null,quoteDecision:null,reschedule:null,rescheduleBy:null,
+cancelReason:null,cancelBy:null,visitCharge:0,distanceSlab:null,
+payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",supportTickets:[],logs:[],
+wallet:100,welcomeBonus:100,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:8,flowVersion:8,
+providerRatings:[],customerRating:null,pendingRatingStars:0,pendingRatingComment:"",customerRatingComment:"",
+currentJob:null,nextJob:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null
+};
+
+const OCS_HOME_STATE_KEY="ocsHomeServiceFullState";
+function loadSavedHomeState(){
+ try{
+   let raw="";
+   try{raw=window.parent&&window.parent.localStorage?window.parent.localStorage.getItem(OCS_HOME_STATE_KEY):""}catch(e){}
+   if(!raw)try{raw=localStorage.getItem(OCS_HOME_STATE_KEY)||""}catch(e){}
+   if(!raw)return;
+   const saved=JSON.parse(raw);
+   if(saved&&typeof saved==="object"&&saved.status){
+     if(Number(saved.rulesVersion||0)<8){
+       S.provider=saved.provider||"SP1";
+       S.available=saved.available!==false;
+       S.wallet=Number.isFinite(Number(saved.wallet))?Number(saved.wallet):100;
+       S.adminPaused=!!saved.adminPaused;
+       S.jobAccess=!S.adminPaused;
+       S.providerRatings=Array.isArray(saved.providerRatings)?saved.providerRatings:[];
+       S.supportTickets=Array.isArray(saved.supportTickets)?saved.supportTickets:[];
+       S.rulesVersion=8;
+       S.flowVersion=8;
+       try{localStorage.removeItem(OCS_HOME_STATE_KEY)}catch(e){}
+       try{if(window.parent&&window.parent.localStorage){window.parent.localStorage.removeItem(OCS_HOME_STATE_KEY);window.parent.localStorage.removeItem("ocsCurrentBooking")}}catch(e){}
+       return;
+     }
+     Object.assign(S,saved);
+     S.walletWarningLevel=200;
+     delete S.walletMinimum;
+     S.platformCharge=9;
+     S.welcomeBonus=100;
+     S.providerRatings=Array.isArray(S.providerRatings)?S.providerRatings:[];
+     S.customerRating=S.customerRating||null;
+     S.pendingRatingStars=Number(S.pendingRatingStars||0);
+     S.pendingRatingComment=S.pendingRatingComment||"";
+     S.customerRatingComment=S.customerRatingComment||"";
+     S.rulesVersion=8;
+     S.flowVersion=8;
+     S.adminPaused=!!saved.adminPaused;
+     S.jobAccess=!S.adminPaused;
+   }
+ }catch(e){console.error("OCS booking restore failed",e)}
+}
+function saveHomeState(){
+ try{
+   const raw=JSON.stringify(S);
+   try{localStorage.setItem(OCS_HOME_STATE_KEY,raw)}catch(e){}
+   try{if(window.parent&&window.parent.localStorage)window.parent.localStorage.setItem(OCS_HOME_STATE_KEY,raw)}catch(e){}
+ }catch(e){console.error("OCS booking save failed",e)}
+}
+loadSavedHomeState();
+
+const $=id=>document.getElementById(id);
+
+const services={
+ 'Electrical':{icon:'⚡',items:[{"name": "Fan Fitting / Capacitor Change", "type": "fixed", "price": 239, "display": "₹239", "fanBundle": false}, {"name": "Fan Hook / Anchor Fastener Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Fan + Anchor Fastener Fitting", "type": "fixed", "price": 450, "display": "₹450"}, {"name": "Regulator Fitting – Concealed", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Regulator Fitting – Normal", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Switch Change – 1 No.", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "1 Switch + 1 Socket Change", "type": "fixed", "price": 250, "display": "₹250"}, {"name": "Geyser Fitting – Normal", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Geyser + Angle Cock", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "15/16 Amp Board Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Inverter Wiring – 1 BHK Casing/Patti", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "Inverter Wiring – 1 BHK Concealed", "type": "fixed", "price": 700, "display": "₹700"}, {"name": "Normal Inverter Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Inverter + Overhead Battery Load", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "MCB Single/Double Pole Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Tube/LED Light Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Holder Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Electric Board Change", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Bulb Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Building Street Light – 1", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "Earthing Maintenance / Check", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "New Earthing Installation Wiring – 1 BHK", "type": "fixed", "price": 700, "display": "₹700"}, {"name": "Visit / Inspection – Work Checking", "type": "fixed", "price": 249, "display": "₹249"}, {"name": "Exhaust Fan Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Wall Fan Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "BLDC/Smart Fan Installation", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Decorative Fan Installation", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "New Switch Box Installation", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Switchboard Repair", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Plug Top Replacement/Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Doorbell Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Smart/Wi-Fi Switch Installation", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Submeter Installation", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Stabiliser Installation", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "External Wiring with Casing/Patti – per 5m", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Internal/Concealed Wiring – per 5m", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "New Normal Power Point Wiring", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "AC Dedicated Power Point Wiring", "type": "fixed", "price": 800, "display": "₹800"}, {"name": "MCB Tripping / Electrical Fault Diagnosis", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Short Circuit / Fault Finding", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Main Distribution Board Work", "type": "quote", "display": "Get Quote"}, {"name": "Full House Rewiring", "type": "quote", "display": "Get Quote"}, {"name": "New Complete Earthing", "type": "quote", "display": "Get Quote"}, {"name": "Chandelier / Heavy Decorative Light", "type": "quote", "price": 800, "display": "Get Quote / starts ₹800"}, {"name": "Any Other Electrical Work", "type": "quote", "display": "Get Quote"}]},
+ 'Plumbing':{icon:'🚰',items:[{"name":"Tap / Faucet Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Tap Washer / Minor Leakage Repair","type":"fixed","price":239,"display":"₹239"},{"name":"Mixer Tap Installation","type":"fixed","price":400,"display":"₹400"},{"name":"Basin / Sink Mixer Installation","type":"fixed","price":400,"display":"₹400"},{"name":"Basin Waste / Connection Pipe Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Kitchen Sink Blockage Removal","type":"fixed","price":350,"display":"₹350"},{"name":"Wash Basin Blockage Removal","type":"fixed","price":300,"display":"₹300"},{"name":"Bathroom Floor Drain Blockage","type":"fixed","price":400,"display":"₹400"},{"name":"Drain Cover Installation / Replacement","type":"fixed","price":239,"display":"₹239"},{"name":"PVC / CPVC Open Pipe Leakage Repair","type":"fixed","price":400,"display":"₹400"},{"name":"Concealed Pipe Leakage Repair","type":"fixed","price":800,"display":"₹800+"},{"name":"Connection Hose / Flexible Pipe Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Flush Tank Internal Repair","type":"fixed","price":350,"display":"₹350"},{"name":"External Flush Tank Replacement","type":"fixed","price":450,"display":"₹450"},{"name":"Flush Tank / Commode Leakage Repair","type":"fixed","price":300,"display":"₹300"},{"name":"Jet Spray Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Toilet Seat Cover Fitting / Replacement","type":"fixed","price":239,"display":"₹239"},{"name":"Western Commode Installation","type":"fixed","price":1000,"display":"₹1,000"},{"name":"Indian Toilet Installation","type":"fixed","price":1000,"display":"₹1,000"},{"name":"Wall-Mounted Toilet Repair","type":"fixed","price":700,"display":"₹700"},{"name":"Toilet / Pot Blockage Removal","type":"quote","price":700,"display":"₹700–₹1,300"},{"name":"Overhead Shower Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Hand Shower Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Shower Repair","type":"fixed","price":239,"display":"₹239"},{"name":"Shower Mixer Installation","type":"fixed","price":400,"display":"₹400"},{"name":"Diverter Installation / Replacement","type":"fixed","price":600,"display":"₹600"},{"name":"Soap Holder Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Towel Rod / Holder Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Bathroom Shelf Fitting","type":"fixed","price":300,"display":"₹300"},{"name":"Wash Basin Installation","type":"fixed","price":500,"display":"₹500"},{"name":"Kitchen Sink Installation","type":"fixed","price":500,"display":"₹500"},{"name":"Waste Coupling Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Geyser Inlet / Outlet Connection","type":"fixed","price":350,"display":"₹350"},{"name":"Geyser Connection Leakage Repair","type":"fixed","price":250,"display":"₹250"},{"name":"Washing Machine Inlet / Outlet Connection","type":"fixed","price":300,"display":"₹300"},{"name":"RO Water Connection","type":"fixed","price":250,"display":"₹250"},{"name":"Shut-off Valve Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Water Tank Cleaning","type":"quote","price":1500,"display":"₹1,500 / Get Quote"},{"name":"New PVC / CPVC Pipeline Work","type":"quote","display":"Get Quote"},{"name":"Full Bathroom Plumbing / Fitting","type":"quote","display":"Get Quote"},{"name":"Full House Plumbing / Re-plumbing","type":"quote","display":"Get Quote"},{"name":"Concealed Leakage Detection","type":"quote","display":"Get Quote"},{"name":"High-Rise / External Hanging Pipe Work","type":"quote","display":"Get Quote"},{"name":"Emergency / Major Drain Blockage","type":"quote","display":"Get Quote"},{"name":"Any Other Plumbing Work","type":"quote","display":"Get Quote"},{"name":"Plumber Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+ 'AC Service':{icon:'❄️',items:[
+{"name":"Split AC General / Water Jet Service","type":"fixed","display":"₹499","price":499},
+{"name":"Window AC General / Water Jet Service","type":"fixed","display":"₹449","price":449},
+{"name":"AC Deep Foam + Power Jet Service","type":"fixed","display":"₹599","price":599},
+{"name":"Split AC Installation","type":"fixed","display":"₹1,499","price":1499},
+{"name":"Split AC Uninstallation","type":"fixed","display":"₹649","price":649},
+{"name":"Window AC Installation","type":"fixed","display":"₹599","price":599},
+{"name":"Window AC Uninstallation","type":"fixed","display":"₹449","price":449},
+{"name":"Cooling Problem / Gas Related Issue","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Gas Leakage Detection / Repair","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Water Leakage / Chokage","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Noise / Vibration Problem","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Copper Piping / Major Piping Work","type":"quote","display":"Discussion • Get Quote"},
+{"name":"PCB / Major Electronic Repair","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Major AC Repair","type":"quote","display":"Discussion • Get Quote"},
+{"name":"Any Other AC Work","type":"quote","display":"Discussion • Get Quote"}
+,{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Cleaning':{icon:'🧹',items:[{"name":"Full Home Deep Cleaning – 1 BHK","type":"fixed","display":"₹999","price":999},{"name":"Full Home Deep Cleaning – 2 BHK","type":"fixed","display":"₹1,499","price":1499},{"name":"Full Home Deep Cleaning – 3 BHK","type":"fixed","display":"₹1,999","price":1999},{"name":"Full Home Deep Cleaning – 4 BHK","type":"fixed","display":"₹2,499","price":2499},{"name":"Full Home Deep Cleaning – 5 BHK / Bungalow","type":"quote","display":"Get Quote"},{"name":"Kitchen Deep Cleaning – Labour Only","type":"fixed","display":"₹499","price":499},{"name":"Bathroom Deep Cleaning – 1 Bathroom","type":"fixed","display":"₹399","price":399},{"name":"Bathroom Deep Cleaning – 2 Bathrooms","type":"fixed","display":"₹699 total","price":699},{"name":"Bathroom Deep Cleaning – 3 Bathrooms","type":"fixed","display":"₹999 total","price":999},{"name":"Sofa / Mattress / Water Tank Cleaning","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+ 'Carpenter':{icon:'🪚',items:[{"name":"Door Repair / Alignment / Plane Fixing","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Hinge Fitting / Replacement","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Lock / Latch / Handle Work","type":"quote","display":"Discussion • Get Quote"},{"name":"New Door Installation","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Closer Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Wardrobe / Cupboard Hinge or Channel Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Bed Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Window Latch / Channel / Glass Beading","type":"quote","display":"Discussion • Get Quote"},{"name":"Small Prefabricated Furniture Assembly","type":"quote","display":"Discussion • Get Quote"},{"name":"Heavy / Large Furniture Assembly","type":"quote","display":"Discussion • Get Quote"},{"name":"Modular Kitchen Cabinet Adjustment / Hinge Fixing","type":"quote","display":"Discussion • Get Quote"},{"name":"Tower Bolt / Kadi / Konda","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Stopper","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Handle Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Door Lock Installation","type":"quote","display":"Discussion • Get Quote"},{"name":"Digital / Smart Lock Work","type":"quote","display":"Discussion • Get Quote"},{"name":"Cupboard Lock","type":"quote","display":"Discussion • Get Quote"},{"name":"Cupboard Hinge","type":"quote","display":"Discussion • Get Quote"},{"name":"Drawer Channel","type":"quote","display":"Discussion • Get Quote"},{"name":"Drawer Lock / Handle","type":"quote","display":"Discussion • Get Quote"},{"name":"Shelf Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Wall Cabinet Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"TV Wall Panel / Unit Minor Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Curtain Rod Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Blinds Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Mosquito Net Frame / Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Mirror Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Photo Frame / Clock / Wall Décor Fitting","type":"quote","display":"Discussion • Get Quote"},{"name":"Wooden Chair Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Table Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Sofa Wooden Frame Minor Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Bed Hydraulic / Storage Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Window Wooden Frame Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Wooden Door Frame Repair","type":"quote","display":"Discussion • Get Quote"},{"name":"Furniture Dismantling","type":"quote","display":"Discussion • Get Quote"},{"name":"Furniture Reassembly","type":"quote","display":"Discussion • Get Quote"},{"name":"Wood Polish","type":"quote","display":"Discussion • Get Quote"},{"name":"Wardrobe New Making","type":"quote","display":"Discussion • Get Quote"},{"name":"Modular Kitchen New Work","type":"quote","display":"Discussion • Get Quote"},{"name":"TV Unit / Bookshelf New Making","type":"quote","display":"Discussion • Get Quote"},{"name":"Custom Furniture","type":"quote","display":"Discussion • Get Quote"},{"name":"Any Other Carpenter Work","type":"quote","display":"Discussion • Get Quote"},{"name":"Carpenter Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+ 'Appliance Repair':{icon:'🔧',items:[{"name":"Washing Machine Repair / Service","type":"quote","display":"Get Quote"},{"name":"Refrigerator Repair / Service","type":"quote","display":"Get Quote"},{"name":"Chimney Repair / Service","type":"quote","display":"Get Quote"},{"name":"RO / Water Purifier Repair / Service","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+ 'Pest Control':{icon:'🐜',items:[{"name":"General Pest Control – 1 BHK","type":"fixed","display":"₹899","price":899},{"name":"General Pest Control – 2 BHK","type":"fixed","display":"₹1,299","price":1299},{"name":"General Pest Control – 3 BHK","type":"fixed","display":"₹1,699","price":1699},{"name":"General Pest Control – 4 BHK","type":"fixed","display":"₹2,199","price":2199},{"name":"Bungalow / Villa Pest Control","type":"quote","display":"Get Quote"},{"name":"Termite Treatment","type":"quote","display":"Get Quote"},{"name":"Bed Bug Treatment","type":"quote","display":"Get Quote"},{"name":"Cockroach Gel Treatment","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Maid Service':{icon:'🧼',items:[{"name":"Jhadu + Pocha","type":"fixed","display":"₹399","price":399},{"name":"Bhandi / Utensils","type":"fixed","display":"₹349","price":349},{"name":"Kapde Dhona / Laundry Help","type":"fixed","display":"₹399","price":399},{"name":"Dusting / Basic Cleaning","type":"fixed","display":"₹299","price":299},{"name":"Clothes Folding / Ironing Help","type":"fixed","display":"₹299","price":299},{"name":"Cooking – Per Visit","type":"quote","display":"Per Visit • Get Quote"},{"name":"4-Hour Half Day","type":"fixed","display":"₹699","price":699},{"name":"8-Hour Full Day","type":"fixed","display":"₹1,199","price":1199},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Painter':{icon:'🎨',items:[{"name":"Interior Basic Painting – Labour Only","type":"fixed","display":"₹8 / sq.ft.","price":8},{"name":"Interior Emulsion – Labour Only","type":"fixed","display":"₹10 / sq.ft.","price":10},{"name":"Premium / Luxury Painting – Labour Only","type":"fixed","display":"₹14 / sq.ft.","price":14},{"name":"Ceiling Painting – Labour Only","type":"fixed","display":"₹8 / sq.ft.","price":8},{"name":"Putty + Sanding – Labour Only","type":"fixed","display":"₹8 / sq.ft.","price":8},{"name":"Door / Window Enamel – Labour Only","type":"fixed","display":"₹100 / sq.ft.","price":100},{"name":"Grill / Gate Painting – Labour Only","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"Exterior / Texture / Damp Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'CCTV':{icon:'📹',items:[{"name":"Camera Installation","type":"fixed","display":"₹449 / No.","price":449},{"name":"Camera Uninstallation","type":"fixed","display":"₹239 / No.","price":239},{"name":"Camera Relocation","type":"fixed","display":"₹399 / No.","price":399},{"name":"Camera Cleaning + Angle Adjustment","type":"fixed","display":"₹239 / No.","price":239},{"name":"DVR / NVR Setup","type":"fixed","display":"₹699","price":699},{"name":"Hard Disk Fitting","type":"fixed","display":"₹299","price":299},{"name":"Mobile App / Remote Viewing Setup","type":"fixed","display":"₹399","price":399},{"name":"IP / Network Configuration","type":"fixed","display":"₹499","price":499},{"name":"Monitor Setup","type":"fixed","display":"₹299","price":299},{"name":"CCTV Wiring","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Gas Stove':{icon:'🔥',items:[{"name":"General Service","type":"fixed","display":"₹399","price":399},{"name":"Deep Cleaning","type":"fixed","display":"₹699","price":699},{"name":"Low Flame Repair","type":"fixed","display":"₹239","price":239},{"name":"Burner Cleaning","type":"fixed","display":"₹239","price":239},{"name":"Burner Fit / Replace – Labour","type":"fixed","display":"₹239","price":239},{"name":"Knob Repair","type":"fixed","display":"₹239","price":239},{"name":"Leakage Check","type":"fixed","display":"₹239","price":239},{"name":"Gas Pipe Fit / Replace – Labour","type":"fixed","display":"₹239","price":239},{"name":"Auto-Ignition Repair","type":"fixed","display":"₹239","price":239},{"name":"Major Gas Stove Repair","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Wi-Fi / TV Installation & Setup':{icon:'📶',items:[{"name":"TV Wall Mount – up to 43 inch","type":"fixed","display":"₹399","price":399},{"name":"TV Wall Mount – 44–55 inch","type":"fixed","display":"₹499","price":499},{"name":"TV Wall Mount – 56–65 inch","type":"fixed","display":"₹699","price":699},{"name":"TV Wall Mount – above 65 inch","type":"quote","display":"Get Quote"},{"name":"TV Uninstallation","type":"fixed","display":"₹239","price":239},{"name":"TV Height Adjustment","type":"fixed","display":"₹239","price":239},{"name":"Wi-Fi Router Setup","type":"fixed","display":"₹239","price":239},{"name":"Range Extender Setup","type":"fixed","display":"₹239","price":239},{"name":"Cable Management","type":"quote","display":"Get Quote"},{"name":"Other Wi-Fi / TV Setup Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Packers & Movers':{icon:'📦',items:[{"name":"Few Items / Small Shifting","type":"quote","display":"Get Quote"},{"name":"1 RK / Studio Local Shifting","type":"quote","display":"Get Quote"},{"name":"1 BHK Local Shifting","type":"quote","display":"Get Quote"},{"name":"2 BHK Local Shifting","type":"quote","display":"Get Quote"},{"name":"3 BHK Local Shifting","type":"quote","display":"Get Quote"},{"name":"4 BHK Local Shifting","type":"quote","display":"Get Quote"},{"name":"Only Packing","type":"quote","display":"Get Quote"},{"name":"Loading + Unloading","type":"quote","display":"Get Quote"},{"name":"Furniture Dismantling / Reassembly","type":"quote","display":"Get Quote"},{"name":"Intercity Shifting","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Tiles / Stone':{icon:'◻️',items:[{"name":"Ceramic Floor Tile Laying","type":"fixed","display":"₹40 / sq.ft.","price":40},{"name":"Vitrified Floor Tile Laying","type":"fixed","display":"₹45 / sq.ft.","price":45},{"name":"Bathroom Wall Tile Laying","type":"fixed","display":"₹50 / sq.ft.","price":50},{"name":"Kitchen Dado Tile Work","type":"fixed","display":"₹50 / sq.ft.","price":50},{"name":"Large Format Tile Laying","type":"fixed","display":"₹70 / sq.ft.","price":70},{"name":"Balcony / Outdoor Tile Laying","type":"fixed","display":"₹45 / sq.ft.","price":45},{"name":"Tile Skirting","type":"fixed","display":"₹20 / RFT","price":20},{"name":"Old Tile Removal","type":"fixed","display":"₹25 / sq.ft.","price":25},{"name":"Granite / Marble Floor Work","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"Granite Platform Slab – Labour","type":"fixed","display":"₹200 / RFT","price":200},{"name":"Designer / Pattern Tile Work","type":"quote","display":"Get Quote"},{"name":"Full Bathroom Tile Work","type":"quote","display":"Get Quote"},{"name":"Full House Tile Work","type":"quote","display":"Get Quote"},{"name":"Small Tile / Stone Repair","type":"fixed","display":"₹499 onwards","price":499},{"name":"Granite / Marble Door Frame","type":"quote","display":"Get Quote"},{"name":"Window Granite / Marble Border","type":"quote","display":"Get Quote"},{"name":"Tiles / Stone Visit / Measurement","type":"quote","display":"₹199–₹249"},{"name":"Any Other Tiles / Stone Work","type":"quote","display":"Get Quote"}]},
+'Waterproofing':{icon:'💧',items:[{"name":"Terrace / Roof Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Bathroom Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"Balcony Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"External Wall Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Internal Damp Wall Treatment – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Water Tank Waterproofing","type":"quote","display":"Get Quote"},{"name":"Crack / Joint Waterproofing","type":"quote","display":"Get Quote"},{"name":"PU Injection / Special Waterproofing","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'False Ceiling / POP / Gypsum / PVC':{icon:'🏠',items:[{"name":"Gypsum Board False Ceiling – Labour Only","type":"fixed","display":"₹75 / sq.ft.","price":75},{"name":"POP Ceiling – Labour Only","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"PVC Ceiling – Labour Only","type":"fixed","display":"₹70 / sq.ft.","price":70},{"name":"Cove / Designer Ceiling Work","type":"quote","display":"Get Quote"},{"name":"Repair / Patch Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+};
+
+function money(n){return "₹"+Number(n||0).toLocaleString("en-IN")}
+function selectCategory(cat){S.category=cat;S.status="SELECT_ITEM";render()}
+function toggleSelectedItem(i){
+ const it=services[S.category].items[i]; if(it.type!=="fixed")return;
+ S.selectedItems=S.selectedItems||[]; const k=S.selectedItems.findIndex(x=>x.i===i);
+ if(k>=0)S.selectedItems.splice(k,1); else S.selectedItems.push({i,name:it.name,price:Number(it.price||0),qty:1}); render();
+}
+function changeSelectedQty(i,d){
+ let _qitem=(S.selectedItems||[]).find(z=>z.i==i); if(_qitem&&_qitem.noQty)return;
+ const x=(S.selectedItems||[]).find(v=>v.i===i); if(!x)return; x.qty=Math.max(1,x.qty+d); render();
+}
+function continueSelectedItems(){
+ if(!(S.selectedItems||[]).length){alert("Kam se kam 1 service select karein.");return}
+ S.service=S.selectedItems.map(x=>x.name+" × "+x.qty).join(", "); S.serviceType="fixed"; S.quantity=S.selectedItems.reduce((a,x)=>a+x.qty,0); S.base=S.selectedItems.reduce((a,x)=>a+x.price*x.qty,0); S.total=S.base; S.status="BOOKING_DETAILS"; render();
+}
+function selectServiceItem(i){
+ const it=services[S.category].items[i]; S.service=it.name; S.serviceType=it.type; S.quantity=1;
+ if(it.type==="fixed"){S.base=Number(it.price||0);S.total=S.base;S.status="BOOKING_DETAILS"}
+ else{S.base=0;S.total=0;S.status="CUSTOM_REQUEST"}
+ render();
+}
+function setQty(q){q=Math.max(1,Number(q)||1);S.quantity=q;let it=(services[S.category]?.items||[]).find(x=>x.name===S.service);S.base=Number(it?.price||0)*q;S.total=S.base;render()}
+function submitCustomRequest(){
+ let d=$("customDesc")?.value.trim(); let sch=document.querySelector('input[name="customSchedule"]:checked')?.value;
+ if(!d){alert("Describe your work / problem mandatory hai.");return} if(!sch){alert("Preferred schedule select karein.");return}
+ S.customDescription=d;S.customSchedule=sch;S.service=S.category+" • New Service Request";S.status="QUOTE_WAIT";S.currentJob="Quote Request";hist("New Service Request sent • "+S.category+" • "+sch)
+}
+function sendInitialQuote(){let a=Number(prompt("Service Provider quote ₹"));if(!a||a<=0)return;S.quote={desc:S.customDescription||S.service,amount:a,initial:true};S.quoteDecision="PENDING";S.status="INITIAL_QUOTE";hist(S.provider+" sent quote ₹"+a)}
+function initialQuoteDecision(d){if(d==="APPROVED"){S.quoteDecision="APPROVED";S.base=S.quote.amount;S.total=S.base;S.status="BOOKING_DETAILS";hist("Customer accepted quote • Amount locked ₹"+S.total)}else{S.quoteDecision="REJECTED";S.status="CUSTOM_REQUEST";hist("Customer rejected quote")}}
+function backToCategories(){S.status="SELECT_SERVICE";S.category="";S.service="";S.base=0;S.total=0;render()}
+
+
+function hist(t){
+S.logs.unshift(new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})+" • "+t);
+render();
+}
+
+function showTab(x){
+  document.body.classList.toggle("customer-locked-ui",x==="customer");
+  if(x==="customer"||x==="provider"){
+    loadSavedHomeState();
+    renderCore();
+    updateSelectionTray();
+  }
+  const c=$("customer"), p=$("provider"), a=$("admin");
+  if(c) c.classList.toggle("hide",x!=="customer");
+  if(p) p.classList.toggle("hide",x!=="provider");
+  if(a) a.classList.toggle("hide",x!=="admin");
+  const ct=$("ctab"), pt=$("ptab"), at=$("atab");
+  if(ct) ct.classList.toggle("active",x==="customer");
+  if(pt) pt.classList.toggle("active",x==="provider");
+  if(at) at.classList.toggle("active",x==="admin");
+  if(x==="provider"&&S.status==="REQUESTED"){
+    S.providerRequestSeen=true;
+    saveHomeState();
+  }
+  if(x==="admin") render();
+  window.scrollTo(0,0);
+}
+function syncHomeState(){
+  loadSavedHomeState();
+  renderCore();
+  updateSelectionTray();
+}
+
+function toggleAvailability(){
+ S.available=!S.available;
+ render()
+}
+
+function toggleSelectionTray(){let p=document.getElementById("selectionTrayPanel"),b=document.getElementById("selectionTrayBtn");if(!p||!b)return;let open=p.style.display!=="none";p.style.display=open?"none":"block";b.textContent=open?"View Selected":"Hide"}
+function updateSelectionTray(){
+ let old=document.getElementById("selectionTray");if(old)old.remove();
+ document.body.classList.remove("selection-active");
+ if(S.status!=="SELECT_ITEM"||!S.selectedItems||!S.selectedItems.length)return;
+ let total=S.selectedItems.reduce((a,x)=>a+x.price*x.qty,0);
+ let qty=S.selectedItems.reduce((a,x)=>a+Number(x.qty||1),0);
+ let tray=document.createElement("div");tray.id="selectionTray";
+ tray.innerHTML=`<div class="trayrow"><div class="trayinfo"><b>${qty} Service${qty>1?"s":""} Selected</b><small>${money(total)}</small></div><button id="selectionTrayBtn" class="traybtn" onclick="toggleSelectionTray()">View Cart →</button></div><div id="selectionTrayPanel" class="traypanel" style="display:none">${S.selectedItems.map(x=>`<div class="selrow"><div class="selname"><b>${x.name}</b><br>${x.noQty?money(x.price):(money(x.price)+" × "+x.qty+" = <b>"+money(x.price*x.qty)+"</b>")}</div>${x.noQty?'':`<button class="mini" onclick="changeSelectedQty(${x.i},-1)">−</button><b>${x.qty}</b><button class="mini" onclick="changeSelectedQty(${x.i},1)">+</button>`}<button class="remove" onclick="toggleSelectedItem(${x.i})">×</button></div>`).join("")}<div class="row" style="padding-top:9px"><b>Grand Total</b><b>${money(total)}</b></div><button class="continue" onclick="continueSelectedItems()">Continue Booking</button></div>`;
+ document.body.appendChild(tray);document.body.classList.add("selection-active")
+}
+function bookCategorySiteVisit(){
+ if(!S.category){alert("Please select a service category first.");return}
+ S.selectedItems=[{i:-249,name:S.category+" Site Visit / Inspection",price:0,qty:1,noQty:true}];
+ S.serviceName=S.category+" Site Visit / Inspection";
+ S.bookingAmount=0; S.total=0; S.currentTotal=0; S.finalAmount=0; S.amount=0;
+ S.siteVisitDistancePending=true;
+ S.status="BOOKING_DETAILS";
+ hist("Customer selected "+S.category+" Site Visit / Inspection • Fee will be calculated from GPS distance after provider match");
+ render();
+}
+function filterServiceCards(v){
+let q=(v||"").trim().toLowerCase();
+document.querySelectorAll(".svc-card").forEach(x=>{const hideVisit=x.dataset.sitevisit==="1"&&(S.selectedItems||[]).length>0;x.style.display=hideVisit?"none":((!q||x.dataset.search.includes(q))?"block":"none")});
+}
+
+function isSiteVisitBooking(){
+ return String(S.serviceName||"").includes("Site Visit / Inspection") ||
+        (S.selectedItems||[]).some(x=>String(x.name||"").includes("Site Visit / Inspection"));
+}
+function ensureBookingAmount(){
+ if(isSiteVisitBooking()){
+   const km=Number(S.oneWayDistanceKm||0);
+   const fee=calculateNoWorkVisitCharge(km);
+   if(fee>0){
+     S.bookingAmount=fee; S.total=fee; S.currentTotal=fee; S.finalAmount=fee; S.amount=fee;
+     S.siteVisitDistancePending=false;
+     return fee;
+   }
+   return 0;
+ }
+ return Number(S.bookingAmount||S.total||S.finalAmount||S.amount||0);
+}
+function siteVisitFeeText(){
+ if(!isSiteVisitBooking()) return "";
+ const km=Number(S.oneWayDistanceKm||0), fee=ensureBookingAmount();
+ if(!km||!fee) return "Site Visit Fee: Calculating after Service Provider match";
+ return "GPS Distance: "+km.toFixed(1)+" km one-way • Site Visit Fee: ₹"+fee;
+}
+function validateSiteVisitFee(){
+ if(!isSiteVisitBooking()) return true;
+ const fee=ensureBookingAmount();
+ if(fee===199||fee===249) return true;
+ alert("Service Provider match/location ke baad GPS distance calculate hoga. Exact Site Visit fee confirm hone ke baad booking continue hogi.");
+ return false;
+}
+
+function ocsAuditAmount(stage){
+ const amt=ensureBookingAmount();
+ if(isSiteVisitBooking() && !(amt===199||amt===249)){
+   if(["PAYMENT","COMPLETE","FINISH"].includes(stage)){
+     alert("GPS distance se Site Visit fee ₹199/₹249 confirm hone ke baad hi payment/completion hoga.");
+     return false;
+   }
+ }
+ if(!isSiteVisitBooking() && ["PAYMENT","COMPLETE","FINISH"].includes(stage) && amt<=0){
+   alert("Booking amount ₹0 nahi ho sakta. Selected service/quote amount check kare.");
+   return false;
+ }
+ return true;
+}
+function choosePayment(v){
+ ensureBookingAmount();S.paymentChoice=v;render()}
+
+function rechargeWallet(){
+ const current=Math.round((Number(S.wallet||0))*100)/100;
+ const target=Number(S.walletWarningLevel||200);
+ const suggested=Math.max(100,Math.round((target-current)*100)/100);
+ const currentText=(current<0?"−₹"+Math.abs(current).toFixed(2):"₹"+current.toFixed(2));
+ let a=Number(prompt(
+   "OCS Wallet\nCurrent balance: "+currentText+
+   "\nRecommended warning level: ₹"+target.toFixed(2)+
+   "\nWallet low/negative hone par jobs auto-stop nahi hongi. Admin control alag rahega.",
+   suggested.toFixed(2)
+ ));
+ if(!a||a<=0)return;
+ S.wallet=Math.round((current+a)*100)/100;
+ S.jobAccess=!S.adminPaused;
+ hist("OCS Wallet topped up • Balance "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2)));
+ render();
+}
+function settleCollectedAmount(amount,label){
+ amount=Number(amount)||0;if(amount<=0)return;
+ applyCommission(amount);
+ hist((label||"Collected amount")+" ₹"+amount.toFixed(2)+" settled through OCS accounting");
+}
+
+function auditPlatformCharge(amount){
+ const a=Number(amount)||0;
+ return Math.round(a*0.09*100)/100;
+}
+function queueWalletMaintenanceEmail(){
+ const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
+ const msg="Maintain your OCS Wallet to continue booking smoothly. Current wallet balance: "+bal+".";
+ S.walletReminderHistory=S.walletReminderHistory||[];
+ S.walletReminderHistory.unshift({channel:"EMAIL",message:msg,status:"QUEUED",at:new Date().toISOString()});
+ S.walletEmailReminderQueuedAt=new Date().toISOString();
+ hist("Wallet warning + email reminder queued for "+S.provider+" • "+msg);
+}
+function applyCommission(amount){
+ let charge=Math.round((Number(amount||0)*9/100)*100)/100;
+ S.platformCharge=9;
+ S.wallet=Math.round((Number(S.wallet||0)-charge)*100)/100;
+ S.jobAccess=!S.adminPaused;
+ hist("OCS platform commission 9% • ₹"+charge.toFixed(2)+" adjusted in Wallet");
+ if(S.wallet<Number(S.walletWarningLevel||200)){
+   hist("Wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+" • Warning level below ₹200 • Jobs remain active unless OCS Admin pauses them");
+   queueWalletMaintenanceEmail();
+ }
+}
+
+
+
+function calculateNoWorkVisitCharge(oneWayKm){
+  const km=Number(oneWayKm);
+  if(!Number.isFinite(km)||km<0) return 0;
+  if(km<=6) return 199;
+  if(km<=12) return 249;
+  return 0; // beyond current finalized service radius/slab -> Admin review
+}
+function setReachedDistance(oneWayKm){
+ ensureBookingAmount();
+  S.oneWayDistanceKm=Number(oneWayKm)||0;
+  S.suggestedVisitCharge=calculateNoWorkVisitCharge(S.oneWayDistanceKm);
+  if(isSiteVisitBooking()){
+    const fee=ensureBookingAmount();
+    hist("GPS one-way distance recorded: "+S.oneWayDistanceKm.toFixed(1)+" km • Site Visit Fee "+(fee?("₹"+fee):"OCS Admin Review"));
+  }else{
+    hist("GPS one-way distance recorded: "+S.oneWayDistanceKm.toFixed(1)+" km");
+  }
+}
+function visitChargeReviewHtml(){
+  const km=Number(S.oneWayDistanceKm||0);
+  const suggested=calculateNoWorkVisitCharge(km);
+  return `<div class="notice">
+    <b>Visit Charge Review</b><br>
+    <small>GPS Distance (Service Provider → Customer, one-way): <b>${km.toFixed(1)} km</b></small><br>
+    <small>System Suggested Visit Charge: <b>${suggested?("₹"+suggested):"OCS Admin Review"}</b></small><br>
+    <small>0–6 km = ₹199 • &gt;6–12 km = ₹249</small>
+  </div>`;
+}
+function resolveNoWorkCase(side){
+ if(side==="provider"){
+   S.visitCharge=0;
+   S.status="WNC_CLOSED";
+   hist("Service Provider-side issue • Customer visit charge ₹0");
+   alert("Service Provider-side issue recorded. Customer visit charge ₹0.");
+   render();return;
+ }
+ if(side==="customer"){
+   S.visitCharge=0;
+   S.suggestedVisitCharge=calculateNoWorkVisitCharge(S.oneWayDistanceKm||0);
+   S.status="SUPPORT_HOLD";
+   S.supportTicket="OCS-"+Date.now().toString().slice(-6);
+   hist("Customer-side issue • GPS "+Number(S.oneWayDistanceKm||0).toFixed(1)+" km • suggested visit charge "+(S.suggestedVisitCharge?("₹"+S.suggestedVisitCharge):"Admin review")+" • "+S.supportTicket);
+   alert("Case sent to OCS Support/Admin. GPS distance and suggested visit charge are ready for review; final charge is set by OCS.");
+   render();return;
+ }
+}
+function adminResolveVisitCharge(amount){
+ if(S.status!=="SUPPORT_HOLD")return;
+ if(amount===undefined||amount===null) amount=calculateNoWorkVisitCharge(S.oneWayDistanceKm||0);
+ if(![0,199,249].includes(Number(amount)))return;
+ S.visitCharge=Number(amount);
+ S.status="WNC_CLOSED";
+ hist("OCS Admin resolved visit charge ₹"+Number(amount).toFixed(0)+" • GPS "+Number(S.oneWayDistanceKm||0).toFixed(1)+" km one-way");
+ render();
+}
+function settleVisitChargePayment(){
+ ensureBookingAmount();
+ let amount=Number(S.visitCharge||0);
+ if(amount<=0)return;
+ settleCollectedAmount(amount,"Visit charge");
+ S.visitChargePaid=true;
+ hist("Visit charge payment confirmed");
+ render();
+}
+function booking(){
+ ensureBookingAmount();
+ // Customer should never see Service Provider wallet/admin/internal eligibility details.
+ // Matching eligibility is handled internally/provider-side.
+ S.status="REQUESTED";
+ S.currentJob="Incoming • "+(S.service||S.category||"Home Service");
+ S.requestCreatedAt=Date.now();
+ S.providerRequestSeen=false;
+ hist("Customer created booking • ₹"+S.base+" • Payment choice: "+S.paymentChoice+" • OCS matching eligible provider")
+}
+
+function providerDecision(d){
+if(d==="accept"){
+ if(!S.available){alert("Available for Work OFF hai. New job accept karne ke liye ON karein.");return}
+ if(S.adminPaused||!S.jobAccess){alert("OCS Admin ne new jobs temporarily pause kiye hain.");return}
+ S.status="ASSIGNED";S.providerReleasedNotice=null;hist(S.provider+" accepted booking")
+}else{
+ let old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";
+ S.status="REQUESTED";hist(old+" rejected • OCS checking next eligible provider")
+}
+}
+
+function onWay(){S.status="ON_WAY";hist(S.provider+" is On the Way")}
+
+function reached(){
+ ensureBookingAmount();
+S.status="REACHED";
+S.startOtp=String(Math.floor(1000+Math.random()*9000));
+hist(S.provider+" reached customer • Start OTP generated")
+}
+
+function customerUnavailableBeforeOtp(){
+ ensureBookingAmount();
+ if(S.status!=="REACHED"){alert("Ye option sirf GPS Reached ke baad aur Start OTP se pehle hai.");return}
+ S.cancelReason="Customer Not Available / OTP Not Provided / Entry Not Provided";
+ S.status="NO_SHOW_VISIT";
+ hist(S.provider+" • Customer Not Available / OTP Not Provided / Entry Not Provided • Start OTP not verified")
+}
+
+
+
+function workPendingSameProvider(){
+  if(!["WORKING","WNC_REASON","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM"].includes(S.status)){
+    alert("Work Pending / Reschedule sirf running ya Work Not Completed flow me available hai.");
+    return;
+  }
+  const when = prompt("Next visit date/time likhein (example: Tomorrow 10:00 AM)");
+  if(!when) return;
+  if(!confirm("Same Service Provider ke saath Work Pending / Reschedule confirm karein? Abhi visit charge nahi lagega.")) return;
+  S.rescheduleTime = when;
+  S.visitCharge = 0;
+  S.status = "RESCHEDULED";
+  hist("Work Pending • Same Provider "+S.provider+" • Rescheduled "+when+" • Visit charge ₹0 now • Fresh Reached + Start OTP on next visit");
+}
+
+function providerReleaseJob(){
+if(!["ASSIGNED","ON_WAY"].includes(S.status)){alert("Ye option Start OTP se pehle hi use hoga.");return}
+let reason=prompt("Reason: Emergency / Vehicle problem / Personal issue / Other");if(!reason)return;
+if(!confirm("Release Job confirm? Customer par ₹0 charge rahega aur next eligible Service Provider ko request jayegi."))return;
+let old=S.provider;
+S.provider=old==="SP1"?"SP2":"SP1";
+S.cancelReason="Provider unable to attend: "+reason;
+S.visitCharge=0;S.status="REQUESTED";
+S.providerReleasedNotice=old+" is unable to attend. Another verified Service Provider is being requested.";
+hist(old+" released job • "+reason+" • Customer charge ₹0 • Request sent to "+S.provider)
+}
+
+function startWork(){
+let x=prompt("Customer Start OTP enter kare");
+if(x===S.startOtp){S.status="WORKING";hist("Start OTP verified • Work started")}
+else alert("Wrong OTP");
+}
+
+function openAddWork(){
+ if(S.status!=="WORKING"){alert("Add Work sirf running job me available hai.");return}
+ S.providerAddingWork=true;S.providerAddStep="SELECT";S.providerAddSelected={};S.providerAddQty={};
+ renderProviderAddWorkSheet();
+}
+function providerCancelAddWork(){
+ S.providerAddingWork=false;S.providerAddSelected={};S.providerAddQty={};
+ const sh=document.getElementById("providerAddWorkSheet");if(sh)sh.classList.add("hide");
+}
+function providerToggleAddItem(i){
+ if(!S.providerAddSelected)S.providerAddSelected={};
+ S.providerAddSelected[i]=!S.providerAddSelected[i];
+ renderProviderAddWorkSheet();
+}
+function providerAddQtyChange(i,d){
+ if(!S.providerAddQty)S.providerAddQty={};
+ S.providerAddQty[i]=Math.max(1,(S.providerAddQty[i]||1)+d);
+ renderProviderAddWorkSheet();
+}
+function providerAddBackNav(){
+ if(S.providerAddStep==="REVIEW"){S.providerAddStep="SELECT";renderProviderAddWorkSheet();return}
+ providerCancelAddWork();
+}
+function providerAddForward(){
+ const arr=services[S.category]?.items||[];
+ const items=arr.map((x,i)=>S.providerAddSelected&&S.providerAddSelected[i]&&x.type==="fixed"?{name:x.name,price:Number(x.price||0),qty:(S.providerAddQty&&S.providerAddQty[i])||1}:null).filter(Boolean);
+ if(S.providerAddStep!=="REVIEW"){
+   if(!items.length){alert("Kam se kam 1 listed service select karein.");return}
+   S.providerAddStep="REVIEW";renderProviderAddWorkSheet();return;
+ }
+ providerSendListedAddWork();
+}
+function providerSendListedAddWork(){
+ const arr=services[S.category]?.items||[];
+ const items=arr.map((x,i)=>S.providerAddSelected&&S.providerAddSelected[i]&&x.type==="fixed"?{name:x.name,price:Number(x.price||0),qty:(S.providerAddQty&&S.providerAddQty[i])||1}:null).filter(Boolean);
+ if(!items.length){alert("Kam se kam 1 listed service select karein.");return}
+ const amount=items.reduce((n,x)=>n+x.price*x.qty,0);
+ const desc=items.map(x=>x.name+" × "+x.qty).join(", ");
+ S.quote={desc,amount,items,source:"PROVIDER_RATE_CARD"};S.quoteDecision="PENDING";
+ S.providerAddingWork=false;S.providerAddStep="SELECT";
+ const sh=document.getElementById("providerAddWorkSheet");if(sh)sh.classList.add("hide");
+ hist(S.provider+" selected Add Work from OCS rate card • "+desc+" • "+money(amount)+" • Customer approval pending");
+ render();
+}
+function providerQuoteRateCardItem(i){
+ const x=(services[S.category]?.items||[])[i];if(!x)return;
+ const amt=Number(prompt(x.name+" • Quote amount ₹"));
+ if(!amt||amt<=0)return;
+ S.quote={desc:x.name,amount:amt,source:"PROVIDER_GET_QUOTE"};S.quoteDecision="PENDING";
+ S.providerAddingWork=false;
+ const sh=document.getElementById("providerAddWorkSheet");if(sh)sh.classList.add("hide");
+ hist(S.provider+" sent Get Quote for "+x.name+" • "+money(amt)+" • Customer approval pending");
+ render();
+}
+function providerCustomAddWork(){
+ let d=prompt("Any Other / Custom work description");if(!d)return;
+ let a=Number(prompt("Custom work quote ₹"));if(!a||a<=0)return;
+ S.quote={desc:d,amount:a,source:"PROVIDER_CUSTOM"};S.quoteDecision="PENDING";
+ S.providerAddingWork=false;
+ const sh=document.getElementById("providerAddWorkSheet");if(sh)sh.classList.add("hide");
+ hist(S.provider+" sent custom Add Work quote • "+d+" • "+money(a)+" • Customer approval pending");
+ render();
+}
+function renderProviderAddWorkSheet(){
+ const sh=document.getElementById("providerAddWorkSheet"),box=document.getElementById("providerAddWorkSheetList");
+ if(!sh||!box||!S.providerAddingWork){if(sh)sh.classList.add("hide");return}
+ sh.classList.remove("hide");
+ const sc=document.getElementById("providerSheetCategory");if(sc)sc.textContent=S.category||"Service";
+ const arr=services[S.category]?.items||[];
+ const selected=arr.map((x,i)=>S.providerAddSelected&&S.providerAddSelected[i]&&x.type==="fixed"?{name:x.name,price:Number(x.price||0),qty:(S.providerAddQty&&S.providerAddQty[i])||1}:null).filter(Boolean);
+ const back=document.getElementById("providerAddBackBtn"),send=document.getElementById("providerSendAddWorkBtn");
+ if(S.providerAddStep==="REVIEW"){
+   const total=selected.reduce((n,x)=>n+x.price*x.qty,0);
+   box.innerHTML='<div class="addwork-review"><b>Review Add Work</b>'+selected.map(x=>'<div class="rowline"><span>'+x.name+' × '+x.qty+'</span><b>'+money(x.price*x.qty)+'</b></div>').join('')+'<div class="addwork-review-total">Total '+money(total)+'</div></div><div class="muted">Sahi hai to Customer ko Send karein. Change karna ho to Back / Edit.</div>';
+   if(back)back.textContent="← Edit";
+   if(send){send.textContent="Send to Customer →";send.disabled=!selected.length;send.style.opacity=selected.length?"1":".55"}
+   return;
+ }
+ box.innerHTML=arr.map((x,i)=>{
+   const sel=S.providerAddSelected&&S.providerAddSelected[i],q=(S.providerAddQty&&S.providerAddQty[i])||1;
+   if(x.type!=="fixed")return `<div class="service"><div><b>${x.name}</b><div class="muted">${x.display||"Get Quote"}</div></div><div><button class="mini" onclick="providerQuoteRateCardItem(${i})">Get Quote</button></div></div>`;
+   return `<div class="service"><div><b>${x.name}</b><div class="muted">${x.display||money(x.price)}${x.noQty?"":" • Qty allowed"}</div></div><div><button class="mini ${sel?"selected":""}" onclick="providerToggleAddItem(${i})">${sel?"✓ Selected":"Select"}</button>${sel&&!x.noQty?`<button class="mini" onclick="providerAddQtyChange(${i},-1)">−</button><b>${q}</b><button class="mini" onclick="providerAddQtyChange(${i},1)">+</button>`:""}</div></div>`;
+ }).join("");
+ const count=selected.length;
+ if(back)back.textContent="← Back";
+ if(send){send.textContent=count?"Review "+count+" Item"+(count>1?"s":"")+" →":"Review →";send.disabled=!count;send.style.opacity=count?"1":".55";}
+}
+
+function customerReturnProviderAddWork(){
+ if(!S.quote)return;
+ const note=prompt("Kya change chahiye? (item / quantity / amount)")||"Please revise Add Work";
+ S.quoteDecision="RETURNED";S.quoteReturnNote=note;
+ hist("Customer sent Add Work back to "+S.provider+" • "+note);
+ render();
+}
+function providerEditReturnedQuote(){
+ if(!S.quote||S.quoteDecision!=="RETURNED")return;
+ const q=S.quote;
+ if(q.source==="PROVIDER_RATE_CARD"&&Array.isArray(q.items)){
+   const arr=services[S.category]?.items||[];
+   S.providerAddingWork=true;S.providerAddStep="SELECT";S.providerAddSelected={};S.providerAddQty={};
+   q.items.forEach(it=>{const i=arr.findIndex(x=>x.name===it.name);if(i>=0){S.providerAddSelected[i]=true;S.providerAddQty[i]=Number(it.qty||1)}});
+   renderProviderAddWorkSheet();return;
+ }
+ const d=prompt("Work description",q.desc||"");if(d===null)return;
+ const a=Number(prompt("Revised amount ₹",String(q.amount||"")));if(!a||a<=0)return;
+ S.quote={...q,desc:d||q.desc,amount:a};S.quoteDecision="PENDING";S.quoteReturnNote="";
+ hist(S.provider+" revised Add Work and sent again • "+money(a));render();
+}
+function quoteDecide(d){
+S.quoteDecision=d;
+if(d==="APPROVED"){S.total+=S.quote.amount;hist("Customer approved extra work • New total ₹"+S.total)}
+else hist("Customer rejected extra work • Total remains ₹"+S.total)
+}
+
+function openReschedule(by){
+ if(S.status!=="WORKING"){alert("Reschedule running work ke dauran available hai.");return}
+ closeRS();let n=new Date();n.setMinutes(n.getMinutes()-n.getTimezoneOffset());let min=n.toISOString().slice(0,10);
+ let x=document.createElement("div");x.id="rsOverlay";x.className="rs-overlay";
+ x.innerHTML=`<div class="rs-sheet"><div class="rs-head"><div><b>Work Pending • Reschedule</b><small>Same Service Provider • Booking stays open</small></div><button class="rs-x" onclick="closeRS()">×</button></div><div class="rs-body">
+ <div class="rs-grid"><div class="rs-field"><label>SELECT NEW DATE</label><input id="rsDate" class="rs-in" type="date" min="${min}"></div><div class="rs-field"><label>EXACT TIME</label><input id="rsTime" class="rs-in" type="time"></div></div>
+ <div class="rs-actions"><button class="btn gray" onclick="closeRS()">Cancel</button><button class="btn ok" onclick="submitRS('${by}')">Confirm Reschedule</button></div></div></div>`;
+ document.body.appendChild(x);
+}
+function submitRS(by){
+ let d=document.getElementById("rsDate").value,t=document.getElementById("rsTime").value;
+ if(!d||!t){alert("Date aur Time select karein.");return}
+ if(new Date(d+"T"+t)<=new Date()){alert("Past date/time select nahi kar sakte.");return}
+ S.reschedule={date:d,time:t};S.rescheduleBy=by;S.visitCharge=0;S.status="RESCHEDULE_PENDING";
+ hist((by==="customer"?"Customer":S.provider)+" reschedule request • "+d+" "+t);closeRS();render();
+}
+function rescheduleDecision(d){
+ if(d==="APPROVED"){S.status="RESCHEDULED";S.visitCharge=0;hist("Reschedule accepted • Same SP • fresh OTP next visit")}
+ else{S.status="WORKING";S.reschedule=null;hist("Reschedule rejected • booking stays open")}render();
+}
+function resumeVisit(){S.status="ASSIGNED";S.startOtp=String(Math.floor(1000+Math.random()*9000));hist("Rescheduled visit started • exact address available • fresh OTP prepared");render();}
+
+
+function changeProvider(){
+let r=prompt("Service Provider change reason mandatory");if(!r)return;
+if(!confirm("Provider change request OCS Support ko bhejna hai? New provider automatic assign nahi hoga."))return;
+S.previousProvider=S.provider;
+S.providerChangeReason=r;
+S.providerChangeTicket=createTicket("customer","Provider Change: "+r,true);
+S.status="PROVIDER_CHANGE_HOLD";
+S.startOtp=null;
+S.currentJob="On Hold • OCS Support Review";
+hist("Customer requested Provider Change • "+S.previousProvider+" stopped • Reason: "+r+" • Ticket "+S.providerChangeTicket+" • No automatic reassignment");
+}
+
+function cancelJob(by){
+if(S.status!=="WORKING"){
+ let r=prompt("Work Not Completed • Resolve Here reason mandatory");if(!r)return;
+ S.cancelReason=r;S.cancelBy=by;S.status="CANCELLED";
+ hist((by==="customer"?"Customer":S.provider)+" cancelled job • "+r);return;
+}
+S.cancelBy=by;S.cancelReason="";S.wncFault="";
+S.status=by==="customer"?"WNC_CUSTOMER_REASON":"WNC_PROVIDER_REASON";
+hist((by==="customer"?"Customer":S.provider)+" opened Work Not Completed • "+(by==="customer"?"Customer":"Service Provider")+" must select the reason")
+}
+
+function chooseWncReason(fault,reason){
+ S.wncFault=fault;S.cancelReason=reason;
+ const by=S.cancelBy==="customer"?"customer":"provider";
+ S.status=by==="customer"?"WNC_PROVIDER_CONFIRM":"WNC_CUSTOMER_CONFIRM";
+ hist((by==="customer"?"Customer":S.provider)+" selected Work Not Completed reason • "+reason+" • Waiting for "+(by==="customer"?"Service Provider":"Customer")+" confirmation")
+}
+
+function confirmWncReasonBy(side,agree){
+ const who=side==="provider"?S.provider:"Customer";
+ if(!agree){
+   S.status="SUPPORT_REVIEW";
+   let id=createTicket(side,"Work Not Completed reason dispute: "+S.cancelReason,false);
+   S.wncTicket=id;
+   hist(who+" disagreed with Work Not Completed reason • Charge HOLD • Support Ticket "+id);
+   return;
+ }
+ if(S.wncFault==="PROVIDER"){
+   S.visitCharge=0;S.distanceSlab="No visit charge";S.status="CANCELLED_SETTLED";S.payment="₹0 • Provider-side reason";
+   hist(who+" confirmed provider-side reason • Booking closed • Visit charge ₹0");
+   return;
+ }
+ if(S.wncFault==="OTHER"){
+   S.status="SUPPORT_REVIEW";
+   let id=createTicket(side,"Work Not Completed review: "+S.cancelReason,false);
+   S.wncTicket=id;
+   hist(who+" confirmed other issue • OCS Support review • Charge HOLD • Ticket "+id);
+   return;
+ }
+ const km=Number(S.oneWayDistanceKm||0);
+ const charge=calculateNoWorkVisitCharge(km);
+ if(!charge){
+   S.status="SUPPORT_REVIEW";
+   let id=createTicket(side,"Visit charge distance review: "+S.cancelReason,false);
+   S.wncTicket=id;
+   hist(who+" confirmed reason • GPS distance needs OCS review • Charge HOLD • Ticket "+id);
+   return;
+ }
+ S.visitCharge=charge;
+ S.distanceSlab=km<=6?"1–6 km":">6–12 km";
+ S.status="VISIT_PAYMENT";
+ hist(who+" confirmed Work Not Completed reason • "+S.distanceSlab+" • Visit Charge ₹"+charge);
+}
+function confirmWncReason(agree){confirmWncReasonBy("customer",agree)}
+
+function resolveSpot(choice){
+ if(choice==="RESCHEDULE"){
+   S.status="RESCHEDULE_WAIT";
+   S.rescheduleBy="mutual";
+   hist("Technical/material issue • Customer + Provider agreed to reschedule with same provider");
+ }else if(choice==="VISIT"){
+   S.status="VISIT_REVIEW";
+   S.cancelReason="Technical / material / price issue • Both agreed visit charge";
+   hist("Customer + Provider agreed to close with applicable visit charge");
+ }else if(choice==="NO_CHARGE"){
+   S.visitCharge=0; S.distanceSlab="No visit charge"; S.status="CANCELLED_SETTLED";
+   S.payment="₹0 • Both agreed no visit charge";
+   hist("Customer + Provider mutually closed booking • Visit charge ₹0");
+ }else{
+   S.status="SUPPORT_REVIEW";
+   let id=createTicket("customer","Work Not Completed Dispute: "+S.cancelReason,false);
+   S.wncTicket=id;
+   hist("Both could not agree on the spot • Charge HOLD • Support Ticket "+id);
+ }
+}
+
+function customWncReason(){
+let r=prompt("Reason / problem likhiye");if(!r)return;
+S.cancelReason=r;S.wncFault="DISPUTED";S.status="SUPPORT_REVIEW";
+let id=createTicket("customer","Work Not Completed Review: "+r,false);S.wncTicket=id;
+hist("Work Not Completed custom reason • No automatic charge • Support Ticket "+id)
+}
+
+function setVisitCharge(amount,slab){
+S.visitCharge=amount;S.distanceSlab=slab;S.status="VISIT_PAYMENT";
+hist("Customer-side Work Not Completed • Visit Charge • "+slab+" • ₹"+amount)
+}
+
+function disputeVisit(){
+S.status="SUPPORT_REVIEW";
+let id=createTicket("customer","Visit Charge Dispute",false);S.wncTicket=id;
+hist("Visit Charge disputed • Charge on hold • Support Ticket "+id)
+}
+
+function finish(){
+ ensureBookingAmount();
+S.status="COMPLETION_CONFIRM";
+S.completionRequested=true;
+hist(S.provider+" marked Work Completed • Waiting for Customer confirmation")
+}
+
+function confirmCompletion(ok){
+if(ok){
+  S.status="PAYMENT";S.completionRequested=false;
+  hist("Customer confirmed Work Completed • Payment opened")
+}else{
+  S.status="SUPPORT_REVIEW";S.completionRequested=false;
+  let id=createTicket("customer","Work Completion Dispute",true);
+  hist("Customer did not confirm completion • Support Ticket "+id)
+}
+}
+
+function openOnline(purpose){
+ ensureBookingAmount();
+S.payPurpose=purpose;
+S.payment="ONLINE";
+S.status="ONLINE_PAY";
+hist("Online payment screen opened • "+(purpose==="VISIT"?"Visit Charge":"Job Payment"))
+}
+
+function onlineSuccess(){
+ ensureBookingAmount();
+let amt=S.payPurpose==="VISIT"?S.visitCharge:S.total;
+S.status=S.payPurpose==="VISIT"?"CANCELLED_SETTLED":"DONE";
+if(amt>0)applyCommission(amt);
+S.currentJob=null;
+hist("Online payment success • ₹"+amt+(S.payPurpose==="VISIT"?" • Visit charge settled":""))
+}
+
+function payCash(purpose){
+ ensureBookingAmount();
+S.payPurpose=purpose;S.payment="CASH";
+S.status=purpose==="VISIT"?"VISIT_CASH_WAIT":"CASH_WAIT";
+hist("Customer marked Cash Paid")
+}
+
+function cashReceived(){
+ ensureBookingAmount();
+let amt=S.payPurpose==="VISIT"?S.visitCharge:S.total;
+S.status=S.payPurpose==="VISIT"?"CANCELLED_SETTLED":"DONE";
+if(amt>0)applyCommission(amt);
+S.currentJob=null;
+hist(S.provider+" confirmed Cash Received • ₹"+amt+(S.payPurpose==="VISIT"?" • Visit charge settled":""))
+}
+
+function createTicket(side,category,callback){
+let id="OCS-TKT-"+Math.floor(100000+Math.random()*900000);
+S.supportTickets.push({id,side,category,callback});
+return id;
+}
+
+function openSupport(side){
+let cat=prompt(side==="customer"
+?"Issue: Payment / Provider / Work Not Completed / Other"
+:"Issue: Customer / Payment / Job / Other");
+if(!cat)return;
+let details=prompt("Problem details");if(!details)return;
+let cb=confirm("Request Callback chahiye?");
+let id=createTicket(side,cat,cb);
+hist((side==="customer"?"Customer":"Service Provider")+" Support Ticket created • "+id+(cb?" • Callback Requested":""));
+alert("Ticket Number: "+id)
+}
+
+function askExpert(){
+let q=prompt("Rate / Quote / Job related question");if(!q)return;
+let id=createTicket("provider","Ask to Expert",true);
+hist("Ask to Expert submitted • "+id);
+alert("Expert Request Ticket: "+id)
+}
+
+
+function yellowStarsHTML(n,interactive){
+ n=Math.max(0,Math.min(5,Number(n)||0));
+ let s='<div class="ocs-rating-stars">';
+ for(let i=1;i<=5;i++)s+='<button type="button" class="'+(i<=n?'on':'')+'" '+(interactive?'onclick="rateProvider('+i+')"':'')+' aria-label="'+i+' star">&#9733;</button>';
+ return s+'</div>';
+}
+function summaryStarsHTML(n){
+ n=Math.max(0,Math.min(5,Math.round(Number(n)||0)));
+ let s='<span class="ocs-summary-stars">';
+ for(let i=1;i<=5;i++)s+=(i<=n?'&#9733;':'&#9734;');
+ return s+'</span>';
+}
+
+function providerRatingSummary(){
+ const list=(Array.isArray(S.providerRatings)?S.providerRatings:[]).filter(x=>x&&x.provider===S.provider&&Number(x.stars)>0);
+ if(!list.length)return '<span class="muted">No ratings yet</span>';
+ const avg=list.reduce((a,x)=>a+Number(x.stars),0)/list.length;
+ return summaryStarsHTML(avg)+' <b>'+avg.toFixed(1)+'</b> <span class="muted">('+list.length+' review'+(list.length===1?'':'s')+')</span>';
+}
+function rateProvider(stars){
+ stars=Number(stars);
+ if(stars<1||stars>5||S.status!=="DONE")return;
+ S.pendingRatingStars=stars;
+ render();
+}
+function submitProviderRating(){
+ const stars=Number(S.pendingRatingStars||0);
+ if(stars<1||stars>5){alert("Pehle 1 se 5 star select karein.");return}
+ const comment=(document.getElementById("ratingComment")?.value||S.pendingRatingComment||"").trim();
+ S.providerRatings=Array.isArray(S.providerRatings)?S.providerRatings:[];
+ S.providerRatings.push({provider:S.provider,stars:stars,comment:comment,at:new Date().toISOString()});
+ S.customerRating=stars;
+ S.customerRatingComment=comment;
+ S.pendingRatingStars=0;S.pendingRatingComment="";
+ hist("Customer submitted rating for "+S.provider+" • "+stars+"/5");
+ render();
+}
+
+function resetAll(){
+ const providerState={
+   provider:S.provider||"SP1",
+   available:S.available!==false,
+   wallet:Number.isFinite(Number(S.wallet))?Number(S.wallet):100,
+   welcomeBonus:100,
+   walletWarningLevel:200,
+   platformCharge:9,
+   adminPaused:!!S.adminPaused,
+   rulesVersion:8,
+   supportTickets:Array.isArray(S.supportTickets)?S.supportTickets:[],
+   providerRatings:Array.isArray(S.providerRatings)?S.providerRatings:[]
+ };
+ // Fresh booking must never inherit services, Add Work, quotes or amounts from the previous booking.
+ Object.keys(S).forEach(k=>delete S[k]);
+ Object.assign(S,{
+   status:"SELECT_SERVICE",
+   provider:providerState.provider,
+   available:providerState.available,
+   base:0,total:0,service:"",category:"",serviceType:"fixed",quantity:1,address:"Customer Address",
+   selectedItems:[],
+   startOtp:null,quote:null,quoteDecision:null,
+   customDescription:"",customSchedule:"",
+   customerAddingWork:false,addWorkSelected:{},addWorkQty:{},
+   customerExtraItems:[],customerExtraRequest:"",customerExtraStatus:"",extraQuote:null,lastAddedWork:null,
+   providerAddingWork:false,providerAddSelected:{},providerAddQty:{},
+   reschedule:null,rescheduleBy:null,rescheduleTime:null,cancelReason:null,cancelBy:null,
+   visitCharge:0,distanceSlab:null,payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",
+   logs:[],supportTickets:providerState.supportTickets,
+   providerRatings:providerState.providerRatings,customerRating:null,pendingRatingStars:0,customerRatingComment:"",
+   wallet:providerState.wallet,welcomeBonus:providerState.welcomeBonus,walletWarningLevel:providerState.walletWarningLevel,
+   platformCharge:providerState.platformCharge,commissionDue:0,
+   adminPaused:providerState.adminPaused,jobAccess:!providerState.adminPaused,rulesVersion:8,flowVersion:8,
+   currentJob:null,nextJob:null,completionRequested:false,
+   providerChangeReason:null,providerChangeTicket:null,previousProvider:null,
+   wncTicket:null,wncFault:null,providerReleasedNotice:null
+ });
+ try{localStorage.removeItem(OCS_HOME_STATE_KEY)}catch(e){}
+ try{if(window.parent&&window.parent.localStorage)window.parent.localStorage.removeItem(OCS_HOME_STATE_KEY)}catch(e){}
+ try{if(window.parent&&window.parent.localStorage)window.parent.localStorage.removeItem("ocsCurrentBooking")}catch(e){}
+ render()
+}
+
+
+function ocsAddress(){return S.address||"Customer Service Address"}
+function ocsDirections(){window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(ocsAddress()),"_blank")}
+function ocsTrack(){alert("Live GPS tracking will appear here when the Service Provider location service is connected.")}
+function customerCallProvider(){alert("Assigned Service Provider ka verified call option yahan open hoga.")}
+function customerChatProvider(){let m=prompt("Message to "+S.provider);if(!m)return;S.chatMessages=S.chatMessages||[];S.chatMessages.push({from:"Customer",text:m});hist("Customer sent chat message to "+S.provider);alert("Message sent to "+S.provider)}
+function customerShareLocation(){
+ if(!navigator.geolocation){alert("GPS location is not available on this device/browser.");return}
+ navigator.geolocation.getCurrentPosition(
+  p=>{S.customerSharedLocation={lat:p.coords.latitude,lng:p.coords.longitude,at:Date.now()};hist("Customer shared current location with "+S.provider);alert("Current location shared with "+S.provider+" for this booking.")},
+  ()=>alert("Location permission allow karein. Production app me location booking ke saath securely share hogi."),
+  {enableHighAccuracy:true,timeout:8000,maximumAge:30000}
+ )
+}
+function customerProviderContactHTML(){
+ if(!["ASSIGNED","ON_WAY","REACHED","WORKING"].includes(S.status))return "";
+ return "<div class=\"card\"><h3>Contact Service Provider</h3><div class=\"muted\">"+S.provider+" assigned • Booking contact only</div><div class=\"row\" style=\"margin-top:8px\"><button class=\"btn\" onclick=\"customerCallProvider()\">📞 Call</button><button class=\"btn alt\" onclick=\"customerChatProvider()\">💬 Chat</button></div><button class=\"btn gray\" onclick=\"customerShareLocation()\">📍 Share My Location</button></div>";
+}
+function ocsReached(){
+ if(S.status!=="ON_WAY"){alert("Reached verification On the Way ke baad hota hai.");return}
+ S.status="REACHED"; if(!S.startOtp)S.startOtp=String(Math.floor(1000+Math.random()*9000));
+ hist(S.provider+" • GPS Reached Verified • Start OTP unlocked");render();
+}
+function ocsDate(v){if(!v)return "—";let d=new Date(v+"T00:00:00");return d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}
+function ocsTime(v){if(!v)return "—";let a=v.split(":"),h=+a[0],m=a[1],p=h>=12?"PM":"AM";h=h%12||12;return h+":"+m+" "+p}
+function rsSlot(v){document.querySelectorAll(".rs-slot").forEach(x=>x.classList.toggle("on",x.dataset.v===v));let t=document.getElementById("rsTime");if(t)t.value=v==="Morning"?"09:00":v==="Afternoon"?"14:00":"18:30"}
+function closeRS(){let x=document.getElementById("rsOverlay");if(x)x.remove()}
+
+function ocsUiIcon(kind){
+ const m={
+  Electrical:'<path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/>',
+  Plumbing:'<path d="M7 4h10v4H7zM9 8v4h6V8M12 12v9M8 21h8"/>',
+  Carpenter:'<path d="M5 19 19 5M14 5h5v5M6 15l3 3-2 2-3-3z"/>',
+  "AC Service":'<path d="M4 6h16v9H4zM8 18c1-1 2-1 3 0s2 1 3 0 2-1 3 0"/>',
+  "Appliance Repair":'<path d="M6 3h12v18H6zM9 7h6M9 11h.01M12 11h.01M15 11h.01M9 16h6"/>',
+  Cleaning:'<path d="M9 4h6l-1 6H10L9 4ZM8 10h8l2 10H6l2-10Z"/>',
+  "Maid Service":'<circle cx="12" cy="8" r="3"/><path d="M6 21v-5a6 6 0 0 1 12 0v5"/>',
+  "Pest Control":'<path d="M12 5v14M7 8l5 4 5-4M7 16l5-4 5 4M5 12h14"/>',
+  CCTV:'<path d="M4 8h11l5 4-5 4H4zM8 16l-2 4M15 8l2-4"/>',
+  "Gas Stove":'<path d="M5 7h14v12H5zM8 4v3M16 4v3"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>',
+  Painter:'<path d="M4 6h11v5H4zM15 8h3v5h-5v7h-2v-9"/>',
+  "Wi-Fi / TV Installation & Setup":'<path d="M3 9c5-4 13-4 18 0M6 13c3-2.5 9-2.5 12 0M9.5 16.5c1.5-1 3.5-1 5 0"/><circle cx="12" cy="20" r="1"/>',
+  "Packers & Movers":'<path d="M4 7l8-4 8 4-8 4-8-4Zm0 0v10l8 4 8-4V7M12 11v10"/>',
+  "Tiles / Stone":'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
+  Waterproofing:'<path d="M12 3c3 4 6 7.2 6 11a6 6 0 1 1-12 0c0-3.8 3-7 6-11Z"/><path d="M9 15c.6 1.4 1.6 2 3 2"/>',
+  "False Ceiling / POP / Gypsum / PVC":'<path d="M4 5h16v5H4zM7 10v4M17 10v4M5 14h14v5H5z"/>'
+ };
+ const p=m[kind]||'<path d="M4 5h16v14H4zM8 9h8M8 13h8"/>';
+ return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+}
+function ocsServiceIcon(){return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8Z"/></svg>'}
+function filterLockedCategories(q){q=String(q||'').toLowerCase().trim();document.querySelectorAll('.ocs-hs-cat').forEach(x=>x.style.display=!q||String(x.dataset.cat||'').includes(q)?'flex':'none')}
+function customerHTML(){
+let h="";
+
+if(S.status==="SELECT_SERVICE"){
+ const cats=Object.entries(services);
+ h=`<div class="ocs-hs-page">
+   <div class="ocs-hs-head"><button class="ocs-hs-back" onclick="try{window.parent.closeModule()}catch(e){}">‹</button><div><h2>Home Services</h2><small>Verified professionals • clear rates</small></div></div>
+   <div class="ocs-hs-body">
+     <div class="ocs-hs-hero"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Professional Home Services At Your Doorstep</b><span>Verified • Skilled • Reliable</span></div></div>
+     <div class="ocs-hs-search"><span>⌕</span><input id="catSearch" placeholder="Search home services..." oninput="filterLockedCategories(this.value)"></div>
+     <div class="ocs-hs-cat-list">${cats.map(([k,v])=>`<button class="ocs-hs-cat" data-cat="${k.toLowerCase()}" onclick="selectCategory('${k.replace(/'/g,"\\'")}')"><span class="ico">${ocsUiIcon(k)}</span><span class="copy"><b>${k}</b><small>${v.items.length}+ Services</small></span><span class="arr">›</span></button>`).join('')}</div>
+   </div>
+ </div>`;return h
+}
+if(S.status==="SELECT_ITEM"){
+ let d=services[S.category];S.selectedItems=S.selectedItems||[];
+ let rows=d.items.map((it,i)=>{
+   const x=S.selectedItems.find(v=>v.i===i);
+   if(it.type!=="fixed")return `<div class="ocs-svc-row svc-card" data-search="${it.name.toLowerCase()}"><span class="ocs-svc-thumb">${ocsServiceIcon()}</span><span class="ocs-svc-copy"><b>${it.name}</b><span>${it.display||'Get Quote'}</span><small>Price after inspection / quote</small></span><button class="ocs-svc-add quote" onclick="selectServiceItem(${i})">Get Quote</button></div>`;
+   return `<div class="ocs-svc-row svc-card" data-search="${it.name.toLowerCase()}"><span class="ocs-svc-thumb">${ocsServiceIcon()}</span><span class="ocs-svc-copy"><b>${it.name}</b><span>${it.display||money(it.price)}</span><small>Labour / service charge</small></span>${x&&!it.noQty?`<span class="ocs-svc-step"><button onclick="changeSelectedQty(${i},-1)">−</button><b>${x.qty}</b><button onclick="changeSelectedQty(${i},1)">+</button></span>`:`<button class="ocs-svc-add" onclick="toggleSelectedItem(${i})">${x?'Added ✓':'Add'}</button>`}</div>`
+ }).join('');
+ h=`<div class="ocs-hs-page">
+   <div class="ocs-hs-head"><button class="ocs-hs-back" onclick="backToCategories()">‹</button><div><h2>${S.category} Services</h2><small>${d.items.length} services</small></div></div>
+   <div class="ocs-hs-body">
+     <div class="ocs-svc-banner"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Safe ${S.category} Solutions For Your Home</b><span>Verified Service Providers • clear OCS rates</span></div></div>
+     <div class="ocs-hs-search"><span>⌕</span><input id="svcSearch" placeholder="Search ${S.category.toLowerCase()} service..." oninput="filterServiceCards(this.value)"></div>
+     <p class="ocs-svc-note">Material/parts separate where applicable. Visit / Inspection and no-work charges follow OCS rules.</p>
+     <div class="ocs-svc-list">${rows}</div>
+     <button class="ocs-other-request" onclick="S.status='CUSTOM_REQUEST';render()">Can’t find your work? Request another service →</button>
+   </div>
+ </div>`;return h
+}
+if(S.status==="CUSTOM_REQUEST"){h=`<button class="backbtn" onclick="S.status='SELECT_ITEM';render()">← ${S.category}</button><div class="card"><h3>New Service Request</h3><div class="muted">Jo work list me nahi hai, yahan details bhejein.</div><label>Describe your work / problem *</label><textarea id="customDesc" rows="4" placeholder="Kaam ki poori detail likhiye"></textarea><label>Work Photos (up to 5)</label><input type="file" accept="image/*" multiple><label>Work Video (up to 1 minute)</label><input type="file" accept="video/*"><label>Preferred Schedule *</label><div class="schedule-grid"><label><input type="radio" name="customSchedule" value="Morning 8 AM–12 PM">Morning • 8 AM–12 PM</label><label><input type="radio" name="customSchedule" value="Afternoon 12–4 PM">Afternoon • 12–4 PM</label><label><input type="radio" name="customSchedule" value="Evening 4–8 PM">Evening • 4–8 PM</label></div><button class="btn" onclick="submitCustomRequest()">Send Request to Matching Service Providers</button></div>`;return h}
+if(S.status==="QUOTE_WAIT"){h=`<div class="notice">Request matching verified Service Provider ko bheja gaya.<br>Provider quote bhejega.</div>`;return h}
+if(S.status==="INITIAL_QUOTE"){h=`<div class="card"><h3>Service Provider Quote</h3><p>${S.quote.desc}</p><div class="money">${money(S.quote.amount)}</div><div class="row"><button class="btn ok" onclick="initialQuoteDecision('APPROVED')">Accept & Lock Amount</button><button class="btn red" onclick="initialQuoteDecision('REJECTED')">Reject</button></div></div>`;return h}
+if(S.status==="BOOKING_DETAILS"){let fixed=S.serviceType==='fixed';h=`<button class="backbtn" onclick="S.status='SELECT_ITEM';render()">← Services</button><div class="card"><h3>Booking Summary</h3><b>${S.service}</b><div class="muted">${S.category}</div>${fixed?`<div class="qtyrow"><div><label>Rate</label><div class="money">${money(S.base/S.quantity)}</div></div><div><label>Quantity</label><select onchange="setQty(this.value)">${Array.from({length:10},(_,i)=>`<option value="${i+1}" ${S.quantity===i+1?'selected':''}>${i+1}</option>`).join('')}</select></div></div>`:''}<div class="money">Total: ${money(S.total)}</div><label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" onclick="choosePayment('ONLINE')">Online</button><button class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" onclick="choosePayment('CASH')">Cash</button></div><div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button class="btn" onclick="booking()">Find Service Provider</button></div>`;return h}
+
+if(S.status==="READY")h=`
+<div class="card">
+<b>${S.service}</b><div class="muted">Approx. service area • Exact address unlocks after Accept</div>
+<div class="money">₹${S.base}</div>
+<div class="card">
+  <h3>Payment Method</h3>
+  <div class="row">
+    <button class="btn ${S.paymentChoice==="ONLINE"?"ok":"gray"}" onclick="choosePayment('ONLINE')">Online</button>
+    <button class="btn ${S.paymentChoice==="CASH"?"ok":"gray"}" onclick="choosePayment('CASH')">Cash</button>
+  </div>
+  <div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div>
+</div>
+<button class="btn" onclick="booking()">Find Service Provider</button>
+</div>`;
+
+if(S.status==="REQUESTED")h=`<div class="notice"><b>Finding an eligible Service Provider&</b><br>OCS nearby available providers check kar raha hai.</div>`;
+
+if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="card"><h3>Provider Change Requested</h3><div class="notice"><b>OCS Support is reviewing your request.</b><br>Current work is on HOLD. No new Service Provider has been assigned automatically.</div><p><b>Reason:</b> ${S.providerChangeReason}</p><p><b>Ticket:</b> ${S.providerChangeTicket}</p><button class="btn" onclick="openSupport('customer')">Contact OCS Support</button></div>`;
+
+if(S.status==="ASSIGNED"||S.status==="ON_WAY")h=`
+<div class="notice good"><b>${S.provider}</b> assigned<br>
+${S.status==="ON_WAY"?"Service Provider On the Way":"Waiting for Provider"}</div>
+${S.status==="ON_WAY"?`<div class="ocs-route"><div class="ocs-route-head"><b>Service Provider Live GPS</b><span class="ocs-pill">On the Way</span></div><div class="ocs-live"><b>${S.provider}</b> is travelling to your service address. Live route appears here in production.</div><button class="btn" onclick="ocsTrack()">Track / Live GPS</button></div>`:""}`;
+
+if(S.status==="REACHED")h=`
+<div class="notice good"><b>GPS Reached Verified • ${S.provider}</b><br>
+Start OTP: <b style="font-size:26px">${S.startOtp}</b><br>
+<span class="muted">OTP only after GPS Reached verification.</span></div>`;
+
+if(S.status==="WORKING"){
+h=`<div class="notice good"><b>Customer • Work In Progress</b><br>Service Provider: ${S.provider}<br>Current Booking Total: ₹${S.total}</div>
+<div class="card"><h3>Customer Actions</h3>
+<div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div>
+<div class="muted" style="margin-bottom:10px">Extra work add karein, same provider ke saath reschedule karein, ya problem ho to resolve karein.</div>
+<button class="btn" onclick="customerOpenAddMoreWork()">+ Add More Work</button>
+<button class="btn alt" onclick="openReschedule('customer')">Work Pending / Reschedule</button>`;
+
+if(S.quote&&S.quoteDecision==="PENDING")h+=`
+<div class="card" style="margin-top:10px"><h3>Service Provider Extra Work Quote</h3><p>${S.quote.desc}</p>
+<div class="money">₹${S.quote.amount}</div>
+<div class="row">
+<button class="btn ok" onclick="quoteDecide('APPROVED')">Approve</button>
+<button class="btn gray" onclick="customerReturnProviderAddWork()">Send Back / Change</button>
+<button class="btn red" onclick="quoteDecide('REJECTED')">Reject</button>
+</div></div>`;
+
+h+=`
+<button class="btn red" onclick="changeProvider()">Change Service Provider</button>
+<button class="btn gray" onclick="cancelJob('customer')">Work Not Completed • Resolve Here</button>
+</div>`;
+}
+
+if(S.status==="WORKING"&&S.quote&&S.quoteDecision==="RETURNED")h+=`
+<div class="card"><h3>Add Work sent back to Service Provider</h3><div class="notice">Change requested: <b>${S.quoteReturnNote||"Revision requested"}</b></div><div class="muted">Waiting for revised Add Work.</div></div>`;
+
+if(S.status==="RESCHEDULE_PENDING"){
+h=`<div class="card"><h3>Reschedule Request</h3>
+<b>${ocsDate(S.reschedule.date)} • ${ocsTime(S.reschedule.time)}</b><div class="muted">${S.reschedule.reason||""} • Visit Charge ₹0</div>
+<p class="muted">Requested by: ${S.rescheduleBy==="customer"?"Customer":S.provider}</p>`;
+if(S.rescheduleBy==="provider")h+=`
+<div class="row"><button class="btn ok" onclick="rescheduleDecision('APPROVED')">Accept</button>
+<button class="btn red" onclick="rescheduleDecision('REJECTED')">Reject</button></div>`;
+else h+=`<div class="notice">Waiting for ${S.provider} response</div>`;
+h+=`</div>`;
+}
+
+if(S.status==="RESCHEDULED")h=`
+<div class="notice good"><b>Rescheduled</b><br>${S.reschedule.date} • ${S.reschedule.time}<br>Same Provider: ${S.provider}</div>
+<button class="btn" onclick="resumeVisit()">Continue Rescheduled Visit</button>`;
+
+if(S.status==="COMPLETION_CONFIRM")h=`
+<div class="card"><h3>Work Completed?</h3>
+<div class="notice">Service Provider ne work complete mark kiya hai.<br><b>Start OTP completion proof nahi hai.</b></div>
+<div class="row">
+<button class="btn ok" onclick="confirmCompletion(true)">Confirm Work Completed</button>
+<button class="btn red" onclick="confirmCompletion(false)">Not Confirm / OCS Help</button>
+</div></div>`;
+
+if(S.status==="PAYMENT")h=`
+<div class="card"><h3>Payment</h3><div class="money">₹${S.total}</div>
+<button class="btn" onclick="openOnline('JOB')">Online Payment</button>
+<button class="btn alt" onclick="payCash('JOB')">Cash</button></div>`;
+
+if(S.status==="ONLINE_PAY"){
+let amt=S.payPurpose==="VISIT"?S.visitCharge:S.total;
+h=`<div class="card"><h3>OCS Online Payment</h3>
+<div class="money">₹${amt}</div>
+<div class="notice"><b>OCS Online Payment</b><br>Company QR / Payment Link merchant setup connect hone ke baad yahan available hoga.</div>
+<div class="qr"></div>
+<button class="btn alt" onclick="alert('Company Payment Link abhi connected nahi hai')">Company Payment Link</button>
+<button class="btn ok" onclick="onlineSuccess()">Confirm Test Payment</button></div>`;
+}
+
+if(S.status==="CASH_WAIT")h=`<div class="notice">Cash Paid marked.<br>Waiting for ${S.provider} confirmation.</div>`;
+
+if(S.status==="NO_SHOW_VISIT")h=`
+<div class="card"><h3>Provider Reached • Customer Unavailable</h3>
+<div class="notice">Start OTP verify nahi hua. Provider ne <b>Customer Not Available / Entry Not Provided</b> select kiya hai.</div>
+<div class="muted">Applicable visit charge: 1–6 km ₹199 • above 6–12 km ₹249. Customer ko polite notification/payment reminder milega. Resolve na ho to OCS Admin booking record dekhkar dono side se baat karega.</div>
+</div>`;
+
+if(S.status==="WNC_CUSTOMER_REASON" || (S.status==="WNC_PROVIDER_REASON" && S.cancelBy==="customer"))h=`
+<div class="card"><h3>Work Not Completed • Select Reason</h3>
+<div class="notice good"><b>If same Service Provider will continue later:</b><br>Use Work Pending / Reschedule instead of closing the job.</div>
+<button class="btn alt" onclick="workPendingSameProvider()">Work Pending / Reschedule Same Provider</button>
+<p><b>Why was the work not completed?</b></p>
+<button class="btn alt" onclick="chooseWncReason('CUSTOMER','Customer stopped / cancelled work after Start OTP')">I want to stop / cancel this work</button>
+<button class="btn alt" onclick="chooseWncReason('CUSTOMER','Customer did not allow work to continue')">I did not allow work to continue</button>
+<button class="btn red" onclick="chooseWncReason('PROVIDER','Service Provider unable / unprepared / refused work')">Service Provider unable / unprepared / refused work</button>
+<button class="btn red" onclick="chooseWncReason('PROVIDER','Service Provider behaviour issue')">Service Provider behaviour issue</button>
+<button class="btn" onclick="chooseWncReason('TECHNICAL','Technical / material / price issue')">Technical / material / price issue</button>
+<button class="btn gray" onclick="chooseWncReason('OTHER','Other issue')">Other issue</button>
+</div>`;
+
+if(S.status==="WNC_PROVIDER_REASON" && S.cancelBy!=="customer")h=`
+<div class="card"><h3>Work Not Completed</h3>
+<div class="notice"><b>Service Provider reason select kar raha hai.</b><br>Reason select hone ke baad aapko sirf Confirm ya Disagree ka option milega.</div>
+<div class="muted">Abhi koi visit charge apply nahi hua hai.</div>
+</div>`;
+
+if(S.status==="WNC_PROVIDER_CONFIRM")h=`
+<div class="card"><h3>Work Not Completed</h3>
+<div class="notice"><b>Your reason sent to Service Provider:</b><br>${S.cancelReason}</div>
+<div class="muted">Service Provider ko sirf Confirm ya Disagree ka option diya gaya hai.</div>
+</div>`;
+
+if(S.status==="WNC_CUSTOMER_CONFIRM"){
+ const wncPreview=S.wncFault==="PROVIDER"?"Customer charge: ₹0":S.wncFault==="OTHER"?"OCS Support review required":"Applicable No-Work Visit Charge GPS distance ke hisab se: 1–6 km ₹199 • >6–12 km ₹249";
+ h=`
+ <div class="card"><h3>Confirm Work Not Completed</h3>
+ <div class="notice"><b>Service Provider reason:</b><br>${S.cancelReason}</div>
+ <div class="muted" style="margin:8px 0 12px">${wncPreview}</div>
+ <div class="row">
+   <button class="btn ok" onclick="confirmWncReasonBy('customer',true)">Confirm</button>
+   <button class="btn red" onclick="confirmWncReasonBy('customer',false)">Disagree • OCS Help</button>
+ </div>
+ </div>`;
+}
+
+if(S.status==="SPOT_RESOLUTION")h=`
+<div class="card"><h3>Resolve Here • No Waiting</h3>
+<div class="notice"><b>Reason:</b> ${S.cancelReason}<br>Customer aur Service Provider yahi par mutually close karein.</div>
+<button class="btn ok" onclick="resolveSpot('RESCHEDULE')">Reschedule • Same Service Provider</button>
+<button class="btn" onclick="resolveSpot('VISIT')">Close • Applicable Visit Charge</button>
+<button class="btn alt" onclick="resolveSpot('NO_CHARGE')">Close • ₹0 Visit Charge • Both Agree</button>
+<button class="btn red" onclick="resolveSpot('DISPUTE')">Need OCS Help</button>
+<div class="muted" style="margin-top:10px">OCS Help sirf last option hai jab dono agree na karein.</div>
+</div>`;
+
+if(S.status==="VISIT_REVIEW")h=`
+<div class="card"><h3>Visit Charge Review</h3>
+<div class="notice"><b>Reason:</b> ${S.cancelReason}<br>Visit charge applies only because this is a customer-side reason.</div>
+<p>Select provider travel distance:</p>
+<button class="btn" onclick="setVisitCharge(199,'1–6 km')">1–6 km • ₹199</button>
+<button class="btn alt" onclick="setVisitCharge(249,'>6–12 km')">Above 6–12 km • ₹249</button>
+<button class="btn red" onclick="disputeVisit()">Need OCS Help</button>
+</div>`;
+
+if(S.status==="VISIT_PAYMENT")h=`
+<div class="card"><h3>Visit Charge</h3>
+<div class="muted">${S.distanceSlab}</div>
+<div class="money">₹${S.visitCharge}</div>
+<button class="btn" onclick="openOnline('VISIT')">Online Payment</button>
+<button class="btn alt" onclick="payCash('VISIT')">Cash</button>
+<button class="btn red" onclick="disputeVisit()">Need OCS Help</button>
+</div>`;
+
+if(S.status==="VISIT_CASH_WAIT")h=`<div class="notice">Visit Charge Cash Paid ₹${S.visitCharge}<br>Waiting for Provider confirmation.</div>`;
+
+if(S.status==="SUPPORT_REVIEW")h=`<div class="card"><h3>OCS Support Review</h3><div class="notice"><b>Visit charge is ON HOLD.</b><br>No automatic payment will be collected until OCS reviews the reason.${S.wncTicket?'<br>Ticket: '+S.wncTicket:''}</div></div>`;
+
+if(S.status==="DONE")h=`
+<div class="notice good"><b>Booking Completed</b><br>Payment: ${S.payment}<br>₹${S.total}</div>
+${S.customerRating
+?'<div class="ocs-rating-box"><h3>Thank you for your rating</h3>'+yellowStarsHTML(S.customerRating,false)+'<div class="ocs-rating-note">'+S.customerRating+' of 5 stars</div>'+(S.customerRatingComment?'<div class="muted" style="margin-top:8px">'+S.customerRatingComment+'</div>':'')+'</div>'
+:'<div class="ocs-rating-box"><h3>Rate Your Service Provider</h3><div class="muted">5 me se jitne star dene hain, utne number wale star par tap karein. Example: 4th star = 4 stars.</div>'+yellowStarsHTML(S.pendingRatingStars||0,true)+(S.pendingRatingStars?'<div class="ocs-rating-note">'+S.pendingRatingStars+' of 5 selected</div><textarea id="ratingComment" oninput="S.pendingRatingComment=this.value" placeholder="Comment / feedback (optional)" style="width:100%;min-height:82px;margin-top:10px;padding:10px;border:1px solid #d8e4e2;border-radius:12px;font:inherit">'+(S.pendingRatingComment||'')+'</textarea><button class="btn ok" style="margin-top:10px" onclick="submitProviderRating()">Submit Rating</button>':'')+'</div>'}
+<button class="btn gray" onclick="resetAll()">Book Another Service</button>`;
+
+if(S.status==="CANCELLED_SETTLED")h=`
+<div class="notice good"><b>Work Not Completed • Settled</b><br>
+Visit Charge: ₹${S.visitCharge}<br>Payment: ${S.payment}</div>
+<button class="btn gray" onclick="resetAll()">Book Another Service</button>`;
+
+if(S.status==="CANCELLED")h=`
+<div class="notice bad"><b>Job Cancelled</b><br>${S.cancelReason}</div>
+<button class="btn gray" onclick="resetAll()">Book Another Service</button>`;
+
+if(["ASSIGNED","ON_WAY","REACHED","WORKING"].includes(S.status))h+=customerProviderContactHTML();
+return h;
+}
+
+function providerHTML(){
+let h="";
+
+if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQUEST"||S.status==="BOOKING_DETAILS"||S.status==="INITIAL_QUOTE")h=`<p class="muted">No active job.</p>`;
+if(S.status==="QUOTE_WAIT")h=`<div class="card"><h3>Get Quote Request</h3><b>${S.category}</b><p>${S.customDescription||"Custom work"}</p><div class="muted">Preferred: ${S.customSchedule||""}</div><button class="btn" onclick="sendInitialQuote()">Send Quote</button><button class="btn gray" onclick="askExpert()">Ask to Expert</button></div>`;
+
+if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice">No incoming request.<br>Customer provider-change request is under OCS Support review. Another provider will receive it only after Admin approval.</div>`;
+
+if(S.status==="REQUESTED"){
+ const canReceive=S.available&&!S.adminPaused&&S.jobAccess;
+ const walletLow=Number(S.wallet)<Number(S.walletWarningLevel||200);
+ if(canReceive){
+   h=`
+<div class="card"><h3>Incoming Request</h3>
+${walletLow?'<div class="notice"><b>Wallet Warning</b><br>Maintain wallet to continue booking smoothly. This warning does not block this job.</div>':''}
+<b>${S.service}</b><div class="muted">${S.address}</div>
+<div class="money">₹${S.base}</div>
+<div class="row">
+<button class="btn ok" onclick="providerDecision('accept')">Accept</button>
+<button class="btn red" onclick="providerDecision('reject')">Reject</button>
+</div></div>`;
+ }else if(S.adminPaused||!S.jobAccess){
+   h=`<div class="card"><h3>New Jobs Paused by OCS Admin</h3><div class="notice">Wallet balance is not the reason. OCS Admin controls Pause / Resume.</div></div>`;
+ }else{
+   h=`<div class="card"><h3>Available for Work is OFF</h3><div class="notice">New request receive karne ke liye Available for Work ON karein.</div></div>`;
+ }
+}
+
+if(S.status==="ASSIGNED")h=`<div class="ocs-route"><div class="ocs-route-head"><b>Customer Service Address</b><span class="ocs-pill">Unlocked ✓</span></div><div class="ocs-address"><small>Exact Address</small><b>${ocsAddress()}</b></div><div class="ocs-route-grid"><button class="btn gray" onclick="ocsDirections()">Map / Directions</button><button class="btn" onclick="onWay()">On the Way</button></div></div><button class="btn alt" onclick="providerReleaseJob()">Unable to Go / Release Job</button>`;
+
+if(S.status==="ON_WAY")h=`<div class="ocs-route"><div class="ocs-route-head"><b>Customer Service Address</b><span class="ocs-pill">On the Way</span></div><div class="ocs-address"><small>Exact Address</small><b>${ocsAddress()}</b></div><div class="ocs-route-grid"><button class="btn gray" onclick="ocsDirections()">Map / Directions</button><button class="btn ok" onclick="ocsReached()">GPS Reached Verified</button></div><div class="ocs-live"><b>GPS:</b> Production app verifies SP phone near Customer booking location. Local HTML uses safe simulation.</div></div><button class="btn alt" onclick="providerReleaseJob()">Emergency / Unable to Continue</button>`;
+
+if(S.status==="REACHED")h=`
+<div class="ocs-route"><div class="ocs-route-head"><b>Customer Service Address</b><span class="ocs-pill">Reached ✓</span></div><div class="ocs-address"><small>Booking Address</small><b>${ocsAddress()}</b></div><button class="btn gray" onclick="ocsDirections()">Map / Directions</button></div>
+<div class="notice"><b>GPS Reached Verified</b><br>Customer se Start OTP lo.</div>
+<button class="btn" onclick="startWork()">Enter Start OTP</button>
+<button class="btn red" onclick="customerUnavailableBeforeOtp()">Customer Not Available / OTP Not Provided / Entry Not Provided</button>`;
+
+if(S.status==="WORKING"){
+h=`<div class="notice good"><b>Service Provider • Work In Progress</b><br>Current Booking Total: ₹${S.total}</div>
+<div class="card"><h3>Service Provider Actions</h3>
+<div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div>
+<div class="muted" style="margin-bottom:10px">Customer ke booking par kaam chal raha hai. Extra work ke liye OCS Rate Card use karein.</div>
+<button class="btn" onclick="openAddWork()">+ Add Work • OCS Rate Card</button>
+<button class="btn alt" onclick="openReschedule('provider')">Work Pending / Reschedule</button>
+<button class="btn ok" onclick="finish()">Finish Job</button>
+<button class="btn gray" onclick="cancelJob('provider')">Work Not Completed • Resolve Here</button>
+</div>`;
+}
+
+if(S.status==="NO_SHOW_VISIT")h=`
+<div class="notice good"><b>Provider visit record saved.</b><br>Customer Not Available / OTP Not Provided / Entry Not Provided<br>Start OTP not verified.</div>
+<div class="muted">Applicable visit charge will follow distance rule. If payment is not resolved, OCS Admin handles it from booking records.</div>`;
+
+if(S.status==="RESCHEDULE_PENDING"){
+h=`<div class="card"><h3>Reschedule Request</h3>
+<b>${ocsDate(S.reschedule.date)} • ${ocsTime(S.reschedule.time)}</b><div class="muted">${S.reschedule.reason||""} • Visit Charge ₹0</div>`;
+if(S.rescheduleBy==="customer")h+=`
+<div class="row"><button class="btn ok" onclick="rescheduleDecision('APPROVED')">Accept</button>
+<button class="btn red" onclick="rescheduleDecision('REJECTED')">Reject</button></div>`;
+else h+=`<div class="notice">Waiting for Customer response</div>`;
+h+=`</div>`;
+}
+
+if(S.status==="RESCHEDULED")h=`<div class="ocs-route"><div class="ocs-route-head"><b>✓ Rescheduled</b><span class="ocs-pill">Booking Open</span></div><div class="ocs-address"><small>NEW SCHEDULE</small><b>${ocsDate(S.reschedule.date)} • ${ocsTime(S.reschedule.time)}</b><br>${S.reschedule.reason||""}<br>Same Service Provider: ${S.provider}<br>Visit Charge: ₹0 at this stage</div></div>`;
+
+if(S.status==="COMPLETION_CONFIRM")h=`<div class="notice">Work Completed marked.<br>Waiting for Customer confirmation.</div>`;
+if(S.status==="PAYMENT"||S.status==="ONLINE_PAY")h=`<div class="notice">Waiting for Customer payment.</div>`;
+
+if(S.status==="CASH_WAIT")h=`
+<div class="notice">Customer marked Cash Paid ₹${S.total}</div>
+<button class="btn ok" onclick="cashReceived()">Cash Received</button>`;
+
+if(S.status==="WNC_PROVIDER_REASON" && S.cancelBy!=="customer")h=`
+<div class="card"><h3>Work Not Completed • Select Reason</h3>
+<div class="notice good"><b>If same provider will continue later:</b><br>Use Work Pending / Reschedule instead of closing the job.</div>
+<button class="btn alt" onclick="workPendingSameProvider()">Work Pending / Reschedule Same Provider</button>
+<p><b>Why was the work not completed?</b></p>
+<button class="btn alt" onclick="chooseWncReason('CUSTOMER','Customer stopped / cancelled work after Start OTP')">Customer stopped / cancelled work</button>
+<button class="btn alt" onclick="chooseWncReason('CUSTOMER','Customer did not allow work to continue')">Customer did not allow work to continue</button>
+<button class="btn red" onclick="chooseWncReason('PROVIDER','Service Provider unable / unprepared / refused work')">Provider unable / unprepared / refused work</button>
+<button class="btn red" onclick="chooseWncReason('PROVIDER','Service Provider behaviour issue')">Provider behaviour issue</button>
+<button class="btn" onclick="chooseWncReason('TECHNICAL','Technical / material / price issue')">Technical / material / price issue</button>
+<button class="btn gray" onclick="chooseWncReason('OTHER','Other issue')">Other issue</button>
+</div>`;
+
+if(S.status==="WNC_CUSTOMER_REASON" || (S.status==="WNC_PROVIDER_REASON" && S.cancelBy==="customer"))h=`
+<div class="notice">Customer opened Work Not Completed.<br>Waiting for Customer to select the reason.</div>`;
+
+if(S.status==="WNC_PROVIDER_CONFIRM"){
+ const wncPreview=S.wncFault==="PROVIDER"?"Customer charge: ₹0":S.wncFault==="OTHER"?"OCS Support review required":"Applicable No-Work Visit Charge GPS distance ke hisab se: 1–6 km ₹199 • >6–12 km ₹249";
+ h=`
+ <div class="card"><h3>Confirm Work Not Completed</h3>
+ <div class="notice"><b>Customer reason:</b><br>${S.cancelReason}</div>
+ <div class="muted" style="margin:8px 0 12px">${wncPreview}</div>
+ <div class="row">
+   <button class="btn ok" onclick="confirmWncReasonBy('provider',true)">Confirm</button>
+   <button class="btn red" onclick="confirmWncReasonBy('provider',false)">Disagree • OCS Help</button>
+ </div>
+ </div>`;
+}
+
+if(S.status==="WNC_CUSTOMER_CONFIRM")h=`<div class="notice">Reason sent to Customer.<br><b>${S.cancelReason}</b><br>Waiting for Customer confirmation.</div>`;
+
+if(S.status==="VISIT_REVIEW")h=`<div class="notice">Work Not Completed request opened.<br>Waiting for Customer visit-charge resolution.</div>`;
+
+if(S.status==="VISIT_PAYMENT"||S.status==="SUPPORT_REVIEW")h=`<div class="notice">Waiting for Customer / OCS Support.</div>`;
+
+if(S.status==="VISIT_CASH_WAIT")h=`
+<div class="notice">Customer marked Visit Charge Cash Paid ₹${S.visitCharge}</div>
+<button class="btn ok" onclick="cashReceived()">Visit Charge Cash Received</button>`;
+
+if(S.status==="DONE")h=`<div class="notice good"><b>Job Completed</b><br>₹${S.total}</div>${S.customerRating?'<div class="ocs-rating-box"><b>Customer Rating</b>'+yellowStarsHTML(S.customerRating,false)+'</div>':''}`;
+
+if(S.status==="CANCELLED_SETTLED")h=`<div class="notice good"><b>Work Not Completed • Settled</b><br>Visit Charge ₹${S.visitCharge}</div>`;
+
+if(S.status==="CANCELLED")h=`<div class="notice bad"><b>Job Cancelled</b><br>${S.cancelReason}</div>`;
+
+if(S.status==="WORKING"&&S.quote&&S.quoteDecision==="RETURNED")h+=`
+<div class="card"><h3>Customer requested Add Work change</h3><div class="notice"><b>${S.quoteReturnNote||"Revision requested"}</b></div><button class="btn" onclick="providerEditReturnedQuote()">Edit & Resend →</button></div>`;
+
+return h;
+}
+
+
+function sendWalletReminder(channel){
+ const ch=String(channel||"SMS").toUpperCase();
+ const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
+ const msg="OCS Wallet balance "+bal+". Please recharge your wallet to continue receiving new jobs.";
+ S.walletReminderHistory=S.walletReminderHistory||[];
+ S.walletReminderHistory.unshift({channel:ch,message:msg,at:new Date().toISOString()});
+ hist("Wallet "+ch+" reminder sent to "+S.provider+" • "+msg);
+ alert(ch+" reminder queued\n\n"+msg+"\n\nRegistered mobile/email/call delivery backend connect hone ke baad active hogi.");
+ render();
+}
+
+function adminToggleNewJobs(){
+ S.adminPaused=!S.adminPaused;
+ S.jobAccess=!S.adminPaused;
+ hist("OCS Admin "+(S.adminPaused?"paused":"resumed")+" new booking requests for "+S.provider);
+ render();
+}
+function adminApproveReassign(){
+ if(S.status!=="PROVIDER_CHANGE_HOLD" && S.status!=="SUPPORT_REVIEW" && S.status!=="SUPPORT_HOLD"){
+   alert("Provider reassign ke liye booking HOLD/Support state me honi chahiye.");
+   return;
+ }
+ let old=S.provider;
+ S.provider=old==="SP1"?"SP2":"SP1";
+ S.status="REQUESTED";
+ S.currentJob="";
+ S.supportTicket="";
+ hist("OCS Admin approved provider change • Request sent to "+S.provider);
+ render();
+}
+function adminCloseSupport(){
+ if(!S.supportTicket){alert("No open support ticket.");return}
+ hist("OCS Admin closed "+S.supportTicket);
+ S.supportTicket="";
+ if(S.status==="SUPPORT_REVIEW"||S.status==="SUPPORT_HOLD") S.status="CANCELLED_SETTLED";
+ render();
+}
+function adminHTMLState(){
+ let amount=ensureBookingAmount();
+ let booking=S.service?`
+ <div><b>${S.category||"—"} • ${S.service}</b></div>
+ <div class="muted">Status: ${S.status} • Assigned: ${S.provider||"—"} • Amount: ${amount?money(amount):"Pending"}</div>`:
+ `<div class="muted">No active booking.</div>`;
+ let provider=`<div><b>${S.provider}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div>
+ <div class="muted">OCS Wallet: ${S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2)}</div>`;
+ let visit=`<div class="muted">GPS one-way: ${Number(S.oneWayDistanceKm||0).toFixed(1)} km • Suggested: ${S.suggestedVisitCharge?money(S.suggestedVisitCharge):"—"} • Final: ${S.visitCharge?money(S.visitCharge):"—"}</div>`;
+ let support=S.supportTicket?`<b>${S.supportTicket}</b> • ${S.cancelReason||S.providerChangeReason||"Review required"}`:`<span class="muted">No open support ticket.</span>`;
+ let charge=amount?auditPlatformCharge(amount):0;
+ return {booking,provider,visit,support,accounting:`Current booking internal 9%: ${money(charge)}`};
+}
+
+function customerOpenAddMoreWork(){
+ if(S.status!=="WORKING"){alert("Add More Work sirf WORKING stage me available hai.");return}
+ S.customerAddingWork=true;S.customerAddStep="SELECT";S.addWorkSelected={};S.addWorkQty={};render();renderAddWorkSheet();
+}
+function customerCancelAddMoreWork(){
+ S.customerAddingWork=false;S.addWorkSelected={};S.addWorkQty={};
+ let sh=document.getElementById("addWorkSheet");if(sh)sh.classList.add("hide");render();
+}
+function customerToggleExtra(i){
+ if(!S.addWorkSelected)S.addWorkSelected={};S.addWorkSelected[i]=!S.addWorkSelected[i];renderAddWorkSheet();
+}
+function customerAddBackNav(){
+ if(S.customerAddStep==="REVIEW"){S.customerAddStep="SELECT";renderAddWorkSheet();return}
+ customerCancelAddMoreWork();
+}
+function customerAddForward(){
+ const arr=services[S.category]?.items||[];
+ const items=arr.map((x,i)=>S.addWorkSelected&&S.addWorkSelected[i]&&x.type==="fixed"?{name:x.name,price:Number(x.price||0),qty:(S.addWorkQty&&S.addWorkQty[i])||1}:null).filter(Boolean);
+ if(S.customerAddStep!=="REVIEW"){
+   if(!items.length){alert("Kam se kam 1 service select karein.");return}
+   S.customerAddStep="REVIEW";renderAddWorkSheet();return;
+ }
+ customerSendExtraRequest();
+}
+function customerSendExtraRequest(){
+ const c=(services[S.category]?.items||[]);
+ const a=c.map((x,i)=>S.addWorkSelected&&S.addWorkSelected[i]?{name:x.name,type:x.type,price:Number(x.price||0),qty:(S.addWorkQty&&S.addWorkQty[i])||1}:null).filter(Boolean);
+ if(!a.length){alert("Extra service select kare.");return}
+ S.customerExtraItems=a;
+ S.customerExtraRequest=a.map(x=>x.name+" × "+x.qty).join(", ");
+ S.customerExtraStatus="SENT_TO_PROVIDER";
+ S.customerAddingWork=false;S.customerAddStep="SELECT";
+ let sh=document.getElementById("addWorkSheet");if(sh)sh.classList.add("hide");
+ hist("Customer sent Add Work to "+S.provider+" • "+S.customerExtraRequest);
+ render();
+ alert("Extra Work Request Service Provider ko send ho gaya.");
+}
+function customerRequestOtherQuote(){
+ if(S.status!=="WORKING")return;
+ let d=prompt("Extra work / problem describe kare:");if(!d)return;
+ S.customerExtraItems=[{name:d,type:"quote",price:0,qty:1}];
+ S.customerExtraRequest="Get Quote: "+d;
+ S.customerExtraStatus="SENT_TO_PROVIDER";
+ S.customerAddingWork=false;
+ let sh=document.getElementById("addWorkSheet");if(sh)sh.classList.add("hide");
+ hist("Customer sent Add More Work / Get Quote to "+S.provider+" • "+d);
+ render();
+ alert("Get Quote request Service Provider ko send ho gaya.");
+}
+function customerExtraQty(i,d){
+ if(!S.addWorkQty)S.addWorkQty={};S.addWorkQty[i]=Math.max(1,(S.addWorkQty[i]||1)+d);renderAddWorkSheet();
+}
+
+function customerExtraApprovalHTML(){
+ if(S.status!=="WORKING"||S.customerExtraStatus!=="AMOUNT_SENT"||!S.extraQuote)return "";
+ return `<div class="card"><h3>Get Quote Amount</h3><div class="notice"><b>${S.extraQuote.desc}</b><div>${money(S.extraQuote.amount)}</div></div><button class="btn" onclick="customerApproveRequestedExtra()">Approve Quote & Add</button><button class="btn gray" onclick="customerRejectRequestedExtra()">Reject Quote</button></div>`;
+}
+function customerApproveRequestedExtra(){
+ const q=S.extraQuote;if(!q)return;S.total=Number(S.total||0)+Number(q.amount||0);hist("Customer approved Add Work • New total "+money(S.total));
+ S.extraQuote=null;S.customerExtraStatus="";S.customerExtraRequest="";S.customerExtraItems=[];S.addWorkSelected={};S.addWorkQty={};render();
+}
+function customerRejectRequestedExtra(){
+ if(!S.extraQuote)return;hist("Customer rejected Add Work amount");S.extraQuote=null;S.customerExtraStatus="SENT_TO_PROVIDER";render();
+}
+function customerAddWorkHTML(){
+ if(S.status!=="WORKING")return "";
+ let pending="";
+ if(S.customerExtraRequest){
+   if(S.customerExtraStatus==="RETURNED_TO_CUSTOMER"){
+     pending=`<div class="pending-mini"><b>← Service Provider sent this Add Work back</b><br>${S.customerExtraReturnNote||"Change requested"}<br><button class="btn alt" style="margin-top:8px" onclick="customerEditReturnedExtra()">Edit & Resend →</button></div>`;
+   }else{
+     pending=`<div class="pending-mini"><b>${S.customerExtraStatus==="AMOUNT_SENT"?"SP sent amount — approval required":"Sent to "+S.provider+" — waiting"}</b><br>${S.customerExtraRequest}</div>`;
+   }
+ }
+ let done=S.lastAddedWork?`<div class="pending-mini"><b>✓ Extra Work Added • ${money(S.lastAddedWork.amount)}</b><br>${S.lastAddedWork.desc}</div>`:"";
+ return `${done}${pending}<div class="dashboard-secondary">
+ <div class="compact-action"><b>Booking Help</b><small>Problem ho to OCS Support</small><button class="btn alt" onclick="openSupport('customer')">Support</button></div>
+ <div class="compact-action"><b>Current Total</b><small>Approved booking + added work</small><div class="money" style="font-size:20px">${money(S.total)}</div></div>
+ </div>`;
+}
+
+
+function renderAddWorkSheet(){
+ const sh=document.getElementById("addWorkSheet"), box=document.getElementById("addWorkSheetList");
+ if(!sh||!box||!S.customerAddingWork){if(sh)sh.classList.add("hide");return}
+ sh.classList.remove("hide");let sc=document.getElementById("sheetCategory");if(sc)sc.textContent=S.category||"Service";
+ const arr=services[S.category]?.items||[];
+ const selected=arr.map((x,i)=>S.addWorkSelected&&S.addWorkSelected[i]&&x.type==="fixed"?{name:x.name,price:Number(x.price||0),qty:(S.addWorkQty&&S.addWorkQty[i])||1}:null).filter(Boolean);
+ const back=document.getElementById("customerAddBackBtn"),send=document.getElementById("sendExtraWorkBtn");
+ if(S.customerAddStep==="REVIEW"){
+   const total=selected.reduce((n,x)=>n+x.price*x.qty,0);
+   box.innerHTML='<div class="addwork-review"><b>Review Add Work</b>'+selected.map(x=>'<div class="rowline"><span>'+x.name+' × '+x.qty+'</span><b>'+money(x.price*x.qty)+'</b></div>').join('')+'<div class="addwork-review-total">Total '+money(total)+'</div></div><div class="muted">Sahi hai to Send karein. Change karna ho to Back / Edit dabayein.</div>';
+   if(back)back.textContent="← Edit";
+   if(send){send.textContent="Send to Service Provider →";send.disabled=!selected.length;send.style.opacity=selected.length?"1":".55"}
+   return;
+ }
+ box.innerHTML=arr.map((x,i)=>{
+  let sel=S.addWorkSelected&&S.addWorkSelected[i],q=(S.addWorkQty&&S.addWorkQty[i])||1;
+  return `<div class="service"><div><b>${x.name}</b><div class="muted">${x.type!=="fixed"?"Get Quote":money(x.price)+(x.noQty?"":" each")}</div></div><div>${x.type!=="fixed"?`<button class="mini" onclick="customerRequestOtherQuote()">Get Quote</button>`:`<button class="mini ${sel?"selected":""}" onclick="customerToggleExtra(${i})">${sel?"✓ Selected":"Select"}</button>${sel&&!x.noQty?`<button class="mini" onclick="customerExtraQty(${i},-1)">−</button><b>${q}</b><button class="mini" onclick="customerExtraQty(${i},1)">+</button>`:""}`}</div></div>`;
+ }).join("");
+ const count=selected.length;
+ if(back)back.textContent="← Back";
+ if(send){send.textContent=count?"Review "+count+" Item"+(count>1?"s":"")+" →":"Review →";send.disabled=!count;send.style.opacity=count?"1":".55";}
+}
+
+function providerProcessCustomerAddWork(){
+ const a=S.customerExtraItems||[];
+ if(S.status!=="WORKING"||!a.length){alert("Customer Add Work request nahi mila.");return}
+ const fixed=a.every(x=>x.type==="fixed");
+ if(fixed){
+   const amt=a.reduce((n,x)=>n+Number(x.price||0)*Number(x.qty||1),0);
+   S.total=Number(S.total||0)+amt;
+   hist(S.provider+" confirmed Customer Add Work • "+S.customerExtraRequest+" • Added "+money(amt)+" • New total "+money(S.total));
+   S.lastAddedWork={desc:S.customerExtraRequest,amount:amt};
+   S.extraQuote=null;S.customerExtraStatus="";S.customerExtraRequest="";S.customerExtraItems=[];S.addWorkSelected={};S.addWorkQty={};
+   render();return;
+ }
+ const amt=Number(prompt("Get Quote amount ₹"));
+ if(!amt||amt<=0)return;
+ S.extraQuote={desc:S.customerExtraRequest,amount:amt,fromCustomer:true};
+ S.customerExtraStatus="AMOUNT_SENT";
+ hist(S.provider+" sent Get Quote amount "+money(amt)+" to Customer");
+ render();
+}
+function providerReturnCustomerAddWork(){
+ if(!S.customerExtraRequest)return;
+ const note=prompt("Customer ko kya change karna hai?")||"Please revise Add Work";
+ S.customerExtraStatus="RETURNED_TO_CUSTOMER";S.customerExtraReturnNote=note;
+ hist(S.provider+" sent Customer Add Work back for change • "+note);render();
+}
+function providerRejectCustomerAddWork(){
+ if(!S.customerExtraRequest)return;
+ hist(S.provider+" rejected Customer Add Work • "+S.customerExtraRequest);
+ S.customerExtraStatus="";S.customerExtraRequest="";S.customerExtraItems=[];S.customerExtraReturnNote="";render();
+}
+function customerEditReturnedExtra(){
+ const a=S.customerExtraItems||[],arr=services[S.category]?.items||[];
+ S.customerAddingWork=true;S.customerAddStep="SELECT";S.addWorkSelected={};S.addWorkQty={};
+ a.forEach(it=>{const i=arr.findIndex(x=>x.name===it.name);if(i>=0){S.addWorkSelected[i]=true;S.addWorkQty[i]=Number(it.qty||1)}});
+ S.customerExtraStatus="EDITING";render();renderAddWorkSheet();
+}
+function providerCustomerExtraHTML(){
+ if(S.status!=="WORKING"||!S.customerExtraRequest)return "";
+ const a=S.customerExtraItems||[],fixed=a.length&&a.every(x=>x.type==="fixed");
+ const rows=a.map(x=>`<div class="service"><div><b>${x.name}</b><div class="muted">Qty ${x.qty}${x.type==="fixed"?" • "+money(Number(x.price||0)*Number(x.qty||1)):" • Get Quote"}</div></div></div>`).join("");
+ if(S.customerExtraStatus==="RETURNED_TO_CUSTOMER")return `<div class="card"><h3>Customer Add Work</h3>${rows}<div class="notice">Sent back to Customer for change.<br><b>${S.customerExtraReturnNote||""}</b></div></div>`;
+ if(!fixed&&S.customerExtraStatus==="AMOUNT_SENT")return `<div class="card"><h3>Customer Add Work Request</h3>${rows}<div class="notice"><b>Quote sent to Customer: ${money(S.extraQuote?.amount||0)}</b></div></div>`;
+ return `<div class="card"><div class="status" style="display:inline-block;margin-bottom:8px">NEW REQUEST</div><h3>Customer Add Work Request</h3>${rows}<div class="muted" style="margin:7px 0 10px">Customer ne running booking me extra work bheja hai.</div><div class="row"><button class="btn ok" onclick="providerProcessCustomerAddWork()">${fixed?"Accept & Add":"Enter Quote & Send"}</button><button class="btn gray" onclick="providerReturnCustomerAddWork()">Send Back / Change</button><button class="btn red" onclick="providerRejectCustomerAddWork()">Reject</button></div></div>`;
+}
+function renderCore(){
+$("providerName").textContent=S.provider;
+const prl=$("providerRatingLine");if(prl)prl.innerHTML=providerRatingSummary();
+$("availabilityBtn").textContent="Available: "+(S.available?"ON":"OFF");
+$("availabilityBtn").style.background=S.available?"#16a34a":"#64748b";
+$("walletBalance").textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
+$("currentJob").textContent=S.currentJob||((["WORKING","ON_WAY","REACHED","ASSIGNED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?"Current Booking":"None");
+$("nextJob").textContent=S.nextJob||"None";
+const walletLow=Number(S.wallet)<Number(S.walletWarningLevel||200);
+$("walletWarning").classList.toggle("hide",!S.adminPaused&&!walletLow);
+$("walletWarning").innerHTML=S.adminPaused
+ ?"<b>New booking requests paused by OCS Admin.</b><br>Wallet balance se independent Admin control hai."
+ :(walletLow?"<b>Wallet Warning</b><br>Current wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+". Maintain wallet to continue booking smoothly. Warning only; jobs automatically stop nahi hongi.":"");
+$("cStatus").textContent=S.status;
+$("pStatus").textContent=S.status;
+const pt=$("ptab");const normalBookingNew=S.status==="REQUESTED";const extraWorkNew=S.customerExtraStatus==="SENT_TO_PROVIDER"&&S.customerExtraRequest;if(pt)pt.textContent=(normalBookingNew||extraWorkNew)?"Service Provider • NEW":"Service Provider";
+$("cBody").innerHTML=customerHTML();
+$("pBody").innerHTML=providerHTML();
+$("cLog").innerHTML=S.logs.length?S.logs.map(x=>"<div>"+x+"</div>").join(""):"No history yet.";
+$("pLog").innerHTML=$("cLog").innerHTML;
+if($("customerAddWorkMount")){try{$("customerAddWorkMount").innerHTML=customerExtraApprovalHTML()+customerAddWorkHTML();renderAddWorkSheet();}catch(e){$("customerAddWorkMount").innerHTML='<div class="card"><h3>Add More Work</h3><button class="btn" onclick="customerOpenAddMoreWork()">+ Add More Work</button></div>';console.error(e)}}
+if($("providerCustomerExtraMount")) $("providerCustomerExtraMount").innerHTML=providerCustomerExtraHTML();
+try{renderProviderAddWorkSheet();}catch(e){console.error(e)}
+if($("admin")){
+ let A=adminHTMLState();
+ $("aStatus").textContent=S.status;
+ $("adminBooking").innerHTML=A.booking;
+ $("adminProvider").innerHTML=A.provider;
+ $("adminVisit").innerHTML=A.visit;
+ $("adminSupport").innerHTML=A.support;
+ $("adminAccounting").textContent=A.accounting;
+ $("aLog").innerHTML=$("cLog").innerHTML;
+}
+}
+function render(){
+ saveHomeState();
+ renderCore();
+ updateSelectionTray();
+ try{window.parent.postMessage({type:"OCS_BOOKING_STATE",booking:{flowVersion:8,updatedAt:Date.now(),status:S.status,provider:S.provider,category:S.category,service:S.service||S.serviceName||"",total:S.total,base:S.base,paymentChoice:S.paymentChoice,currentJob:S.currentJob,rescheduleTime:S.rescheduleTime||null,visitCharge:S.visitCharge||0},fullState:S},"*")}catch(e){}
+}
+
+document.body.classList.add('customer-locked-ui');
+render();
+</script>
+</body>
+</html>
