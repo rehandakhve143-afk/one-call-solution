@@ -1191,7 +1191,7 @@ let h="";
 if(S.status==="SELECT_SERVICE"){
  const cats=Object.entries(services);
  h=`<div class="ocs-hs-page">
-   <div class="ocs-hs-head"><button class="ocs-hs-back" onclick="try{window.parent.closeModule()}catch(e){}">‹</button><div><h2>Home Services</h2><small>Verified professionals • clear rates</small></div></div>
+   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 23.6</span><button class="ocs-hs-back" onclick="try{window.parent.closeModule()}catch(e){}">‹</button><div><h2>Home Services</h2><small>Verified professionals • clear rates</small></div></div>
    <div class="ocs-hs-body">
      <div class="ocs-hs-hero"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Professional Home Services At Your Doorstep</b><span>Verified • Skilled • Reliable</span></div></div>
      <div class="ocs-hs-search"><span>⌕</span><input id="catSearch" placeholder="Search home services..." oninput="filterLockedCategories(this.value)"></div>
@@ -1203,28 +1203,28 @@ if(S.status==="SELECT_ITEM"){
  let d=services[S.category];S.selectedItems=S.selectedItems||[];
  let selectedQty=S.selectedItems.reduce((a,x)=>a+Number(x.qty||1),0);
  let selectedTotal=S.selectedItems.reduce((a,x)=>a+Number(x.price||0)*Number(x.qty||1),0);
- let bookingBar=S.selectedItems.length?`<div class="ocs-inline-booking"><div class="ib-copy"><b>${selectedQty} Service${selectedQty>1?'s':''} Selected</b><small>Grand Total: ${money(selectedTotal)}</small></div><button type="button" onclick="continueSelectedItems()">Continue Booking →</button></div>`:'';
+ let bookingBar=S.selectedItems.length?`<div class="ocs-inline-booking"><div class="ib-copy"><b>${selectedQty} Service${selectedQty>1?'s':''} Selected</b><small>Grand Total: ${money(selectedTotal)}</small></div><button type="button" data-ocs-continue="1">Continue Booking →</button></div>`:'';
  let rows=d.items.map((it,i)=>{
    const x=S.selectedItems.find(v=>v.i===i);
-   if(it.type!=="fixed")return `<div class="ocs-svc-row svc-card" data-search="${it.name.toLowerCase()}"><span class="ocs-svc-thumb">${ocsServiceIcon()}</span><span class="ocs-svc-copy"><b>${it.name}</b><span>${it.display||'Get Quote'}</span><small>Price after inspection / quote</small></span><button class="ocs-svc-add quote" onclick="selectServiceItem(${i})">Get Quote</button></div>`;
-   return `<div class="ocs-svc-row svc-card" data-search="${it.name.toLowerCase()}"><span class="ocs-svc-thumb">${ocsServiceIcon()}</span><span class="ocs-svc-copy"><b>${it.name}</b><span>${it.display||money(it.price)}</span><small>Labour / service charge</small></span>${x&&!it.noQty?`<span class="ocs-svc-step"><button onclick="changeSelectedQty(${i},-1)">−</button><b>${x.qty}</b><button onclick="changeSelectedQty(${i},1)">+</button></span>`:`<button class="ocs-svc-add" onclick="toggleSelectedItem(${i})">${x?'Added ✓':'Add'}</button>`}</div>`
+   if(it.type!=="fixed")return `<div class="ocs-svc-row svc-card" data-search="${it.name.toLowerCase()}"><span class="ocs-svc-thumb">${ocsServiceIcon()}</span><span class="ocs-svc-copy"><b>${it.name}</b><span>${it.display||'Get Quote'}</span><small>Price after inspection / quote</small></span><button type="button" class="ocs-svc-add quote" data-ocs-quote="${i}">Get Quote</button></div>`;
+   return `<div class="ocs-svc-row svc-card" data-search="${it.name.toLowerCase()}"><span class="ocs-svc-thumb">${ocsServiceIcon()}</span><span class="ocs-svc-copy"><b>${it.name}</b><span>${it.display||money(it.price)}</span><small>Labour / service charge</small></span>${x&&!it.noQty?`<span class="ocs-svc-step"><button type="button" data-ocs-qty="${i}" data-delta="-1">−</button><b>${x.qty}</b><button type="button" data-ocs-qty="${i}" data-delta="1">+</button></span>`:`<button type="button" class="ocs-svc-add" data-ocs-add="${i}">${x?'Added ✓':'Add'}</button>`}</div>`
  }).join('');
  h=`<div class="ocs-hs-page">
-   <div class="ocs-hs-head"><button class="ocs-hs-back" onclick="backToCategories()">‹</button><div><h2>${S.category} Services</h2><small>${d.items.length} services</small></div></div>
+   <div class="ocs-hs-head"><button type="button" class="ocs-hs-back" data-ocs-back-categories="1">‹</button><div><h2>${S.category} Services</h2><small>${d.items.length} services</small></div></div>
    <div class="ocs-hs-body">
      <div class="ocs-svc-banner"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Safe ${S.category} Solutions For Your Home</b><span>Verified Service Providers • clear OCS rates</span></div></div>
      <div class="ocs-hs-search"><span>⌕</span><input id="svcSearch" placeholder="Search ${S.category.toLowerCase()} service..." oninput="filterServiceCards(this.value)"></div>
      <p class="ocs-svc-note">Material/parts separate where applicable. Visit / Inspection and no-work charges follow OCS rules.</p>
      ${bookingBar}
      <div class="ocs-svc-list">${rows}</div>
-     <button class="ocs-other-request" onclick="S.status='CUSTOM_REQUEST';render()">Can’t find your work? Request another service →</button>
+     <button type="button" class="ocs-other-request" data-ocs-other-request="1">Can’t find your work? Request another service →</button>
    </div>
  </div>`;return h
 }
 if(S.status==="CUSTOM_REQUEST"){h=`<button class="backbtn" onclick="S.status='SELECT_ITEM';render()">← ${S.category}</button><div class="card"><h3>New Service Request</h3><div class="muted">Jo work list me nahi hai, yahan details bhejein.</div><label>Describe your work / problem *</label><textarea id="customDesc" rows="4" placeholder="Kaam ki poori detail likhiye"></textarea><label>Work Photos (up to 5)</label><input type="file" accept="image/*" multiple><label>Work Video (up to 1 minute)</label><input type="file" accept="video/*"><label>Preferred Schedule *</label><div class="schedule-grid"><label><input type="radio" name="customSchedule" value="Morning 8 AM–12 PM">Morning • 8 AM–12 PM</label><label><input type="radio" name="customSchedule" value="Afternoon 12–4 PM">Afternoon • 12–4 PM</label><label><input type="radio" name="customSchedule" value="Evening 4–8 PM">Evening • 4–8 PM</label></div><button class="btn" onclick="submitCustomRequest()">Send Request to Matching Service Providers</button></div>`;return h}
 if(S.status==="QUOTE_WAIT"){h=`<div class="notice">Request matching verified Service Provider ko bheja gaya.<br>Provider quote bhejega.</div>`;return h}
 if(S.status==="INITIAL_QUOTE"){h=`<div class="card"><h3>Service Provider Quote</h3><p>${S.quote.desc}</p><div class="money">${money(S.quote.amount)}</div><div class="row"><button class="btn ok" onclick="initialQuoteDecision('APPROVED')">Accept & Lock Amount</button><button class="btn red" onclick="initialQuoteDecision('REJECTED')">Reject</button></div></div>`;return h}
-if(S.status==="BOOKING_DETAILS"){let fixed=S.serviceType==='fixed';h=`<button class="backbtn" onclick="S.status='SELECT_ITEM';render()">← Services</button><div class="card"><h3>Booking Summary</h3><b>${S.service}</b><div class="muted">${S.category}</div>${fixed?`<div class="qtyrow"><div><label>Rate</label><div class="money">${money(S.base/S.quantity)}</div></div><div><label>Quantity</label><select onchange="setQty(this.value)">${Array.from({length:10},(_,i)=>`<option value="${i+1}" ${S.quantity===i+1?'selected':''}>${i+1}</option>`).join('')}</select></div></div>`:''}<div class="money">Total: ${money(S.total)}</div><label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" onclick="choosePayment('ONLINE')">Online</button><button class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" onclick="choosePayment('CASH')">Cash</button></div><div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button class="btn" onclick="booking()">Find Service Provider</button></div>`;return h}
+if(S.status==="BOOKING_DETAILS"){let fixed=S.serviceType==='fixed';h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><b>${S.service}</b><div class="muted">${S.category}</div>${fixed?`<div class="qtyrow"><div><label>Rate</label><div class="money">${money(S.base/S.quantity)}</div></div><div><label>Quantity</label><select onchange="setQty(this.value)">${Array.from({length:10},(_,i)=>`<option value="${i+1}" ${S.quantity===i+1?'selected':''}>${i+1}</option>`).join('')}</select></div></div>`:''}<div class="money">Total: ${money(S.total)}</div><label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button></div>`;return h}
 
 if(S.status==="READY")h=`
 <div class="card">
@@ -1801,6 +1801,23 @@ try{
    S.status="SELECT_ITEM";
  }
 }catch(e){console.warn("OCS category route",e)}
+document.addEventListener("click",function(e){
+  const el=e.target&&e.target.closest?e.target.closest("[data-ocs-category],[data-ocs-add],[data-ocs-quote],[data-ocs-qty],[data-ocs-continue],[data-ocs-back-categories],[data-ocs-back-items],[data-ocs-other-request],[data-ocs-pay],[data-ocs-find-provider]"):null;
+  if(!el)return;
+  e.preventDefault();
+  e.stopPropagation();
+  if(el.dataset.ocsCategory){selectCategory(el.dataset.ocsCategory);return;}
+  if(el.dataset.ocsAdd!==undefined){toggleSelectedItem(Number(el.dataset.ocsAdd));return;}
+  if(el.dataset.ocsQuote!==undefined){selectServiceItem(Number(el.dataset.ocsQuote));return;}
+  if(el.dataset.ocsQty!==undefined){changeSelectedQty(Number(el.dataset.ocsQty),Number(el.dataset.delta||0));return;}
+  if(el.dataset.ocsContinue!==undefined){continueSelectedItems();return;}
+  if(el.dataset.ocsBackCategories!==undefined){backToCategories();return;}
+  if(el.dataset.ocsBackItems!==undefined){S.status="SELECT_ITEM";render();return;}
+  if(el.dataset.ocsOtherRequest!==undefined){S.status="CUSTOM_REQUEST";render();return;}
+  if(el.dataset.ocsPay){choosePayment(el.dataset.ocsPay);return;}
+  if(el.dataset.ocsFindProvider!==undefined){booking();return;}
+},true);
+
 document.body.classList.add('customer-locked-ui');
 render();
 </script>
