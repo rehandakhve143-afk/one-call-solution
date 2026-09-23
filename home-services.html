@@ -508,10 +508,26 @@ function setQty(q){q=Math.max(1,Number(q)||1);S.quantity=q;let it=(services[S.ca
 function submitCustomRequest(){
  let d=$("customDesc")?.value.trim(); let sch=document.querySelector('input[name="customSchedule"]:checked')?.value;
  if(!d){alert("Describe your work / problem mandatory hai.");return} if(!sch){alert("Preferred schedule select karein.");return}
- S.customDescription=d;S.customSchedule=sch;S.service=S.category+" • New Service Request";S.status="QUOTE_WAIT";S.currentJob="Quote Request";hist("New Service Request sent • "+S.category+" • "+sch)
+ const photos=Array.from($("customPhoto")?.files||[]).slice(0,5).map(function(x){return {kind:"photo",name:x.name}});
+ const videos=Array.from($("customVideo")?.files||[]).slice(0,1).map(function(x){return {kind:"video",name:x.name}});
+ S.requestMedia=photos.concat(videos);S.chatMessages=[];S.customDescription=d;S.customSchedule=sch;
+ S.service=S.service&&S.serviceType==="quote"?S.service:(S.category+" • New Service Request");
+ S.serviceType="quote";S.isQuoteBooking=true;S.status="QUOTE_WAIT";S.currentJob="Quote Request";
+ hist("Get Quote request sent • "+S.category+" • Photo/Video "+S.requestMedia.length+" • "+sch)
 }
-function sendInitialQuote(){let a=Number(prompt("Service Provider quote ₹"));if(!a||a<=0)return;S.quote={desc:S.customDescription||S.service,amount:a,initial:true};S.quoteDecision="PENDING";S.status="INITIAL_QUOTE";hist(S.provider+" sent quote ₹"+a)}
-function initialQuoteDecision(d){if(d==="APPROVED"){S.quoteDecision="APPROVED";S.base=S.quote.amount;S.total=S.base;S.status="BOOKING_DETAILS";hist("Customer accepted quote • Amount locked ₹"+S.total)}else{S.quoteDecision="REJECTED";S.status="CUSTOM_REQUEST";hist("Customer rejected quote")}}
+function sendInitialQuote(){
+ let a=Number(prompt("Service Provider quote ₹"));if(!a||a<=0)return;
+ S.quote={desc:S.customDescription||S.service,amount:a,initial:true};S.quoteDecision="PENDING";S.status="INITIAL_QUOTE";
+ hist(S.provider+" sent quote "+money(a)+" • Customer approval + OCS secure payment pending")
+}
+function initialQuoteDecision(d){
+ if(d==="APPROVED"){
+   S.quoteDecision="APPROVED";S.base=Number(S.quote.amount||0);S.total=S.base;S.isQuoteBooking=true;S.status="QUOTE_SECURE_PAYMENT";
+   hist("Customer accepted quote • Amount locked "+money(S.total)+" • OCS secure payment required")
+ }else{
+   S.quoteDecision="REJECTED";S.status="CUSTOM_REQUEST";hist("Customer rejected quote")
+ }
+}
 function backToCategories(){S.status="SELECT_SERVICE";S.category="";S.service="";S.base=0;S.total=0;render()}
 
 
@@ -619,7 +635,10 @@ function ocsAuditAmount(stage){
  return true;
 }
 function choosePayment(v){
- ensureBookingAmount();S.paymentChoice=v;render()}
+ ensureBookingAmount();
+ if(S.paymentHeld&&Number(S.heldAmount||0)>0){alert("Ye amount OCS Secure Payment me locked hai. Payment method change nahi hoga.");return}
+ S.paymentChoice=v;render()
+}
 
 function rechargeWallet(){
  const current=Math.round((Number(S.wallet||0))*100)/100;
@@ -917,9 +936,11 @@ function providerEditReturnedQuote(){
  hist(S.provider+" revised Add Work and sent again • "+money(a));render();
 }
 function quoteDecide(d){
-S.quoteDecision=d;
-if(d==="APPROVED"){S.total+=S.quote.amount;hist("Customer approved extra work • New total ₹"+S.total)}
-else hist("Customer rejected extra work • Total remains ₹"+S.total)
+ S.quoteDecision=d;
+ if(d==="APPROVED"){
+   secureExtraQuoteAmount(S.quote.amount,S.quote.desc);
+   hist("Customer approved extra Get Quote work • New total "+money(S.total)+" • OCS secure amount "+money(S.heldAmount))
+ }else hist("Customer rejected extra work • Total remains "+money(S.total))
 }
 
 function openReschedule(by){
@@ -1059,9 +1080,17 @@ hist(S.provider+" marked Work Completed • Waiting for Customer confirmation")
 }
 
 function confirmCompletion(ok){
-if(ok){
-  S.status="PAYMENT";S.completionRequested=false;
-  hist("Customer confirmed Work Completed • Payment opened")
+ if(ok){
+   S.completionRequested=false;
+   const due=paymentDueAmount();
+   if(S.paymentHeld&&Number(S.heldAmount||0)>0&&due<=0){releaseHeldJobPayment();return}
+   S.status="PAYMENT";
+   hist("Customer confirmed Work Completed • "+(S.paymentHeld?("OCS held "+money(S.heldAmount)+" • Remaining "+money(due)):"Payment opened"))
+ }else{
+   S.status="SUPPORT_REVIEW";S.completionRequested=false;
+   let id=createTicket("customer","Work Completion Dispute",true);
+   hist("Customer did not confirm completion • OCS payment remains on hold • Support Ticket "+id)
+ }
 }else{
   S.status="SUPPORT_REVIEW";S.completionRequested=false;
   let id=createTicket("customer","Work Completion Dispute",true);
@@ -1079,11 +1108,15 @@ hist("Online payment screen opened • "+(purpose==="VISIT"?"Visit Charge":"Job 
 
 function onlineSuccess(){
  ensureBookingAmount();
-let amt=S.payPurpose==="VISIT"?S.visitCharge:S.total;
-S.status=S.payPurpose==="VISIT"?"CANCELLED_SETTLED":"DONE";
-if(amt>0)applyCommission(amt);
-S.currentJob=null;
-hist("Online payment success • ₹"+amt+(S.payPurpose==="VISIT"?" • Visit charge settled":""))
+ if(S.payPurpose==="VISIT"){
+   let amt=Number(S.visitCharge||0);S.status="CANCELLED_SETTLED";
+   if(amt>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(amt)}
+   S.currentJob=null;hist("Online payment success • "+money(amt)+" • Visit charge settled");return;
+ }
+ const due=paymentDueAmount(),total=Number(S.total||0),held=Number(S.heldAmount||0);
+ S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held+due;S.heldAmount=0;S.currentJob=null;
+ if(total>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(total)}
+ hist("Online payment success • Remaining "+money(due)+" • OCS released total settlement "+money(total)+" after completion")
 }
 
 function payCash(purpose){
@@ -1095,11 +1128,11 @@ hist("Customer marked Cash Paid")
 
 function cashReceived(){
  ensureBookingAmount();
-let amt=S.payPurpose==="VISIT"?S.visitCharge:S.total;
-S.status=S.payPurpose==="VISIT"?"CANCELLED_SETTLED":"DONE";
-if(amt>0)applyCommission(amt);
-S.currentJob=null;
-hist(S.provider+" confirmed Cash Received • ₹"+amt+(S.payPurpose==="VISIT"?" • Visit charge settled":""))
+ let amt=S.payPurpose==="VISIT"?Number(S.visitCharge||0):Number(S.total||0);
+ S.status=S.payPurpose==="VISIT"?"CANCELLED_SETTLED":"DONE";
+ if(amt>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(amt)}
+ S.paymentHeld=false;S.heldAmount=0;S.currentJob=null;
+ hist(S.provider+" confirmed Cash Received • "+money(amt)+(S.payPurpose==="VISIT"?" • Visit charge settled":""))
 }
 
 function createTicket(side,category,callback){
@@ -1724,10 +1757,12 @@ function customerExtraQty(i,d){
 
 function customerExtraApprovalHTML(){
  if(S.status!=="WORKING"||S.customerExtraStatus!=="AMOUNT_SENT"||!S.extraQuote)return "";
- return `<div class="card"><h3>Get Quote Amount</h3><div class="notice"><b>${S.extraQuote.desc}</b><div>${money(S.extraQuote.amount)}</div></div><button class="btn" onclick="customerApproveRequestedExtra()">Approve Quote & Add</button><button class="btn gray" onclick="customerRejectRequestedExtra()">Reject Quote</button></div>`;
+ return `<div class="card"><h3>Get Quote Amount</h3><div class="notice"><b>${S.extraQuote.desc}</b><div>${money(S.extraQuote.amount)}</div></div><button class="btn" onclick="customerApproveRequestedExtra()">Approve Quote & Secure with OCS</button><button class="btn gray" onclick="customerRejectRequestedExtra()">Reject Quote</button></div>`;
 }
 function customerApproveRequestedExtra(){
- const q=S.extraQuote;if(!q)return;S.total=Number(S.total||0)+Number(q.amount||0);hist("Customer approved Add Work • New total "+money(S.total));
+ const q=S.extraQuote;if(!q)return;
+ secureExtraQuoteAmount(q.amount,q.desc);
+ hist("Customer approved Add Work quote • New total "+money(S.total)+" • OCS secure amount "+money(S.heldAmount));
  S.extraQuote=null;S.customerExtraStatus="";S.customerExtraRequest="";S.customerExtraItems=[];S.addWorkSelected={};S.addWorkQty={};render();
 }
 function customerRejectRequestedExtra(){
