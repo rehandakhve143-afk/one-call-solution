@@ -451,7 +451,7 @@ function secureExtraQuoteAmount(amount,desc){
 }
 function releaseHeldJobPayment(){
  const total=Number(S.total||0),held=Number(S.heldAmount||0);
- S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held;S.heldAmount=0;S.currentJob=null;
+ S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held;S.heldAmount=0;S.currentJob=null;S.payment="ONLINE • OCS Secure Payment Released";
  if(total>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(total)}
  hist("Customer confirmed Work Completed • OCS released "+money(held||total)+" for settlement to "+S.provider);
 }
@@ -1044,8 +1044,9 @@ function resolveSpot(choice){
    S.cancelReason="Technical / material / price issue • Both agreed visit charge";
    hist("Customer + Provider agreed to close with applicable visit charge");
  }else if(choice==="NO_CHARGE"){
-   S.visitCharge=0; S.distanceSlab="No visit charge"; S.status="CANCELLED_SETTLED";
-   S.payment="₹0 • Both agreed no visit charge";
+   S.visitCharge=0; S.distanceSlab="No visit charge";
+   if(S.paymentHeld&&Number(S.heldAmount||0)>0){settleHeldNoWork(0,"Both agreed no visit charge • Full customer refund");return}
+   S.status="CANCELLED_SETTLED";S.payment="₹0 • Both agreed no visit charge";
    hist("Customer + Provider mutually closed booking • Visit charge ₹0");
  }else{
    S.status="SUPPORT_REVIEW";
@@ -1112,25 +1113,29 @@ function onlineSuccess(){
    S.currentJob=null;hist("Online payment success • "+money(amt)+" • Visit charge settled");return;
  }
  const due=paymentDueAmount(),total=Number(S.total||0),held=Number(S.heldAmount||0);
- S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held+due;S.heldAmount=0;S.currentJob=null;
+ S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held+due;S.heldAmount=0;S.currentJob=null;S.payment="ONLINE • OCS Settlement Released";
  if(total>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(total)}
  hist("Online payment success • Remaining "+money(due)+" • OCS released total settlement "+money(total)+" after completion")
 }
 
 function payCash(purpose){
  ensureBookingAmount();
-S.payPurpose=purpose;S.payment="CASH";
-S.status=purpose==="VISIT"?"VISIT_CASH_WAIT":"CASH_WAIT";
-hist("Customer marked Cash Paid")
+ S.payPurpose=purpose;S.payment="CASH";
+ S.cashDue=purpose==="VISIT"?Number(S.visitCharge||0):paymentDueAmount();
+ S.status=purpose==="VISIT"?"VISIT_CASH_WAIT":"CASH_WAIT";
+ hist("Customer marked Cash Paid • "+money(S.cashDue))
 }
 
 function cashReceived(){
  ensureBookingAmount();
- let amt=S.payPurpose==="VISIT"?Number(S.visitCharge||0):Number(S.total||0);
- S.status=S.payPurpose==="VISIT"?"CANCELLED_SETTLED":"DONE";
- if(amt>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(amt)}
- S.paymentHeld=false;S.heldAmount=0;S.currentJob=null;
- hist(S.provider+" confirmed Cash Received • "+money(amt)+(S.payPurpose==="VISIT"?" • Visit charge settled":""))
+ const visit=S.payPurpose==="VISIT";
+ let cashAmt=visit?Number(S.visitCharge||0):Number(S.cashDue||paymentDueAmount()||0);
+ let commissionBase=visit?cashAmt:Number(S.total||0);
+ S.status=visit?"CANCELLED_SETTLED":"DONE";
+ if(commissionBase>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(commissionBase)}
+ if(!visit&&S.paymentHeld)S.payment="CASH + OCS Secure Amount Released";
+ S.paymentHeld=false;S.heldAmount=0;S.currentJob=null;S.cashDue=0;
+ hist(S.provider+" confirmed Cash Received • "+money(cashAmt)+(visit?" • Visit charge settled":" • OCS held amount released after completion"))
 }
 
 function createTicket(side,category,callback){
