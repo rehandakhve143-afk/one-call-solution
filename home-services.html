@@ -172,7 +172,14 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 .ocs-inline-booking{position:sticky;top:58px;z-index:11;display:flex;align-items:center;gap:10px;margin:10px 0 12px;padding:11px 12px;border-radius:14px;background:#123f49;color:#fff;box-shadow:0 8px 22px rgba(10,48,52,.22)}
 .ocs-inline-booking .ib-copy{flex:1;min-width:0}.ocs-inline-booking .ib-copy b{display:block;font-size:12px}.ocs-inline-booking .ib-copy small{display:block;margin-top:2px;font-size:10px;color:#d8e7e5}
 .ocs-inline-booking button{border:0;border-radius:10px;background:#0ba59a;color:#fff;font-weight:900;min-height:44px;padding:0 14px;white-space:nowrap}
-</style></head>
+</style><style>
+.ocs-flow-nav{position:sticky;bottom:8px;z-index:10050;display:grid;grid-template-columns:.8fr 1.2fr;gap:9px;margin:14px 0 4px;padding:8px;background:rgba(255,255,255,.97);border:1px solid #dce8e6;border-radius:16px;box-shadow:0 10px 26px rgba(17,54,60,.16)}
+.ocs-flow-nav button{width:100%;min-height:46px;margin:0;border:0;border-radius:12px;font-weight:900}
+.ocs-flow-nav .back-flow{background:#edf3f2;color:#173f48}
+.ocs-flow-nav .next-flow{background:linear-gradient(135deg,#087a70,#0aa47e);color:#fff}
+.ocs-flow-nav button:disabled{opacity:.45;cursor:not-allowed}
+</style>
+</head>
 <body>
 
 
@@ -192,6 +199,7 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 <div class="muted" style="margin-bottom:8px">Book trusted Service Providers with clear rates and support.</div>
 <div class="notice good" style="margin-bottom:10px"><b>Pay Online. Keep Your Service & Payment History Safe.</b></div><span class="customer-debug-status">Status: <span class="status" id="cStatus">READY</span></span>
 <div id="cBody"></div>
+<div id="homeFlowNav"></div>
 <div id="customerAddWorkMount"></div>
 </div>
 <details class="card"><summary><b>Booking Activity & History</b> <span class="muted">Tap to view</span></summary><div id="cLog" class="log" style="margin-top:10px"></div></details>
@@ -296,7 +304,7 @@ cancelReason:null,cancelBy:null,visitCharge:0,distanceSlab:null,
 payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",supportTickets:[],logs:[],
 wallet:100,welcomeBonus:100,welcomeBonusGranted:true,welcomeBonusWithdrawable:false,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:9,
 providerRatings:[],customerRating:null,pendingRatingStars:0,pendingRatingComment:"",customerRatingComment:"",
-currentJob:null,nextJob:providerState.nextJob||null,pendingNextRequest:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null,
+currentJob:null,nextJob:null,pendingNextRequest:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null,
 customerName:"Customer 1",customerMobile:"Not added",customerEmail:"Not added",
 providerMobile:"Not added",providerEmail:"Not added",providerVerified:true
 };
@@ -857,6 +865,34 @@ function providerNextJobQueueHTML(){
    return '<div class="card"><h3>NEW • Next Work Request</h3><b>'+ocsSafe(j.service)+'</b><div class="muted">'+ocsSafe(j.category)+' • '+ocsSafe(j.customer)+'</div><div class="money">'+(j.amount?money(j.amount):'Amount pending')+'</div><div class="muted">Schedule: '+ocsSafe(nextJobScheduleText(j))+'</div>'+(nextJobTimeClash(j)?'<div class="notice bad"><b>Time Clash</b><br>Current/rescheduled job ke time se clash hai. Accept blocked.</div>':'')+'<div class="row"><button class="btn ok" onclick="acceptNextWorkRequest()" '+(nextJobTimeClash(j)?'disabled style="opacity:.5"':'')+'>Accept as Next Job</button><button class="btn red" onclick="rejectNextWorkRequest()">Reject</button></div><div class="muted">Accept karne par ye queue me rahega. Current job ke saath second job start nahi ho sakta.</div></div>';
  }
  return '<div class="card"><h3>New Work Requests</h3><div class="notice good"><b>Available: ON</b><br>Current job chal raha hai. OCS ek time par maximum <b>1 Next Job</b> request allow karega.</div><div class="muted">Next Job accept kar sakte hain, lekin current job complete hone se pehle us par On the Way / Start Work nahi hoga.</div></div>';
+}
+
+function homeFlowBack(){
+ if(S.status==="SELECT_ITEM"){backToCategories();return}
+ if(S.status==="CUSTOM_REQUEST"){S.status="SELECT_ITEM";render();return}
+ if(S.status==="BOOKING_DETAILS"){
+   if(S.paymentHeld&&Number(S.heldAmount||0)>0){alert("OCS Secure Payment locked hai. Booking details se piche jaakar service/rate change nahi kar sakte.");return}
+   S.status="SELECT_ITEM";render();return;
+ }
+}
+function homeFlowNext(){
+ if(S.status==="SELECT_ITEM"){continueSelectedItems();return}
+ if(S.status==="CUSTOM_REQUEST"){submitCustomRequest();return}
+ if(S.status==="BOOKING_DETAILS"){booking();return}
+}
+function homeFlowNavHTML(){
+ if(S.status==="SELECT_ITEM"){
+   const ready=(S.selectedItems||[]).length>0;
+   return '<div class="ocs-flow-nav"><button class="back-flow" onclick="homeFlowBack()">← Back</button><button class="next-flow" onclick="homeFlowNext()" '+(ready?'':'disabled')+'>Next • Booking →</button></div>';
+ }
+ if(S.status==="CUSTOM_REQUEST"){
+   return '<div class="ocs-flow-nav"><button class="back-flow" onclick="homeFlowBack()">← Back</button><button class="next-flow" onclick="homeFlowNext()">Next • Send Request →</button></div>';
+ }
+ if(S.status==="BOOKING_DETAILS"){
+   const locked=S.paymentHeld&&Number(S.heldAmount||0)>0;
+   return '<div class="ocs-flow-nav"><button class="back-flow" onclick="homeFlowBack()" '+(locked?'disabled':'')+'>← Back</button><button class="next-flow" onclick="homeFlowNext()">Next • Find Provider →</button></div>';
+ }
+ return "";
 }
 
 function toggleSelectionTray(){continueSelectedItems()}
@@ -1560,7 +1596,7 @@ function resetAll(){
    wallet:providerState.wallet,welcomeBonus:providerState.welcomeBonus,walletWarningLevel:providerState.walletWarningLevel,
    platformCharge:providerState.platformCharge,commissionDue:0,
    adminPaused:providerState.adminPaused,jobAccess:!providerState.adminPaused,rulesVersion:9,flowVersion:9,
-   currentJob:null,nextJob:null,completionRequested:false,
+   currentJob:null,nextJob:providerState.nextJob||null,pendingNextRequest:null,completionRequested:false,
    providerChangeReason:null,providerChangeTicket:null,previousProvider:null,
    wncTicket:null,wncFault:null,providerReleasedNotice:null
  });
@@ -2258,6 +2294,7 @@ $("cStatus").textContent=S.status;
 $("pStatus").textContent=S.status;
 const pt=$("ptab");const normalBookingNew=S.status==="REQUESTED";const extraWorkNew=S.customerExtraStatus==="SENT_TO_PROVIDER"&&S.customerExtraRequest;const nextWorkNew=!!S.pendingNextRequest;if(pt)pt.textContent=(normalBookingNew||extraWorkNew||nextWorkNew)?"Service Provider • NEW":"Service Provider";
 $("cBody").innerHTML=customerHTML();
+if($("homeFlowNav"))$("homeFlowNav").innerHTML=homeFlowNavHTML();
 $("pBody").innerHTML=providerHTML();
 $("cLog").innerHTML=S.logs.length?S.logs.map(x=>"<div>"+x+"</div>").join(""):"No history yet.";
 $("pLog").innerHTML=$("cLog").innerHTML;
