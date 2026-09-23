@@ -4,13 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>One Call Solution</title>
+<link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 <style>
 :root{--p:#0f766e;--red:#dc2626;--ok:#16a34a;--bg:#f5f7fb;--mut:#64748b;--line:#dbe2ea}
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,Arial;background:var(--bg);color:#0f172a}
 .app{max-width:760px;margin:auto;padding-bottom:30px}
 .top{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px 14px;z-index:3}
-.brand{font-weight:900}.brand span{color:var(--p)}
+.brand-row{display:flex;align-items:center;gap:10px}.ocs-top-logo{width:42px;height:42px;border-radius:12px;display:block;box-shadow:0 4px 12px rgba(0,0,0,.14)}.brand-wrap{min-width:0}.brand{font-weight:900}.brand span{color:var(--p)}
+.ocs-hs-brandlogo{width:38px;height:38px;border-radius:11px;display:block;flex:0 0 38px;box-shadow:0 3px 10px rgba(0,0,0,.12)}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 button{border:0;border-radius:12px;padding:12px;font-weight:800}
 .tabs button{background:#e2e8f0}.tabs button.active{background:var(--p);color:#fff}
@@ -176,8 +178,7 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 
 <div class="app">
 <div class="top">
-<div class="brand">ONE CALL <span>SOLUTION</span></div>
-<div class="tagline">One for All and All for One</div>
+<div class="brand-row"><img class="ocs-top-logo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div class="brand-wrap"><div class="brand">ONE CALL <span>SOLUTION</span></div><div class="tagline">One for All and All for One</div></div></div>
 <div class="tabs">
 <button id="ctab" class="active" onclick="showTab('customer')">Customer</button>
 <button id="ptab" onclick="showTab('provider')">Service Provider</button>
@@ -255,7 +256,7 @@ Status: <span class="status" id="pStatus">WAITING</span>
 <div class="card">
 <h3>Internal Accounting</h3>
 <div class="muted">Platform charge setting is Admin-only.</div>
-<div><b>Platform Charge: 9%</b></div>
+<div><b>Platform Charge: 15%</b></div>
 <div id="adminAccounting" class="muted"></div>
 </div>
 <div class="card"><h3>Admin History</h3><div id="aLog" class="log"></div></div>
@@ -284,7 +285,7 @@ service:"",category:"",serviceType:"fixed",quantity:1,address:"Customer Address"
 startOtp:null,quote:null,quoteDecision:null,reschedule:null,rescheduleBy:null,
 cancelReason:null,cancelBy:null,visitCharge:0,distanceSlab:null,
 payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",supportTickets:[],logs:[],
-wallet:100,welcomeBonus:100,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:8,flowVersion:8,
+wallet:100,welcomeBonus:100,walletWarningLevel:200,platformCharge:15,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:9,
 providerRatings:[],customerRating:null,pendingRatingStars:0,pendingRatingComment:"",customerRatingComment:"",
 currentJob:null,nextJob:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null
 };
@@ -298,7 +299,7 @@ function loadSavedHomeState(){
    if(!raw)return;
    const saved=JSON.parse(raw);
    if(saved&&typeof saved==="object"&&saved.status){
-     if(Number(saved.rulesVersion||0)<8){
+     if(Number(saved.rulesVersion||0)<9){
        S.provider=saved.provider||"SP1";
        S.available=saved.available!==false;
        S.wallet=Number.isFinite(Number(saved.wallet))?Number(saved.wallet):100;
@@ -306,8 +307,8 @@ function loadSavedHomeState(){
        S.jobAccess=!S.adminPaused;
        S.providerRatings=Array.isArray(saved.providerRatings)?saved.providerRatings:[];
        S.supportTickets=Array.isArray(saved.supportTickets)?saved.supportTickets:[];
-       S.rulesVersion=8;
-       S.flowVersion=8;
+       S.rulesVersion=9;
+       S.flowVersion=9;
        try{localStorage.removeItem(OCS_HOME_STATE_KEY)}catch(e){}
        try{if(window.parent&&window.parent.localStorage){window.parent.localStorage.removeItem(OCS_HOME_STATE_KEY);window.parent.localStorage.removeItem("ocsCurrentBooking")}}catch(e){}
        return;
@@ -315,15 +316,15 @@ function loadSavedHomeState(){
      Object.assign(S,saved);
      S.walletWarningLevel=200;
      delete S.walletMinimum;
-     S.platformCharge=9;
+     S.platformCharge=15;
      S.welcomeBonus=100;
      S.providerRatings=Array.isArray(S.providerRatings)?S.providerRatings:[];
      S.customerRating=S.customerRating||null;
      S.pendingRatingStars=Number(S.pendingRatingStars||0);
      S.pendingRatingComment=S.pendingRatingComment||"";
      S.customerRatingComment=S.customerRatingComment||"";
-     S.rulesVersion=8;
-     S.flowVersion=8;
+     S.rulesVersion=9;
+     S.flowVersion=9;
      S.adminPaused=!!saved.adminPaused;
      S.jobAccess=!S.adminPaused;
      // Do not restore an unfinished cart on refresh. Active bookings remain preserved.
@@ -570,7 +571,7 @@ function settleCollectedAmount(amount,label){
 
 function auditPlatformCharge(amount){
  const a=Number(amount)||0;
- return Math.round(a*0.09*100)/100;
+ return Math.round(a*0.15*100)/100;
 }
 function queueWalletMaintenanceEmail(){
  const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
@@ -581,11 +582,11 @@ function queueWalletMaintenanceEmail(){
  hist("Wallet warning + email reminder queued for "+S.provider+" • "+msg);
 }
 function applyCommission(amount){
- let charge=Math.round((Number(amount||0)*9/100)*100)/100;
- S.platformCharge=9;
+ let charge=Math.round((Number(amount||0)*15/100)*100)/100;
+ S.platformCharge=15;
  S.wallet=Math.round((Number(S.wallet||0)-charge)*100)/100;
  S.jobAccess=!S.adminPaused;
- hist("OCS platform commission 9% • ₹"+charge.toFixed(2)+" adjusted in Wallet");
+ hist("OCS platform commission 15% • ₹"+charge.toFixed(2)+" adjusted in Wallet");
  if(S.wallet<Number(S.walletWarningLevel||200)){
    hist("Wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+" • Warning level below ₹200 • Jobs remain active unless OCS Admin pauses them");
    queueWalletMaintenanceEmail();
@@ -1097,9 +1098,9 @@ function resetAll(){
    wallet:Number.isFinite(Number(S.wallet))?Number(S.wallet):100,
    welcomeBonus:100,
    walletWarningLevel:200,
-   platformCharge:9,
+   platformCharge:15,
    adminPaused:!!S.adminPaused,
-   rulesVersion:8,
+   rulesVersion:9,
    supportTickets:Array.isArray(S.supportTickets)?S.supportTickets:[],
    providerRatings:Array.isArray(S.providerRatings)?S.providerRatings:[]
  };
@@ -1122,7 +1123,7 @@ function resetAll(){
    providerRatings:providerState.providerRatings,customerRating:null,pendingRatingStars:0,customerRatingComment:"",
    wallet:providerState.wallet,welcomeBonus:providerState.welcomeBonus,walletWarningLevel:providerState.walletWarningLevel,
    platformCharge:providerState.platformCharge,commissionDue:0,
-   adminPaused:providerState.adminPaused,jobAccess:!providerState.adminPaused,rulesVersion:8,flowVersion:8,
+   adminPaused:providerState.adminPaused,jobAccess:!providerState.adminPaused,rulesVersion:9,flowVersion:9,
    currentJob:null,nextJob:null,completionRequested:false,
    providerChangeReason:null,providerChangeTicket:null,previousProvider:null,
    wncTicket:null,wncFault:null,providerReleasedNotice:null
@@ -1191,7 +1192,7 @@ let h="";
 if(S.status==="SELECT_SERVICE"){
  const cats=Object.entries(services);
  h=`<div class="ocs-hs-page">
-   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 23.6</span><button class="ocs-hs-back" onclick="try{window.parent.closeModule()}catch(e){}">‹</button><div><h2>Home Services</h2><small>Verified professionals • clear rates</small></div></div>
+   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 24.2</span><button class="ocs-hs-back" onclick="try{window.parent.closeModule()}catch(e){}">‹</button><img class="ocs-hs-brandlogo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><h2>Home Services</h2><small>Verified professionals • clear rates</small></div></div>
    <div class="ocs-hs-body">
      <div class="ocs-hs-hero"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Professional Home Services At Your Doorstep</b><span>Verified • Skilled • Reliable</span></div></div>
      <div class="ocs-hs-search"><span>⌕</span><input id="catSearch" placeholder="Search home services..." oninput="filterLockedCategories(this.value)"></div>
@@ -1210,7 +1211,7 @@ if(S.status==="SELECT_ITEM"){
    return `<div class="ocs-svc-row svc-card" data-search="${it.name.toLowerCase()}"><span class="ocs-svc-thumb">${ocsServiceIcon()}</span><span class="ocs-svc-copy"><b>${it.name}</b><span>${it.display||money(it.price)}</span><small>Labour / service charge</small></span>${x&&!it.noQty?`<span class="ocs-svc-step"><button type="button" data-ocs-qty="${i}" data-delta="-1">−</button><b>${x.qty}</b><button type="button" data-ocs-qty="${i}" data-delta="1">+</button></span>`:`<button type="button" class="ocs-svc-add" data-ocs-add="${i}">${x?'Added ✓':'Add'}</button>`}</div>`
  }).join('');
  h=`<div class="ocs-hs-page">
-   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 23.6</span><button type="button" class="ocs-hs-back" data-ocs-back-categories="1">‹</button><div><h2>${S.category} Services</h2><small>${d.items.length} services</small></div></div>
+   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 24.2</span><button type="button" class="ocs-hs-back" data-ocs-back-categories="1">‹</button><img class="ocs-hs-brandlogo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><h2>${S.category} Services</h2><small>${d.items.length} services</small></div></div>
    <div class="ocs-hs-body">
      <div class="ocs-svc-banner"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Safe ${S.category} Solutions For Your Home</b><span>Verified Service Providers • clear OCS rates</span></div></div>
      <div class="ocs-hs-search"><span>⌕</span><input id="svcSearch" placeholder="Search ${S.category.toLowerCase()} service..." oninput="filterServiceCards(this.value)"></div>
@@ -1590,7 +1591,7 @@ function adminHTMLState(){
  let visit=`<div class="muted">GPS one-way: ${Number(S.oneWayDistanceKm||0).toFixed(1)} km • Suggested: ${S.suggestedVisitCharge?money(S.suggestedVisitCharge):"—"} • Final: ${S.visitCharge?money(S.visitCharge):"—"}</div>`;
  let support=S.supportTicket?`<b>${S.supportTicket}</b> • ${S.cancelReason||S.providerChangeReason||"Review required"}`:`<span class="muted">No open support ticket.</span>`;
  let charge=amount?auditPlatformCharge(amount):0;
- return {booking,provider,visit,support,accounting:`Current booking internal 9%: ${money(charge)}`};
+ return {booking,provider,visit,support,accounting:`Current booking internal 15%: ${money(charge)}`};
 }
 
 function customerOpenAddMoreWork(){
@@ -1780,7 +1781,7 @@ function render(){
  saveHomeState();
  renderCore();
  updateSelectionTray();
- try{window.parent.postMessage({type:"OCS_BOOKING_STATE",booking:{flowVersion:8,updatedAt:Date.now(),status:S.status,provider:S.provider,category:S.category,service:S.service||S.serviceName||"",total:S.total,base:S.base,paymentChoice:S.paymentChoice,currentJob:S.currentJob,rescheduleTime:S.rescheduleTime||null,visitCharge:S.visitCharge||0},fullState:S},"*")}catch(e){}
+ try{window.parent.postMessage({type:"OCS_BOOKING_STATE",booking:{flowVersion:9,updatedAt:Date.now(),status:S.status,provider:S.provider,category:S.category,service:S.service||S.serviceName||"",total:S.total,base:S.base,paymentChoice:S.paymentChoice,currentJob:S.currentJob,rescheduleTime:S.rescheduleTime||null,visitCharge:S.visitCharge||0},fullState:S},"*")}catch(e){}
 }
 
 // Direct category route from Home screen shortcuts (?cat=Plumbing etc.)
