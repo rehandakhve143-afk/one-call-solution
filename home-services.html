@@ -932,6 +932,7 @@ function showTab(x){
   document.body.classList.toggle("customer-locked-ui",x==="customer");
   if(x==="customer"||x==="provider"){
     loadSavedHomeState();
+    syncRegisteredProfiles();
     renderCore();
     updateSelectionTray();
   }
@@ -952,6 +953,7 @@ function showTab(x){
 }
 function syncHomeState(){
   loadSavedHomeState();
+  syncRegisteredProfiles();
   renderCore();
   updateSelectionTray();
 }
