@@ -36,7 +36,7 @@ background-color:#fff}
     <div class="headrow">
       <button class="back" data-action="home">‹</button>
       <div class="brand"><b>ONE CALL SOLUTION</b><small>Home Services</small></div>
-      <span class="ver">FLOW 25.2</span>
+      <span class="ver">FLOW 25.3</span>
     </div>
     <div class="tabs">
       <button class="tab on" data-tab="customer">Customer</button>
@@ -80,9 +80,9 @@ const services={
 'Waterproofing':{icon:'💧',items:[{"name":"Terrace / Roof Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Bathroom Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"Balcony Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"External Wall Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Internal Damp Wall Treatment – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Water Tank Waterproofing","type":"quote","display":"Get Quote"},{"name":"Crack / Joint Waterproofing","type":"quote","display":"Get Quote"},{"name":"PU Injection / Special Waterproofing","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
 'False Ceiling / POP / Gypsum / PVC':{icon:'🏠',items:[{"name":"Gypsum Board False Ceiling – Labour Only","type":"fixed","display":"₹75 / sq.ft.","price":75},{"name":"POP Ceiling – Labour Only","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"PVC Ceiling – Labour Only","type":"fixed","display":"₹70 / sq.ft.","price":70},{"name":"Cove / Designer Ceiling Work","type":"quote","display":"Get Quote"},{"name":"Repair / Patch Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
 };
-const KEY="ocsHomeFlowV252";
+const KEY="ocsHomeFlowV253";
 const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","VISIT_PAYMENT","VISIT_CASH_WAIT","COMPLETION_CONFIRM","PAYMENT","CASH_WAIT"]);
-function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",paymentView:"SELECT",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addonRequest:null,addonNotice:"",addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",rescheduleBy:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,visitPaymentChoice:"ONLINE",visitPaymentView:"SELECT",visitPaymentStatus:"",supportTickets:[],expertRequests:[],actionPanel:""}}
+function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",paymentView:"SELECT",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addonRequest:null,addonNotice:"",addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",rescheduleBy:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,visitPaymentChoice:"ONLINE",visitPaymentView:"SELECT",visitPaymentStatus:"",supportTickets:[],expertRequests:[],actionPanel:"",customerLat:null,customerLng:null,locationSharedAt:"",locationError:""}}
 let S=fresh();
 try{
  const raw=localStorage.getItem(KEY);
@@ -131,6 +131,19 @@ function latestTicketHTML(role){
  const t=list[list.length-1];
  return `<div class="card"><h3>OCS Support Ticket ✅</h3><div class="notice"><b>Ticket No: ${esc(t.ticket||t.id||"")}</b><br>${esc(t.msg||t.category||"Support request")}<br>${t.callback?"Callback Requested":"No Callback Requested"}</div></div>`;
 }
+function customerLocationHTML(){
+ if(S.customerLat!=null&&S.customerLng!=null){
+   return `<div class="notice"><b>📍 Location Shared</b><br>Customer GPS location booking ke saath attached hai.<br><small>${Number(S.customerLat).toFixed(5)}, ${Number(S.customerLng).toFixed(5)}</small></div>`;
+ }
+ if(S.locationError)return `<div class="notice"><b>Location not shared</b><br>${esc(S.locationError)}</div>`;
+ return "";
+}
+function providerLocationHTML(){
+ if(S.customerLat==null||S.customerLng==null){
+   return `<div class="notice"><b>Customer Location</b><br>GPS location share nahi hui. Manual address use karein: ${esc(S.address||"—")}</div>`;
+ }
+ return `<div class="card"><h3>📍 Customer Location Shared</h3><div class="muted">${esc(S.address||"Customer address")}</div><button class="btn" data-action="open-directions">Open Directions / Maps</button></div>`;
+}
 function customerHTML(){
  if(S.status==="SELECT_SERVICE"){
    const cats=Object.keys(services);
@@ -156,11 +169,11 @@ function customerHTML(){
    return `<div class="card"><h3>Service Provider Quote</h3><b>${esc(S.quote&&S.quote.desc||S.service)}</b><div class="money">${money(S.quote&&S.quote.amount)}</div><div class="row"><button class="btn ok" data-action="accept-quote">Accept Quote</button><button class="btn red" data-action="reject-quote">Reject</button></div></div>`;
  }
  if(S.status==="BOOKING_DETAILS"){
-   return `<button class="btn gray" data-action="items">← Services</button><div class="card"><h3>Booking Summary</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.category)}</div><div class="money">Total: ${money(S.total)}</div><label>Address / Location *</label><input id="address" value="${esc(S.address)}" placeholder="Enter service address"><label>Payment Method</label><div class="row"><button class="btn ${S.paymentChoice==="ONLINE"?"ok":"gray"}" data-action="pay-choice" data-v="ONLINE">Online</button><button class="btn ${S.paymentChoice==="CASH"?"ok":"gray"}" data-action="pay-choice" data-v="CASH">Cash</button></div><div class="notice"><b>Visit charge if no work:</b> 1–6 km ₹199 • above 6–12 km ₹249.</div><button class="btn" data-action="find-provider">Find Service Provider</button></div>`;
+   return `<button class="btn gray" data-action="items">← Services</button><div class="card"><h3>Booking Summary</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.category)}</div><div class="money">Total: ${money(S.total)}</div><label>Address / Location *</label><input id="address" value="${esc(S.address)}" placeholder="Enter service address"><button class="btn gray" type="button" data-action="share-location">📍 Share Current Location</button>${customerLocationHTML()}<label>Payment Method</label><div class="row"><button class="btn ${S.paymentChoice==="ONLINE"?"ok":"gray"}" data-action="pay-choice" data-v="ONLINE">Online</button><button class="btn ${S.paymentChoice==="CASH"?"ok":"gray"}" data-action="pay-choice" data-v="CASH">Cash</button></div><div class="notice"><b>Visit charge if no work:</b> 1–6 km ₹199 • above 6–12 km ₹249.</div><button class="btn" data-action="find-provider">Find Service Provider</button></div>`;
  }
  if(S.status==="REQUESTED") return `<div class="notice"><b>${S.rejectedProvider?esc(S.rejectedProvider)+" rejected this request. OCS is matching the next eligible Service Provider.":"Booking sent to Service Provider."}</b><br>${S.rejectedProvider?"No action needed from Customer.":"Service Provider tab open karke request test karein."}</div><div class="card"><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div><div class="muted">${esc(S.address)}</div></div>${logsHTML()}`;
- if(S.status==="ASSIGNED") return `<div class="notice"><b>${esc(S.provider)} accepted booking.</b><br>Waiting for Service Provider to start journey.</div>${logsHTML()}`;
- if(S.status==="ON_WAY") return `<div class="notice"><b>${esc(S.provider)} is On the Way.</b><br>Live GPS will connect in production.</div>${logsHTML()}`;
+ if(S.status==="ASSIGNED") return `<div class="notice"><b>${esc(S.provider)} accepted booking.</b><br>Waiting for Service Provider to start journey.</div>${customerLocationHTML()}${logsHTML()}`;
+ if(S.status==="ON_WAY") return `<div class="notice"><b>${esc(S.provider)} is On the Way.</b><br>Customer shared location Service Provider ko available hai.</div>${customerLocationHTML()}${logsHTML()}`;
  if(S.status==="REACHED") return `<div class="card"><h3>Service Provider Reached</h3><div class="notice">Start OTP: <b style="font-size:26px">${esc(S.startOtp)}</b><br>OTP sirf work start ke liye hai, completion proof nahi.</div><div class="muted">OTP Service Provider ko batayein.</div></div>`;
  if(S.status==="WORKING"&&S.addWorkMode==="RATE"){
    const d=services[S.category], selected=S.addWorkCart||[];
@@ -238,10 +251,10 @@ function providerHTML(){
  if(S.status==="INITIAL_QUOTE") return `<div class="notice">Quote sent. Customer response ka wait hai.</div>`;
  if(S.status==="REQUESTED"){
    if(S.rejectedProvider&&!S.nextRequestReady) return `<div class="notice"><b>${esc(S.rejectedProvider)} rejected the request ✅</b><br>OCS sent it to the next eligible Service Provider: <b>${esc(S.provider)}</b>.</div><button class="btn" data-action="open-next-request">Open Next Provider Request</button>`;
-   return `<div class="card"><h3>Incoming Request • ${esc(S.provider)}</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><div class="money">${money(S.total)}</div><div class="row"><button class="btn ok" data-action="provider-accept">Accept</button><button class="btn red" data-action="provider-reject">Reject</button></div></div>`;
+   return `<div class="card"><h3>Incoming Request • ${esc(S.provider)}</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><div class="money">${money(S.total)}</div><div class="row"><button class="btn ok" data-action="provider-accept">Accept</button><button class="btn red" data-action="provider-reject">Reject</button></div></div>${providerLocationHTML()}`;
  }
- if(S.status==="ASSIGNED") return `<div class="card"><h3>Current Job</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><button class="btn" data-action="on-way">Start Journey / On the Way</button></div>`;
- if(S.status==="ON_WAY") return `<div class="card"><h3>On the Way</h3><button class="btn" data-action="reached">GPS Reached</button></div>`;
+ if(S.status==="ASSIGNED") return `<div class="card"><h3>Current Job</h3><b>${esc(S.service)}</b><div class="muted">${esc(S.address)}</div><button class="btn" data-action="on-way">Start Journey / On the Way</button></div>${providerLocationHTML()}`;
+ if(S.status==="ON_WAY") return `<div class="card"><h3>On the Way</h3><button class="btn" data-action="reached">GPS Reached</button></div>${providerLocationHTML()}`;
  if(S.status==="REACHED") return `<div class="card"><h3>Start Work OTP</h3><label>Customer OTP</label><input id="otpIn" inputmode="numeric" maxlength="4" placeholder="4 digit OTP"><button class="btn" data-action="verify-otp">Verify OTP & Start Work</button></div>`;
  if(S.status==="WORKING") return `<div class="card"><h3>Work In Progress</h3><b>${esc(S.service)}</b><div class="money">${money(S.total)}</div>\n ${latestTicketHTML("Service Provider")}
  ${S.addonRequest&&S.addonRequest.type==="LISTED"&&S.addonRequest.status==="PENDING_PROVIDER"?`<div class="card"><h3>Customer Add Work Request</h3><div class="notice">${esc(S.addonRequest.desc)}</div><div class="money">${money(S.addonRequest.amount)}</div><div class="row"><button class="btn ok" data-action="provider-addon-accept">Accept Add Work</button><button class="btn red" data-action="provider-addon-reject">Reject Add Work</button></div></div>`:""}
@@ -277,7 +290,7 @@ document.addEventListener("click",e=>{
  const tab=e.target.closest("[data-tab]");if(tab){setTab(tab.dataset.tab);return}
  const b=e.target.closest("[data-action]");if(!b)return;
  const a=b.dataset.action;
- if(a==="home"){location.href="index.html?v=20260923-flow252";return}
+ if(a==="home"){location.href="index.html?v=20260923-flow253";return}
  if(a==="category"){S.category=b.dataset.cat;S.cart=[];S.status="SELECT_ITEM";save();render();return}
  if(a==="categories"){S.category="";S.cart=[];S.status="SELECT_SERVICE";save();render();return}
  if(a==="add"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.cart.push({i,name:it.name,price:Number(it.price||0),qty:1});save();render();return}
@@ -290,6 +303,22 @@ document.addEventListener("click",e=>{
  if(a==="accept-quote"){S.total=Number(S.quote.amount);S.service=(S.service||S.category)+" • Accepted Quote";S.status="BOOKING_DETAILS";hist("Customer accepted quote ₹"+S.total);render();return}
  if(a==="reject-quote"){S.status="CUSTOM_REQUEST";hist("Customer rejected quote");render();return}
  if(a==="pay-choice"){S.paymentChoice=b.dataset.v;save();render();return}
+ if(a==="share-location"){
+   if(!navigator.geolocation){S.locationError="GPS/location is not supported on this browser.";save();render();return}
+   S.locationError="";
+   navigator.geolocation.getCurrentPosition(
+     pos=>{S.customerLat=pos.coords.latitude;S.customerLng=pos.coords.longitude;S.locationSharedAt=new Date().toISOString();hist("Customer shared GPS location with Service Provider");save();render()},
+     err=>{S.locationError=err&&err.message?err.message:"Location permission denied / unavailable.";save();render()},
+     {enableHighAccuracy:true,timeout:12000,maximumAge:30000}
+   );
+   return;
+ }
+ if(a==="open-directions"){
+   if(S.customerLat==null||S.customerLng==null)return;
+   const url="https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(S.customerLat+","+S.customerLng);
+   window.open(url,"_blank","noopener");
+   return;
+ }
  if(a==="find-provider"){const addr=document.getElementById("address").value.trim();if(!addr){alert("Address / Location fill karein.");return}S.address=addr;S.status="REQUESTED";hist("Customer created booking • "+money(S.total));render();return}
  if(a==="provider-accept"){S.rejectedProvider="";S.nextRequestReady=false;S.status="ASSIGNED";hist(S.provider+" accepted booking");render();return}
  if(a==="provider-reject"){const old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";S.rejectedProvider=old;S.nextRequestReady=false;S.status="REQUESTED";hist(old+" rejected • OCS sent request to "+S.provider);render();return}
