@@ -390,6 +390,7 @@ const services={
 
 function money(n){return "₹"+Number(n||0).toLocaleString("en-IN")}
 function selectCategory(cat){
+ if(!services[cat]){alert("Service category not found: "+cat);return}
  S.category=cat;
  S.selectedItems=[];
  S.service="";
@@ -402,7 +403,8 @@ function selectCategory(cat){
  S.finalAmount=0;
  S.amount=0;
  S.status="SELECT_ITEM";
- render()
+ render();
+ try{window.scrollTo(0,0)}catch(e){}
 }
 function toggleSelectedItem(i){
  const it=services[S.category].items[i]; if(it.type!=="fixed")return;
@@ -1196,7 +1198,7 @@ if(S.status==="SELECT_SERVICE"){
    <div class="ocs-hs-body">
      <div class="ocs-hs-hero"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Professional Home Services At Your Doorstep</b><span>Verified • Skilled • Reliable</span></div></div>
      <div class="ocs-hs-search"><span>⌕</span><input id="catSearch" placeholder="Search home services..." oninput="filterLockedCategories(this.value)"></div>
-     <div class="ocs-hs-cat-list">${cats.map(([k,v])=>`<button class="ocs-hs-cat" data-cat="${k.toLowerCase()}" onclick="selectCategory('${k.replace(/'/g,"\\'")}')"><span class="ico">${ocsUiIcon(k)}</span><span class="copy"><b>${k}</b><small>${v.items.length}+ Services</small></span><span class="arr">›</span></button>`).join('')}</div>
+     <div class="ocs-hs-cat-list">${cats.map(([k,v])=>`<button type="button" class="ocs-hs-cat" data-cat="${k.toLowerCase()}" data-category="${k}" onclick="event.preventDefault();selectCategory('${k.replace(/'/g,"\\'")}')"><span class="ico">${ocsUiIcon(k)}</span><span class="copy"><b>${k}</b><small>${v.items.length}+ Services</small></span><span class="arr">›</span></button>`).join('')}</div>
    </div>
  </div>`;return h
 }
@@ -1780,6 +1782,24 @@ function render(){
  try{window.parent.postMessage({type:"OCS_BOOKING_STATE",booking:{flowVersion:8,updatedAt:Date.now(),status:S.status,provider:S.provider,category:S.category,service:S.service||S.serviceName||"",total:S.total,base:S.base,paymentChoice:S.paymentChoice,currentJob:S.currentJob,rescheduleTime:S.rescheduleTime||null,visitCharge:S.visitCharge||0},fullState:S},"*")}catch(e){}
 }
 
+// Direct category route from Home screen shortcuts (?cat=Plumbing etc.)
+try{
+ const routeCat=new URLSearchParams(window.location.search||"").get("cat");
+ if(routeCat&&services[routeCat]){
+   S.category=routeCat;
+   S.selectedItems=[];
+   S.service="";
+   S.serviceName="";
+   S.serviceType="";
+   S.quantity=1;
+   S.base=0;
+   S.total=0;
+   S.bookingAmount=0;
+   S.finalAmount=0;
+   S.amount=0;
+   S.status="SELECT_ITEM";
+ }
+}catch(e){console.warn("OCS category route",e)}
 document.body.classList.add('customer-locked-ui');
 render();
 </script>
