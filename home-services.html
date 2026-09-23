@@ -416,9 +416,52 @@ function ocsRequireStage(allowed,label){
  alert((label||"This action")+" abhi allowed nahi hai. Current stage: "+S.status);
  return false;
 }
+const OCS_WORK_HISTORY_KEY="ocsWorkHistoryV1";
+function readOcsWorkHistory(){
+ try{const a=JSON.parse(localStorage.getItem(OCS_WORK_HISTORY_KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return []}
+}
+function writeOcsWorkHistory(a){
+ try{localStorage.setItem(OCS_WORK_HISTORY_KEY,JSON.stringify((Array.isArray(a)?a:[]).slice(0,200)))}catch(e){}
+ try{if(window.parent&&window.parent.localStorage)window.parent.localStorage.setItem(OCS_WORK_HISTORY_KEY,JSON.stringify((Array.isArray(a)?a:[]).slice(0,200)))}catch(e){}
+}
+function archiveOcsWorkHistory(){
+ const id=S.activeBookingId||("OCS-HIST-"+Date.now().toString(36).toUpperCase());
+ const rows=readOcsWorkHistory();
+ const base=S.status==="DONE"?Number(S.total||0):Number(S.visitCharge||0);
+ const commission=Math.round(base*Number(S.platformCharge||9))/100;
+ const record={
+   id:id,
+   closedAt:Number(S.bookingClosedAt||Date.now()),
+   status:S.status||"CLOSED",
+   closeReason:S.bookingCloseReason||"",
+   category:S.category||"",
+   service:S.service||S.serviceName||S.category||"Home Service",
+   provider:S.provider||"Service Provider",
+   customerName:S.customerName||"Customer",
+   amount:Number(S.total||0),
+   visitCharge:Number(S.visitCharge||0),
+   payment:S.payment||S.paymentChoice||"—",
+   commission:commission,
+   providerEarning:Math.max(0,Math.round((base-commission)*100)/100),
+   rating:Number(S.customerRating||0),
+   ratingComment:S.customerRatingComment||""
+ };
+ const i=rows.findIndex(x=>x&&x.id===id);
+ if(i>=0)rows[i]=Object.assign({},rows[i],record);else rows.unshift(record);
+ writeOcsWorkHistory(rows);
+}
+function syncOcsWorkHistoryRating(){
+ if(!S.activeBookingId)return;
+ const rows=readOcsWorkHistory(),i=rows.findIndex(x=>x&&x.id===S.activeBookingId);
+ if(i<0)return;
+ rows[i].rating=Number(S.customerRating||0);
+ rows[i].ratingComment=S.customerRatingComment||"";
+ writeOcsWorkHistory(rows);
+}
 function ocsCloseBooking(reason){
  S.bookingClosedAt=Date.now();
  S.bookingCloseReason=reason||S.status;
+ archiveOcsWorkHistory();
 }
 
 
@@ -1660,6 +1703,7 @@ function submitProviderRating(){
  S.customerRating=stars;
  S.customerRatingComment=comment;
  S.pendingRatingStars=0;S.pendingRatingComment="";
+ syncOcsWorkHistoryRating();
  hist("Customer submitted rating for "+S.provider+" • "+stars+"/5");
  render();
 }
