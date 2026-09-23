@@ -184,6 +184,14 @@ document.addEventListener("click",e=>{
  if(a==="pay-done"){S.status="DONE";hist("Payment recorded • "+S.paymentChoice+" • "+money(S.total));render();return}
  if(a==="new-booking"){resetNew();return}
 });
+try{
+ const qp=new URLSearchParams(location.search);
+ const qt=qp.get("tab"), qc=qp.get("cat");
+ if(qt==="provider"||qt==="customer") S.tab=qt;
+ if(qc&&services[qc]&&!activeStatuses.has(S.status)){
+   S.category=qc;S.cart=[];S.status="SELECT_ITEM";
+ }
+}catch(e){}
 render();
 </script>
 </body>
