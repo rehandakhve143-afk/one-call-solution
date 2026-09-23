@@ -10,7 +10,7 @@
 button,input,textarea,select{font:inherit}button{cursor:pointer}.app{max-width:560px;margin:auto;min-height:100vh;background:#fff;padding-bottom:24px}
 .top{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:10px 12px 8px}
 .headrow{display:flex;align-items:center;gap:10px}.back{width:38px;height:38px;border:0;border-radius:11px;background:#eef5f3;font-size:23px;color:#24484d}.brand{flex:1}.brand b{display:block;font-size:16px}.brand small{font-size:10px;color:var(--muted)}.ver{font-size:8px;color:#95a4a5}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.tab{border:1px solid var(--line);background:#f5f8f7;color:#466167;border-radius:11px;padding:10px;font-weight:900}.tab.on{background:var(--green);color:#fff;border-color:var(--green)}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:9px}.tab{border:1px solid var(--line);background:#f5f8f7;color:#466167;border-radius:11px;padding:10px;font-weight:900}.tab.on{background:var(--green);color:#fff;border-color:var(--green)}
 .main{padding:12px}.hero{height:124px;border-radius:18px;background:linear-gradient(135deg,#0b3039,#08786e);color:#fff;padding:18px;display:flex;align-items:end;margin-bottom:12px}.hero b{font-size:20px;line-height:1.05}.hero small{display:block;margin-top:5px;color:#d7efeb}
 .search{display:flex;gap:8px;background:#f4f7f6;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px}.search input{width:100%;border:0;outline:0;background:transparent}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cat{min-height:108px;border:1px solid var(--line);border-radius:16px;background:#fff;padding:12px 8px;text-align:center;box-shadow:0 4px 12px rgba(21,70,67,.06)}.cat .ico{width:42px;height:42px;margin:0 auto 7px;border-radius:12px;background:#eff7f5;display:grid;place-items:center;font-size:22px}.cat b{display:block;font-size:12.5px}.cat small{font-size:9px;color:var(--muted)}
@@ -36,11 +36,12 @@ background-color:#fff}
     <div class="headrow">
       <button class="back" data-action="home">‹</button>
       <div class="brand"><b>ONE CALL SOLUTION</b><small>Home Services</small></div>
-      <span class="ver">FLOW 25.3</span>
+      <span class="ver">FLOW 25.4</span>
     </div>
     <div class="tabs">
       <button class="tab on" data-tab="customer">Customer</button>
       <button class="tab" data-tab="provider">Service Provider</button>
+      <button class="tab" data-tab="admin">Admin</button>
     </div>
   </header>
   <main id="main" class="main"></main>
@@ -80,7 +81,7 @@ const services={
 'Waterproofing':{icon:'💧',items:[{"name":"Terrace / Roof Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Bathroom Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"Balcony Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"External Wall Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Internal Damp Wall Treatment – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Water Tank Waterproofing","type":"quote","display":"Get Quote"},{"name":"Crack / Joint Waterproofing","type":"quote","display":"Get Quote"},{"name":"PU Injection / Special Waterproofing","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
 'False Ceiling / POP / Gypsum / PVC':{icon:'🏠',items:[{"name":"Gypsum Board False Ceiling – Labour Only","type":"fixed","display":"₹75 / sq.ft.","price":75},{"name":"POP Ceiling – Labour Only","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"PVC Ceiling – Labour Only","type":"fixed","display":"₹70 / sq.ft.","price":70},{"name":"Cove / Designer Ceiling Work","type":"quote","display":"Get Quote"},{"name":"Repair / Patch Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
 };
-const KEY="ocsHomeFlowV253";
+const KEY="ocsHomeFlowV254";
 const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","VISIT_PAYMENT","VISIT_CASH_WAIT","COMPLETION_CONFIRM","PAYMENT","CASH_WAIT"]);
 function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",paymentView:"SELECT",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addonRequest:null,addonNotice:"",addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",rescheduleBy:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,visitPaymentChoice:"ONLINE",visitPaymentView:"SELECT",visitPaymentStatus:"",supportTickets:[],expertRequests:[],actionPanel:"",customerLat:null,customerLng:null,locationSharedAt:"",locationError:""}}
 let S=fresh();
@@ -123,13 +124,13 @@ function resetNew(){
 function catIcon(k){return services[k]&&services[k].icon?services[k].icon:"🛠️"}
 function render(){
  document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("on",b.dataset.tab===S.tab));
- document.getElementById("main").innerHTML=S.tab==="customer"?customerHTML():providerHTML();
+ document.getElementById("main").innerHTML=S.tab==="customer"?customerHTML():(S.tab==="provider"?providerHTML():adminHTML());
 }
 function latestTicketHTML(role){
  const list=(S.supportTickets||[]).filter(x=>!role||x.role===role);
  if(!list.length)return "";
  const t=list[list.length-1];
- return `<div class="card"><h3>OCS Support Ticket ✅</h3><div class="notice"><b>Ticket No: ${esc(t.ticket||t.id||"")}</b><br>${esc(t.msg||t.category||"Support request")}<br>${t.callback?"Callback Requested":"No Callback Requested"}</div></div>`;
+ return `<div class="card"><h3>OCS Support Ticket ✅</h3><div class="notice"><b>Ticket No: ${esc(t.ticket||t.id||"")}</b><br>${esc(t.msg||t.category||"Support request")}<br>${t.callback?"Callback Requested":"No Callback Requested"}<br>Status: <b>${esc(t.status||"NEW")}</b></div></div>`;
 }
 function customerLocationHTML(){
  if(S.customerLat!=null&&S.customerLng!=null){
@@ -246,6 +247,31 @@ function providerActionPanelHTML(){
  if(S.actionPanel==="SUPPORT_PROVIDER")return `<div class="card"><h3>Service Provider Support</h3><label>Problem / Message *</label><textarea id="providerSupportMsg" placeholder="Problem clearly likhiye"></textarea><label style="display:flex;gap:8px;align-items:center;font-weight:700"><input id="providerSupportCb" type="checkbox" style="width:auto"> OCS callback chahiye</label><div class="row"><button class="btn" data-action="submit-provider-support">Create Ticket</button><button class="btn gray" data-action="close-action-panel">Cancel</button></div></div>`;
  return "";
 }
+function adminHTML(){
+ const tickets=S.supportTickets||[];
+ const newCount=tickets.filter(t=>(t.status||"NEW")==="NEW").length;
+ const reviewCount=tickets.filter(t=>t.status==="IN_REVIEW").length;
+ const resolvedCount=tickets.filter(t=>t.status==="RESOLVED").length;
+ const rows=tickets.length?tickets.slice().reverse().map(t=>{
+   const id=t.ticket||t.id||"";
+   const st=t.status||"NEW";
+   return `<div class="card">
+     <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+       <div><h3 style="margin-bottom:3px">${esc(id)}</h3><div class="muted">${esc(t.role||"Support")} • ${t.callback?"📞 Callback Requested":"No Callback"}</div></div>
+       <b>${esc(st)}</b>
+     </div>
+     <div class="notice" style="margin-top:10px">${esc(t.msg||t.category||"Support request")}</div>
+     <div class="row">
+       <button class="btn gray" data-action="admin-ticket-review" data-ticket="${esc(id)}">In Review</button>
+       <button class="btn ok" data-action="admin-ticket-resolve" data-ticket="${esc(id)}">Resolved</button>
+     </div>
+   </div>`;
+ }).join(""):`<div class="empty"><b>No support tickets yet.</b><br>Customer / Service Provider complaint aayegi to yahan dikhegi.</div>`;
+ const expert=(S.expertRequests||[]).length?`<div class="card"><h3>Ask to Expert Requests</h3>${S.expertRequests.slice().reverse().map((x,i)=>`<div class="notice"><b>Expert Request ${S.expertRequests.length-i}</b><br>${esc(x.q||"")}</div>`).join("")}</div>`:"";
+ return `<div class="hero"><div><b>Admin • Ticket Check</b><small>Customer & Service Provider support</small></div></div>
+ <div class="card"><h3>Ticket Summary</h3><div class="row"><div class="notice"><b>New: ${newCount}</b></div><div class="notice"><b>In Review: ${reviewCount}</b></div></div><div class="notice"><b>Resolved: ${resolvedCount}</b> • Total: ${tickets.length}</div></div>
+ ${rows}${expert}`;
+}
 function providerHTML(){
  if(S.status==="QUOTE_WAIT") return `<div class="card"><h3>Get Quote Request</h3><b>${esc(S.quoteRequest&&S.quoteRequest.service||S.category)}</b><p>${esc(S.quoteRequest&&S.quoteRequest.desc)}</p><button class="btn" data-action="send-quote">Send Quote</button></div>`;
  if(S.status==="INITIAL_QUOTE") return `<div class="notice">Quote sent. Customer response ka wait hai.</div>`;
@@ -290,7 +316,7 @@ document.addEventListener("click",e=>{
  const tab=e.target.closest("[data-tab]");if(tab){setTab(tab.dataset.tab);return}
  const b=e.target.closest("[data-action]");if(!b)return;
  const a=b.dataset.action;
- if(a==="home"){location.href="index.html?v=20260923-flow253";return}
+ if(a==="home"){location.href="index.html?v=20260923-flow254";return}
  if(a==="category"){S.category=b.dataset.cat;S.cart=[];S.status="SELECT_ITEM";save();render();return}
  if(a==="categories"){S.category="";S.cart=[];S.status="SELECT_SERVICE";save();render();return}
  if(a==="add"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.cart.push({i,name:it.name,price:Number(it.price||0),qty:1});save();render();return}
@@ -348,7 +374,7 @@ document.addEventListener("click",e=>{
  if(a==="addon-quote-accept"){if(!S.addonRequest||S.addonRequest.status!=="QUOTE_SENT")return;S.total+=Number(S.addonRequest.amount||0);S.service=S.service+", Extra Work: "+S.addonRequest.desc;S.addonNotice="Add Work quote accepted • "+money(S.addonRequest.amount)+" added to booking.";hist("Customer accepted Add Work quote • New total "+money(S.total));S.addonRequest=null;save();render();return}
  if(a==="addon-quote-reject"){if(!S.addonRequest)return;S.addonNotice="Add Work quote rejected. Booking amount unchanged.";hist("Customer rejected Add Work quote • Total remains "+money(S.total));S.addonRequest=null;save();render();return}
  if(a==="change-provider"){S.actionPanel="CHANGE_PROVIDER";save();render();return}
- if(a==="submit-change-provider"){const r=(document.getElementById("changeProviderReason")?.value||"").trim();const d=(document.getElementById("changeProviderDetails")?.value||"").trim();if(!r)return;S.providerChangeReason=r+(d?" • "+d:"");const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Customer",msg:"Provider Change: "+S.providerChangeReason,callback:true});S.actionPanel="";S.status="PROVIDER_CHANGE_HOLD";hist("Customer requested Service Provider change • Ticket "+ticket+" • booking HOLD");save();render();return}
+ if(a==="submit-change-provider"){const r=(document.getElementById("changeProviderReason")?.value||"").trim();const d=(document.getElementById("changeProviderDetails")?.value||"").trim();if(!r)return;S.providerChangeReason=r+(d?" • "+d:"");const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Customer",msg:"Provider Change: "+S.providerChangeReason,callback:true,status:"NEW",createdAt:Date.now()});S.actionPanel="";S.status="PROVIDER_CHANGE_HOLD";hist("Customer requested Service Provider change • Ticket "+ticket+" • booking HOLD");save();render();return}
  if(a==="work-not-completed-customer"){S.actionPanel="WNC_CUSTOMER";save();render();return}
  if(a==="submit-wnc-customer"){const reason=(document.getElementById("wncCustomerReason")?.value||"").trim();if(!reason)return;S.wncBy="CUSTOMER";S.wncReason=reason;S.actionPanel="";S.status="WNC_REVIEW";hist("Customer marked Work Not Completed • "+reason);render();return}
  if(a==="work-not-completed-provider"){S.actionPanel="WNC_PROVIDER";save();render();return}
@@ -362,8 +388,8 @@ document.addEventListener("click",e=>{
  if(a==="confirm-visit-cash-received"){S.visitPaymentStatus="PAID";S.status="DONE";hist(S.provider+" confirmed Visit Charge Cash Received • "+money(S.visitCharge));save();render();return}
  if(a==="customer-support"){S.actionPanel="SUPPORT_CUSTOMER";save();render();return}
  if(a==="provider-support"){S.actionPanel="SUPPORT_PROVIDER";save();render();return}
- if(a==="submit-customer-support"){const msg=(document.getElementById("customerSupportMsg")?.value||"").trim();if(!msg)return;const cb=!!document.getElementById("customerSupportCb")?.checked;const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Customer",msg,callback:cb,createdAt:Date.now()});S.actionPanel="";hist("Customer support ticket "+ticket+" created"+(cb?" • Callback requested":""));render();return}
- if(a==="submit-provider-support"){const msg=(document.getElementById("providerSupportMsg")?.value||"").trim();if(!msg)return;const cb=!!document.getElementById("providerSupportCb")?.checked;const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Service Provider",msg,callback:cb,createdAt:Date.now()});S.actionPanel="";hist("Service Provider support ticket "+ticket+" created"+(cb?" • Callback requested":""));render();return}
+ if(a==="submit-customer-support"){const msg=(document.getElementById("customerSupportMsg")?.value||"").trim();if(!msg)return;const cb=!!document.getElementById("customerSupportCb")?.checked;const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Customer",msg,callback:cb,status:"NEW",createdAt:Date.now()});S.actionPanel="";hist("Customer support ticket "+ticket+" created"+(cb?" • Callback requested":""));render();return}
+ if(a==="submit-provider-support"){const msg=(document.getElementById("providerSupportMsg")?.value||"").trim();if(!msg)return;const cb=!!document.getElementById("providerSupportCb")?.checked;const ticket="OCS-"+String(Date.now()).slice(-6);S.supportTickets.push({ticket,role:"Service Provider",msg,callback:cb,status:"NEW",createdAt:Date.now()});S.actionPanel="";hist("Service Provider support ticket "+ticket+" created"+(cb?" • Callback requested":""));render();return}
  if(a==="ask-expert"){S.actionPanel="ASK_EXPERT";save();render();return}
  if(a==="submit-expert"){const q=(document.getElementById("expertQuestion")?.value||"").trim();if(!q)return;S.expertRequests.push({q,at:Date.now()});S.actionPanel="";hist("Ask to Expert request sent");render();return}
  if(a==="close-action-panel"){S.actionPanel="";save();render();return}
@@ -374,12 +400,14 @@ document.addEventListener("click",e=>{
  if(a==="start-cash-payment"){S.paymentChoice="CASH";S.paymentView="SELECT";S.status="CASH_WAIT";hist("Customer selected Cash Payment • "+money(S.total));save();render();return}
  if(a==="switch-cash-to-online"){S.paymentChoice="ONLINE";S.paymentView="ONLINE";S.status="PAYMENT";hist("Customer switched Cash to Online • QR / Link opened");save();render();return}
  if(a==="confirm-cash-received"){S.status="DONE";hist(S.provider+" confirmed Cash Received • "+money(S.total));save();render();return}
+ if(a==="admin-ticket-review"){const id=b.dataset.ticket;const t=(S.supportTickets||[]).find(x=>(x.ticket||x.id)===id);if(t){t.status="IN_REVIEW";hist("Admin marked ticket "+id+" In Review");save();render()}return}
+ if(a==="admin-ticket-resolve"){const id=b.dataset.ticket;const t=(S.supportTickets||[]).find(x=>(x.ticket||x.id)===id);if(t){t.status="RESOLVED";hist("Admin resolved ticket "+id);save();render()}return}
  if(a==="new-booking"){resetNew();return}
 });
 try{
  const qp=new URLSearchParams(location.search);
  const qt=qp.get("tab"), qc=qp.get("cat");
- if(qt==="provider"||qt==="customer") S.tab=qt;
+ if(qt==="provider"||qt==="customer"||qt==="admin") S.tab=qt;
  if(qc&&services[qc]&&!activeStatuses.has(S.status)){
    S.category=qc;S.cart=[];S.status="SELECT_ITEM";
  }
