@@ -29,7 +29,7 @@ label{display:block;font-weight:800;font-size:11px;margin:10px 0 5px}input,texta
     <div class="headrow">
       <button class="back" data-action="home">‹</button>
       <div class="brand"><b>ONE CALL SOLUTION</b><small>Home Services</small></div>
-      <span class="ver">FLOW 24.3</span>
+      <span class="ver">FLOW 24.4</span>
     </div>
     <div class="tabs">
       <button class="tab on" data-tab="customer">Customer</button>
@@ -75,7 +75,7 @@ const services={
 };
 const KEY="ocsHomeFlowCleanV1";
 const activeStatuses=new Set(["QUOTE_WAIT","INITIAL_QUOTE","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULED","PROVIDER_CHANGE_HOLD","WNC_REVIEW","COMPLETION_CONFIRM","PAYMENT"]);
-function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,rescheduleAt:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,supportTickets:[],expertRequests:[]}}
+function fresh(){return {tab:"customer",status:"SELECT_SERVICE",category:"",cart:[],service:"",serviceType:"",address:"",paymentChoice:"ONLINE",total:0,provider:"SP1",available:true,startOtp:"",quoteRequest:null,quote:null,logs:[],rejectedProvider:"",nextRequestReady:false,extraRequest:null,extraQuote:null,addWorkMode:false,addWorkCart:[],addWorkQuoteItem:null,rescheduleAt:"",providerChangeReason:"",wncBy:"",wncReason:"",visitCharge:0,supportTickets:[],expertRequests:[]}}
 let S=fresh();
 try{
  const raw=localStorage.getItem(KEY);
@@ -97,6 +97,8 @@ function lineTotal(x){
   return Number(x.price||0)*Number(x.qty||1)
 }
 function cartTotal(){return (S.cart||[]).reduce((a,x)=>a+lineTotal(x),0)}
+function addWorkLineTotal(x){return Number(x.price||0)*Number(x.qty||1)}
+function addWorkTotal(){return (S.addWorkCart||[]).reduce((a,x)=>a+addWorkLineTotal(x),0)}
 function hist(t){S.logs=S.logs||[];S.logs.unshift(new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+" • "+t);save()}
 function setTab(t){S.tab=t;save();render()}
 function clearBookingStorage(){
@@ -147,6 +149,25 @@ function customerHTML(){
  if(S.status==="ASSIGNED") return `<div class="notice"><b>${esc(S.provider)} accepted booking.</b><br>Waiting for Service Provider to start journey.</div>${logsHTML()}`;
  if(S.status==="ON_WAY") return `<div class="notice"><b>${esc(S.provider)} is On the Way.</b><br>Live GPS will connect in production.</div>${logsHTML()}`;
  if(S.status==="REACHED") return `<div class="card"><h3>Service Provider Reached</h3><div class="notice">Start OTP: <b style="font-size:26px">${esc(S.startOtp)}</b><br>OTP sirf work start ke liye hai, completion proof nahi.</div><div class="muted">OTP Service Provider ko batayein.</div></div>`;
+ if(S.status==="WORKING"&&S.addWorkMode==="RATE"){
+   const d=services[S.category], selected=S.addWorkCart||[];
+   const rows=d.items.map((it,i)=>{
+     const x=selected.find(v=>v.i===i);
+     if(it.type!=="fixed") return `<div class="svc"><div class="svc-copy"><b>${esc(it.name)}</b><span>${esc(it.display||"Get Quote")}</span><small>Service Provider quote required</small></div><button class="add quote" data-action="add-work-quote" data-i="${i}">Get Quote</button></div>`;
+     return `<div class="svc"><div class="svc-copy"><b>${esc(it.name)}</b><span>${esc(it.display||money(it.price))}</span><small>Labour / service charge</small></div>${x?`<div class="step"><button data-action="add-work-qty" data-i="${i}" data-d="-1">−</button><b>${x.qty}</b><button data-action="add-work-qty" data-i="${i}" data-d="1">+</button></div>`:`<button class="add" data-action="add-work-add" data-i="${i}">Add</button>`}</div>`;
+   }).join("");
+   const t=addWorkTotal(), q=selected.reduce((a,x)=>a+Number(x.qty||1),0);
+   return `<button class="btn gray" data-action="add-work-cancel">← Back to Running Job</button>
+   <div class="card"><h3>Add More Work • ${esc(S.category)}</h3><div class="muted">Same booking me listed work add karein. Get Quote amount Customer approval ke baad hi official hoga.</div></div>
+   <div class="list">${rows}</div>
+   ${selected.length?`<div class="bar"><div class="copy"><b>${q} Add-on Service${q>1?"s":""}</b><small>Add-on Total: ${money(t)}</small></div><button data-action="add-work-continue">Add to Current Booking →</button></div>`:""}`;
+ }
+ if(S.status==="WORKING"&&S.addWorkMode==="QUOTE"){
+   return `<button class="btn gray" data-action="add-work-rate-back">← Back to Rate Card</button>
+   <div class="card"><h3>Get Quote • Add More Work</h3><b>${esc(S.addWorkQuoteItem&&S.addWorkQuoteItem.name||"Extra Work")}</b>
+   <label>Work details *</label><textarea id="addWorkQuoteDesc" placeholder="Extra work ki detail likhiye"></textarea>
+   <button class="btn" data-action="send-add-work-quote-request">Send to Service Provider</button></div>`;
+ }
  if(S.status==="WORKING") return `<div class="notice"><b>Work In Progress</b><br>Service Provider: ${esc(S.provider)} • Amount ${money(S.total)}</div>
  ${S.extraQuote?`<div class="card"><h3>Extra Work Quote</h3><b>${esc(S.extraQuote.desc)}</b><div class="money">${money(S.extraQuote.amount)}</div><div class="row"><button class="btn ok" data-action="extra-quote-accept">Accept</button><button class="btn red" data-action="extra-quote-reject">Reject</button></div></div>`:""}
  ${S.extraRequest&&!S.extraQuote?`<div class="notice"><b>Extra Work Request Sent</b><br>Waiting for Service Provider quote.</div>`:""}
@@ -225,10 +246,17 @@ document.addEventListener("click",e=>{
  if(a==="not-complete"){S.status="WORKING";hist("Customer did not confirm completion");render();return}
  if(a==="reschedule"){const when=prompt("Next visit date/time");if(!when)return;S.rescheduleAt=when;S.status="RESCHEDULED";hist("Work Pending / Reschedule • "+when+" • Visit charge ₹0 now");render();return}
  if(a==="resume-visit"){S.startOtp="";S.status="ON_WAY";hist("Rescheduled visit resumed • fresh GPS Reached + Start OTP required");render();return}
- if(a==="customer-add-work"){const d=prompt("Extra work / new work detail likhiye");if(!d)return;S.extraRequest={desc:d};S.extraQuote=null;hist("Customer added extra work request");render();return}
+ if(a==="customer-add-work"){S.addWorkMode="RATE";S.addWorkCart=[];S.addWorkQuoteItem=null;save();render();return}
+ if(a==="add-work-cancel"){S.addWorkMode=false;S.addWorkCart=[];S.addWorkQuoteItem=null;save();render();return}
+ if(a==="add-work-add"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.addWorkCart=S.addWorkCart||[];if(!S.addWorkCart.some(x=>x.i===i))S.addWorkCart.push({i,name:it.name,price:Number(it.price||0),qty:1});save();render();return}
+ if(a==="add-work-qty"){const i=Number(b.dataset.i),x=(S.addWorkCart||[]).find(v=>v.i===i);if(!x)return;x.qty=Math.max(0,Number(x.qty||1)+Number(b.dataset.d||0));if(x.qty===0)S.addWorkCart=S.addWorkCart.filter(v=>v.i!==i);save();render();return}
+ if(a==="add-work-continue"){if(!(S.addWorkCart||[]).length)return;const amt=addWorkTotal();const desc=S.addWorkCart.map(x=>x.name+" × "+x.qty).join(", ");S.total+=amt;S.service=S.service+", Add Work: "+desc;hist("Customer added listed work • "+desc+" • "+money(amt));S.addWorkMode=false;S.addWorkCart=[];S.addWorkQuoteItem=null;save();render();return}
+ if(a==="add-work-quote"){const i=Number(b.dataset.i),it=services[S.category].items[i];S.addWorkQuoteItem={i,name:it.name};S.addWorkMode="QUOTE";save();render();return}
+ if(a==="add-work-rate-back"){S.addWorkMode="RATE";S.addWorkQuoteItem=null;save();render();return}
+ if(a==="send-add-work-quote-request"){const d=(document.getElementById("addWorkQuoteDesc")?.value||"").trim();if(!d){alert("Work details likhiye.");return}S.extraRequest={desc:(S.addWorkQuoteItem?.name?S.addWorkQuoteItem.name+" • ":"")+d};S.extraQuote=null;S.addWorkMode=false;S.addWorkQuoteItem=null;hist("Customer sent Add Work Get Quote request");render();return}
  if(a==="send-extra-quote"){const amt=Number(prompt("Extra work quote ₹"));if(!amt||amt<=0)return;S.extraQuote={desc:S.extraRequest&&S.extraRequest.desc||"Extra Work",amount:amt};hist("Service Provider sent extra work quote ₹"+amt);render();return}
- if(a==="extra-quote-accept"){S.total+=Number(S.extraQuote.amount||0);S.service=S.service+", Extra Work: "+S.extraQuote.desc;hist("Customer accepted extra work quote ₹"+S.extraQuote.amount);S.extraRequest=null;S.extraQuote=null;render();return}
- if(a==="extra-quote-reject"){hist("Customer rejected extra work quote");S.extraRequest=null;S.extraQuote=null;render();return}
+ if(a==="extra-quote-accept"){S.total+=Number(S.extraQuote.amount||0);S.service=S.service+", Extra Work: "+S.extraQuote.desc;hist("Customer accepted extra work quote ₹"+S.extraQuote.amount);S.extraRequest=null;S.extraQuote=null;S.addWorkMode=false;render();return}
+ if(a==="extra-quote-reject"){hist("Customer rejected extra work quote");S.extraRequest=null;S.extraQuote=null;S.addWorkMode=false;render();return}
  if(a==="change-provider"){const reason=prompt("Service Provider change reason");if(!reason)return;S.providerChangeReason=reason;S.status="PROVIDER_CHANGE_HOLD";hist("Customer requested Service Provider change • booking HOLD");render();return}
  if(a==="work-not-completed-customer"){const reason=prompt("Work Not Completed reason");if(!reason)return;S.wncBy="CUSTOMER";S.wncReason=reason;S.status="WNC_REVIEW";hist("Customer marked Work Not Completed • "+reason);render();return}
  if(a==="work-not-completed-provider"){const reason=prompt("Work Not Completed reason");if(!reason)return;S.wncBy="PROVIDER";S.wncReason=reason;S.status="WNC_REVIEW";hist("Service Provider marked Work Not Completed • "+reason);render();return}
