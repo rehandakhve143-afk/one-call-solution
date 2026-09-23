@@ -302,7 +302,7 @@ service:"",category:"",serviceType:"fixed",quantity:1,address:"Customer Address"
 startOtp:null,quote:null,quoteDecision:null,reschedule:null,rescheduleBy:null,
 cancelReason:null,cancelBy:null,visitCharge:0,distanceSlab:null,
 payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",supportTickets:[],logs:[],
-wallet:100,welcomeBonus:100,welcomeBonusGranted:true,welcomeBonusWithdrawable:false,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:9,
+wallet:100,welcomeBonus:100,welcomeBonusGranted:true,welcomeBonusWithdrawable:false,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:10,
 providerRatings:[],customerRating:null,pendingRatingStars:0,pendingRatingComment:"",customerRatingComment:"",
 currentJob:null,nextJob:null,pendingNextRequest:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null,
 customerName:"Customer 1",customerMobile:"Not added",customerEmail:"Not added",
@@ -400,6 +400,23 @@ S.pendingNextRequest=S.pendingNextRequest&&typeof S.pendingNextRequest==="object
 S.nextJob=S.nextJob&&typeof S.nextJob==="object"?S.nextJob:null;
 
 const $=id=>document.getElementById(id);
+const OCS_ACTION_GUARD={};
+function ocsGuardAction(key,ms){
+ const now=Date.now(),wait=Number(ms||1200),last=Number(OCS_ACTION_GUARD[key]||0);
+ if(last&&now-last<wait){alert("Action already processing. Please wait.");return false}
+ OCS_ACTION_GUARD[key]=now;return true;
+}
+function ocsRequireStage(allowed,label){
+ const list=Array.isArray(allowed)?allowed:[allowed];
+ if(list.includes(S.status))return true;
+ alert((label||"This action")+" abhi allowed nahi hai. Current stage: "+S.status);
+ return false;
+}
+function ocsCloseBooking(reason){
+ S.bookingClosedAt=Date.now();
+ S.bookingCloseReason=reason||S.status;
+}
+
 
 const services={
  'Electrical':{icon:'⚡',items:[{"name": "Fan Fitting / Capacitor Change", "type": "fixed", "price": 239, "display": "₹239", "fanBundle": false}, {"name": "Fan Hook / Anchor Fastener Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Fan + Anchor Fastener Fitting", "type": "fixed", "price": 450, "display": "₹450"}, {"name": "Regulator Fitting – Concealed", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Regulator Fitting – Normal", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Switch Change – 1 No.", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "1 Switch + 1 Socket Change", "type": "fixed", "price": 250, "display": "₹250"}, {"name": "Geyser Fitting – Normal", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Geyser + Angle Cock", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "15/16 Amp Board Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Inverter Wiring – 1 BHK Casing/Patti", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "Inverter Wiring – 1 BHK Concealed", "type": "fixed", "price": 700, "display": "₹700"}, {"name": "Normal Inverter Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Inverter + Overhead Battery Load", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "MCB Single/Double Pole Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Tube/LED Light Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Holder Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Electric Board Change", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Bulb Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Building Street Light – 1", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "Earthing Maintenance / Check", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "New Earthing Installation Wiring – 1 BHK", "type": "fixed", "price": 700, "display": "₹700"}, {"name": "Visit / Inspection – Work Checking", "type": "fixed", "price": 249, "display": "₹249"}, {"name": "Exhaust Fan Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Wall Fan Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "BLDC/Smart Fan Installation", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Decorative Fan Installation", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "New Switch Box Installation", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Switchboard Repair", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Plug Top Replacement/Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Doorbell Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Smart/Wi-Fi Switch Installation", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Submeter Installation", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Stabiliser Installation", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "External Wiring with Casing/Patti – per 5m", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Internal/Concealed Wiring – per 5m", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "New Normal Power Point Wiring", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "AC Dedicated Power Point Wiring", "type": "fixed", "price": 800, "display": "₹800"}, {"name": "MCB Tripping / Electrical Fault Diagnosis", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Short Circuit / Fault Finding", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Main Distribution Board Work", "type": "quote", "display": "Get Quote"}, {"name": "Full House Rewiring", "type": "quote", "display": "Get Quote"}, {"name": "New Complete Earthing", "type": "quote", "display": "Get Quote"}, {"name": "Chandelier / Heavy Decorative Light", "type": "quote", "price": 800, "display": "Get Quote / starts ₹800"}, {"name": "Any Other Electrical Work", "type": "quote", "display": "Get Quote"}]},
@@ -563,6 +580,8 @@ function paymentDueAmount(){
  return Math.max(0,Number(S.total||0)-Number(S.heldAmount||0));
 }
 function secureQuotePayment(mode){
+ if(!ocsRequireStage("QUOTE_SECURE_PAYMENT","Secure quote payment"))return;
+ if(!ocsGuardAction("secure-quote-"+mode,1600))return;
  const amt=Number(S.total||(S.quote&&S.quote.amount)||0);if(!amt)return;
  if(mode==="CASH"){
    S.paymentChoice="CASH";S.cashFallback=true;S.paymentHeld=false;S.heldAmount=0;S.payment="CASH_AT_COMPLETION";
@@ -579,9 +598,14 @@ function secureExtraQuoteAmount(amount,desc){
  hist("Customer approved Get Quote Add Work and secured "+money(amount)+" with OCS • "+(desc||"Extra work"));
 }
 function releaseHeldJobPayment(){
+ if(!ocsRequireStage("COMPLETION_CONFIRM","Release secure payment"))return;
+ if(S.paymentFinalized){alert("Payment already finalized hai.");return}
+ if(!ocsGuardAction("release-held-payment",1600))return;
+ S.paymentFinalized=true;
  const total=Number(S.total||0),held=Number(S.heldAmount||0);
  S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held;S.heldAmount=0;S.currentJob=null;S.payment="ONLINE • OCS Secure Payment Released";
  if(total>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(total)}
+ ocsCloseBooking("Secure payment released after completion");
  hist("Customer confirmed Work Completed • OCS released "+money(held||total)+" for settlement to "+S.provider);
  unlockQueuedNextJob();
 }
@@ -592,9 +616,14 @@ function settleHeldNoWork(charge,reason){
  hist("OCS Secure Hold settlement prepared • Visit charge "+money(cc)+" • Customer refund "+money(S.refundAmount));
 }
 function confirmHeldNoWorkSettlement(){
+ if(!ocsRequireStage("HELD_WNC_SETTLEMENT","No-work settlement"))return;
+ if(S.paymentFinalized){alert("Settlement already finalized hai.");return}
+ if(!ocsGuardAction("held-no-work-settlement",1600))return;
+ S.paymentFinalized=true;
  const charge=Number(S.heldNoWorkCharge||0),refund=Number(S.refundAmount||0);
  S.paymentHeld=false;S.heldAmount=0;S.status="CANCELLED_SETTLED";S.payment="OCS_HOLD_SETTLED";
  if(charge>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(charge)}
+ ocsCloseBooking("No-work secure settlement complete");
  hist("OCS hold settled • Provider visit charge "+money(charge)+" • Customer refund "+money(refund));
 }
 
@@ -647,6 +676,8 @@ function submitCustomRequest(){
  hist("Get Quote request sent • "+S.category+" • Photo/Video "+S.requestMedia.length+" • "+sch+" • Provider response window 60 min")
 }
 function sendInitialQuote(){
+ if(!ocsRequireStage("QUOTE_WAIT","Send quote"))return;
+ if(!ocsGuardAction("send-initial-quote",1200))return;
  let a=Number(prompt("Service Provider quote ₹"));if(!a||a<=0)return;
  S.quote={desc:S.customDescription||S.service,amount:a,initial:true};
  S.quoteHistory=Array.isArray(S.quoteHistory)?S.quoteHistory:[];
@@ -655,6 +686,9 @@ function sendInitialQuote(){
  hist(S.provider+" sent quote "+money(a)+" • Customer approval + OCS secure payment pending")
 }
 function initialQuoteDecision(d){
+ if(!ocsRequireStage("INITIAL_QUOTE","Quote decision"))return;
+ if(S.quoteDecision!=="PENDING"){alert("Quote ka decision already ho chuka hai.");return}
+ if(!ocsGuardAction("initial-quote-"+d,1200))return;
  if(d==="APPROVED"){
    S.quoteDecision="APPROVED";S.base=Number(S.quote.amount||0);S.total=S.base;S.bookingAmount=S.total;S.isQuoteBooking=true;S.quoteValidUntil=0;S.status="QUOTE_SECURE_PAYMENT";
    if(Array.isArray(S.quoteHistory)&&S.quoteHistory.length)S.quoteHistory[S.quoteHistory.length-1].status="ACCEPTED";
@@ -667,6 +701,7 @@ function initialQuoteDecision(d){
 }
 
 function providerRequestQuoteRevision(){
+ if(!ocsGuardAction("quote-revision-request",1200))return;
  const allowed=["QUOTE_SECURE_PAYMENT","BOOKING_DETAILS","REQUESTED","ASSIGNED","ON_WAY","REACHED"];
  if(!S.isQuoteBooking||!S.quote||S.quoteDecision!=="APPROVED"||!allowed.includes(S.status)){
    alert("Accepted Get Quote ko Work Start se pehle hi revise kiya ja sakta hai. Work start ke baad Add More Work / New Quote use karein.");return;
@@ -682,6 +717,8 @@ function providerRequestQuoteRevision(){
 }
 
 function customerQuoteRevisionDecision(action){
+ if(action!=="DISCUSS"&&!ocsRequireStage("QUOTE_REVISION_PENDING","Quote revision decision"))return;
+ if(action!=="DISCUSS"&&!ocsGuardAction("quote-revision-"+action,1200))return;
  const r=S.quoteRevision;if(!r)return;
  if(action==="DISCUSS"){quoteChat("customer");return}
  if(action==="REJECT"){
@@ -709,6 +746,8 @@ function customerQuoteRevisionDecision(action){
 }
 
 function secureQuoteRevisionTopUp(){
+ if(!ocsRequireStage("QUOTE_REVISION_TOPUP","Secure revised quote"))return;
+ if(!ocsGuardAction("quote-topup",1600))return;
  const r=S.quoteRevision,extra=Number(S.pendingRevisionTopUp||0);if(!r||extra<=0)return;
  S.heldAmount=Number(S.heldAmount||0)+extra;S.paymentHeld=true;S.paymentChoice="ONLINE";S.payment="OCS_SECURE_HOLD";
  S.pendingRevisionTopUp=0;S.status=r.returnStatus||"REQUESTED";S.quoteRevision=null;S.quoteValidUntil=0;
@@ -716,6 +755,7 @@ function secureQuoteRevisionTopUp(){
 }
 
 function customerCancelBeforeStart(){
+ if(!ocsGuardAction("customer-cancel-prestart",1400))return;
  const allowed=["BOOKING_DETAILS","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","REQUESTED","ASSIGNED","ON_WAY","REACHED"];
  const effectiveStatus=(S.quoteRevision&&S.quoteRevision.returnStatus)||S.status;
  if(!allowed.includes(S.status)||effectiveStatus==="WORKING"){alert("Start OTP ke baad normal Cancel available nahi hai. Work Not Completed / Resolve Here use karein.");return}
@@ -751,6 +791,7 @@ function customerCancelBeforeStart(){
  }
 
  S.visitCharge=0;S.currentJob=null;S.status="CANCELLED";S.payment=S.paymentHeld?"Refund pending":"No payment collected";
+ ocsCloseBooking("Customer cancelled before Service Provider travel");
  hist("Customer cancelled before Service Provider travel • "+(providerWasAssigned?S.provider+" notified • ":"")+"No visit charge");
 }
 function cancelAcceptedQuoteBeforeWork(){customerCancelBeforeStart()}
@@ -1080,34 +1121,48 @@ function settleVisitChargePayment(){
  render();
 }
 function booking(){
+ if(!ocsRequireStage(["BOOKING_DETAILS","READY"],"Create booking"))return;
+ if(!ocsGuardAction("create-booking",1600))return;
+ if(S.activeBookingId&&!S.bookingClosedAt){alert("Ek active booking already hai. Duplicate booking create nahi hogi.");return}
  ensureBookingAmount();
+ S.activeBookingId="OCS-JOB-"+Date.now().toString(36).toUpperCase();
+ S.bookingClosedAt=0;S.paymentFinalized=false;S.startOtpVerifiedAt=0;S.workFinishedAt=0;S.customerCompletionAt=0;
  // Customer should never see Service Provider wallet/admin/internal eligibility details.
  // Matching eligibility is handled internally/provider-side.
  S.status="REQUESTED";
  S.currentJob="Incoming • "+(S.service||S.category||"Home Service");
  S.requestCreatedAt=Date.now();
  S.providerRequestSeen=false;
- hist("Customer created booking • ₹"+S.base+" • Payment choice: "+S.paymentChoice+" • OCS matching eligible provider")
+ hist("Customer created booking "+S.activeBookingId+" • ₹"+S.base+" • Payment choice: "+S.paymentChoice+" • OCS matching eligible provider")
 }
 
 function providerDecision(d){
+ if(!ocsRequireStage("REQUESTED",d==="accept"?"Accept booking":"Reject booking"))return;
+ if(!ocsGuardAction("provider-"+d,1200))return;
 if(d==="accept"){
  if(!S.available){alert("Available for Work OFF hai. New job accept karne ke liye ON karein.");return}
  if(S.adminPaused||!S.jobAccess){alert("OCS Admin ne new jobs temporarily pause kiye hain.");return}
- S.status="ASSIGNED";S.providerReleasedNotice=null;hist(S.provider+" accepted booking")
+ S.status="ASSIGNED";S.providerAssignedAt=Date.now();S.providerReleasedNotice=null;hist(S.provider+" accepted booking")
 }else{
  let old=S.provider;S.provider=old==="SP1"?"SP2":"SP1";
- S.status="REQUESTED";hist(old+" rejected • OCS checking next eligible provider")
+ S.status="REQUESTED";S.providerRequestSeen=false;hist(old+" rejected • OCS checking next eligible provider")
 }
 }
 
-function onWay(){S.status="ON_WAY";hist(S.provider+" is On the Way")}
+function onWay(){
+ if(!ocsRequireStage("ASSIGNED","On the Way"))return;
+ if(!ocsGuardAction("on-way",1000))return;
+ S.status="ON_WAY";S.onWayAt=Date.now();hist(S.provider+" is On the Way")
+}
 
 function reached(){
+ if(!ocsRequireStage("ON_WAY","Reached"))return;
+ if(!ocsGuardAction("reached",1000))return;
  ensureBookingAmount();
-S.status="REACHED";
-S.startOtp=String(Math.floor(1000+Math.random()*9000));
-hist(S.provider+" reached customer • Start OTP generated")
+ S.status="REACHED";
+ S.reachedAt=Date.now();
+ if(!S.startOtp)S.startOtp=String(Math.floor(1000+Math.random()*9000));
+ hist(S.provider+" reached customer • Start OTP generated")
 }
 
 function customerUnavailableBeforeOtp(){
@@ -1147,9 +1202,14 @@ hist(old+" released job • "+reason+" • Customer charge ₹0 • Request sent
 }
 
 function startWork(){
-let x=prompt("Customer Start OTP enter kare");
-if(x===S.startOtp){S.status="WORKING";hist("Start OTP verified • Work started")}
-else alert("Wrong OTP");
+ if(!ocsRequireStage("REACHED","Start Work"))return;
+ if(!S.startOtp){alert("Start OTP abhi generate nahi hua.");return}
+ if(!ocsGuardAction("start-work",1000))return;
+ let x=prompt("Customer Start OTP enter kare");
+ if(x===S.startOtp){
+   S.startOtpVerifiedAt=Date.now();S.startOtpUsed=true;S.status="WORKING";
+   hist("Start OTP verified • Work started")
+ }else alert("Wrong OTP");
 }
 
 function openAddWork(){
@@ -1262,6 +1322,9 @@ function providerEditReturnedQuote(){
  hist(S.provider+" revised Add Work and sent again • "+money(a));render();
 }
 function quoteDecide(d){
+ if(!ocsRequireStage("WORKING","Extra work decision"))return;
+ if(!S.quote||S.quoteDecision!=="PENDING"){alert("Extra work quote already resolved hai.");return}
+ if(!ocsGuardAction("extra-quote-"+d,1200))return;
  S.quoteDecision=d;
  if(d==="APPROVED"){
    secureExtraQuoteAmount(S.quote.amount,S.quote.desc);
@@ -1434,14 +1497,20 @@ function nextJobReadyHTML(){
 }
 
 function finish(){
+ if(!ocsRequireStage("WORKING","Finish Job"))return;
+ if(S.quote&&S.quoteDecision==="PENDING"){alert("Extra work quote Customer approval/rejection pending hai. Pehle usko resolve karein.");return}
+ if(!ocsGuardAction("finish-job",1200))return;
  ensureBookingAmount();
-S.status="COMPLETION_CONFIRM";
-S.completionRequested=true;
-hist(S.provider+" marked Work Completed • Waiting for Customer confirmation")
+ S.workFinishedAt=Date.now();S.status="COMPLETION_CONFIRM";
+ S.completionRequested=true;
+ hist(S.provider+" marked Work Completed • Waiting for Customer confirmation")
 }
 
 function confirmCompletion(ok){
+ if(!ocsRequireStage("COMPLETION_CONFIRM","Completion confirmation"))return;
+ if(!ocsGuardAction("completion-"+(ok?"yes":"no"),1400))return;
  if(ok){
+   S.customerCompletionAt=Date.now();
    S.completionRequested=false;
    const due=paymentDueAmount();
    if(S.paymentHeld&&Number(S.heldAmount||0)>0&&due<=0){releaseHeldJobPayment();return}
@@ -1455,28 +1524,39 @@ function confirmCompletion(ok){
 }
 
 function openOnline(purpose){
+ const required=purpose==="VISIT"?"VISIT_PAYMENT":"PAYMENT";
+ if(!ocsRequireStage(required,"Online payment"))return;
+ if(!ocsGuardAction("open-online-"+purpose,1000))return;
  ensureBookingAmount();
-S.payPurpose=purpose;
-S.payment="ONLINE";
-S.status="ONLINE_PAY";
-hist("Online payment screen opened • "+(purpose==="VISIT"?"Visit Charge":"Job Payment"))
+ S.payPurpose=purpose;
+ S.payment="ONLINE";
+ S.status="ONLINE_PAY";
+ hist("Online payment screen opened • "+(purpose==="VISIT"?"Visit Charge":"Job Payment"))
 }
 
 function onlineSuccess(){
+ if(!ocsRequireStage("ONLINE_PAY","Confirm online payment"))return;
+ if(S.paymentFinalized){alert("Payment already finalized hai.");return}
+ if(!ocsGuardAction("online-success",1800))return;
  ensureBookingAmount();
+ S.paymentFinalized=true;
  if(S.payPurpose==="VISIT"){
    let amt=Number(S.visitCharge||0);S.status="CANCELLED_SETTLED";
    if(amt>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(amt)}
-   S.currentJob=null;hist("Online payment success • "+money(amt)+" • Visit charge settled");return;
+   S.currentJob=null;ocsCloseBooking("Visit charge settled online");hist("Online payment success • "+money(amt)+" • Visit charge settled");return;
  }
  const due=paymentDueAmount(),total=Number(S.total||0),held=Number(S.heldAmount||0);
  S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held+due;S.heldAmount=0;S.currentJob=null;S.payment="ONLINE • OCS Settlement Released";
  if(total>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(total)}
+ ocsCloseBooking("Job completed and paid online");
  hist("Online payment success • Remaining "+money(due)+" • OCS released total settlement "+money(total)+" after completion");
  unlockQueuedNextJob();
 }
 
 function payCash(purpose){
+ const required=purpose==="VISIT"?"VISIT_PAYMENT":"PAYMENT";
+ if(!ocsRequireStage(required,"Cash payment"))return;
+ if(!ocsGuardAction("cash-mark-"+purpose,1200))return;
  ensureBookingAmount();
  S.payPurpose=purpose;S.payment="CASH";
  S.cashDue=purpose==="VISIT"?Number(S.visitCharge||0):paymentDueAmount();
@@ -1485,7 +1565,11 @@ function payCash(purpose){
 }
 
 function cashReceived(){
+ if(!ocsRequireStage(["CASH_WAIT","VISIT_CASH_WAIT"],"Cash received confirmation"))return;
+ if(S.paymentFinalized){alert("Payment already finalized hai.");return}
+ if(!ocsGuardAction("cash-received",1600))return;
  ensureBookingAmount();
+ S.paymentFinalized=true;
  const visit=S.payPurpose==="VISIT";
  let cashAmt=visit?Number(S.visitCharge||0):Number(S.cashDue||paymentDueAmount()||0);
  let commissionBase=visit?cashAmt:Number(S.total||0);
@@ -1493,6 +1577,7 @@ function cashReceived(){
  if(commissionBase>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(commissionBase)}
  if(!visit&&S.paymentHeld)S.payment="CASH + OCS Secure Amount Released";
  S.paymentHeld=false;S.heldAmount=0;S.currentJob=null;S.cashDue=0;
+ ocsCloseBooking(visit?"Visit charge settled cash":"Job completed and cash confirmed");
  hist(S.provider+" confirmed Cash Received • "+money(cashAmt)+(visit?" • Visit charge settled":" • OCS held amount released after completion"));
  if(!visit)unlockQueuedNextJob();
 }
@@ -1582,6 +1667,8 @@ function resetAll(){
    provider:providerState.provider,
    available:providerState.available,
    base:0,total:0,service:"",category:"",serviceType:"fixed",quantity:1,address:"Customer Address",
+   activeBookingId:null,bookingClosedAt:0,bookingCloseReason:"",paymentFinalized:false,
+   providerAssignedAt:0,onWayAt:0,reachedAt:0,startOtpVerifiedAt:0,startOtpUsed:false,workFinishedAt:0,customerCompletionAt:0,
    selectedItems:[],
    startOtp:null,quote:null,quoteDecision:null,quoteHistory:[],quoteRevision:null,pendingRevisionTopUp:0,quoteRevisionRefund:0,
    quoteResponseDeadline:0,quoteProviderAccepted:false,quoteValidUntil:0,beforeWorkProof:[],afterWorkProof:[],
@@ -1595,7 +1682,7 @@ function resetAll(){
    providerRatings:providerState.providerRatings,customerRating:null,pendingRatingStars:0,customerRatingComment:"",
    wallet:providerState.wallet,welcomeBonus:providerState.welcomeBonus,walletWarningLevel:providerState.walletWarningLevel,
    platformCharge:providerState.platformCharge,commissionDue:0,
-   adminPaused:providerState.adminPaused,jobAccess:!providerState.adminPaused,rulesVersion:9,flowVersion:9,
+   adminPaused:providerState.adminPaused,jobAccess:!providerState.adminPaused,rulesVersion:9,flowVersion:10,
    currentJob:null,nextJob:providerState.nextJob||null,pendingNextRequest:null,completionRequested:false,
    providerChangeReason:null,providerChangeTicket:null,previousProvider:null,
    wncTicket:null,wncFault:null,providerReleasedNotice:null
@@ -1625,8 +1712,9 @@ function customerProviderContactHTML(){
  return "<div class=\"card\"><h3>Contact Service Provider</h3><div class=\"muted\">"+S.provider+" assigned • Booking contact only</div><div class=\"row\" style=\"margin-top:8px\"><button class=\"btn\" onclick=\"customerCallProvider()\">📞 Call</button><button class=\"btn alt\" onclick=\"customerChatProvider()\">💬 Chat</button></div><button class=\"btn gray\" onclick=\"customerShareLocation()\">📍 Share My Location</button></div>";
 }
 function ocsReached(){
- if(S.status!=="ON_WAY"){alert("Reached verification On the Way ke baad hota hai.");return}
- S.status="REACHED"; if(!S.startOtp)S.startOtp=String(Math.floor(1000+Math.random()*9000));
+ if(!ocsRequireStage("ON_WAY","GPS Reached"))return;
+ if(!ocsGuardAction("gps-reached",1000))return;
+ S.status="REACHED";S.reachedAt=Date.now();if(!S.startOtp)S.startOtp=String(Math.floor(1000+Math.random()*9000));
  hist(S.provider+" • GPS Reached Verified • Start OTP unlocked");render();
 }
 function ocsDate(v){if(!v)return "—";let d=new Date(v+"T00:00:00");return d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}
@@ -2319,7 +2407,7 @@ function render(){
  saveHomeState();
  renderCore();
  updateSelectionTray();
- try{window.parent.postMessage({type:"OCS_BOOKING_STATE",booking:{flowVersion:9,updatedAt:Date.now(),status:S.status,provider:S.provider,category:S.category,service:S.service||S.serviceName||"",total:S.total,base:S.base,paymentChoice:S.paymentChoice,currentJob:S.currentJob,rescheduleTime:S.rescheduleTime||null,visitCharge:S.visitCharge||0},fullState:S},"*")}catch(e){}
+ try{window.parent.postMessage({type:"OCS_BOOKING_STATE",booking:{flowVersion:10,updatedAt:Date.now(),status:S.status,provider:S.provider,category:S.category,service:S.service||S.serviceName||"",total:S.total,base:S.base,paymentChoice:S.paymentChoice,currentJob:S.currentJob,rescheduleTime:S.rescheduleTime||null,visitCharge:S.visitCharge||0},fullState:S},"*")}catch(e){}
 }
 
 // Direct category route from Home screen shortcuts (?cat=Plumbing etc.)
