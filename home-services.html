@@ -325,6 +325,9 @@ function loadSavedHomeState(){
      S.jobAccess=!S.adminPaused;
      // Do not restore an unfinished cart on refresh. Active bookings remain preserved.
      if(S.status==="SELECT_ITEM"){
+       // Do not reopen an old category/rate card after refresh or module reopen.
+       S.status="SELECT_SERVICE";
+       S.category="";
        S.selectedItems=[];
        S.service="";
        S.serviceName="";
