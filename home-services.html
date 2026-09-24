@@ -966,8 +966,6 @@ async function secureQuotePayment(mode){
    await ocsLaunchRazorpay("booking",intent.id,"OCS Secure Payment",Number(intent.amount||amt));
  }catch(e){alert("Secure online payment start nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
 }
-function secureExtraQuoteAmount
-
 function secureExtraQuoteAmount(amount,desc){
  amount=Number(amount)||0;if(amount<=0)return;
  S.total=Number(S.total||0)+amount;
@@ -1433,8 +1431,6 @@ async function rechargeWallet(){
    await ocsLaunchRazorpay("wallet_topup",intent.id,"OCS Wallet Top-up",a);
  }catch(e){alert("Wallet top-up start nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
 }
-function settleCollectedAmount
-
 function settleCollectedAmount(amount,label){
  amount=Number(amount)||0;if(amount<=0)return;
  applyCommission(amount);
@@ -2075,8 +2071,6 @@ async function cashReceived(){
    await ocsLoadLive("provider");render();
  }catch(e){alert("Cash Received confirm nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
 }
-
-async function createTicket
 
 async function createTicket(side,category,callback,details){
  try{
