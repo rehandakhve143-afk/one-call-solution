@@ -1423,11 +1423,11 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
 
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Create Customer Account</h2><p class="muted" id="accountSub">Mobile OTP + email verification required.</p>
 <div id="customerAccountForm">
-  <label>Email ID *</label><input id="caEmail" type="email" autocomplete="email" placeholder="name@email.com">
+  <label>Email or Mobile *</label><input id="caEmail" autocomplete="username" placeholder="Email ID or 10-digit mobile">
   <label>Password *</label><input id="caPassword" type="password" autocomplete="current-password" placeholder="Password">
   <div class="bottom-hub-actions" style="margin-top:9px"><button class="main" onclick="emailPasswordAuth('customer','login')">Login</button><button onclick="emailPasswordAuth('customer','signup')">Create Account</button></div>
   <div class="verifyok" id="customerEmailStatus">Email login required</div>
-  <div class="help" style="margin:7px 0 12px">Existing customer: Email + Password se direct login. New customer: Create Account; email confirmation sirf first time ho sakta hai.</div>
+  <div class="help" style="margin:7px 0 12px">Login: Email ya verified Mobile + Password. New account first time Email se create hoga; mobile verify hone ke baad dono me se kisi se login kar sakte hain.</div>
   <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
   <label>Mobile Number *</label>
   <div class="verifyrow"><input id="caMobile" inputmode="tel" placeholder="10-digit mobile"><button onclick="sendMobileOtp('customer')">Send OTP</button></div>
@@ -1437,11 +1437,11 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <div class="help">Customer account ke liye Email + Mobile dono verification required hain.</div>
 </div>
 <div id="providerAccountForm" style="display:none">
-  <label>Email ID *</label><input id="paEmail" type="email" autocomplete="email" placeholder="provider@email.com">
+  <label>Email or Mobile *</label><input id="paEmail" autocomplete="username" placeholder="Email ID or 10-digit mobile">
   <label>Password *</label><input id="paPassword" type="password" autocomplete="current-password" placeholder="Password">
   <div class="bottom-hub-actions" style="margin-top:9px"><button class="main" onclick="emailPasswordAuth('provider','login')">Login</button><button onclick="emailPasswordAuth('provider','signup')">Create Account</button></div>
   <div class="verifyok" id="providerEmailStatus">Email login required</div>
-  <div class="help" style="margin:7px 0 12px">Existing Service Provider: Email + Password se direct login. New SP: Create Account, phir niche profile complete karein.</div>
+  <div class="help" style="margin:7px 0 12px">Login: Email ya verified Mobile + Password. New SP account first time Email se create hoga; phir profile + mobile verification complete karein.</div>
   <label>Full Name *</label><input id="paName" autocomplete="name" placeholder="Service Provider name">
   <label>Mobile Number *</label>
   <div class="verifyrow"><input id="paMobile" inputmode="tel" placeholder="10-digit mobile"><button onclick="sendMobileOtp('provider')">Send OTP</button></div>
@@ -1692,43 +1692,57 @@ async function refreshOcsEmailStatus(){
 async function emailPasswordAuth(role,mode){
   if(!ocsSupabase){alert('Online login service load nahi hua. Internet check karke page reopen karein.');return false}
   const isProvider=role==='provider';
-  const email=(document.getElementById(isProvider?'paEmail':'caEmail')?.value||'').trim();
+  const input=document.getElementById(isProvider?'paEmail':'caEmail');
+  const raw=(input?.value||'').trim();
   const password=(document.getElementById(isProvider?'paPassword':'caPassword')?.value||'');
   const st=document.getElementById(isProvider?'providerEmailStatus':'customerEmailStatus');
-  if(!email.includes('@')){alert('Valid email ID enter karein.');return false}
+  const isEmail=raw.includes('@');
+  const phone=!isEmail?ocsIndiaPhone(raw):'';
+  if(!isEmail&&!phone){alert('Valid Email ID ya 10-digit mobile enter karein.');return false}
   if(password.length<6){alert('Password kam se kam 6 characters ka rakhein.');return false}
   try{
     if(mode==='login'){
-      const {data,error}=await ocsSupabase.auth.signInWithPassword({email,password});
+      const credentials=isEmail?{email:raw,password}:{phone,password};
+      const {data,error}=await ocsSupabase.auth.signInWithPassword(credentials);
       if(error)throw error;
       if(!data||!data.session)throw new Error('Login session create nahi hua');
+      const signedEmail=(data.user&&data.user.email)||'';
+      if(input&&signedEmail)input.value=signedEmail;
       await refreshOcsEmailStatus();
-      if(st){st.textContent='✓ Logged in • '+email;st.style.color='#16815d'}
-      alert('Login successful.');
+      if(st){
+        st.textContent='✓ Logged in'+(signedEmail?' • '+signedEmail:'');
+        st.style.color='#16815d';
+      }
+      alert('Login successful. Ab Customer ya Service Provider profile open karein.');
       return true;
+    }
+
+    if(!isEmail){
+      alert('Naya OCS account first time Email ID se create karein. Account banne aur mobile verify hone ke baad mobile se bhi login kar sakte hain.');
+      return false;
     }
     const redirect='https://rehandakhve143-afk.github.io/one-call-solution/';
     const {data,error}=await ocsSupabase.auth.signUp({
-      email,password,
+      email:raw,password,
       options:{emailRedirectTo:redirect,data:{role:isProvider?'service_provider':'customer'}}
     });
     if(error)throw error;
     if(data&&data.session){
       await refreshOcsEmailStatus();
-      if(st){st.textContent='✓ Account created & logged in • '+email;st.style.color='#16815d'}
+      if(st){st.textContent='✓ Account created & logged in • '+raw;st.style.color='#16815d'}
       alert('Account created. Ab profile complete karein.');
     }else{
       if(st){st.textContent='Account created • first-time email confirmation pending';st.style.color='#b7791f'}
-      alert('Account create ho gaya. Security ke liye first time email confirmation complete karein; uske baad Email + Password se direct login hoga.');
+      alert('Account create ho gaya. First-time email confirmation complete karein. Uske baad Email ya verified Mobile + Password se direct login hoga.');
     }
     return true;
   }catch(e){
-    console.error('Email/password auth failed',e);
+    console.error('Email/mobile password auth failed',e);
     const msg=(e&&e.message?e.message:'Unknown error');
     if(mode==='login'&&/invalid login credentials/i.test(msg)){
-      alert('Email ya password match nahi hua. New account hai to Create Account press karein.');
+      alert('Email/Mobile ya password match nahi hua. New account hai to Create Account press karein.');
     }else if(/already registered/i.test(msg)){
-      alert('Ye email pehle se registered hai. Login button use karein.');
+      alert('Ye account pehle se registered hai. Login button use karein.');
     }else{
       alert((mode==='login'?'Login':'Account create')+' nahi hua: '+msg);
     }
@@ -1791,7 +1805,7 @@ function openAccount(role){
  const isProvider=role==='provider';
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
  document.getElementById('accountTitle').textContent=isProvider?'Service Provider Registration':'Customer Registration / Login';
- document.getElementById('accountSub').textContent=isProvider?'Email + Password login • first-time registration ke baad full Service Provider profile':'Email + Password se simple login.';
+ document.getElementById('accountSub').textContent=isProvider?'Email ya Mobile + Password • same OCS account, Service Provider profile alag':'Email ya Mobile + Password • simple OCS login.';
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  if(isProvider){
@@ -2057,12 +2071,12 @@ function openBottomProfile(){
 
  const customerCard=customer
  ? '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small><strong>'+((customer.name||'Customer'))+'</strong><br>📱 '+(customer.mobile||'—')+'<br>✉ '+(customer.email||'—')+'<br>✓ Customer account available</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Edit / Verify</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openCustomerDashboard()">Open Customer</button></div></div>'
- : '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small>Customer account abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Continue with Email</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
+ : '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small>Customer account abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Login / Create Account</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
 
  const skills=provider&&Array.isArray(provider.skills)?provider.skills.join(', '):'—';
  const providerCard=provider
  ? '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small><strong>'+((provider.name||'Service Provider'))+'</strong><br>📱 '+(provider.mobile||'—')+'<br>✉ '+(provider.email||'—')+'<br>📍 '+(provider.area||'—')+'<br>Skills: '+skills+'<br>Status: '+(provider.status||'Verification Pending')+'</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Edit / Verify</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openModule(\'Home Services\',\'provider\')">Open Provider</button></div></div>'
- : '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small>Service Provider account abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Register with Email</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
+ : '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small>Service Provider account abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Login / Register</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
 
  const history=readOcsWorkHistory();
  const historyCard='<div class="bottom-hub-card"><b>🧾 Work History</b><small>'+history.length+' saved record'+(history.length===1?'':'s')+'<br>Customer bookings and Service Provider jobs in one place.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openWorkHistory(\'CUSTOMER\')">Customer History</button><button onclick="closeBottomHub(\'bottomProfileModal\');openWorkHistory(\'PROVIDER\')">SP History</button></div></div>';
