@@ -1376,10 +1376,9 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
 <div class="modal" id="settingsModal"><div class="sheet">
   <div class="bottom-hub-head"><div><h2>⚙️ Settings</h2><div class="muted">OCS app preferences</div></div><button class="x" onclick="closeSettings()">×</button></div>
   <div class="ocs-settings-grid">
-    <div class="ocs-setting-row"><div><b>👤 Customer Profile</b><small>Create, complete or edit Customer profile</small></div><button onclick="closeSettings();openAccount('customer')">Open</button></div>
-    <div class="ocs-setting-row"><div><b>🛠 Service Provider Profile</b><small>Create, complete or edit Service Provider profile</small></div><button onclick="closeSettings();openAccount('provider')">Open</button></div>
     <div class="ocs-setting-row"><div><b>OCS Login</b><small id="settingsLoginState">Not logged in</small></div><button id="settingsLoginBtn" onclick="settingsLoginAction()">Login</button></div>
-    <div class="ocs-setting-row"><div><b>Mobile Verification</b><small id="settingsMobileVerifyState">Verify later • SMS setup pending</small></div><button onclick="openCustomerMobileVerification()">Verify</button></div>
+    <div class="ocs-setting-row"><div><b>Mobile Verification</b><small id="settingsMobileVerifyState">Verify later • SMS setup pending</small></div><button onclick="openCustomerMobileVerification()">Verify Later</button></div>
+    <div class="ocs-setting-row"><div><b>Service Provider Verification & Payout</b><small>KYC, selfie and bank/payout setup after basic SP profile</small></div><button onclick="alert('Service Provider verification/payout setup will open here after basic profile is saved.')">Complete Later</button></div>
     <div class="ocs-setting-row"><div><b>Notifications</b><small>Booking, quote, payment and support updates</small></div><input id="setNotifications" type="checkbox"></div>
     <div class="ocs-setting-row"><div><b>Location</b><small>Nearby Service Provider and directions • <span id="setLocationState">Not allowed</span></small></div><button onclick="requestOcsLocation()">Allow</button></div>
     <div class="ocs-setting-row"><div><b>Preferred Payment</b><small>Online recommended • Cash only for network issue</small></div><select id="setPayment" style="width:120px;margin:0"><option value="ONLINE">Online</option><option value="CASH">Cash</option></select></div>
@@ -1465,21 +1464,8 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   </div>
   <div id="providerProfileSetup" style="display:none">
   <label>Full Name *</label><input id="paName" autocomplete="name" placeholder="Service Provider name">
-  <label>Mobile Number *</label>
-  <div class="verifyrow"><input id="paMobile" inputmode="tel" placeholder="10-digit mobile"><button onclick="sendMobileOtp('provider')">Send OTP</button></div>
-  <div id="providerMobileOtpWrap" style="display:none"><div class="verifyrow"><input id="paMobileOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifyMobileOtp('provider')">Verify OTP</button></div></div>
-  <div class="verifyok" id="providerMobileStatus">Mobile verification required</div>
-  <label>Live Selfie *</label>
-  <div class="sp-selfie-box">
-    <div class="sp-selfie-row">
-      <div class="sp-selfie-preview" id="paSelfiePreview">👤</div>
-      <div class="sp-selfie-actions">
-        <label class="sp-selfie-btn" for="paSelfie">📷 Take / Upload Selfie</label>
-        <input id="paSelfie" type="file" accept="image/*" capture="user" onchange="handleProviderSelfie(this)">
-        <div class="sp-selfie-status" id="paSelfieStatus">Front-face selfie required for Service Provider verification.</div>
-      </div>
-    </div>
-  </div>
+  <label>Mobile Number *</label><input id="paMobile" inputmode="tel" placeholder="10-digit mobile">
+  <div class="verifyok" id="providerMobileStatus">Mobile verification: Verify later in Settings</div>
   <label>Service Area / City *</label><input id="paArea" placeholder="e.g. Khopoli / Panvel">
   <label>Service Radius *</label><select id="paRadius"><option value="6">Up to 6 km</option><option value="12">Up to 12 km</option><option value="20">Up to 20 km</option><option value="30">Up to 30 km</option></select>
   <label>Select Skills (multiple allowed)</label>
@@ -1511,16 +1497,8 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
     <label>Other Skill / Service Name *</label>
     <input id="paOtherSkill" placeholder="e.g. Glass work / Door repair / Custom service">
   </div>
-  <h3 style="margin:16px 0 4px">Bank / Payout Details</h3>
-  <div class="muted">Completed jobs ka payout isi account me jayega. Production app me bank details secure backend par save hongi.</div>
-  <label>Account Holder Name *</label><input id="paBankHolder" autocomplete="name" placeholder="Name as per bank account">
-  <label>Bank Name *</label><input id="paBankName" placeholder="e.g. HDFC Bank">
-  <label>Account Number *</label><input id="paAccountNo" inputmode="numeric" autocomplete="off" placeholder="Bank account number">
-  <label>Confirm Account Number *</label><input id="paAccountNo2" inputmode="numeric" autocomplete="off" placeholder="Re-enter account number">
-  <label>IFSC Code *</label><input id="paIfsc" autocapitalize="characters" placeholder="e.g. HDFC0001234">
-  <label>UPI ID <span class="muted">(optional)</span></label><input id="paUpi" placeholder="name@upi">
-  <label>Verification</label><div class="muted">KYC, bank, service area and each selected skill will be verified before provider activation. ₹100 OCS Wallet Welcome Bonus is credited after verification.</div>
-  <button class="primary account-submit" onclick="saveProviderAccount()">Submit Registration / Open Dashboard</button>
+  <div class="help" style="margin-top:12px">KYC, selfie, Mobile verification aur Bank / Payout details baad me Settings me complete honge. Pehle basic Service Provider profile save karein.</div>
+  <button class="primary account-submit" onclick="saveProviderAccount()">Save Service Provider Profile</button>
   </div>
 </div>
 </div></div>
@@ -1955,7 +1933,7 @@ async function syncProviderRegistrationToBackend(name,mobile,skills){
   const entered=(document.getElementById('paEmail')?.value||'').trim().toLowerCase();
   const signed=(session.user.email||'').toLowerCase();
   if(signed&&entered&&entered!==signed)throw new Error('Profile me wahi logged-in Email ID use karein');
-  const {data,error}=await ocsSupabase.rpc('complete_service_provider_registration_v2',{
+  const {data,error}=await ocsSupabase.rpc('complete_service_provider_registration',{
     p_full_name:name,
     p_phone:mobile,
     p_skill_labels:skills
@@ -1984,7 +1962,7 @@ function openAccount(role){
  const isProvider=role==='provider';
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
  document.getElementById('accountTitle').textContent=isProvider?'Service Provider Profile':'Customer Profile';
- document.getElementById('accountSub').textContent=isProvider?'Mobile Number ya Email ID se OCS login • Service Provider verification yahin complete karein':'Email login ke baad Customer Profile save karein • Mobile verification later in Settings';
+ document.getElementById('accountSub').textContent=isProvider?'Basic details + service skills save karein • verification aur payout baad me Settings me':'Email login ke baad Customer Profile save karein • Mobile verification later in Settings';
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  refreshOcsEmailStatus();
@@ -2003,13 +1981,14 @@ function openAccount(role){
  }
  if(isProvider){
    const p=getProviderProfile();
-   const st=document.getElementById('paSelfieStatus'),pv=document.getElementById('paSelfiePreview');
-   if(p&&p.selfieCaptured){
-     if(st){st.textContent='✓ Existing selfie on file. New selfie optional while editing.';st.style.color='#16815d'}
-     if(pv&&!providerSelfieFile)pv.textContent='✓';
-   }else{
-     if(st){st.textContent='Front-face selfie required for Service Provider verification.';st.style.color='#6f8188'}
-     if(pv&&!providerSelfieFile)pv.textContent='👤';
+   if(p){
+     const n=document.getElementById('paName'),m=document.getElementById('paMobile'),a=document.getElementById('paArea'),r=document.getElementById('paRadius'),st=document.getElementById('providerMobileStatus');
+     if(n&&!n.value)n.value=p.name||'';
+     if(m&&!m.value)m.value=p.mobile||'';
+     if(a&&!a.value)a.value=p.area||'';
+     if(r&&p.radius)r.value=String(p.radius);
+     if(st){st.textContent=p.mobileVerified?'✓ Mobile verified':'Mobile verification: Verify later in Settings';st.style.color=p.mobileVerified?'#16815d':'#6f8188'}
+     document.querySelectorAll('input[name="paSkill"]').forEach(x=>{if(Array.isArray(p.skills)&&p.skills.includes(x.value))x.checked=true});
    }
  }
  document.body.classList.add('ocs-account-open');
@@ -2143,35 +2122,32 @@ function handleProviderSelfie(input){
 }
 async function saveProviderAccount(){
  const name=paName.value.trim(),mobile=paMobile.value.trim(),email=paEmail.value.trim(),area=paArea.value.trim(),radius=paRadius.value;
- const existingProvider=getProviderProfile();
- const selfieOk=!!providerSelfieFile||!!(existingProvider&&existingProvider.selfieCaptured);
  let skills=providerSkillLabels();
  const otherChecked=[...document.querySelectorAll('input[name="paSkill"]:checked')].some(x=>x.value==='Other');
  const otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
  if(otherChecked&&!otherSkill){alert('Other select kiya hai to apni skill / service ka naam likhein.');return}
- const bankHolder=paBankHolder.value.trim(),bankName=paBankName.value.trim(),accountNo=paAccountNo.value.replace(/\s/g,''),accountNo2=paAccountNo2.value.replace(/\s/g,''),ifsc=paIfsc.value.trim().toUpperCase(),upi=paUpi.value.trim();
- if(!name||mobile.replace(/\D/g,'').length<10||!email.includes('@')||!area||!skills.length){alert('Name, valid mobile, email, service area aur kam se kam 1 skill required.');return}
- if(!accountVerified.providerMobile){alert('Mobile OTP verify karein.');return}
- if(!selfieOk){alert('Live selfie required for Service Provider verification.');return}
- if(!bankHolder||!bankName||accountNo.length<6||accountNo!==accountNo2||!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)){alert('Valid bank details required. Account number dono jagah same aur IFSC sahi enter karein.');return}
+ if(!name||mobile.replace(/\D/g,'').length<10||!email.includes('@')||!area||!skills.length){
+   alert('Name, valid mobile, service area aur kam se kam 1 skill required.');
+   return;
+ }
  const session=await refreshOcsEmailStatus();
- if(!session||!accountVerified.providerEmail){alert('Pehle Mobile ya Email se OCS login complete karein.');return}
+ if(!session||!session.user||!accountVerified.providerEmail){alert('Pehle Email se OCS login complete karein.');return}
  try{
    const sync=await syncProviderRegistrationToBackend(name,mobile,skills);
-   const last4=accountNo.slice(-4);
    localStorage.setItem('ocsProviderProfile',JSON.stringify({
      name,mobile,email,area,radius,skills,
      backendConnected:true,
      backendProviderId:sync&&sync.provider_id?sync.provider_id:(session.user&&session.user.id),
      skillsSaved:sync&&sync.skills_saved?sync.skills_saved:0,
-     selfieCaptured:true,
-     selfieMeta:providerSelfieFile?{name:providerSelfieFile.name||'selfie',type:providerSelfieFile.type||'image',size:providerSelfieFile.size||0}:((existingProvider&&existingProvider.selfieMeta)||null),
-     bank:{holder:bankHolder,bankName,last4,ifsc,upi,verification:'Pending'},
-     status:'Skills Pending Verification'
+     mobileVerified:!!accountVerified.providerMobile,
+     mobileVerificationPending:!accountVerified.providerMobile,
+     kycStatus:'Pending',
+     payoutStatus:'Not Added',
+     status:'Profile Saved • Verification Pending'
    }));
-   paAccountNo.value='';paAccountNo2.value='';
-   alert('Service Provider profile saved. Selected services OCS verification ke liye send ho gaye.');
-   closeAccount();openModule('Home Services','provider');
+   alert('Service Provider Profile saved. Mobile, KYC aur payout verification baad me Settings me complete kar sakte hain.');
+   closeAccount();
+   openBottomProfile();
  }catch(e){
    console.error('Provider registration sync failed',e);
    alert('Profile online save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
@@ -2278,14 +2254,8 @@ function openBottomProfile(){
  ? '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small><strong>'+((provider.name||'Service Provider'))+'</strong><br>📱 '+(provider.mobile||'—')+'<br>✉ '+(provider.email||'—')+'<br>📍 '+(provider.area||'—')+'<br>Skills: '+skills+'<br>Status: '+(provider.status||'Verification Pending')+'</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Edit Profile</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openModule(\'Home Services\',\'provider\')">Open Provider</button></div></div>'
  : '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small>Service Provider profile abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Create Service Provider Profile</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
 
- const history=readOcsWorkHistory();
- const historyCard='<div class="bottom-hub-card"><b>🧾 Work History</b><small>'+history.length+' saved record'+(history.length===1?'':'s')+'<br>Customer bookings and Service Provider jobs in one place.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openWorkHistory(\'CUSTOMER\')">Customer History</button><button onclick="closeBottomHub(\'bottomProfileModal\');openWorkHistory(\'PROVIDER\')">SP History</button></div></div>';
- const feedback=getOcsFeedback();
- const avg=ocsFeedbackAverage(feedback);
- const ocsCard='<div class="bottom-hub-card"><b>❤️ OCS Public Feedback</b><small><strong>'+feedback.likes+' Likes</strong><br>'+(avg?avg.toFixed(1)+' / 5 ⭐ • '+feedback.ratings.length+' ratings':'No rating yet')+'<br>See public comments and rate One Call Solution.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openOcsFeedback()">Like / Rate OCS</button><button onclick="closeBottomHub(\'bottomProfileModal\');openOcsFeedback()">Comments</button></div></div>';
- const settingsCard='<div class="bottom-hub-card"><b>⚙️ Settings</b><small>Customer/SP profiles, login, notifications, location, language, payment, privacy and support.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">Open Settings</button><button onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()">Help</button></div></div>';
- const shareCard='<div class="bottom-hub-card"><b>Share One Call Solution</b><small>Share OCS with family, friends, customers and Service Providers.</small><div class="bottom-hub-actions"><button class="main" onclick="shareOcsWhatsApp()">WhatsApp Share</button><button onclick="copyOcsLink()">Copy Link</button></div></div>';
- body.innerHTML=customerCard+providerCard+historyCard+ocsCard+settingsCard+shareCard;
+ const settingsCard='<div class="bottom-hub-card"><b>⚙️ Settings</b><small>Login, verification, notifications, location, payment, language and privacy.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">Open Settings</button><button onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()">Help</button></div></div>';
+ body.innerHTML=customerCard+providerCard+settingsCard;
  document.getElementById('bottomProfileModal').classList.add('show');
 }
 
