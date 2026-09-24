@@ -1769,10 +1769,21 @@ async function saveCustomerAccount(){
      p_phone:mobile
    });
    if(error)throw error;
+   const pendingRef=pendingReferralCode();
+   let referralResult=null;
+   if(pendingRef){
+     try{
+       const rr=await ocsSupabase.rpc('apply_referral_code_v1',{p_code:pendingRef});
+       if(rr.error)throw rr.error;
+       referralResult=rr.data;
+       if(referralResult&&referralResult.applied) localStorage.removeItem('ocsPendingReferralCode');
+     }catch(re){console.error('Referral apply failed',re)}
+   }
    localStorage.setItem('ocsCustomerProfile',JSON.stringify({
      name:safeName,mobile,email,verified:true,emailVerified:true,
      backendConnected:true,
-     backendCustomerId:(data&&data.customer_id)||session.user.id
+     backendCustomerId:(data&&data.customer_id)||session.user.id,
+     referralApplied:!!(referralResult&&referralResult.applied)
    }));
    closeAccount();openCustomerDashboard();
  }catch(e){
@@ -2420,20 +2431,52 @@ function closeModule(){
  document.body.classList.remove("module-open");
  const gs=document.getElementById("globalSearch");if(gs){gs.value="";gs.placeholder="Search services, shops, property, vehicle..."}
 }
-function getOcsShareUrl(){
- return location.origin+location.pathname;
+async function getOcsReferralCode(){
+ const session=await getOcsSession();
+ if(!session||!session.user)return "";
+ try{
+   const {data,error}=await ocsSupabase.rpc('get_or_create_referral_code_v1');
+   if(error)throw error;
+   return String(data||"");
+ }catch(e){console.error('Referral code error',e);return ""}
 }
-function shareOcsWhatsApp(){
- const url=getOcsShareUrl();
- const msg='One Call Solution — Home Services, Property, Local Shops aur aur bhi services ek hi jagah. Share & Earn ₹50: reward after a referred new user registers and completes their first successful booking. Open OCS: '+url;
+function pendingReferralCode(){
+ try{
+   const q=new URLSearchParams(location.search||"");
+   return String(q.get('ref')||localStorage.getItem('ocsPendingReferralCode')||"").trim().toUpperCase();
+ }catch(e){return ""}
+}
+function rememberReferralFromUrl(){
+ const code=pendingReferralCode();
+ if(code)try{localStorage.setItem('ocsPendingReferralCode',code)}catch(e){}
+}
+rememberReferralFromUrl();
+async function getOcsShareUrl(){
+ const code=await getOcsReferralCode();
+ const base=location.origin+location.pathname;
+ return code?base+'?ref='+encodeURIComponent(code):base;
+}
+async function shareOcsWhatsApp(){
+ const session=await getOcsSession();
+ if(!session||!session.user){
+   alert('Share & Earn ₹50 ke liye pehle Customer account se login/register karein.');
+   openAccount('customer');return;
+ }
+ const url=await getOcsShareUrl();
+ const msg='One Call Solution — Home Services, Property, Local Shops aur aur bhi services ek hi jagah. Mere referral link se register karein. Aapki first successful booking complete hone ke baad mujhe ₹50 OCS Wallet reward milega. Open OCS: '+url;
  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 async function copyOcsLink(){
- const url=getOcsShareUrl();
+ const session=await getOcsSession();
+ if(!session||!session.user){
+   alert('Referral link ke liye pehle Customer account se login/register karein.');
+   openAccount('customer');return;
+ }
+ const url=await getOcsShareUrl();
  try{
-   if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(url);alert('OCS link copied. WhatsApp ya kisi bhi app me paste kar sakte ho.');return}
+   if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(url);alert('Referral link copied.');return}
  }catch(e){}
- const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();alert('OCS link copied.');
+ const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();alert('Referral link copied.');
 }
 
 const OCS_BIZ_DRAFTS_KEY='ocsBusinessDrafts';
