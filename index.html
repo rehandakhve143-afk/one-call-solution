@@ -1959,15 +1959,32 @@ function openBottomSupport(){
  closeAllBottomHubs();setBottomActive('bnSupport');setBottomSupportRole('CUSTOMER');
  document.getElementById('bottomSupportModal').classList.add('show');
 }
-function submitBottomSupport(){
+async function submitBottomSupport(){
  const msg=(document.getElementById('bottomSupportText').value||'').trim();if(!msg){alert('Problem / message likhiye.');return}
  const callback=document.getElementById('bottomSupportCallback').checked;
- const id='OCS-'+Math.floor(100000+Math.random()*900000);
- let arr=[];try{arr=JSON.parse(localStorage.getItem('ocsSupportTickets')||'[]')}catch(e){}
- arr.unshift({id,role:bottomSupportRole,message:msg,callback,createdAt:new Date().toISOString()});
- localStorage.setItem('ocsSupportTickets',JSON.stringify(arr.slice(0,20)));
- document.getElementById('bottomSupportResult').innerHTML='<b>Request submitted • '+id+'</b><br>'+(callback?'Callback requested.':'No callback requested.');
+ const role=bottomSupportRole==='SERVICE_PROVIDER'?'service_provider':'customer';
+ try{
+   const b=getCurrentBooking();
+   const bookingId=(b&&(b.id||b.bookingId))||null;
+   const {data,error}=await ocsSupabase.rpc('create_support_ticket_v1',{
+     p_role:role,
+     p_category:bottomSupportRole==='SERVICE_PROVIDER'?'Service Provider Support':'Customer Support',
+     p_message:msg,
+     p_callback:callback,
+     p_booking_id:bookingId||null
+   });
+   if(error)throw error;
+   const id=data.ticket_no;
+   let arr=[];try{arr=JSON.parse(localStorage.getItem('ocsSupportTickets')||'[]')}catch(e){}
+   arr.unshift({id,backendId:data.id,role:bottomSupportRole,message:msg,callback,createdAt:data.created_at||new Date().toISOString()});
+   localStorage.setItem('ocsSupportTickets',JSON.stringify(arr.slice(0,20)));
+   document.getElementById('bottomSupportResult').innerHTML='<b>Request submitted • '+id+'</b><br>'+(callback?'Callback requested.':'No callback requested.');
+ }catch(e){
+   console.error('Support submit failed',e);
+   alert('Support request submit nahi hui: '+(e&&e.message?e.message:'Unknown error'));
+ }
 }
+
 function openBottomProfile(){
  closeAllBottomHubs();setBottomActive('bnProfile');
  const customer=getCustomerProfile(),provider=getProviderProfile();
