@@ -2599,19 +2599,20 @@ function adminToggleNewJobs(){
  hist("OCS Admin "+(S.adminPaused?"paused":"resumed")+" new booking requests for "+S.provider);
  render();
 }
-function adminApproveReassign(){
- if(S.status!=="PROVIDER_CHANGE_HOLD" && S.status!=="SUPPORT_REVIEW" && S.status!=="SUPPORT_HOLD"){
-   alert("Provider reassign ke liye booking HOLD/Support state me honi chahiye.");
+async function adminApproveReassign(){
+ if(!S.providerChangeBackendId){
+   alert("Provider change backend request nahi mila.");
    return;
  }
- let old=S.provider;
- S.provider=old==="SP1"?"SP2":"SP1";
- S.status="REQUESTED";
- S.currentJob="";
- S.supportTicket="";
- hist("OCS Admin approved provider change • Request sent to "+S.provider);
- render();
+ try{
+   const {error}=await ocsSupabase.rpc("admin_decide_provider_change_v1",{p_request_id:S.providerChangeBackendId,p_approve:true});
+   if(error)throw error;
+   hist("OCS Admin approved LIVE provider change • Booking returned to matching queue");
+   S.providerChangeBackendId=null;S.supportTicket="";
+   await ocsLoadLive("customer");render();
+ }catch(e){alert("Admin provider change failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
+
 function adminCloseSupport(){
  if(!S.supportTicket){alert("No open support ticket.");return}
  hist("OCS Admin closed "+S.supportTicket);
