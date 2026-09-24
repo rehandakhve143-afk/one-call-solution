@@ -1436,7 +1436,7 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <button class="primary account-submit" onclick="saveNewOcsPassword()">Save New Password</button>
 </div></div>
 
-<div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Create Customer Account</h2><p class="muted" id="accountSub">Mobile OTP + email verification required.</p>
+<div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Customer Login</h2><p class="muted" id="accountSub">Mobile Number ya Email se login • Direct OCS Home</p>
 <div id="customerAccountForm">
   <div id="customerAuthBox">
   <label>Mobile Number or Email ID *</label><input id="caEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
@@ -1792,7 +1792,7 @@ async function verifySimpleOcsOtp(role){
     await refreshOcsEmailStatus();
     const wrap=document.getElementById(isProvider?'providerLoginOtpWrap':'customerLoginOtpWrap');
     if(wrap)wrap.style.display='none';
-    alert('Login successful.');
+    await routeAfterOcsLogin(role);
     return true;
   }catch(e){
     alert('OTP verify nahi hua: '+(e&&e.message?e.message:'Wrong / expired OTP'));
@@ -1941,19 +1941,80 @@ async function syncProviderRegistrationToBackend(name,mobile,skills){
   if(error)throw error;
   return data;
 }
-if(ocsSupabase){
-  ocsSupabase.auth.onAuthStateChange((event)=>{
-    setTimeout(refreshOcsEmailStatus,0);
-    if(event==='PASSWORD_RECOVERY')setTimeout(openResetPassword,0);
-    if(event==='SIGNED_IN')setTimeout(()=>{
-      refreshOcsEmailStatus();
-      updateSettingsLoginState();
+async function ocsUserHasRole(role){
+  const session=await getOcsSession();
+  if(!session||!session.user||!ocsSupabase)return false;
+  try{
+    const {data,error}=await ocsSupabase.from('user_roles').select('role').eq('user_id',session.user.id).eq('role',role).maybeSingle();
+    if(error)throw error;
+    return !!data;
+  }catch(e){console.error('Role check failed',e);return false}
+}
+async function ensureSimpleCustomerAccount(session){
+  if(!session||!session.user||!ocsSupabase)return null;
+  try{
+    const {data,error}=await ocsSupabase.rpc('ensure_customer_account_v1');
+    if(error)throw error;
+    const email=(session.user.email||data?.email||'').trim();
+    const mobile=String(data?.phone||session.user.phone||'').replace(/^\+91/,'');
+    const existing=getCustomerProfile()||{};
+    const profile={
+      ...existing,
+      name:existing.name||data?.full_name||email.split('@')[0]||'Customer',
+      mobile:existing.mobile||mobile||'',
+      email:existing.email||email,
+      verified:true,emailVerified:!!email,
+      mobileVerified:!!existing.mobileVerified,
+      backendConnected:true,
+      backendCustomerId:data?.customer_id||session.user.id
+    };
+    localStorage.setItem('ocsCustomerProfile',JSON.stringify(profile));
+    return profile;
+  }catch(e){console.error('Simple customer bootstrap failed',e);return null}
+}
+async function routeAfterOcsLogin(roleHint){
+  const session=await getOcsSession();
+  if(!session||!session.user)return;
+  let intent=roleHint||'';
+  try{intent=intent||localStorage.getItem('ocsLoginIntentRole')||''}catch(e){}
+  if(!intent){
+    const meta=session.user.user_metadata||{};
+    intent=meta.last_login_role==='service_provider'?'provider':'customer';
+  }
+  if(intent==='service_provider')intent='provider';
+
+  await updateSettingsLoginState();
+
+  if(intent==='provider'){
+    const hasProvider=await ocsUserHasRole('service_provider');
+    if(hasProvider){
       const m=document.getElementById('accountModal');
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      bottomHome();
-    },0);
+      openModule('Home Services','provider');
+      return;
+    }
+    openAccount('provider');
+    const authBox=document.getElementById('providerAuthBox');
+    const setup=document.getElementById('providerProfileSetup');
+    if(authBox)authBox.style.display='none';
+    if(setup)setup.style.display='block';
+    return;
+  }
+
+  await ensureSimpleCustomerAccount(session);
+  const m=document.getElementById('accountModal');
+  if(m)m.classList.remove('show');
+  document.body.classList.remove('ocs-account-open');
+  try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
+  bottomHome();
+}
+if(ocsSupabase){
+  ocsSupabase.auth.onAuthStateChange((event)=>{
+    setTimeout(refreshOcsEmailStatus,0);
+    if(event==='PASSWORD_RECOVERY')setTimeout(openResetPassword,0);
+    if(event==='SIGNED_IN')setTimeout(()=>routeAfterOcsLogin(),0);
   });
   setTimeout(refreshOcsEmailStatus,0);
 }
@@ -1961,8 +2022,8 @@ if(ocsSupabase){
 function openAccount(role){
  const isProvider=role==='provider';
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
- document.getElementById('accountTitle').textContent=isProvider?'Service Provider Profile':'Customer Profile';
- document.getElementById('accountSub').textContent=isProvider?'Basic details + service skills save karein • verification aur payout baad me Settings me':'Email login ke baad Customer Profile save karein • Mobile verification later in Settings';
+ document.getElementById('accountTitle').textContent=isProvider?'Service Provider Login':'Customer Login';
+ document.getElementById('accountSub').textContent=isProvider?'Mobile Number ya Email se login • Existing SP direct dashboard':'Mobile Number ya Email se login • Direct OCS Home';
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  refreshOcsEmailStatus();
@@ -2145,9 +2206,8 @@ async function saveProviderAccount(){
      payoutStatus:'Not Added',
      status:'Profile Saved • Verification Pending'
    }));
-   alert('Service Provider Profile saved. Mobile, KYC aur payout verification baad me Settings me complete kar sakte hain.');
    closeAccount();
-   openBottomProfile();
+   openModule('Home Services','provider');
  }catch(e){
    console.error('Provider registration sync failed',e);
    alert('Profile online save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
