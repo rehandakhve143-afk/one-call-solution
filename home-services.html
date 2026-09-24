@@ -1215,7 +1215,7 @@ function secureQuoteRevisionTopUp(){
  hist("Customer secured revised quote extra "+money(extra)+" with OCS • Total held "+money(S.heldAmount));
 }
 
-function customerCancelBeforeStart(){
+async function customerCancelBeforeStart(){
  if(!ocsGuardAction("customer-cancel-prestart",1400))return;
  const allowed=["BOOKING_DETAILS","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","REQUESTED","ASSIGNED","ON_WAY","REACHED"];
  const effectiveStatus=(S.quoteRevision&&S.quoteRevision.returnStatus)||S.status;
@@ -1225,6 +1225,30 @@ function customerCancelBeforeStart(){
 
  const travelStarted=["ON_WAY","REACHED"].includes(effectiveStatus);
  const providerWasAssigned=["ASSIGNED","ON_WAY","REACHED"].includes(effectiveStatus);
+
+ if(effectiveStatus==="REQUESTED"&&S.activeBookingId&&ocsSupabase){
+   try{
+     const {data,error}=await ocsSupabase.rpc("cancel_customer_searching_booking_v1",{
+       p_booking_id:S.activeBookingId,
+       p_reason:reason
+     });
+     if(error)throw error;
+     S.cancelReason=reason;S.cancelBy="customer";S.customerCancelledBeforeStart=true;
+     S.customerCancelStage=effectiveStatus;S.startOtp=null;S.quoteValidUntil=0;
+     S.visitCharge=0;S.currentJob=null;S.status="CANCELLED";S.payment="No payment collected";
+     ocsCloseBooking("Customer cancelled before Service Provider assignment");
+     S.activeBookingId=null;OCS_LIVE_BOOKING_ID=null;
+     saveHomeState();
+     await ocsLoadLive("customer");
+     renderCore();updateSelectionTray();
+     alert("Booking cancelled.");
+     return;
+   }catch(e){
+     alert("Booking cancel nahi hui: "+(e&&e.message?e.message:"Unknown error"));
+     return;
+   }
+ }
+
  S.cancelReason=reason;S.cancelBy="customer";S.customerCancelledBeforeStart=true;
  S.customerCancelStage=effectiveStatus;S.startOtp=null;S.quoteValidUntil=0;
 
