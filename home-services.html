@@ -1203,7 +1203,16 @@ S.logs.unshift(new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit
 render();
 }
 
-function showTab(x){
+async function showTab(x){
+  if(x==="admin"){
+    try{
+      const session=await ocsSession();
+      if(!session||!session.user){alert("Admin login required.");return}
+      const {data,error}=await ocsSupabase.rpc("admin_access_snapshot_v1");
+      if(error)throw error;
+      if(!data||!data.is_admin){alert("Admin access allowed nahi hai.");return}
+    }catch(e){alert("Admin access check failed: "+(e&&e.message?e.message:"Unknown error"));return}
+  }
   document.body.classList.toggle("customer-locked-ui",x==="customer");
   if(x==="customer"||x==="provider"){
     loadSavedHomeState();
@@ -1221,7 +1230,7 @@ function showTab(x){
   if(pt) pt.classList.toggle("active",x==="provider");
   if(at) at.classList.toggle("active",x==="admin");
   if(x==="provider"&&S.status==="REQUESTED"){S.providerRequestSeen=true;saveHomeState();}
-  if(x==="admin") render();
+  if(x==="admin"){await adminLoadSkillQueue();render()}
   window.scrollTo(0,0);
 }
 function syncHomeState(){
@@ -3061,12 +3070,13 @@ document.addEventListener("click",function(e){
 
 document.body.classList.add('customer-locked-ui');
 let OCS_ROUTE_TAB="customer";
-try{const rt=new URLSearchParams(window.location.search||"").get("tab");if(rt==="provider"||rt==="customer")OCS_ROUTE_TAB=rt}catch(e){}
+try{const rt=new URLSearchParams(window.location.search||"").get("tab");if(rt==="provider"||rt==="customer"||rt==="admin")OCS_ROUTE_TAB=rt}catch(e){}
 setInterval(function(){
  if(["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_REVISION_PENDING"].includes(S.status))render();
 },30000);
 render();
 if(OCS_ROUTE_TAB==="provider")showTab("provider");
+if(OCS_ROUTE_TAB==="admin")showTab("admin");
 </script>
 </body>
 </html>
