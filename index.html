@@ -1996,6 +1996,8 @@ async function routeAfterOcsLogin(roleHint){
       return;
     }
     openAccount('provider');
+    document.getElementById('accountTitle').textContent='Set Up Service Provider';
+    document.getElementById('accountSub').textContent='First time only • Basic details + skills';
     const authBox=document.getElementById('providerAuthBox');
     const setup=document.getElementById('providerProfileSetup');
     if(authBox)authBox.style.display='none';
@@ -2021,9 +2023,10 @@ if(ocsSupabase){
 
 function openAccount(role){
  const isProvider=role==='provider';
+ const existingProfile=isProvider?getProviderProfile():getCustomerProfile();
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
- document.getElementById('accountTitle').textContent=isProvider?'Service Provider Login':'Customer Login';
- document.getElementById('accountSub').textContent=isProvider?'Mobile Number ya Email se login • Existing SP direct dashboard':'Mobile Number ya Email se login • Direct OCS Home';
+ document.getElementById('accountTitle').textContent=existingProfile?(isProvider?'Service Provider Profile':'Customer Profile'):(isProvider?'Service Provider Login':'Customer Login');
+ document.getElementById('accountSub').textContent=existingProfile?'Profile details yahan edit karein':(isProvider?'Mobile Number ya Email se login • Existing SP direct dashboard':'Mobile Number ya Email se login • Direct OCS Home');
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  refreshOcsEmailStatus();
