@@ -1647,21 +1647,26 @@ async function getOcsSession(){
 async function refreshOcsEmailStatus(){
   const session=await getOcsSession();
   const email=(session&&session.user&&session.user.email)||'';
-  const p=document.getElementById('providerEmailStatus');
-  if(p){
-    const entered=(document.getElementById('paEmail')?.value||'').trim().toLowerCase();
+  const syncOne=(role)=>{
+    const isProvider=role==='provider';
+    const input=document.getElementById(isProvider?'paEmail':'caEmail');
+    const status=document.getElementById(isProvider?'providerEmailStatus':'customerEmailStatus');
+    const entered=(input?.value||'').trim().toLowerCase();
     const ok=!!email&&(!entered||entered===email.toLowerCase());
-    if(ok){
-      accountVerified.providerEmail=true;
-      p.textContent='✓ Email verified • '+email;
-      p.style.color='#16815d';
-      if(document.getElementById('paEmail')&&!entered)document.getElementById('paEmail').value=email;
-    }else{
-      accountVerified.providerEmail=false;
-      p.textContent=email?'Signed in as '+email+' • enter same email':'Email login required';
-      p.style.color='#6f8188';
+    accountVerified[isProvider?'providerEmail':'customerEmail']=ok;
+    if(status){
+      if(ok){
+        status.textContent='✓ Email verified • '+email;
+        status.style.color='#16815d';
+        if(input&&!entered)input.value=email;
+      }else{
+        status.textContent=email?'Signed in as '+email+' • enter same email':'Email login required';
+        status.style.color='#6f8188';
+      }
     }
-  }
+  };
+  syncOne('customer');
+  syncOne('provider');
   return session;
 }
 async function sendOcsEmailLink(role){
@@ -1747,17 +1752,33 @@ async function demoVerify(kind){
    accountVerified[kind]=true;document.getElementById(id).textContent='✓ Mobile entered';document.getElementById(id).style.color='#16815d';return;
  }
  if(!v.includes('@')){alert('Valid email ID enter karein.');return}
- if(kind==='providerEmail'){await sendOcsEmailLink('provider');return}
- accountVerified.customerEmail=true;document.getElementById(id).textContent='✓ Email ready';document.getElementById(id).style.color='#16815d';
+ await sendOcsEmailLink(kind==='providerEmail'?'provider':'customer');
 }
-function saveCustomerAccount(){
+async function saveCustomerAccount(){
  const email=caEmail.value.trim(),name=caName.value.trim(),mobile=caMobile.value.trim();
  if(!email.includes('@')){alert('Valid email ID required.');return}
- if(!accountVerified.customerEmail){alert('Email verify karein.');return}
- if(mobile&&mobile.replace(/\D/g,'').length<10){alert('Mobile number enter karein to valid 10-digit number dalein.');return}
+ if(mobile.replace(/\D/g,'').length<10){alert('Valid 10-digit mobile number required.');return}
+ const session=await refreshOcsEmailStatus();
+ if(!session||!session.user||!accountVerified.customerEmail){alert('Email login/verification complete karein. Email me bheja OCS Login Link press karein.');return}
+ const signed=(session.user.email||'').trim().toLowerCase();
+ if(signed!==email.toLowerCase()){alert('Same verified email ID use karein.');return}
  const safeName=name||email.split('@')[0]||'Customer';
- localStorage.setItem('ocsCustomerProfile',JSON.stringify({name:safeName,mobile,email,verified:true,emailVerified:true}));
- closeAccount();openCustomerDashboard();
+ try{
+   const {data,error}=await ocsSupabase.rpc('complete_customer_registration',{
+     p_full_name:safeName,
+     p_phone:mobile
+   });
+   if(error)throw error;
+   localStorage.setItem('ocsCustomerProfile',JSON.stringify({
+     name:safeName,mobile,email,verified:true,emailVerified:true,
+     backendConnected:true,
+     backendCustomerId:(data&&data.customer_id)||session.user.id
+   }));
+   closeAccount();openCustomerDashboard();
+ }catch(e){
+   console.error('Customer registration sync failed',e);
+   alert('Customer profile online save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
+ }
 }
 let providerSelfieFile=null;
 function handleProviderSelfie(input){
