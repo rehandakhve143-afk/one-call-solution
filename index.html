@@ -2112,7 +2112,7 @@ async function saveCustomerAccount(){
    const st=document.getElementById('customerMobileStatus');
    if(st){st.textContent='Saved • Mobile verification can be completed later in Settings';st.style.color='#16815d'}
    alert('Customer Profile saved. Mobile OTP verification baad me Settings me complete kar sakte hain.');
-   closeAccount();openCustomerDashboard();
+   closeAccount();openModule('Home Services','customer');
  }catch(e){
    console.error('Customer registration sync failed',e);
    alert('Customer profile online save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
@@ -2261,7 +2261,7 @@ function openBottomProfile(){
  const body=document.getElementById('bottomProfileBody');
 
  const customerCard=customer
- ? '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small><strong>'+((customer.name||'Customer'))+'</strong><br>📱 '+(customer.mobile||'—')+'<br>✉ '+(customer.email||'—')+'<br>✓ Customer account available</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Edit Profile</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openCustomerDashboard()">Open Customer</button></div></div>'
+ ? '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small><strong>'+((customer.name||'Customer'))+'</strong><br>📱 '+(customer.mobile||'—')+'<br>✉ '+(customer.email||'—')+'<br>✓ Customer account available</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Edit Profile</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openModule(\'Home Services\',\'customer\')">Open Customer</button></div></div>'
  : '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small>Customer profile abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Create Customer Profile</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
 
  const skills=provider&&Array.isArray(provider.skills)?provider.skills.join(', '):'—';
