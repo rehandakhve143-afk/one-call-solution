@@ -1499,11 +1499,6 @@ async function providerDecision(d){
    console.error("Provider decision failed",e);
    alert((d==="accept"?"Accept":"Reject")+" failed: "+(e&&e.message?e.message:"Unknown error"));
  }
-}else{
- let old=S.provider;
- S.providerRequestForThisProfile=false;S.provider="Next Eligible SP";
- S.status="REQUESTED";S.providerRequestSeen=false;hist(old+" rejected • OCS checking next eligible skill-matched provider")
-}
 }
 
 async function onWay(){
