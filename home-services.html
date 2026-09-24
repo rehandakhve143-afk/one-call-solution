@@ -325,7 +325,13 @@ async function ocsSession(){
 }
 function ocsStatusFromBackend(v){
   const x=String(v||"").toLowerCase();
-  const m={searching:"REQUESTED",accepted:"ASSIGNED",next_accepted:"ASSIGNED",on_way:"ON_WAY",reached:"REACHED",working:"WORKING",completion_requested:"COMPLETION_CONFIRM",payment_pending:"PAYMENT",completed:"DONE",done:"DONE",cancelled:"CANCELLED",cancelled_settled:"CANCELLED_SETTLED"};
+  const m={
+    searching:"REQUESTED",accepted:"ASSIGNED",next_accepted:"ASSIGNED",
+    on_way:"ON_WAY",reached:"REACHED",working:"WORKING",
+    completion_requested:"COMPLETION_CONFIRM",payment_pending:"PAYMENT",
+    support_review:"SUPPORT_REVIEW",
+    completed:"DONE",done:"DONE",cancelled:"CANCELLED",cancelled_settled:"CANCELLED_SETTLED"
+  };
   return m[x]||String(v||"").toUpperCase();
 }
 function ocsApplyBackendBooking(b){
@@ -352,6 +358,14 @@ async function ocsLoadLive(role){
   if(!session||!session.user)return false;
   try{
     if(role==="provider"){
+      const {data:snap,error:se}=await ocsSupabase.rpc("provider_status_snapshot");
+      if(se)throw se;
+      if(snap&&snap.length){
+        S.available=!!snap[0].available_for_work;
+        S.wallet=Number(snap[0].wallet_balance||0);
+        S.currentJob=snap[0].current_booking_id?("Current • "+(S.service||"Home Service")):S.currentJob;
+        S.nextJob=snap[0].next_booking_id?Object.assign({},S.nextJob||{}, {id:snap[0].next_booking_id,status:"QUEUED"}):S.nextJob;
+      }
       const {data:cur,error:ce}=await ocsSupabase.rpc("provider_current_booking");
       if(ce)throw ce;
       if(cur&&cur.length){ocsApplyBackendBooking(cur[0]);return true}
@@ -1442,16 +1456,17 @@ function workPendingSameProvider(){
   hist("Work Pending • Same Provider "+S.provider+" • Rescheduled "+when+" • Visit charge ₹0 now • Fresh Reached + Start OTP on next visit");
 }
 
-function providerReleaseJob(){
-if(!["ASSIGNED","ON_WAY"].includes(S.status)){alert("Ye option Start OTP se pehle hi use hoga.");return}
-let reason=prompt("Reason: Emergency / Vehicle problem / Personal issue / Other");if(!reason)return;
-if(!confirm("Release Job confirm? Customer par ₹0 charge rahega aur next eligible Service Provider ko request jayegi."))return;
-let old=S.provider;
-S.provider=old==="SP1"?"SP2":"SP1";
-S.cancelReason="Provider unable to attend: "+reason;
-S.visitCharge=0;S.status="REQUESTED";
-S.providerReleasedNotice=old+" is unable to attend. Another verified Service Provider is being requested.";
-hist(old+" released job • "+reason+" • Customer charge ₹0 • Request sent to "+S.provider)
+async function providerReleaseJob(){
+ if(!["ASSIGNED","ON_WAY"].includes(S.status)){alert("Ye option Start OTP se pehle hi use hoga.");return}
+ let reason=prompt("Reason: Emergency / Vehicle problem / Personal issue / Other");if(!reason)return;
+ if(!confirm("Release Job confirm? Customer par ₹0 charge rahega aur next eligible Service Provider ko request jayegi."))return;
+ try{
+   const {data,error}=await ocsSupabase.rpc("provider_release_booking_v2",{p_booking_id:S.activeBookingId,p_reason:reason});
+   if(error)throw error;
+   ocsApplyBackendBooking(data);
+   hist("Provider released LIVE booking • Customer charge ₹0 • OCS checking next eligible provider");
+   await ocsLoadLive("provider");render();
+ }catch(e){alert("Release Job failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
 async function startWork(){
@@ -1764,21 +1779,26 @@ async function finish(){
  }catch(e){alert("Finish Job failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
-function confirmCompletion(ok){
+async function confirmCompletion(ok){
  if(!ocsRequireStage("COMPLETION_CONFIRM","Completion confirmation"))return;
  if(!ocsGuardAction("completion-"+(ok?"yes":"no"),1400))return;
- if(ok){
-   S.customerCompletionAt=Date.now();
-   S.completionRequested=false;
-   const due=paymentDueAmount();
-   if(S.paymentHeld&&Number(S.heldAmount||0)>0&&due<=0){releaseHeldJobPayment();return}
-   S.status="PAYMENT";
-   hist("Customer confirmed Work Completed • "+(S.paymentHeld?("OCS held "+money(S.heldAmount)+" • Remaining "+money(due)):"Payment opened"))
- }else{
-   S.status="SUPPORT_REVIEW";S.completionRequested=false;
-   let id=createTicket("customer","Work Completion Dispute",true);
-   hist("Customer did not confirm completion • OCS payment remains on hold • Support Ticket "+id)
- }
+ try{
+   if(ok){
+     const {data,error}=await ocsSupabase.rpc("customer_confirm_completion_v2",{p_booking_id:S.activeBookingId});
+     if(error)throw error;
+     ocsApplyBackendBooking(data);
+     S.customerCompletionAt=Date.now();S.completionRequested=false;
+     hist("Customer confirmed Work Completed • Backend status PAYMENT_PENDING");
+     ocsStartLive("customer");
+   }else{
+     const {data,error}=await ocsSupabase.rpc("customer_dispute_completion_v2",{p_booking_id:S.activeBookingId,p_reason:"Customer did not confirm completion"});
+     if(error)throw error;
+     ocsApplyBackendBooking(data);
+     S.completionRequested=false;
+     hist("Customer did not confirm completion • OCS Support Review");
+     ocsStartLive("customer");
+   }
+ }catch(e){alert("Completion update failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
 function openOnline(purpose){
