@@ -1423,11 +1423,13 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
 
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Create Customer Account</h2><p class="muted" id="accountSub">Mobile OTP + email verification required.</p>
 <div id="customerAccountForm">
+  <div id="customerAuthBox">
   <label>Email or Mobile *</label><input id="caEmail" autocomplete="username" placeholder="Email ID or 10-digit mobile">
   <label>Password *</label><input id="caPassword" type="password" autocomplete="current-password" placeholder="Password">
   <div class="bottom-hub-actions" style="margin-top:9px"><button class="main" onclick="emailPasswordAuth('customer','login')">Login</button><button onclick="emailPasswordAuth('customer','signup')">Create Account</button></div>
   <div class="verifyok" id="customerEmailStatus">Email login required</div>
-  <div class="help" style="margin:7px 0 12px">Login: Email ya verified Mobile + Password. New account first time Email se create hoga; mobile verify hone ke baad dono me se kisi se login kar sakte hain.</div>
+  <div class="help" style="margin:7px 0 12px">Ek hi OCS login hai. Email ya verified Mobile + Password. Current test me Mobile/SMS setup pending hai, isliye abhi Email use karein.</div>
+  </div>
   <div id="customerProfileSetup" style="display:none">
   <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
   <label>Mobile Number *</label>
@@ -1439,11 +1441,13 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   </div>
 </div>
 <div id="providerAccountForm" style="display:none">
+  <div id="providerAuthBox">
   <label>Email or Mobile *</label><input id="paEmail" autocomplete="username" placeholder="Email ID or 10-digit mobile">
   <label>Password *</label><input id="paPassword" type="password" autocomplete="current-password" placeholder="Password">
   <div class="bottom-hub-actions" style="margin-top:9px"><button class="main" onclick="emailPasswordAuth('provider','login')">Login</button><button onclick="emailPasswordAuth('provider','signup')">Create Account</button></div>
   <div class="verifyok" id="providerEmailStatus">Email login required</div>
-  <div class="help" style="margin:7px 0 12px">Login: Email ya verified Mobile + Password. New SP account first time Email se create hoga; phir profile + mobile verification complete karein.</div>
+  <div class="help" style="margin:7px 0 12px">Ek hi OCS login hai. Email ya verified Mobile + Password. Current test me Mobile/SMS setup pending hai, isliye abhi Email use karein.</div>
+  </div>
   <div id="providerProfileSetup" style="display:none">
   <label>Full Name *</label><input id="paName" autocomplete="name" placeholder="Service Provider name">
   <label>Mobile Number *</label>
@@ -1679,7 +1683,9 @@ async function refreshOcsEmailStatus(){
     const ok=!!email&&confirmed&&(!entered||entered===email.toLowerCase());
     accountVerified[isProvider?'providerEmail':'customerEmail']=ok;
     const setup=document.getElementById(isProvider?'providerProfileSetup':'customerProfileSetup');
+    const authBox=document.getElementById(isProvider?'providerAuthBox':'customerAuthBox');
     if(setup)setup.style.display=ok?'block':'none';
+    if(authBox)authBox.style.display=ok?'none':'block';
     if(status){
       if(ok){
         status.textContent='✓ Email verified • '+email;
@@ -1747,7 +1753,9 @@ async function emailPasswordAuth(role,mode){
   }catch(e){
     console.error('Email/mobile password auth failed',e);
     const msg=(e&&e.message?e.message:'Unknown error');
-    if(mode==='login'&&/invalid login credentials/i.test(msg)){
+    if(mode==='login'&&/phone logins are disabled/i.test(msg)){
+      alert('Mobile login ka SMS setup abhi pending hai. Abhi Email + Password se login karein. Final OCS me verified Mobile login bhi rahega.');
+    }else if(mode==='login'&&/invalid login credentials/i.test(msg)){
       const pending=(localStorage.getItem('ocsPendingSignupEmail')||'').toLowerCase();
       if(isEmail&&pending===raw.toLowerCase()){
         alert('Ye naya account abhi email confirmation pending hai. Gmail me OCS confirmation mail open karke Confirm email address press karein, phir Login karein.');
@@ -1818,7 +1826,7 @@ function openAccount(role){
  const isProvider=role==='provider';
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
  document.getElementById('accountTitle').textContent=isProvider?'Service Provider Registration':'Customer Registration / Login';
- document.getElementById('accountSub').textContent=isProvider?'Email ya Mobile + Password • same OCS account, Service Provider profile alag':'Email ya Mobile + Password • simple OCS login.';
+ document.getElementById('accountSub').textContent=isProvider?'Pehle OCS login • phir Service Provider profile':'Pehle OCS login • phir Customer profile';
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  refreshOcsEmailStatus();
@@ -1877,7 +1885,12 @@ async function sendMobileOtp(role){
    return true;
  }catch(e){
    console.error('Mobile OTP send failed',e);
-   alert('Mobile OTP send nahi hua: '+(e&&e.message?e.message:'Unknown error'));
+   const msg=(e&&e.message?e.message:'Unknown error');
+   if(/phone logins are disabled/i.test(msg)){
+     alert('Mobile OTP/SMS setup abhi pending hai. Current test Email login se continue karein.');
+   }else{
+     alert('Mobile OTP send nahi hua: '+msg);
+   }
    return false;
  }
 }
