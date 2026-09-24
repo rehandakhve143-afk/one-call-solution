@@ -1052,8 +1052,13 @@ function confirmHeldNoWorkSettlement(){
  hist("OCS hold settled • Provider visit charge "+money(charge)+" • Customer refund "+money(refund));
 }
 
-function selectCategory(cat){
+async function selectCategory(cat){
  if(!services[cat]){alert("Service category not found: "+cat);return}
+ if(S.activeBookingId&&!S.bookingClosedAt){
+   await ocsStartLive("customer");
+   try{window.scrollTo(0,0)}catch(e){}
+   return;
+ }
  S.category=cat;
  S.selectedItems=[];
  S.service="";
@@ -1612,7 +1617,7 @@ function settleVisitChargePayment(){
 async function booking(){
  if(!ocsRequireStage(["BOOKING_DETAILS","READY"],"Create booking"))return;
  if(!ocsGuardAction("create-booking",1600))return;
- if(S.activeBookingId&&!S.bookingClosedAt){alert("Ek active booking already hai. Duplicate booking create nahi hogi.");return}
+ if(S.activeBookingId&&!S.bookingClosedAt){await ocsStartLive("customer");try{window.scrollTo(0,0)}catch(e){}return}
  prepareProfileMatching();
  ensureBookingAmount();
  try{
@@ -3124,22 +3129,10 @@ function render(){
 }
 
 // Direct category route from Home screen shortcuts (?cat=Plumbing etc.)
+let OCS_ROUTE_CAT="";
 try{
  const routeCat=new URLSearchParams(window.location.search||"").get("cat");
- if(routeCat&&services[routeCat]){
-   S.category=routeCat;
-   S.selectedItems=[];
-   S.service="";
-   S.serviceName="";
-   S.serviceType="";
-   S.quantity=1;
-   S.base=0;
-   S.total=0;
-   S.bookingAmount=0;
-   S.finalAmount=0;
-   S.amount=0;
-   S.status="SELECT_ITEM";
- }
+ if(routeCat&&services[routeCat])OCS_ROUTE_CAT=routeCat;
 }catch(e){console.warn("OCS category route",e)}
 document.addEventListener("click",function(e){
   const el=e.target&&e.target.closest?e.target.closest("[data-ocs-category],[data-ocs-add],[data-ocs-quote],[data-ocs-qty],[data-ocs-continue],[data-ocs-back-categories],[data-ocs-back-items],[data-ocs-other-request],[data-ocs-pay],[data-ocs-find-provider]"):null;
@@ -3164,9 +3157,31 @@ try{const rt=new URLSearchParams(window.location.search||"").get("tab");if(rt===
 setInterval(function(){
  if(["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_REVISION_PENDING"].includes(S.status))render();
 },30000);
-render();
-if(OCS_ROUTE_TAB==="provider")showTab("provider");
-if(OCS_ROUTE_TAB==="admin")showTab("admin");
+async function bootHomeServices(){
+ if(OCS_ROUTE_TAB==="provider"){await showTab("provider");return}
+ if(OCS_ROUTE_TAB==="admin"){await showTab("admin");return}
+
+ await ocsStartLive("customer");
+ if(!S.activeBookingId&&OCS_ROUTE_CAT&&services[OCS_ROUTE_CAT]){
+   S.category=OCS_ROUTE_CAT;
+   S.selectedItems=[];
+   S.service="";
+   S.serviceName="";
+   S.serviceType="";
+   S.quantity=1;
+   S.base=0;
+   S.total=0;
+   S.bookingAmount=0;
+   S.finalAmount=0;
+   S.amount=0;
+   S.status="SELECT_ITEM";
+   render();
+ }else{
+   renderCore();
+   updateSelectionTray();
+ }
+}
+bootHomeServices();
 </script>
 </body>
 </html>
