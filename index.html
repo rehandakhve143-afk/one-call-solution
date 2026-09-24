@@ -1376,9 +1376,9 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
 <div class="modal" id="settingsModal"><div class="sheet">
   <div class="bottom-hub-head"><div><h2>⚙️ Settings</h2><div class="muted">OCS app preferences</div></div><button class="x" onclick="closeSettings()">×</button></div>
   <div class="ocs-settings-grid">
-    <div class="ocs-setting-row"><div><b>OCS Login</b><small id="settingsLoginState">Not logged in</small></div><button id="settingsLoginBtn" onclick="settingsLoginAction()">Login</button></div>
-    <div class="ocs-setting-row"><div><b>Mobile Verification</b><small id="settingsMobileVerifyState">Verify later • SMS setup pending</small></div><button onclick="openCustomerMobileVerification()">Verify Later</button></div>
-    <div class="ocs-setting-row"><div><b>Service Provider Verification & Payout</b><small>KYC, selfie and bank/payout setup after basic SP profile</small></div><button onclick="alert('Service Provider verification/payout setup will open here after basic profile is saved.')">Complete Later</button></div>
+    <div class="ocs-setting-row"><div><b>OCS Account</b><small id="settingsLoginState">Not logged in</small></div><button id="settingsLoginBtn" onclick="settingsLoginAction()">Logout</button></div>
+    <div class="ocs-setting-row"><div><b>Customer Profile</b><small id="settingsCustomerProfileState">Create or edit your Customer profile</small></div><button onclick="closeSettings();openAccount('customer')">Create / Edit</button></div>
+    <div class="ocs-setting-row"><div><b>Service Provider Profile</b><small id="settingsProviderProfileState">Create SP profile • ₹100 Welcome Bonus on first setup</small></div><button onclick="closeSettings();openAccount('provider')">Create / Edit</button></div>
     <div class="ocs-setting-row"><div><b>Notifications</b><small>Booking, quote, payment and support updates</small></div><input id="setNotifications" type="checkbox"></div>
     <div class="ocs-setting-row"><div><b>Location</b><small>Nearby Service Provider and directions • <span id="setLocationState">Not allowed</span></small></div><button onclick="requestOcsLocation()">Allow</button></div>
     <div class="ocs-setting-row"><div><b>Preferred Payment</b><small>Online recommended • Cash only for network issue</small></div><select id="setPayment" style="width:120px;margin:0"><option value="ONLINE">Online</option><option value="CASH">Cash</option></select></div>
@@ -1436,14 +1436,14 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <button class="primary account-submit" onclick="saveNewOcsPassword()">Save New Password</button>
 </div></div>
 
-<div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Customer Login</h2><p class="muted" id="accountSub">Mobile Number ya Email se login • Direct OCS Home</p>
+<div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">OCS ACCOUNT</span><h2 id="accountTitle">Login to One Call Solution</h2><p class="muted" id="accountSub">Email ID ya Mobile Number se simple login</p>
 <div id="customerAccountForm">
   <div id="customerAuthBox">
   <label>Mobile Number or Email ID *</label><input id="caEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
   <button class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('customer')">Continue</button>
   <div id="customerLoginOtpWrap" style="display:none;margin-top:10px"><label>SMS OTP *</label><div class="verifyrow"><input id="customerLoginOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifySimpleOcsOtp('customer')">Verify & Login</button></div></div>
   <div class="verifyok" id="customerEmailStatus">Mobile ya Email se simple login</div>
-  <div class="help" style="margin:7px 0 12px">Mobile Number ya Email ID dalo → Continue. Login ke baad direct OCS Home khulega.</div>
+  <div class="help" style="margin:7px 0 12px">Email ID ya Mobile Number dalo → Continue → login ke baad OCS Home khulega. Customer/SP profile baad me Settings se create karein.</div>
   </div>
   <div id="customerProfileSetup" style="display:none">
   <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
@@ -1808,7 +1808,7 @@ async function settingsLoginAction(){
     return;
   }
   closeSettings();
-  openAccount('customer');
+  openLogin();
 }
 async function updateSettingsLoginState(){
   const session=await getOcsSession();
@@ -1932,7 +1932,7 @@ async function syncProviderRegistrationToBackend(name,mobile,skills){
   if(!session||!session.user)throw new Error('Email login required');
   const entered=(document.getElementById('paEmail')?.value||'').trim().toLowerCase();
   const signed=(session.user.email||'').toLowerCase();
-  if(signed&&entered&&entered!==signed)throw new Error('Profile me wahi logged-in Email ID use karein');
+  if(signed&&entered&&entered.includes('@')&&entered!==signed)throw new Error('Profile me wahi logged-in Email ID use karein');
   const {data,error}=await ocsSupabase.rpc('complete_service_provider_registration',{
     p_full_name:name,
     p_phone:mobile,
@@ -1972,53 +1972,45 @@ async function ensureSimpleCustomerAccount(session){
     return profile;
   }catch(e){console.error('Simple customer bootstrap failed',e);return null}
 }
-async function routeAfterOcsLogin(roleHint){
+async function routeAfterOcsLogin(){
   const session=await getOcsSession();
   if(!session||!session.user)return;
-  let intent=roleHint||'';
-  try{intent=intent||localStorage.getItem('ocsLoginIntentRole')||''}catch(e){}
-  if(!intent){
-    const meta=session.user.user_metadata||{};
-    intent=meta.last_login_role==='service_provider'?'provider':'customer';
-  }
-  if(intent==='service_provider')intent='provider';
-
   await updateSettingsLoginState();
-
-  if(intent==='provider'){
-    const hasProvider=await ocsUserHasRole('service_provider');
-    if(hasProvider){
-      const m=document.getElementById('accountModal');
-      if(m)m.classList.remove('show');
-      document.body.classList.remove('ocs-account-open');
-      try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      openModule('Home Services','provider');
-      return;
-    }
-    openAccount('provider');
-    document.getElementById('accountTitle').textContent='Set Up Service Provider';
-    document.getElementById('accountSub').textContent='First time only • Basic details + skills';
-    const authBox=document.getElementById('providerAuthBox');
-    const setup=document.getElementById('providerProfileSetup');
-    if(authBox)authBox.style.display='none';
-    if(setup)setup.style.display='block';
-    return;
-  }
-
-  await ensureSimpleCustomerAccount(session);
   const m=document.getElementById('accountModal');
   if(m)m.classList.remove('show');
   document.body.classList.remove('ocs-account-open');
   try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
   bottomHome();
 }
+async function openLogin(){
+  const session=await getOcsSession();
+  if(session&&session.user){bottomHome();return}
+  const pill=document.getElementById('accountRolePill');
+  const title=document.getElementById('accountTitle');
+  const sub=document.getElementById('accountSub');
+  const cf=document.getElementById('customerAccountForm');
+  const pf=document.getElementById('providerAccountForm');
+  const auth=document.getElementById('customerAuthBox');
+  const setup=document.getElementById('customerProfileSetup');
+  if(pill)pill.textContent='OCS ACCOUNT';
+  if(title)title.textContent='Login to One Call Solution';
+  if(sub)sub.textContent='Email ID ya Mobile Number se simple login';
+  if(cf)cf.style.display='block';
+  if(pf)pf.style.display='none';
+  if(auth)auth.style.display='block';
+  if(setup)setup.style.display='none';
+  document.body.classList.add('ocs-account-open');
+  document.getElementById('accountModal').classList.add('show');
+}
 if(ocsSupabase){
   ocsSupabase.auth.onAuthStateChange((event)=>{
     setTimeout(refreshOcsEmailStatus,0);
     if(event==='PASSWORD_RECOVERY')setTimeout(openResetPassword,0);
     if(event==='SIGNED_IN')setTimeout(()=>routeAfterOcsLogin(),0);
+    if(event==='SIGNED_OUT')setTimeout(()=>openLogin(),0);
   });
   setTimeout(refreshOcsEmailStatus,0);
+  setTimeout(async()=>{const s=await getOcsSession();if(!s||!s.user)openLogin()},250);
 }
 
 function openAccount(role){
@@ -2058,7 +2050,9 @@ function openAccount(role){
  document.body.classList.add('ocs-account-open');
  document.getElementById('accountModal').classList.add('show');
 }
-function closeAccount(){
+async function closeAccount(){
+ const session=await getOcsSession();
+ if(!session||!session.user){openLogin();return}
  document.getElementById('accountModal').classList.remove('show');
  document.body.classList.remove('ocs-account-open');
 }
@@ -2130,13 +2124,15 @@ async function verifyMobileOtp(role){
  }
 }
 async function saveCustomerAccount(){
- const email=caEmail.value.trim(),name=caName.value.trim(),mobile=caMobile.value.trim();
+ const name=caName.value.trim(),mobile=caMobile.value.trim();
  const session=await refreshOcsEmailStatus();
- if(!session||!session.user||!accountVerified.customerEmail){alert('Pehle Email se OCS login complete karein.');return}
- const signed=(session.user.email||'').trim().toLowerCase();
- if(!signed||!email.includes('@')||signed!==email.toLowerCase()){alert('Profile me wahi logged-in Email ID use karein.');return}
- if(mobile.replace(/\D/g,'').length<10){alert('Valid 10-digit mobile number enter karein. OTP verification abhi required nahi hai.');return}
- const safeName=name||email.split('@')[0]||'Customer';
+ if(!session||!session.user){alert('Pehle OCS login complete karein.');return}
+ const signedEmail=(session.user.email||'').trim().toLowerCase();
+ const profileEmail=signedEmail||'';
+ const sessionPhone=String(session.user.phone||'').replace(/^\+91/,'');
+ const finalMobile=(mobile||sessionPhone).replace(/\D/g,'');
+ if(finalMobile.length<10){alert('Customer Profile ke liye valid 10-digit mobile number enter karein.');return}
+ const safeName=name||(signedEmail?signedEmail.split('@')[0]:'Customer');
  try{
    const {data,error}=await ocsSupabase.rpc('complete_customer_registration',{
      p_full_name:safeName,
@@ -2154,7 +2150,7 @@ async function saveCustomerAccount(){
      }catch(re){console.error('Referral apply failed',re)}
    }
    localStorage.setItem('ocsCustomerProfile',JSON.stringify({
-     name:safeName,mobile,email,
+     name:safeName,mobile:finalMobile,email:profileEmail,
      verified:true,emailVerified:true,mobileVerified:!!accountVerified.customerMobile,
      mobileVerificationPending:!accountVerified.customerMobile,
      backendConnected:true,
@@ -2185,17 +2181,18 @@ function handleProviderSelfie(input){
  }
 }
 async function saveProviderAccount(){
- const name=paName.value.trim(),mobile=paMobile.value.trim(),email=paEmail.value.trim(),area=paArea.value.trim(),radius=paRadius.value;
+ const name=paName.value.trim(),mobile=paMobile.value.trim(),area=paArea.value.trim(),radius=paRadius.value;
+ const session=await refreshOcsEmailStatus();
+ if(!session||!session.user){alert('Pehle OCS login complete karein.');return}
+ const email=(session.user.email||'').trim();
  let skills=providerSkillLabels();
  const otherChecked=[...document.querySelectorAll('input[name="paSkill"]:checked')].some(x=>x.value==='Other');
  const otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
  if(otherChecked&&!otherSkill){alert('Other select kiya hai to apni skill / service ka naam likhein.');return}
- if(!name||mobile.replace(/\D/g,'').length<10||!email.includes('@')||!area||!skills.length){
+ if(!name||mobile.replace(/\D/g,'').length<10||!area||!skills.length){
    alert('Name, valid mobile, service area aur kam se kam 1 skill required.');
    return;
  }
- const session=await refreshOcsEmailStatus();
- if(!session||!session.user||!accountVerified.providerEmail){alert('Pehle Email se OCS login complete karein.');return}
  try{
    const sync=await syncProviderRegistrationToBackend(name,mobile,skills);
    localStorage.setItem('ocsProviderProfile',JSON.stringify({
@@ -2431,6 +2428,10 @@ async function openSettings(){
  document.getElementById('setLanguage').value=x.language||'EN';
  const loc=document.getElementById('setLocationState');
  if(loc)loc.textContent=x.locationAllowed?'Allowed':'Not allowed';
+ const cp=getCustomerProfile(),sp=getProviderProfile();
+ const cs=document.getElementById('settingsCustomerProfileState'),ps=document.getElementById('settingsProviderProfileState');
+ if(cs)cs.textContent=cp?'Customer Profile created • tap to edit':'Create Customer Profile';
+ if(ps)ps.textContent=sp?'Service Provider Profile created • tap to edit':'Create SP profile • ₹100 Welcome Bonus on first setup';
  document.getElementById('settingsModal').classList.add('show');
  await updateSettingsLoginState();
  await refreshCustomerMobileVerificationState();
