@@ -1285,6 +1285,11 @@ body{background:#eef2f1!important}
 #locationModal .primary{background:linear-gradient(135deg,#0a7d73,#0b665f)!important;color:#fff!important}
 #locationModal .bottom-hub-card{border:0!important;background:#f7f9f8!important}
 #locationModal input{background:#fff!important;border:1px solid #e1e8e6!important;border-radius:13px!important}
+body:has(.modal.show) .bottom-nav{display:none!important}
+body:has(.modal.show) .ocs-lock-bottom{display:none!important}
+.modal.show{z-index:90!important}
+.modal.show .sheet{padding-bottom:max(26px,calc(env(safe-area-inset-bottom) + 20px))!important;max-height:92vh!important}
+
 </style>
 </head><body><div class="app ocs-approved-home">
 <section class="ocs-super-home" id="ocsSuperHome">
