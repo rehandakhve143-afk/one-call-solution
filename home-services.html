@@ -252,6 +252,11 @@ Status: <span class="status" id="pStatus">WAITING</span>
 <div id="adminProviderDetails"></div>
 </div>
 <div class="card">
+<h3>SP Skill Verification</h3>
+<div class="muted">Service Provider ke selected skills yahan approve/reject honge. Sirf approved skill par Customer job milega.</div>
+<div id="adminSkillQueue" style="margin-top:10px"></div>
+</div>
+<div class="card">
 <h3>Provider Control</h3>
 <div id="adminProvider"></div>
 <button class="btn alt" onclick="adminToggleNewJobs()">Pause / Resume New Jobs</button>
@@ -2679,12 +2684,19 @@ function sendWalletReminder(channel){
  render();
 }
 
-function adminToggleNewJobs(){
- S.adminPaused=!S.adminPaused;
- S.jobAccess=!S.adminPaused;
- hist("OCS Admin "+(S.adminPaused?"paused":"resumed")+" new booking requests for "+S.provider);
- render();
+async function adminToggleNewJobs(){
+ const providerId=S.providerBackendId||null;
+ if(!providerId){alert("Provider backend ID nahi mila.");return}
+ try{
+   const next=!S.adminPaused;
+   const {data,error}=await ocsSupabase.rpc("admin_set_provider_pause_v1",{p_provider_id:providerId,p_paused:next});
+   if(error)throw error;
+   S.adminPaused=!!data.admin_paused;S.jobAccess=!S.adminPaused;
+   hist("OCS Admin "+(S.adminPaused?"paused":"resumed")+" new booking requests for "+S.provider);
+   render();
+ }catch(e){alert("Provider Pause/Resume failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
+
 async function adminApproveReassign(){
  if(!S.providerChangeBackendId){
    alert("Provider change backend request nahi mila.");
@@ -2699,13 +2711,53 @@ async function adminApproveReassign(){
  }catch(e){alert("Admin provider change failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
-function adminCloseSupport(){
+async function adminCloseSupport(){
  if(!S.supportTicket){alert("No open support ticket.");return}
- hist("OCS Admin closed "+S.supportTicket);
- S.supportTicket="";
- if(S.status==="SUPPORT_REVIEW"||S.status==="SUPPORT_HOLD") S.status="CANCELLED_SETTLED";
- render();
+ try{
+   const {error}=await ocsSupabase.rpc("admin_close_support_ticket_v1",{p_ticket_no:S.supportTicket});
+   if(error)throw error;
+   hist("OCS Admin closed "+S.supportTicket);
+   S.supportTicket="";
+   render();
+ }catch(e){alert("Support ticket close failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
+
+async function adminLoadSkillQueue(){
+ const box=document.getElementById("adminSkillQueue");if(!box)return;
+ box.innerHTML='<div class="muted">Loading provider skills...</div>';
+ try{
+   const {data,error}=await ocsSupabase.rpc("admin_pending_provider_skills_v2");
+   if(error)throw error;
+   const rows=Array.isArray(data)?data:[];
+   if(!rows.length){box.innerHTML='<div class="notice">Abhi koi Service Provider skill verification pending nahi hai.</div>';return}
+   box.innerHTML=rows.slice(0,50).map((x,i)=>{
+     const st=String(x.verification_status||"pending").toUpperCase();
+     const key="skill_"+i;
+     window.OCS_ADMIN_SKILLS=window.OCS_ADMIN_SKILLS||{};
+     window.OCS_ADMIN_SKILLS[key]={providerId:x.provider_id,skill:x.skill};
+     return '<div class="card" style="padding:10px;margin:8px 0">'+
+       '<b>'+ocsSafe(x.provider_name||"Service Provider")+'</b>'+
+       '<div class="muted">'+ocsSafe(x.category||"Custom / Other")+' • '+ocsSafe(x.service_name||x.skill||"Skill")+'</div>'+
+       '<div class="row" style="margin-top:8px"><span>Status</span><b>'+ocsSafe(st)+'</b></div>'+
+       '<div class="row"><button class="btn ok" onclick="adminReviewSkill(\''+key+'\',\'approved\')">Approve</button>'+
+       '<button class="btn red" onclick="adminReviewSkill(\''+key+'\',\'rejected\')">Reject</button></div>'+
+       '</div>';
+   }).join('');
+ }catch(e){
+   box.innerHTML='<div class="notice bad">Skill queue load failed: '+ocsSafe(e&&e.message?e.message:"Unknown error")+'</div>';
+ }
+}
+async function adminReviewSkill(key,decision){
+ const x=window.OCS_ADMIN_SKILLS&&window.OCS_ADMIN_SKILLS[key];
+ if(!x){alert("Skill record missing.");return}
+ try{
+   const {error}=await ocsSupabase.rpc("admin_review_provider_skill_v2",{p_provider_id:x.providerId,p_skill:x.skill,p_decision:decision});
+   if(error)throw error;
+   hist("Admin "+decision+" SP skill • "+x.skill);
+   await adminLoadSkillQueue();
+ }catch(e){alert("Skill review failed: "+(e&&e.message?e.message:"Unknown error"))}
+}
+
 function adminHTMLState(){
  let amount=ensureBookingAmount();
  const walletText=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
@@ -2961,6 +3013,7 @@ if($("admin")){
  $("adminSupport").innerHTML=A.support;
  $("adminAccounting").textContent=A.accounting;
  $("aLog").innerHTML=$("cLog").innerHTML;
+ if(!document.getElementById("admin").classList.contains("hide"))adminLoadSkillQueue();
 }
 }
 function render(){
