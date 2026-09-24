@@ -1255,6 +1255,37 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
 .ocs-public-comment .stars{color:#f4b400;font-weight:900;letter-spacing:1px}
 .ocs-public-comment small{display:block;margin-top:5px;color:#74858a}
 </style>
+<style id="ocsPremiumPolishV2">
+body{background:#eef2f1!important}
+.ocs-super-top{padding:9px 14px 11px!important;border-bottom:1px solid #eef2f1!important;box-shadow:0 4px 14px rgba(18,50,71,.04)!important}
+.ocs-super-loc{display:inline-flex!important;width:auto!important;gap:6px!important;align-items:center!important;padding:6px 9px!important;border-radius:999px!important;background:#f3f7f6!important;margin:0 0 8px!important;color:#67797d!important}
+.ocs-super-loc b{font-size:9px!important;color:#163f42!important}.ocs-super-loc span{font-size:7px!important}
+.ocs-super-brandrow{gap:8px!important}
+.ocs-super-logo{width:46px!important;height:38px!important}
+.ocs-super-brand strong{font-size:17px!important}.ocs-super-brand small{font-size:9px!important;margin-top:2px!important}
+.ocs-super-iconbtn{width:34px!important;height:34px!important;border-radius:50%!important;background:#f7faf9!important;border-color:#eef2f1!important}
+.ocs-super-main{padding-top:10px!important}
+.ocs-super-search{height:46px!important;border-radius:14px!important;background:#f4f7f6!important;box-shadow:inset 0 0 0 1px #edf1f0!important}
+.ocs-super-hero{height:188px!important;border-radius:20px!important;box-shadow:0 12px 28px rgba(18,50,71,.16)!important}
+.ocs-super-hero-copy h1{font-size:25px!important}.ocs-super-hero-copy p{font-size:10px!important}.ocs-super-hero-copy button{font-size:9.5px!important;padding:10px 13px!important;border-radius:10px!important}
+.ocs-super-head{margin-top:20px!important}.ocs-super-head h2{font-size:17px!important}
+.ocs-super-service .icon{width:64px!important;height:64px!important;border-radius:18px!important;box-shadow:0 5px 14px rgba(18,50,71,.07)!important}
+.ocs-super-service b{font-size:9.5px!important}
+.ocs-market-card{border-radius:18px!important;box-shadow:0 8px 18px rgba(18,50,71,.10)!important}
+.slider-business-cta{border-radius:16px!important;box-shadow:0 7px 18px rgba(18,50,71,.08)!important}
+#bottomProfileModal .sheet,#locationModal .sheet{border-radius:26px 26px 0 0!important;padding:18px!important}
+#bottomProfileModal .bottom-hub-head h2,#locationModal .bottom-hub-head h2{font-size:24px!important;letter-spacing:-.5px!important}
+.ocs-account-list{display:grid;gap:10px}
+.ocs-account-row{width:100%;border:1px solid #e8efed;background:#fff;border-radius:16px;padding:13px 12px;display:grid;grid-template-columns:42px 1fr 20px;align-items:center;gap:10px;text-align:left;box-shadow:0 4px 12px rgba(18,50,71,.04)}
+.ocs-account-row:active{transform:scale(.99)}
+.ocs-account-row .ar-ico{width:42px;height:42px;border-radius:13px;background:#f1f7f5;display:grid;place-items:center;font-size:19px}
+.ocs-account-row .ar-copy b{display:block;font-size:13px;color:#19363a;margin:0 0 3px}
+.ocs-account-row .ar-copy small{display:block;font-size:10px;line-height:1.3;color:#74858a}
+.ocs-account-row .ar-go{font-size:26px;color:#9aa8aa;text-align:center}
+#locationModal .primary{background:linear-gradient(135deg,#0a7d73,#0b665f)!important;color:#fff!important}
+#locationModal .bottom-hub-card{border:0!important;background:#f7f9f8!important}
+#locationModal input{background:#fff!important;border:1px solid #e1e8e6!important;border-radius:13px!important}
+</style>
 </head><body><div class="app ocs-approved-home">
 <section class="ocs-super-home" id="ocsSuperHome">
   <header class="ocs-super-top">
@@ -1364,7 +1395,7 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
 </div></div>
 
 <div class="modal" id="bottomProfileModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>OCS Profiles</h2><div class="muted">Customer + Service Provider in one place</div></div><button class="x" onclick="closeBottomHub('bottomProfileModal')">×</button></div>
+  <div class="bottom-hub-head"><div><h2>Account</h2><div class="muted">Profile, Service Provider & Settings</div></div><button class="x" onclick="closeBottomHub('bottomProfileModal')">×</button></div>
   <div id="bottomProfileBody"></div>
 </div></div>
 
@@ -2326,18 +2357,30 @@ function openBottomProfile(){
  closeAllBottomHubs();setBottomActive('bnProfile');
  const customer=getCustomerProfile(),provider=getProviderProfile();
  const body=document.getElementById('bottomProfileBody');
+ if(!body)return;
 
- const customerCard=customer
- ? '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small><strong>'+((customer.name||'Customer'))+'</strong><br>📱 '+(customer.mobile||'—')+'<br>✉ '+(customer.email||'—')+'<br>✓ Profile available</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Edit Profile</button><button onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">Settings</button></div></div>'
- : '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small>OCS use karne ke liye alag Customer mode open karna zaroori nahi. Profile details yahan complete/edit kar sakte hain.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Complete Profile</button><button onclick="closeBottomHub(\'bottomProfileModal\');bottomHome()">OCS Home</button></div></div>';
+ const customerText=customer
+   ? ((customer.name||'Customer')+(customer.mobile?' • '+customer.mobile:''))
+   : 'Create your Customer profile';
+ const providerText=provider
+   ? ((provider.name||'Service Provider')+(provider.area?' • '+provider.area:''))
+   : 'Join as Service Provider • ₹100 Welcome Bonus';
 
- const skills=provider&&Array.isArray(provider.skills)?provider.skills.join(', '):'—';
- const providerCard=provider
- ? '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small><strong>'+((provider.name||'Service Provider'))+'</strong><br>📱 '+(provider.mobile||'—')+'<br>✉ '+(provider.email||'—')+'<br>📍 '+(provider.area||'—')+'<br>Skills: '+skills+'<br>Status: '+(provider.status||'Verification Pending')+'</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Edit Profile</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openModule(\'Home Services\',\'provider\')">Open Provider</button></div></div>'
- : '<div class="bottom-hub-card"><b>🛠 Service Provider Profile</b><small>Service Provider profile abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">Create Service Provider Profile</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
-
- const settingsCard='<div class="bottom-hub-card"><b>⚙️ Settings</b><small>Login, verification, notifications, location, payment, language and privacy.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">Open Settings</button><button onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()">Help</button></div></div>';
- body.innerHTML=customerCard+providerCard+settingsCard;
+ body.innerHTML=
+ '<div class="ocs-account-list">'+
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">'+
+     '<span class="ar-ico">👤</span><span class="ar-copy"><b>Customer Profile</b><small>'+customerText+'</small></span><span class="ar-go">›</span>'+
+   '</button>'+
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');'+(provider?"openModule('Home Services','provider')":"openAccount('provider')")+'">'+
+     '<span class="ar-ico">🛠</span><span class="ar-copy"><b>Service Provider</b><small>'+providerText+'</small></span><span class="ar-go">›</span>'+
+   '</button>'+
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">'+
+     '<span class="ar-ico">⚙️</span><span class="ar-copy"><b>Settings</b><small>Login, location, notifications & logout</small></span><span class="ar-go">›</span>'+
+   '</button>'+
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()">'+
+     '<span class="ar-ico">💬</span><span class="ar-copy"><b>Help & Support</b><small>Booking or account help</small></span><span class="ar-go">›</span>'+
+   '</button>'+
+ '</div>';
  document.getElementById('bottomProfileModal').classList.add('show');
 }
 
