@@ -1421,12 +1421,26 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <div class="bottom-hub-card"><b>No-work visit charge</b><small>Applicable case me 1–6 km ₹199 aur &gt;6–12 km ₹249. Work Pending / Reschedule same provider case ko separately handle kiya jayega.</small></div>
 </div></div>
 
+<div class="modal" id="resetPasswordModal"><div class="sheet account-sheet">
+  <button class="x" onclick="closeResetPassword()">×</button>
+  <span class="rolepill">OCS ACCOUNT</span>
+  <h2>Set New Password</h2>
+  <p class="muted">Naya OCS password set karein. Gmail password yahan kabhi na dalein.</p>
+  <label>New Password *</label>
+  <div class="verifyrow"><input id="resetNewPassword" type="password" autocomplete="new-password" placeholder="Minimum 6 characters"><button type="button" onclick="toggleOcsPassword('resetNewPassword',this)">Show</button></div>
+  <label>Confirm Password *</label>
+  <div class="verifyrow"><input id="resetConfirmPassword" type="password" autocomplete="new-password" placeholder="Same password again"><button type="button" onclick="toggleOcsPassword('resetConfirmPassword',this)">Show</button></div>
+  <button class="primary account-submit" onclick="saveNewOcsPassword()">Save New Password</button>
+</div></div>
+
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">CUSTOMER</span><h2 id="accountTitle">Create Customer Account</h2><p class="muted" id="accountSub">Mobile OTP + email verification required.</p>
 <div id="customerAccountForm">
   <div id="customerAuthBox">
   <label>Email or Mobile *</label><input id="caEmail" autocomplete="username" placeholder="Email ID or 10-digit mobile">
-  <label>Password *</label><input id="caPassword" type="password" autocomplete="current-password" placeholder="Password">
+  <label>Password *</label>
+  <div class="verifyrow"><input id="caPassword" type="password" autocomplete="current-password" placeholder="Password"><button type="button" onclick="toggleOcsPassword('caPassword',this)">Show</button></div>
   <div class="bottom-hub-actions" style="margin-top:9px"><button class="main" onclick="emailPasswordAuth('customer','login')">Login</button><button onclick="emailPasswordAuth('customer','signup')">Create Account</button></div>
+  <button type="button" style="margin-top:8px;background:none;border:0;color:#1677c8;font-weight:700;padding:4px 0" onclick="sendPasswordReset('customer')">Forgot Password?</button>
   <div class="verifyok" id="customerEmailStatus">Email login required</div>
   <div class="help" style="margin:7px 0 12px">Ek hi OCS login hai. Email ya verified Mobile + Password. Current test me Mobile/SMS setup pending hai, isliye abhi Email use karein.</div>
   </div>
@@ -1443,8 +1457,10 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
 <div id="providerAccountForm" style="display:none">
   <div id="providerAuthBox">
   <label>Email or Mobile *</label><input id="paEmail" autocomplete="username" placeholder="Email ID or 10-digit mobile">
-  <label>Password *</label><input id="paPassword" type="password" autocomplete="current-password" placeholder="Password">
+  <label>Password *</label>
+  <div class="verifyrow"><input id="paPassword" type="password" autocomplete="current-password" placeholder="Password"><button type="button" onclick="toggleOcsPassword('paPassword',this)">Show</button></div>
   <div class="bottom-hub-actions" style="margin-top:9px"><button class="main" onclick="emailPasswordAuth('provider','login')">Login</button><button onclick="emailPasswordAuth('provider','signup')">Create Account</button></div>
+  <button type="button" style="margin-top:8px;background:none;border:0;color:#1677c8;font-weight:700;padding:4px 0" onclick="sendPasswordReset('provider')">Forgot Password?</button>
   <div class="verifyok" id="providerEmailStatus">Email login required</div>
   <div class="help" style="margin:7px 0 12px">Ek hi OCS login hai. Email ya verified Mobile + Password. Current test me Mobile/SMS setup pending hai, isliye abhi Email use karein.</div>
   </div>
@@ -1701,6 +1717,53 @@ async function refreshOcsEmailStatus(){
   syncOne('provider');
   return session;
 }
+function toggleOcsPassword(inputId,btn){
+  const input=document.getElementById(inputId);
+  if(!input)return;
+  const show=input.type==='password';
+  input.type=show?'text':'password';
+  if(btn)btn.textContent=show?'Hide':'Show';
+}
+async function sendPasswordReset(role){
+  if(!ocsSupabase){alert('Online login service load nahi hua. Internet check karke page reopen karein.');return false}
+  const isProvider=role==='provider';
+  const input=document.getElementById(isProvider?'paEmail':'caEmail');
+  const email=(input?.value||'').trim();
+  if(!email.includes('@')){alert('Password reset ke liye apni registered Email ID enter karein.');return false}
+  try{
+    const redirect='https://rehandakhve143-afk.github.io/one-call-solution/?ocs_recovery=1';
+    const {error}=await ocsSupabase.auth.resetPasswordForEmail(email,{redirectTo:redirect});
+    if(error)throw error;
+    alert('Password reset link email par bhej diya. Mail open karke link press karein, phir naya OCS password set karein.');
+    return true;
+  }catch(e){
+    alert('Password reset link send nahi hua: '+(e&&e.message?e.message:'Unknown error'));
+    return false;
+  }
+}
+function openResetPassword(){
+  const m=document.getElementById('resetPasswordModal');
+  if(m)m.classList.add('show');
+  document.body.classList.add('ocs-account-open');
+}
+function closeResetPassword(){
+  const m=document.getElementById('resetPasswordModal');
+  if(m)m.classList.remove('show');
+  document.body.classList.remove('ocs-account-open');
+}
+async function saveNewOcsPassword(){
+  if(!ocsSupabase){alert('Online login service load nahi hua.');return false}
+  const p=document.getElementById('resetNewPassword')?.value||'';
+  const q=document.getElementById('resetConfirmPassword')?.value||'';
+  if(p.length<6){alert('Password kam se kam 6 characters ka rakhein.');return false}
+  if(p!==q){alert('Dono password same nahi hain. Dobara check karein.');return false}
+  const {error}=await ocsSupabase.auth.updateUser({password:p});
+  if(error){alert('Password update nahi hua: '+error.message);return false}
+  closeResetPassword();
+  try{history.replaceState({},document.title,location.pathname)}catch(_){}
+  alert('OCS password successfully change ho gaya. Ab Email + new password se Login karein.');
+  return true;
+}
 async function emailPasswordAuth(role,mode){
   if(!ocsSupabase){alert('Online login service load nahi hua. Internet check karke page reopen karein.');return false}
   const isProvider=role==='provider';
@@ -1747,7 +1810,7 @@ async function emailPasswordAuth(role,mode){
     }else{
       localStorage.setItem('ocsPendingSignupEmail',raw.toLowerCase());
       if(st){st.textContent='Account created • first-time email confirmation pending';st.style.color='#b7791f'}
-      alert('Account create ho gaya. Ab Gmail me OCS confirmation mail open karke Confirm email address press karein. Uske baad yahi Email ya verified Mobile + Password se direct login hoga.');
+      alert('Agar ye Email pehle se OCS me registered hai to Create Account dobara na karein—Login use karein. Naya account hai to Gmail me OCS confirmation mail check karein.');
     }
     return true;
   }catch(e){
@@ -1818,7 +1881,10 @@ async function syncProviderRegistrationToBackend(name,mobile,skills){
   return data;
 }
 if(ocsSupabase){
-  ocsSupabase.auth.onAuthStateChange(()=>setTimeout(refreshOcsEmailStatus,0));
+  ocsSupabase.auth.onAuthStateChange((event)=>{
+    setTimeout(refreshOcsEmailStatus,0);
+    if(event==='PASSWORD_RECOVERY')setTimeout(openResetPassword,0);
+  });
   setTimeout(refreshOcsEmailStatus,0);
 }
 
