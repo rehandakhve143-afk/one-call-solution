@@ -1992,6 +1992,13 @@ async function routeAfterOcsLogin(){
   if(m)m.classList.remove('show');
   document.body.classList.remove('ocs-account-open');
   try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
+  let back='';
+  try{back=localStorage.getItem('ocsPostLoginReturn')||''}catch(e){}
+  if(back){
+    try{localStorage.removeItem('ocsPostLoginReturn')}catch(e){}
+    location.href=back;
+    return;
+  }
   bottomHome();
 }
 async function openLogin(){
@@ -2022,6 +2029,7 @@ if(ocsSupabase){
     if(event==='SIGNED_OUT')setTimeout(()=>updateSettingsLoginState(),0);
   });
   setTimeout(refreshOcsEmailStatus,0);
+  setTimeout(()=>{try{if(new URLSearchParams(location.search||'').get('login')==='1')openLogin()}catch(e){}},150);
 }
 
 async function openAccountEntry(){
