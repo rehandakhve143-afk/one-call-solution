@@ -1686,7 +1686,7 @@ async function sendOcsEmailLink(role){
   const input=document.getElementById(role==='provider'?'paEmail':'caEmail');
   const email=(input?.value||'').trim();
   if(!email.includes('@')){alert('Valid email ID enter karein.');return false}
-  const redirect=location.origin+location.pathname;
+  const redirect='https://rehandakhve143-afk.github.io/one-call-solution/';
   const {error}=await ocsSupabase.auth.signInWithOtp({
     email,
     options:{
