@@ -596,9 +596,9 @@ function loadSavedHomeState(){
      S.flowVersion=10;
      S.adminPaused=!!saved.adminPaused;
      S.jobAccess=!S.adminPaused;
-     // Do not restore an unfinished cart on refresh. Active bookings remain preserved.
-     if(S.status==="SELECT_ITEM"){
-       // Do not reopen an old category/rate card after refresh or module reopen.
+     // Do not restore an unfinished browsing/cart screen on refresh or module reopen.
+     // Only a real backend booking (activeBookingId) may resume its stage.
+     if(!S.activeBookingId&&["SELECT_ITEM","BOOKING_DETAILS","CUSTOM_REQUEST"].includes(S.status)){
        S.status="SELECT_SERVICE";
        S.category="";
        S.selectedItems=[];
@@ -611,6 +611,9 @@ function loadSavedHomeState(){
        S.bookingAmount=0;
        S.finalAmount=0;
        S.amount=0;
+       S.requestMedia=[];
+       S.customDescription="";
+       S.customSchedule="";
      }
    }
  }catch(e){console.error("OCS booking restore failed",e)}
