@@ -2136,7 +2136,7 @@ async function saveCustomerAccount(){
  try{
    const {data,error}=await ocsSupabase.rpc('complete_customer_registration',{
      p_full_name:safeName,
-     p_phone:mobile
+     p_phone:finalMobile
    });
    if(error)throw error;
    const pendingRef=pendingReferralCode();
@@ -2151,7 +2151,7 @@ async function saveCustomerAccount(){
    }
    localStorage.setItem('ocsCustomerProfile',JSON.stringify({
      name:safeName,mobile:finalMobile,email:profileEmail,
-     verified:true,emailVerified:true,mobileVerified:!!accountVerified.customerMobile,
+     verified:true,emailVerified:!!profileEmail,mobileVerified:!!accountVerified.customerMobile,
      mobileVerificationPending:!accountVerified.customerMobile,
      backendConnected:true,
      backendCustomerId:(data&&data.customer_id)||session.user.id,
@@ -2420,7 +2420,7 @@ async function refreshCustomerMobileVerificationState(){
  const p=getCustomerProfile();
  state.textContent=(p&&p.mobileVerified)?'✓ Mobile verified':'Verify later • SMS setup pending';
 }
-async function openSettings(){
+async async function openSettings(){
  closeAllBottomHubs();
  const x=await loadOcsSettings();
  document.getElementById('setNotifications').checked=x.notifications!==false;
