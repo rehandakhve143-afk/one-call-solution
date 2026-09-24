@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>One Call Solution</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 <style>
 :root{--p:#0f766e;--red:#dc2626;--ok:#16a34a;--bg:#f5f7fb;--mut:#64748b;--line:#dbe2ea}
@@ -330,7 +331,8 @@ function ocsStatusFromBackend(v){
     on_way:"ON_WAY",reached:"REACHED",working:"WORKING",
     reschedule_pending:"RESCHEDULE_PENDING",rescheduled:"RESCHEDULED",
     wnc_provider_confirm:"WNC_PROVIDER_CONFIRM",wnc_customer_confirm:"WNC_CUSTOMER_CONFIRM",
-    visit_payment:"VISIT_PAYMENT",provider_change_hold:"PROVIDER_CHANGE_HOLD",
+    visit_payment:"VISIT_PAYMENT",visit_cash_wait:"VISIT_CASH_WAIT",cash_wait:"CASH_WAIT",
+    provider_change_hold:"PROVIDER_CHANGE_HOLD",
     completion_requested:"COMPLETION_CONFIRM",payment_pending:"PAYMENT",
     support_review:"SUPPORT_REVIEW",
     completed:"DONE",done:"DONE",cancelled:"CANCELLED",cancelled_settled:"CANCELLED_SETTLED"
@@ -408,6 +410,25 @@ async function ocsLoadLive(role){
       if(c.provider_change){S.providerChangeBackendId=c.provider_change.id;S.providerChangeReason=c.provider_change.reason||""}
       if(c.support){S.supportTicket=c.support.ticket_no||S.supportTicket}
     }catch(e){console.error("OCS case sync failed",e)}
+    try{
+      const {data:payData,error:payErr}=await ocsSupabase.rpc("payment_snapshot_v1",{p_booking_id:booking.id});
+      if(payErr)throw payErr;
+      if(payData&&payData.payment){
+        const p=payData.payment;
+        S.backendPaymentId=p.id;S.paymentBackendStatus=p.status;S.paymentPurpose=p.purpose;
+        if(p.method==="cash")S.payment="CASH";
+        if(p.status==="paid"){
+          S.payment="ONLINE • VERIFIED";
+          if(p.purpose==="secure_hold"){S.paymentHeld=true;S.heldAmount=Number(p.amount||0)}
+          else S.paymentFinalized=true;
+        }
+      }
+      if(payData&&payData.provider_wallet){
+        S.wallet=Number(payData.provider_wallet.wallet_balance||S.wallet||0);
+        S.adminPaused=!!payData.provider_wallet.admin_paused;
+        S.jobAccess=!S.adminPaused;
+      }
+    }catch(e){console.error("OCS payment sync failed",e)}
     if(S.requestType==="quote"){
       if(role==="provider"&&String(booking.status).toLowerCase()==="searching")S.status="REQUESTED";
       else if(!S.quote&&["accepted","searching"].includes(String(booking.status).toLowerCase()))S.status="QUOTE_WAIT";
@@ -918,17 +939,25 @@ function secureHoldHTML(){
 function paymentDueAmount(){
  return Math.max(0,Number(S.total||0)-Number(S.heldAmount||0));
 }
-function secureQuotePayment(mode){
+async function secureQuotePayment(mode){
  if(!ocsRequireStage("QUOTE_SECURE_PAYMENT","Secure quote payment"))return;
  if(!ocsGuardAction("secure-quote-"+mode,1600))return;
  const amt=Number(S.total||(S.quote&&S.quote.amount)||0);if(!amt)return;
  if(mode==="CASH"){
    S.paymentChoice="CASH";S.cashFallback=true;S.paymentHeld=false;S.heldAmount=0;S.payment="CASH_AT_COMPLETION";
-   S.status="BOOKING_DETAILS";hist("Network issue fallback selected • Cash at completion • OCS secure hold not available for cash");return;
+   S.status="BOOKING_DETAILS";hist("Network issue fallback selected • Cash at completion");render();return;
  }
- S.paymentChoice="ONLINE";S.cashFallback=false;S.paymentHeld=true;S.heldAmount=amt;S.payment="OCS_SECURE_HOLD";
- S.status="BOOKING_DETAILS";hist("Customer secured "+money(amt)+" with OCS • Provider release only after completed work confirmation");
+ try{
+   const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
+     p_booking_id:S.activeBookingId,p_purpose:"secure_hold",p_method:"online"
+   });
+   if(ie)throw ie;
+   S.backendPaymentId=intent.id;S.payPurpose="SECURE_HOLD";
+   await ocsLaunchRazorpay("booking",intent.id,"OCS Secure Payment",Number(intent.amount||amt));
+ }catch(e){alert("Secure online payment start nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
 }
+function secureExtraQuoteAmount
+
 function secureExtraQuoteAmount(amount,desc){
  amount=Number(amount)||0;if(amount<=0)return;
  S.total=Number(S.total||0)+amount;
@@ -1372,23 +1401,21 @@ function choosePayment(v){
  S.paymentChoice=v;render()
 }
 
-function rechargeWallet(){
+async function rechargeWallet(){
  const current=Math.round((Number(S.wallet||0))*100)/100;
  const target=Number(S.walletWarningLevel||200);
  const suggested=Math.max(100,Math.round((target-current)*100)/100);
- const currentText=(current<0?"−₹"+Math.abs(current).toFixed(2):"₹"+current.toFixed(2));
- let a=Number(prompt(
-   "OCS Wallet\nCurrent balance: "+currentText+
-   "\nRecommended warning level: ₹"+target.toFixed(2)+
-   "\nWallet low/negative hone par jobs auto-stop nahi hongi. Admin control alag rahega.",
-   suggested.toFixed(2)
- ));
- if(!a||a<=0)return;
- S.wallet=Math.round((current+a)*100)/100;
- S.jobAccess=!S.adminPaused;
- hist("OCS Wallet topped up • Balance "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2)));
- render();
+ const currentText=current<0?"−₹"+Math.abs(current).toFixed(2):"₹"+current.toFixed(2);
+ let a=Number(prompt("OCS Wallet\nCurrent balance: "+currentText+"\nRecommended warning level: ₹"+target.toFixed(2)+"\nTop-up amount enter karein.",suggested.toFixed(2)));
+ if(!a||a<50){alert("Minimum wallet top-up ₹50.");return}
+ try{
+   const {data:intent,error:ie}=await ocsSupabase.rpc("create_wallet_topup_intent_v1",{p_amount:a});
+   if(ie)throw ie;
+   await ocsLaunchRazorpay("wallet_topup",intent.id,"OCS Wallet Top-up",a);
+ }catch(e){alert("Wallet top-up start nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
 }
+function settleCollectedAmount
+
 function settleCollectedAmount(amount,label){
  amount=Number(amount)||0;if(amount<=0)return;
  applyCommission(amount);
@@ -1932,64 +1959,105 @@ async function confirmCompletion(ok){
  }catch(e){alert("Completion update failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
-function openOnline(purpose){
+async function ocsLaunchRazorpay(kind,id,title,amount){
+ if(!window.Razorpay)throw new Error("Razorpay Checkout load nahi hua");
+ const {data:orderPack,error:oe}=await ocsSupabase.functions.invoke("ocs-create-razorpay-order",{body:{kind,id}});
+ if(oe)throw oe;
+ if(orderPack&&orderPack.error)throw new Error(orderPack.error);
+ const order=orderPack&&orderPack.order;
+ const key=orderPack&&orderPack.key_id;
+ if(!order||!key)throw new Error("Payment order create nahi hua");
+ return new Promise((resolve,reject)=>{
+   const rz=new Razorpay({
+     key:key,
+     amount:order.amount,
+     currency:order.currency||"INR",
+     name:"One Call Solution",
+     description:title||"OCS Payment",
+     order_id:order.id,
+     prefill:{name:S.customerName||"",email:S.customerEmail||"",contact:S.customerMobile||""},
+     theme:{},
+     handler:async function(resp){
+       try{
+         const {data:vr,error:ve}=await ocsSupabase.functions.invoke("ocs-verify-razorpay-payment",{body:{
+           kind,id,
+           razorpay_order_id:resp.razorpay_order_id,
+           razorpay_payment_id:resp.razorpay_payment_id,
+           razorpay_signature:resp.razorpay_signature
+         }});
+         if(ve)throw ve;
+         if(vr&&vr.error)throw new Error(vr.error);
+         hist("Razorpay payment verified by OCS backend • "+money(amount||0));
+         if(kind==="wallet_topup"){
+           await ocsLoadLive("provider");render();
+         }else{
+           await ocsLoadLive(OCS_LIVE_ROLE||"customer");render();
+         }
+         alert("Payment verified successfully.");
+         resolve(vr);
+       }catch(e){reject(e)}
+     },
+     modal:{ondismiss:function(){reject(new Error("Payment cancelled"))}}
+   });
+   rz.on("payment.failed",function(r){reject(new Error((r&&r.error&&r.error.description)||"Payment failed"))});
+   rz.open();
+ });
+}
+
+async function openOnline(purpose){
  const required=purpose==="VISIT"?"VISIT_PAYMENT":"PAYMENT";
  if(!ocsRequireStage(required,"Online payment"))return;
  if(!ocsGuardAction("open-online-"+purpose,1000))return;
  ensureBookingAmount();
- S.payPurpose=purpose;
- S.payment="ONLINE";
- S.status="ONLINE_PAY";
- hist("Online payment screen opened • "+(purpose==="VISIT"?"Visit Charge":"Job Payment"))
+ try{
+   const p=purpose==="VISIT"?"visit":"job";
+   const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
+     p_booking_id:S.activeBookingId,p_purpose:p,p_method:"online"
+   });
+   if(ie)throw ie;
+   S.backendPaymentId=intent.id;S.payPurpose=purpose;S.payment="ONLINE";
+   await ocsLaunchRazorpay("booking",intent.id,purpose==="VISIT"?"OCS Visit Charge":"OCS Service Payment",Number(intent.amount||0));
+ }catch(e){
+   console.error("Online payment failed",e);
+   alert("Online payment complete nahi hua: "+(e&&e.message?e.message:"Unknown error"));
+ }
 }
 
 function onlineSuccess(){
- if(!ocsRequireStage("ONLINE_PAY","Confirm online payment"))return;
- if(S.paymentFinalized){alert("Payment already finalized hai.");return}
- if(!ocsGuardAction("online-success",1800))return;
- ensureBookingAmount();
- S.paymentFinalized=true;
- if(S.payPurpose==="VISIT"){
-   let amt=Number(S.visitCharge||0);S.status="CANCELLED_SETTLED";
-   if(amt>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(amt)}
-   S.currentJob=null;ocsCloseBooking("Visit charge settled online");hist("Online payment success • "+money(amt)+" • Visit charge settled");return;
- }
- const due=paymentDueAmount(),total=Number(S.total||0),held=Number(S.heldAmount||0);
- S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held+due;S.heldAmount=0;S.currentJob=null;S.payment="ONLINE • OCS Settlement Released";
- if(total>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(total)}
- ocsCloseBooking("Job completed and paid online");
- hist("Online payment success • Remaining "+money(due)+" • OCS released total settlement "+money(total)+" after completion");
- unlockQueuedNextJob();
+ alert("Test payment button disabled. Online payment sirf Razorpay verified transaction se complete hoga.");
 }
 
-function payCash(purpose){
+async function payCash(purpose){
  const required=purpose==="VISIT"?"VISIT_PAYMENT":"PAYMENT";
  if(!ocsRequireStage(required,"Cash payment"))return;
  if(!ocsGuardAction("cash-mark-"+purpose,1200))return;
  ensureBookingAmount();
- S.payPurpose=purpose;S.payment="CASH";
- S.cashDue=purpose==="VISIT"?Number(S.visitCharge||0):paymentDueAmount();
- S.status=purpose==="VISIT"?"VISIT_CASH_WAIT":"CASH_WAIT";
- hist("Customer marked Cash Paid • "+money(S.cashDue))
+ try{
+   const p=purpose==="VISIT"?"visit":"job";
+   const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
+     p_booking_id:S.activeBookingId,p_purpose:p,p_method:"cash"
+   });
+   if(ie)throw ie;
+   S.backendPaymentId=intent.id;S.payPurpose=purpose;S.payment="CASH";S.cashDue=Number(intent.amount||0);
+   await ocsLoadLive("customer");render();
+   hist("Customer marked Cash Paid • waiting for Service Provider confirmation");
+ }catch(e){alert("Cash payment mark nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
-function cashReceived(){
+async function cashReceived(){
  if(!ocsRequireStage(["CASH_WAIT","VISIT_CASH_WAIT"],"Cash received confirmation"))return;
- if(S.paymentFinalized){alert("Payment already finalized hai.");return}
+ if(!S.backendPaymentId){alert("Cash payment backend record nahi mila.");return}
  if(!ocsGuardAction("cash-received",1600))return;
- ensureBookingAmount();
- S.paymentFinalized=true;
- const visit=S.payPurpose==="VISIT";
- let cashAmt=visit?Number(S.visitCharge||0):Number(S.cashDue||paymentDueAmount()||0);
- let commissionBase=visit?cashAmt:Number(S.total||0);
- S.status=visit?"CANCELLED_SETTLED":"DONE";
- if(commissionBase>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(commissionBase)}
- if(!visit&&S.paymentHeld)S.payment="CASH + OCS Secure Amount Released";
- S.paymentHeld=false;S.heldAmount=0;S.currentJob=null;S.cashDue=0;
- ocsCloseBooking(visit?"Visit charge settled cash":"Job completed and cash confirmed");
- hist(S.provider+" confirmed Cash Received • "+money(cashAmt)+(visit?" • Visit charge settled":" • OCS held amount released after completion"));
- if(!visit)unlockQueuedNextJob();
+ try{
+   const {data,error}=await ocsSupabase.rpc("confirm_cash_received_v1",{p_payment_id:S.backendPaymentId});
+   if(error)throw error;
+   S.paymentFinalized=true;S.payment="CASH • VERIFIED";S.commissionApplied=true;
+   hist(S.provider+" confirmed Cash Received • Backend settlement completed • Commission "+money(Number(data.commission_amount||0)));
+   await ocsLoadLive("provider");render();
+ }catch(e){alert("Cash Received confirm nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
 }
+
+async function createTicket
 
 async function createTicket(side,category,callback,details){
  try{
@@ -2317,10 +2385,9 @@ if(S.status==="ONLINE_PAY"){
 let amt=S.payPurpose==="VISIT"?S.visitCharge:paymentDueAmount();
 h=`<div class="card"><h3>OCS Online Payment</h3>
 <div class="money">₹${amt}</div>
-<div class="notice"><b>OCS Online Payment</b><br>Company QR / Payment Link merchant setup connect hone ke baad yahan available hoga.</div>
-<div class="qr"></div>
-<button class="btn alt" onclick="alert('Company Payment Link abhi connected nahi hai')">Company Payment Link</button>
-<button class="btn ok" onclick="onlineSuccess()">Confirm Test Payment</button></div>`;
+<div class="notice good"><b>Razorpay Secure Payment</b><br>Payment OCS backend verification ke bina complete mark nahi hoga.</div>
+<button class="btn ok" onclick="openOnline(S.payPurpose||'JOB')">Open Razorpay Payment</button>
+<div class="muted">Payment failed/cancelled ho to Cash fallback available hai.</div></div>`;
 }
 
 if(S.status==="CASH_WAIT")h=`<div class="notice">Cash Paid marked.<br>Waiting for ${S.provider} confirmation.</div>`;
