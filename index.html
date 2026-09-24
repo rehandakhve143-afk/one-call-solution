@@ -1428,13 +1428,15 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <div class="bottom-hub-actions" style="margin-top:9px"><button class="main" onclick="emailPasswordAuth('customer','login')">Login</button><button onclick="emailPasswordAuth('customer','signup')">Create Account</button></div>
   <div class="verifyok" id="customerEmailStatus">Email login required</div>
   <div class="help" style="margin:7px 0 12px">Login: Email ya verified Mobile + Password. New account first time Email se create hoga; mobile verify hone ke baad dono me se kisi se login kar sakte hain.</div>
+  <div id="customerProfileSetup" style="display:none">
   <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
   <label>Mobile Number *</label>
   <div class="verifyrow"><input id="caMobile" inputmode="tel" placeholder="10-digit mobile"><button onclick="sendMobileOtp('customer')">Send OTP</button></div>
   <div id="customerMobileOtpWrap" style="display:none"><div class="verifyrow"><input id="caMobileOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifyMobileOtp('customer')">Verify OTP</button></div></div>
   <div class="verifyok" id="customerMobileStatus">Mobile verification required</div>
   <button class="primary account-submit" onclick="saveCustomerAccount()">Continue</button>
-  <div class="help">Customer account ke liye Email + Mobile dono verification required hain.</div>
+  <div class="help">Customer profile complete karne ke liye Mobile verification required hai.</div>
+  </div>
 </div>
 <div id="providerAccountForm" style="display:none">
   <label>Email or Mobile *</label><input id="paEmail" autocomplete="username" placeholder="Email ID or 10-digit mobile">
@@ -1442,6 +1444,7 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <div class="bottom-hub-actions" style="margin-top:9px"><button class="main" onclick="emailPasswordAuth('provider','login')">Login</button><button onclick="emailPasswordAuth('provider','signup')">Create Account</button></div>
   <div class="verifyok" id="providerEmailStatus">Email login required</div>
   <div class="help" style="margin:7px 0 12px">Login: Email ya verified Mobile + Password. New SP account first time Email se create hoga; phir profile + mobile verification complete karein.</div>
+  <div id="providerProfileSetup" style="display:none">
   <label>Full Name *</label><input id="paName" autocomplete="name" placeholder="Service Provider name">
   <label>Mobile Number *</label>
   <div class="verifyrow"><input id="paMobile" inputmode="tel" placeholder="10-digit mobile"><button onclick="sendMobileOtp('provider')">Send OTP</button></div>
@@ -1499,6 +1502,7 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <label>UPI ID <span class="muted">(optional)</span></label><input id="paUpi" placeholder="name@upi">
   <label>Verification</label><div class="muted">KYC, bank, service area and each selected skill will be verified before provider activation. ₹100 OCS Wallet Welcome Bonus is credited after verification.</div>
   <button class="primary account-submit" onclick="saveProviderAccount()">Submit Registration / Open Dashboard</button>
+  </div>
 </div>
 </div></div>
 
@@ -1674,6 +1678,8 @@ async function refreshOcsEmailStatus(){
     const confirmed=!!(session&&session.user&&(session.user.email_confirmed_at||session.user.confirmed_at));
     const ok=!!email&&confirmed&&(!entered||entered===email.toLowerCase());
     accountVerified[isProvider?'providerEmail':'customerEmail']=ok;
+    const setup=document.getElementById(isProvider?'providerProfileSetup':'customerProfileSetup');
+    if(setup)setup.style.display=ok?'block':'none';
     if(status){
       if(ok){
         status.textContent='✓ Email verified • '+email;
@@ -1708,6 +1714,7 @@ async function emailPasswordAuth(role,mode){
       if(!data||!data.session)throw new Error('Login session create nahi hua');
       const signedEmail=(data.user&&data.user.email)||'';
       if(input&&signedEmail)input.value=signedEmail;
+      localStorage.removeItem('ocsPendingSignupEmail');
       await refreshOcsEmailStatus();
       if(st){
         st.textContent='✓ Logged in'+(signedEmail?' • '+signedEmail:'');
@@ -1732,15 +1739,21 @@ async function emailPasswordAuth(role,mode){
       if(st){st.textContent='✓ Account created & logged in • '+raw;st.style.color='#16815d'}
       alert('Account created. Ab profile complete karein.');
     }else{
+      localStorage.setItem('ocsPendingSignupEmail',raw.toLowerCase());
       if(st){st.textContent='Account created • first-time email confirmation pending';st.style.color='#b7791f'}
-      alert('Account create ho gaya. First-time email confirmation complete karein. Uske baad Email ya verified Mobile + Password se direct login hoga.');
+      alert('Account create ho gaya. Ab Gmail me OCS confirmation mail open karke Confirm email address press karein. Uske baad yahi Email ya verified Mobile + Password se direct login hoga.');
     }
     return true;
   }catch(e){
     console.error('Email/mobile password auth failed',e);
     const msg=(e&&e.message?e.message:'Unknown error');
     if(mode==='login'&&/invalid login credentials/i.test(msg)){
-      alert('Email/Mobile ya password match nahi hua. New account hai to Create Account press karein.');
+      const pending=(localStorage.getItem('ocsPendingSignupEmail')||'').toLowerCase();
+      if(isEmail&&pending===raw.toLowerCase()){
+        alert('Ye naya account abhi email confirmation pending hai. Gmail me OCS confirmation mail open karke Confirm email address press karein, phir Login karein.');
+      }else{
+        alert('Email/Mobile ya password match nahi hua. New account hai to Create Account press karein.');
+      }
     }else if(/already registered/i.test(msg)){
       alert('Ye account pehle se registered hai. Login button use karein.');
     }else{
@@ -1808,8 +1821,8 @@ function openAccount(role){
  document.getElementById('accountSub').textContent=isProvider?'Email ya Mobile + Password • same OCS account, Service Provider profile alag':'Email ya Mobile + Password • simple OCS login.';
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
+ refreshOcsEmailStatus();
  if(isProvider){
-   refreshOcsEmailStatus();
    const p=getProviderProfile();
    const st=document.getElementById('paSelfieStatus'),pv=document.getElementById('paSelfiePreview');
    if(p&&p.selfieCaptured){
