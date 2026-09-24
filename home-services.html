@@ -380,6 +380,8 @@ async function ocsLoadLive(role){
       if(snap&&snap.length){
         S.available=!!snap[0].available_for_work;
         S.wallet=Number(snap[0].wallet_balance||0);
+        S.adminPaused=!!snap[0].admin_paused;
+        S.jobAccess=!S.adminPaused;
       }
       const {data:cur,error:ce}=await ocsSupabase.rpc("provider_current_booking");
       if(ce)throw ce;
