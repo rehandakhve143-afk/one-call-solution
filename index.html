@@ -2423,7 +2423,7 @@ async function refreshCustomerMobileVerificationState(){
  const p=getCustomerProfile();
  state.textContent=(p&&p.mobileVerified)?'✓ Mobile verified':'Verify later • SMS setup pending';
 }
-async async function openSettings(){
+async function openSettings(){
  closeAllBottomHubs();
  const x=await loadOcsSettings();
  document.getElementById('setNotifications').checked=x.notifications!==false;
