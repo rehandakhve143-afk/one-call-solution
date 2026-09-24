@@ -1379,6 +1379,7 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
     <div class="ocs-setting-row"><div><b>👤 Customer Profile</b><small>Create, complete or edit Customer profile</small></div><button onclick="closeSettings();openAccount('customer')">Open</button></div>
     <div class="ocs-setting-row"><div><b>🛠 Service Provider Profile</b><small>Create, complete or edit Service Provider profile</small></div><button onclick="closeSettings();openAccount('provider')">Open</button></div>
     <div class="ocs-setting-row"><div><b>OCS Login</b><small id="settingsLoginState">Not logged in</small></div><button id="settingsLoginBtn" onclick="settingsLoginAction()">Login</button></div>
+    <div class="ocs-setting-row"><div><b>Mobile Verification</b><small id="settingsMobileVerifyState">Verify later • SMS setup pending</small></div><button onclick="openCustomerMobileVerification()">Verify</button></div>
     <div class="ocs-setting-row"><div><b>Notifications</b><small>Booking, quote, payment and support updates</small></div><input id="setNotifications" type="checkbox"></div>
     <div class="ocs-setting-row"><div><b>Location</b><small>Nearby Service Provider and directions • <span id="setLocationState">Not allowed</span></small></div><button onclick="requestOcsLocation()">Allow</button></div>
     <div class="ocs-setting-row"><div><b>Preferred Payment</b><small>Online recommended • Cash only for network issue</small></div><select id="setPayment" style="width:120px;margin:0"><option value="ONLINE">Online</option><option value="CASH">Cash</option></select></div>
@@ -1448,11 +1449,10 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <div id="customerProfileSetup" style="display:none">
   <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
   <label>Mobile Number *</label>
-  <div class="verifyrow"><input id="caMobile" inputmode="tel" placeholder="10-digit mobile"><button onclick="sendMobileOtp('customer')">Send OTP</button></div>
-  <div id="customerMobileOtpWrap" style="display:none"><div class="verifyrow"><input id="caMobileOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifyMobileOtp('customer')">Verify OTP</button></div></div>
-  <div class="verifyok" id="customerMobileStatus">Mobile verification required</div>
-  <button class="primary account-submit" onclick="saveCustomerAccount()">Continue</button>
-  <div class="help">Customer profile complete karne ke liye Mobile verification required hai.</div>
+  <input id="caMobile" inputmode="tel" placeholder="10-digit mobile">
+  <div class="verifyok" id="customerMobileStatus">Mobile verification: Verify later in Settings</div>
+  <button class="primary account-submit" onclick="saveCustomerAccount()">Save Customer Profile</button>
+  <div class="help">Abhi Email login se profile save hoga. Mobile OTP verification SMS setup ke baad Settings me complete kar sakte hain.</div>
   </div>
 </div>
 <div id="providerAccountForm" style="display:none">
@@ -1975,10 +1975,23 @@ function openAccount(role){
  const isProvider=role==='provider';
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
  document.getElementById('accountTitle').textContent=isProvider?'Service Provider Profile':'Customer Profile';
- document.getElementById('accountSub').textContent='Mobile Number ya Email ID se simple OCS login • profile settings yahin complete karein';
+ document.getElementById('accountSub').textContent=isProvider?'Mobile Number ya Email ID se OCS login • Service Provider verification yahin complete karein':'Email login ke baad Customer Profile save karein • Mobile verification later in Settings';
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  refreshOcsEmailStatus();
+ if(!isProvider){
+   const p=getCustomerProfile();
+   if(p){
+     const n=document.getElementById('caName'),m=document.getElementById('caMobile'),e=document.getElementById('caEmail'),st=document.getElementById('customerMobileStatus');
+     if(n&&!n.value)n.value=p.name||'';
+     if(m&&!m.value)m.value=p.mobile||'';
+     if(e&&!e.value)e.value=p.email||'';
+     if(st){
+       st.textContent=p.mobileVerified?'✓ Mobile verified':'Mobile verification: Verify later in Settings';
+       st.style.color=p.mobileVerified?'#16815d':'#6f8188';
+     }
+   }
+ }
  if(isProvider){
    const p=getProviderProfile();
    const st=document.getElementById('paSelfieStatus'),pv=document.getElementById('paSelfiePreview');
@@ -2066,16 +2079,14 @@ async function verifyMobileOtp(role){
 }
 async function saveCustomerAccount(){
  const email=caEmail.value.trim(),name=caName.value.trim(),mobile=caMobile.value.trim();
- if(!email.includes('@')){alert('Valid email ID required.');return}
- if(mobile.replace(/\D/g,'').length<10){alert('Valid 10-digit mobile number required.');return}
- if(!accountVerified.customerMobile){alert('Mobile OTP verify karein.');return}
  const session=await refreshOcsEmailStatus();
- if(!session||!session.user||!accountVerified.customerEmail){alert('Pehle Mobile ya Email se OCS login complete karein. New account ho to first-time email confirmation complete karein.');return}
+ if(!session||!session.user||!accountVerified.customerEmail){alert('Pehle Email se OCS login complete karein.');return}
  const signed=(session.user.email||'').trim().toLowerCase();
- if(signed!==email.toLowerCase()){alert('Same verified email ID use karein.');return}
+ if(!signed||!email.includes('@')||signed!==email.toLowerCase()){alert('Profile me wahi logged-in Email ID use karein.');return}
+ if(mobile.replace(/\D/g,'').length<10){alert('Valid 10-digit mobile number enter karein. OTP verification abhi required nahi hai.');return}
  const safeName=name||email.split('@')[0]||'Customer';
  try{
-   const {data,error}=await ocsSupabase.rpc('complete_customer_registration_v2',{
+   const {data,error}=await ocsSupabase.rpc('complete_customer_registration',{
      p_full_name:safeName,
      p_phone:mobile
    });
@@ -2091,11 +2102,16 @@ async function saveCustomerAccount(){
      }catch(re){console.error('Referral apply failed',re)}
    }
    localStorage.setItem('ocsCustomerProfile',JSON.stringify({
-     name:safeName,mobile,email,verified:true,emailVerified:true,
+     name:safeName,mobile,email,
+     verified:true,emailVerified:true,mobileVerified:!!accountVerified.customerMobile,
+     mobileVerificationPending:!accountVerified.customerMobile,
      backendConnected:true,
      backendCustomerId:(data&&data.customer_id)||session.user.id,
      referralApplied:!!(referralResult&&referralResult.applied)
    }));
+   const st=document.getElementById('customerMobileStatus');
+   if(st){st.textContent='Saved • Mobile verification can be completed later in Settings';st.style.color='#16815d'}
+   alert('Customer Profile saved. Mobile OTP verification baad me Settings me complete kar sakte hain.');
    closeAccount();openCustomerDashboard();
  }catch(e){
    console.error('Customer registration sync failed',e);
@@ -2349,6 +2365,22 @@ async function loadOcsSettings(){
  }
  return x;
 }
+function openCustomerMobileVerification(){
+ const p=getCustomerProfile();
+ const state=document.getElementById('settingsMobileVerifyState');
+ if(p&&p.mobileVerified){
+   if(state)state.textContent='✓ Mobile verified';
+   alert('Customer mobile already verified hai.');
+   return;
+ }
+ alert('Mobile OTP verification ka SMS backend setup abhi pending hai. Customer profile use kar sakte hain; verification baad me yahin Settings se complete hoga.');
+}
+async function refreshCustomerMobileVerificationState(){
+ const state=document.getElementById('settingsMobileVerifyState');
+ if(!state)return;
+ const p=getCustomerProfile();
+ state.textContent=(p&&p.mobileVerified)?'✓ Mobile verified':'Verify later • SMS setup pending';
+}
 async function openSettings(){
  closeAllBottomHubs();
  const x=await loadOcsSettings();
@@ -2359,6 +2391,7 @@ async function openSettings(){
  if(loc)loc.textContent=x.locationAllowed?'Allowed':'Not allowed';
  document.getElementById('settingsModal').classList.add('show');
  await updateSettingsLoginState();
+ await refreshCustomerMobileVerificationState();
 }
 function closeSettings(){document.getElementById('settingsModal').classList.remove('show')}
 async function saveSettings(){
