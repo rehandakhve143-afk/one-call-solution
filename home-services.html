@@ -328,12 +328,16 @@ function ocsStatusFromBackend(v){
   const m={
     searching:"REQUESTED",accepted:"ASSIGNED",next_accepted:"ASSIGNED",
     on_way:"ON_WAY",reached:"REACHED",working:"WORKING",
+    reschedule_pending:"RESCHEDULE_PENDING",rescheduled:"RESCHEDULED",
+    wnc_provider_confirm:"WNC_PROVIDER_CONFIRM",wnc_customer_confirm:"WNC_CUSTOMER_CONFIRM",
+    visit_payment:"VISIT_PAYMENT",provider_change_hold:"PROVIDER_CHANGE_HOLD",
     completion_requested:"COMPLETION_CONFIRM",payment_pending:"PAYMENT",
     support_review:"SUPPORT_REVIEW",
     completed:"DONE",done:"DONE",cancelled:"CANCELLED",cancelled_settled:"CANCELLED_SETTLED"
   };
   return m[x]||String(v||"").toUpperCase();
 }
+
 function ocsApplyBackendBooking(b){
   if(!b)return;
   OCS_LIVE_BOOKING_ID=b.id||OCS_LIVE_BOOKING_ID;
@@ -386,6 +390,24 @@ async function ocsLoadLive(role){
     if(!booking)return false;
     ocsApplyBackendBooking(booking);
     await ocsSyncQuoteAndChat(role,booking);
+    try{
+      const {data:caseData,error:caseErr}=await ocsSupabase.rpc("booking_case_snapshot_v1",{p_booking_id:booking.id});
+      if(caseErr)throw caseErr;
+      const c=caseData||{};
+      if(c.reschedule){
+        S.rescheduleBackendId=c.reschedule.id;
+        const dt=new Date(c.reschedule.new_scheduled_at);
+        S.reschedule={date:dt.toISOString().slice(0,10),time:dt.toTimeString().slice(0,5),reason:c.reschedule.reason||""};
+        S.rescheduleBy=c.reschedule.requested_role==="customer"?"customer":"provider";
+      }
+      if(c.wnc){
+        S.wncBackendId=c.wnc.id;S.wncFault=c.wnc.fault;S.cancelReason=c.wnc.reason;
+        S.visitCharge=Number(c.wnc.suggested_visit_charge||S.visitCharge||0);
+        if(c.wnc.distance_km!==null&&c.wnc.distance_km!==undefined)S.oneWayDistanceKm=Number(c.wnc.distance_km||0);
+      }
+      if(c.provider_change){S.providerChangeBackendId=c.provider_change.id;S.providerChangeReason=c.provider_change.reason||""}
+      if(c.support){S.supportTicket=c.support.ticket_no||S.supportTicket}
+    }catch(e){console.error("OCS case sync failed",e)}
     if(S.requestType==="quote"){
       if(role==="provider"&&String(booking.status).toLowerCase()==="searching")S.status="REQUESTED";
       else if(!S.quote&&["accepted","searching"].includes(String(booking.status).toLowerCase()))S.status="QUOTE_WAIT";
@@ -1515,15 +1537,18 @@ async function reached(){
  catch(e){alert("Reached update failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
-function customerUnavailableBeforeOtp(){
+async function customerUnavailableBeforeOtp(){
  ensureBookingAmount();
  if(S.status!=="REACHED"){alert("Ye option sirf GPS Reached ke baad aur Start OTP se pehle hai.");return}
- S.cancelReason="Customer Not Available / OTP Not Provided / Entry Not Provided";
- S.status="NO_SHOW_VISIT";
- hist(S.provider+" • Customer Not Available / OTP Not Provided / Entry Not Provided • Start OTP not verified")
+ try{
+   const {data,error}=await ocsSupabase.rpc("provider_report_no_show_v1",{p_booking_id:S.activeBookingId,p_distance_km:Number(S.oneWayDistanceKm||0)||null});
+   if(error)throw error;
+   ocsApplyBackendBooking(data);
+   S.cancelReason="Customer Not Available / OTP Not Provided / Entry Not Provided";
+   hist("LIVE No Show / OTP Not Provided case submitted");
+   ocsStartLive("provider");
+ }catch(e){alert("No-show submit failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
-
-
 
 function workPendingSameProvider(){
   if(!["WORKING","WNC_REASON","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM"].includes(S.status)){
@@ -1718,86 +1743,86 @@ function openReschedule(by){
  <div class="rs-actions"><button class="btn gray" onclick="closeRS()">Cancel</button><button class="btn ok" onclick="submitRS('${by}')">Confirm Reschedule</button></div></div></div>`;
  document.body.appendChild(x);
 }
-function submitRS(by){
+async function submitRS(by){
  let d=document.getElementById("rsDate").value,t=document.getElementById("rsTime").value;
  if(!d||!t){alert("Date aur Time select karein.");return}
- if(new Date(d+"T"+t)<=new Date()){alert("Past date/time select nahi kar sakte.");return}
- S.reschedule={date:d,time:t};S.rescheduleBy=by;S.visitCharge=0;S.status="RESCHEDULE_PENDING";
- hist((by==="customer"?"Customer":S.provider)+" reschedule request • "+d+" "+t);closeRS();render();
+ const dt=new Date(d+"T"+t);
+ if(dt<=new Date()){alert("Past date/time select nahi kar sakte.");return}
+ let reason=prompt("Reschedule reason (optional)")||"";
+ try{
+   const {data,error}=await ocsSupabase.rpc("request_reschedule_v1",{p_booking_id:S.activeBookingId,p_new_scheduled_at:dt.toISOString(),p_reason:reason});
+   if(error)throw error;
+   S.rescheduleBackendId=data.id;S.reschedule={date:d,time:t,reason};S.rescheduleBy=by;S.visitCharge=0;S.status="RESCHEDULE_PENDING";
+   hist((by==="customer"?"Customer":S.provider)+" sent LIVE reschedule request • "+d+" "+t);
+   closeRS();ocsStartLive(by==="customer"?"customer":"provider");
+ }catch(e){alert("Reschedule request failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
-function rescheduleDecision(d){
- if(d==="APPROVED"){S.status="RESCHEDULED";S.visitCharge=0;hist("Reschedule accepted • Same SP • fresh OTP next visit")}
- else{S.status="WORKING";S.reschedule=null;hist("Reschedule rejected • booking stays open")}render();
+
+async function rescheduleDecision(d){
+ if(!S.rescheduleBackendId){alert("Reschedule request sync nahi hui.");return}
+ try{
+   const decision=d==="APPROVED"?"approved":"rejected";
+   const {error}=await ocsSupabase.rpc("respond_reschedule_v1",{p_request_id:S.rescheduleBackendId,p_decision:decision});
+   if(error)throw error;
+   hist("LIVE Reschedule "+decision);
+   await ocsLoadLive(OCS_LIVE_ROLE||"customer");render();
+ }catch(e){alert("Reschedule decision failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
-function resumeVisit(){S.status="ASSIGNED";S.startOtp=String(Math.floor(1000+Math.random()*9000));hist("Rescheduled visit started • exact address available • fresh OTP prepared");render();}
 
+async function resumeVisit(){
+ try{
+   const {data,error}=await ocsSupabase.rpc("resume_rescheduled_booking_v1",{p_booking_id:S.activeBookingId});
+   if(error)throw error;
+   ocsApplyBackendBooking(data);S.startOtp=null;
+   hist("Rescheduled visit started LIVE • fresh On the Way / Reached / OTP required");
+   ocsStartLive("provider");
+ }catch(e){alert("Resume visit failed: "+(e&&e.message?e.message:"Unknown error"))}
+}
 
-function changeProvider(){
-let r=prompt("Service Provider change reason mandatory");if(!r)return;
-if(!confirm("Provider change request OCS Support ko bhejna hai? New provider automatic assign nahi hoga."))return;
-S.previousProvider=S.provider;
-S.providerChangeReason=r;
-S.providerChangeTicket=createTicket("customer","Provider Change: "+r,true);
-S.status="PROVIDER_CHANGE_HOLD";
-S.startOtp=null;
-S.currentJob="On Hold • OCS Support Review";
-hist("Customer requested Provider Change • "+S.previousProvider+" stopped • Reason: "+r+" • Ticket "+S.providerChangeTicket+" • No automatic reassignment");
+async function changeProvider(){
+ let r=prompt("Service Provider change reason mandatory");if(!r)return;
+ if(!confirm("Provider change request OCS Support ko bhejna hai? New provider automatic assign nahi hoga."))return;
+ try{
+   const {data,error}=await ocsSupabase.rpc("request_provider_change_v1",{p_booking_id:S.activeBookingId,p_reason:r});
+   if(error)throw error;
+   S.providerChangeBackendId=data.id;S.providerChangeReason=r;S.status="PROVIDER_CHANGE_HOLD";
+   hist("LIVE Provider Change request sent • OCS Support review");
+   ocsStartLive("customer");
+ }catch(e){alert("Provider change request failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
 function cancelJob(by){
-if(S.status!=="WORKING"){
- let r=prompt("Work Not Completed • Resolve Here reason mandatory");if(!r)return;
- S.cancelReason=r;S.cancelBy=by;S.status="CANCELLED";
- hist((by==="customer"?"Customer":S.provider)+" cancelled job • "+r);return;
-}
-S.cancelBy=by;S.cancelReason="";S.wncFault="";
-S.status=by==="customer"?"WNC_CUSTOMER_REASON":"WNC_PROVIDER_REASON";
-hist((by==="customer"?"Customer":S.provider)+" opened Work Not Completed • "+(by==="customer"?"Customer":"Service Provider")+" must select the reason")
-}
-
-function chooseWncReason(fault,reason){
- S.wncFault=fault;S.cancelReason=reason;
- const by=S.cancelBy==="customer"?"customer":"provider";
- S.status=by==="customer"?"WNC_PROVIDER_CONFIRM":"WNC_CUSTOMER_CONFIRM";
- hist((by==="customer"?"Customer":S.provider)+" selected Work Not Completed reason • "+reason+" • Waiting for "+(by==="customer"?"Service Provider":"Customer")+" confirmation")
+ if(S.status!=="WORKING"){
+   alert("Work Not Completed sirf Start OTP ke baad WORKING stage me available hai.");
+   return;
+ }
+ S.cancelBy=by;S.cancelReason="";S.wncFault="";
+ S.status=by==="customer"?"WNC_CUSTOMER_REASON":"WNC_PROVIDER_REASON";
+ hist((by==="customer"?"Customer":S.provider)+" opened Work Not Completed • reason required");
 }
 
-function confirmWncReasonBy(side,agree){
- const who=side==="provider"?S.provider:"Customer";
- if(!agree){
-   S.status="SUPPORT_REVIEW";
-   let id=createTicket(side,"Work Not Completed reason dispute: "+S.cancelReason,false);
-   S.wncTicket=id;
-   hist(who+" disagreed with Work Not Completed reason • Charge HOLD • Support Ticket "+id);
-   return;
- }
- if(S.wncFault==="PROVIDER"){
-   S.visitCharge=0;S.distanceSlab="No visit charge";
-   if(S.paymentHeld&&Number(S.heldAmount||0)>0){settleHeldNoWork(0,"Provider-side reason • Full customer refund");return}
-   S.status="CANCELLED_SETTLED";S.payment="₹0 • Provider-side reason";
-   hist(who+" confirmed provider-side reason • Booking closed • Visit charge ₹0");
-   return;
- }
- if(S.wncFault==="OTHER"){
-   S.status="SUPPORT_REVIEW";
-   let id=createTicket(side,"Work Not Completed review: "+S.cancelReason,false);
-   S.wncTicket=id;
-   hist(who+" confirmed other issue • OCS Support review • Charge HOLD • Ticket "+id);
-   return;
- }
- const km=Number(S.oneWayDistanceKm||0);
- const charge=calculateNoWorkVisitCharge(km);
- if(!charge){
-   S.status="SUPPORT_REVIEW";
-   let id=createTicket(side,"Visit charge distance review: "+S.cancelReason,false);
-   S.wncTicket=id;
-   hist(who+" confirmed reason • GPS distance needs OCS review • Charge HOLD • Ticket "+id);
-   return;
- }
- const slab=km<=6?"1–6 km":">6–12 km";
- setVisitCharge(charge,slab);
- hist(who+" confirmed Work Not Completed reason • "+slab+" • Visit Charge "+money(charge));
+async function chooseWncReason(fault,reason){
+ try{
+   const {data,error}=await ocsSupabase.rpc("open_wnc_case_v1",{
+     p_booking_id:S.activeBookingId,p_fault:fault,p_reason:reason,p_distance_km:Number(S.oneWayDistanceKm||0)||null
+   });
+   if(error)throw error;
+   S.wncBackendId=data.id;S.wncFault=data.fault;S.cancelReason=data.reason;S.visitCharge=Number(data.suggested_visit_charge||0);
+   await ocsLoadLive(S.cancelBy==="customer"?"customer":"provider");render();
+ }catch(e){alert("Work Not Completed case submit failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
+
+async function confirmWncReasonBy(side,agree){
+ if(!S.wncBackendId){alert("Work Not Completed case sync nahi hui.");return}
+ try{
+   const {data,error}=await ocsSupabase.rpc("confirm_wnc_case_v1",{p_case_id:S.wncBackendId,p_agree:!!agree});
+   if(error)throw error;
+   S.wncFault=data.fault;S.cancelReason=data.reason;S.visitCharge=Number(data.suggested_visit_charge||0);
+   hist((side==="provider"?S.provider:"Customer")+" responded to LIVE Work Not Completed case");
+   await ocsLoadLive(side==="provider"?"provider":"customer");render();
+ }catch(e){alert("Work Not Completed confirmation failed: "+(e&&e.message?e.message:"Unknown error"))}
+}
+
 function confirmWncReason(agree){confirmWncReasonBy("customer",agree)}
 
 function resolveSpot(choice){
@@ -1966,31 +1991,37 @@ function cashReceived(){
  if(!visit)unlockQueuedNextJob();
 }
 
-function createTicket(side,category,callback){
-let id="OCS-TKT-"+Math.floor(100000+Math.random()*900000);
-S.supportTickets.push({id,side,category,callback});
-return id;
+async function createTicket(side,category,callback,details){
+ try{
+   const {data,error}=await ocsSupabase.rpc("create_support_ticket_v1",{
+     p_role:side==="provider"?"service_provider":"customer",
+     p_category:category||"Support",p_message:details||category||"Support request",
+     p_callback:!!callback,p_booking_id:S.activeBookingId||null
+   });
+   if(error)throw error;
+   S.supportTickets=Array.isArray(S.supportTickets)?S.supportTickets:[];
+   S.supportTickets.unshift({id:data.ticket_no,side,category,callback,backendId:data.id});
+   S.supportTicket=data.ticket_no;
+   return data.ticket_no;
+ }catch(e){console.error("Support ticket failed",e);alert("Support ticket create nahi hua: "+(e&&e.message?e.message:"Unknown error"));return ""}
 }
 
-function openSupport(side){
-let cat=prompt(side==="customer"
-?"Issue: Payment / Provider / Work Not Completed / Other"
-:"Issue: Customer / Payment / Job / Other");
-if(!cat)return;
-let details=prompt("Problem details");if(!details)return;
-let cb=confirm("Request Callback chahiye?");
-let id=createTicket(side,cat,cb);
-hist((side==="customer"?"Customer":"Service Provider")+" Support Ticket created • "+id+(cb?" • Callback Requested":""));
-alert("Ticket Number: "+id)
+async function openSupport(side){
+ let cat=prompt(side==="customer"?"Issue: Payment / Provider / Work Not Completed / Other":"Issue: Customer / Payment / Job / Other");
+ if(!cat)return;
+ let details=prompt("Problem details");if(!details)return;
+ let cb=confirm("Request Callback chahiye?");
+ let id=await createTicket(side,cat,cb,details);if(!id)return;
+ hist((side==="customer"?"Customer":"Service Provider")+" Support Ticket created • "+id+(cb?" • Callback Requested":""));
+ alert("Ticket Number: "+id)
 }
 
-function askExpert(){
-let q=prompt("Rate / Quote / Job related question");if(!q)return;
-let id=createTicket("provider","Ask to Expert",true);
-hist("Ask to Expert submitted • "+id);
-alert("Expert Request Ticket: "+id)
+async function askExpert(){
+ let q=prompt("Rate / Quote / Job related question");if(!q)return;
+ let id=await createTicket("provider","Ask to Expert",true,q);if(!id)return;
+ hist("Ask to Expert submitted • "+id);
+ alert("Expert Request Ticket: "+id)
 }
-
 
 function yellowStarsHTML(n,interactive){
  n=Math.max(0,Math.min(5,Number(n)||0));
