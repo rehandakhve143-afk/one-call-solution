@@ -1371,7 +1371,7 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <div class="bottom-hub-head"><div><h2>⚙️ Settings</h2><div class="muted">OCS app preferences</div></div><button class="x" onclick="closeSettings()">×</button></div>
   <div class="ocs-settings-grid">
     <div class="ocs-setting-row"><div><b>Notifications</b><small>Booking, quote, payment and support updates</small></div><input id="setNotifications" type="checkbox"></div>
-    <div class="ocs-setting-row"><div><b>Location</b><small>Nearby Service Provider and directions</small></div><button onclick="requestOcsLocation()">Allow</button></div>
+    <div class="ocs-setting-row"><div><b>Location</b><small>Nearby Service Provider and directions • <span id="setLocationState">Not allowed</span></small></div><button onclick="requestOcsLocation()">Allow</button></div>
     <div class="ocs-setting-row"><div><b>Preferred Payment</b><small>Online recommended • Cash only for network issue</small></div><select id="setPayment" style="width:120px;margin:0"><option value="ONLINE">Online</option><option value="CASH">Cash</option></select></div>
     <div class="ocs-setting-row"><div><b>Language</b><small>App display preference</small></div><select id="setLanguage" style="width:120px;margin:0"><option value="EN">English</option><option value="HI">Hindi</option><option value="MR">Marathi</option></select></div>
     <div class="ocs-setting-row"><div><b>Privacy</b><small>Use contact/location only for required booking and business actions.</small></div><span>🔒</span></div>
@@ -1419,15 +1419,21 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
 <div id="customerAccountForm">
   <label>Email ID *</label><div class="verifyrow"><input id="caEmail" type="email" placeholder="name@email.com"><button onclick="demoVerify('customerEmail')">Verify Email</button></div><div class="verifyok" id="customerEmailStatus">Not verified</div>
   <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
-  <label>Mobile Number <span class="muted">(optional now)</span></label><input id="caMobile" inputmode="tel" placeholder="10-digit mobile"><div class="verifyok" id="customerMobileStatus" style="display:none"></div>
-  <button class="primary" style="margin-top:14px" onclick="saveCustomerAccount()">Continue with Email</button>
-  <div class="help">Email se direct registration/login. Mobile aur baaki profile details later add ki ja sakti hain.</div>
+  <label>Mobile Number *</label>
+  <div class="verifyrow"><input id="caMobile" inputmode="tel" placeholder="10-digit mobile"><button onclick="sendMobileOtp('customer')">Send OTP</button></div>
+  <div id="customerMobileOtpWrap" style="display:none"><div class="verifyrow"><input id="caMobileOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifyMobileOtp('customer')">Verify OTP</button></div></div>
+  <div class="verifyok" id="customerMobileStatus">Mobile verification required</div>
+  <button class="primary" style="margin-top:14px" onclick="saveCustomerAccount()">Continue</button>
+  <div class="help">Customer account ke liye Email + Mobile dono verification required hain.</div>
 </div>
 <div id="providerAccountForm" style="display:none">
   <label>Email ID *</label><div class="verifyrow"><input id="paEmail" type="email" placeholder="provider@email.com"><button onclick="demoVerify('providerEmail')">Send Login Link</button></div><div class="verifyok" id="providerEmailStatus">Email login required</div>
   <div class="help" style="margin:7px 0 12px">Step 1: Email se register. Step 2: Niche full Service Provider profile complete karein.</div>
   <label>Full Name *</label><input id="paName" autocomplete="name" placeholder="Service Provider name">
-  <label>Mobile Number *</label><input id="paMobile" inputmode="tel" placeholder="10-digit mobile"><div class="verifyok" id="providerMobileStatus" style="display:none"></div>
+  <label>Mobile Number *</label>
+  <div class="verifyrow"><input id="paMobile" inputmode="tel" placeholder="10-digit mobile"><button onclick="sendMobileOtp('provider')">Send OTP</button></div>
+  <div id="providerMobileOtpWrap" style="display:none"><div class="verifyrow"><input id="paMobileOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifyMobileOtp('provider')">Verify OTP</button></div></div>
+  <div class="verifyok" id="providerMobileStatus">Mobile verification required</div>
   <label>Live Selfie *</label>
   <div class="sp-selfie-box">
     <div class="sp-selfie-row">
@@ -1707,7 +1713,7 @@ async function syncProviderRegistrationToBackend(name,mobile,skills){
   const entered=(document.getElementById('paEmail')?.value||'').trim().toLowerCase();
   const signed=(session.user.email||'').toLowerCase();
   if(!signed||entered!==signed)throw new Error('Same verified email se login karein');
-  const {data,error}=await ocsSupabase.rpc('complete_service_provider_registration',{
+  const {data,error}=await ocsSupabase.rpc('complete_service_provider_registration_v2',{
     p_full_name:name,
     p_phone:mobile,
     p_skill_labels:skills
@@ -1744,27 +1750,78 @@ function openAccount(role){
 function closeAccount(){document.getElementById('accountModal').classList.remove('show')}
 async function demoVerify(kind){
  const isMobile=kind.toLowerCase().includes('mobile');
- const id=kind+'Status';
- let inputId=kind==='customerMobile'?'caMobile':kind==='customerEmail'?'caEmail':kind==='providerMobile'?'paMobile':'paEmail';
- const v=(document.getElementById(inputId).value||'').trim();
  if(isMobile){
-   if(v.replace(/\D/g,'').length<10){alert('Valid mobile number enter karein.');return}
-   accountVerified[kind]=true;document.getElementById(id).textContent='✓ Mobile entered';document.getElementById(id).style.color='#16815d';return;
+   await sendMobileOtp(kind.startsWith('provider')?'provider':'customer');
+   return;
  }
+ const inputId=kind==='customerEmail'?'caEmail':'paEmail';
+ const v=(document.getElementById(inputId).value||'').trim();
  if(!v.includes('@')){alert('Valid email ID enter karein.');return}
  await sendOcsEmailLink(kind==='providerEmail'?'provider':'customer');
+}
+
+function ocsIndiaPhone(v){
+ const d=String(v||'').replace(/\D/g,'');
+ if(d.length===10)return '+91'+d;
+ if(d.length===12&&d.startsWith('91'))return '+'+d;
+ return '';
+}
+async function sendMobileOtp(role){
+ if(!ocsSupabase){alert('Online login service load nahi hua.');return false}
+ const session=await getOcsSession();
+ if(!session||!session.user){alert('Pehle Email login/verification complete karein.');return false}
+ const isProvider=role==='provider';
+ const input=document.getElementById(isProvider?'paMobile':'caMobile');
+ const phone=ocsIndiaPhone(input?.value||'');
+ if(!phone){alert('Valid 10-digit mobile number enter karein.');return false}
+ try{
+   const {error}=await ocsSupabase.auth.updateUser({phone});
+   if(error)throw error;
+   const wrap=document.getElementById(isProvider?'providerMobileOtpWrap':'customerMobileOtpWrap');
+   const st=document.getElementById(isProvider?'providerMobileStatus':'customerMobileStatus');
+   if(wrap)wrap.style.display='block';
+   if(st){st.textContent='OTP sent • SMS OTP enter karein';st.style.color='#b7791f'}
+   accountVerified[isProvider?'providerMobile':'customerMobile']=false;
+   return true;
+ }catch(e){
+   console.error('Mobile OTP send failed',e);
+   alert('Mobile OTP send nahi hua: '+(e&&e.message?e.message:'Unknown error'));
+   return false;
+ }
+}
+async function verifyMobileOtp(role){
+ if(!ocsSupabase)return false;
+ const isProvider=role==='provider';
+ const phone=ocsIndiaPhone(document.getElementById(isProvider?'paMobile':'caMobile')?.value||'');
+ const token=(document.getElementById(isProvider?'paMobileOtp':'caMobileOtp')?.value||'').trim();
+ if(!phone||token.length<6){alert('Mobile number aur 6-digit OTP check karein.');return false}
+ try{
+   const {error}=await ocsSupabase.auth.verifyOtp({phone,token,type:'phone_change'});
+   if(error)throw error;
+   accountVerified[isProvider?'providerMobile':'customerMobile']=true;
+   const st=document.getElementById(isProvider?'providerMobileStatus':'customerMobileStatus');
+   const wrap=document.getElementById(isProvider?'providerMobileOtpWrap':'customerMobileOtpWrap');
+   if(st){st.textContent='✓ Mobile verified';st.style.color='#16815d'}
+   if(wrap)wrap.style.display='none';
+   return true;
+ }catch(e){
+   console.error('Mobile OTP verify failed',e);
+   alert('OTP verify nahi hua: '+(e&&e.message?e.message:'Wrong / expired OTP'));
+   return false;
+ }
 }
 async function saveCustomerAccount(){
  const email=caEmail.value.trim(),name=caName.value.trim(),mobile=caMobile.value.trim();
  if(!email.includes('@')){alert('Valid email ID required.');return}
  if(mobile.replace(/\D/g,'').length<10){alert('Valid 10-digit mobile number required.');return}
+ if(!accountVerified.customerMobile){alert('Mobile OTP verify karein.');return}
  const session=await refreshOcsEmailStatus();
  if(!session||!session.user||!accountVerified.customerEmail){alert('Email login/verification complete karein. Email me bheja OCS Login Link press karein.');return}
  const signed=(session.user.email||'').trim().toLowerCase();
  if(signed!==email.toLowerCase()){alert('Same verified email ID use karein.');return}
  const safeName=name||email.split('@')[0]||'Customer';
  try{
-   const {data,error}=await ocsSupabase.rpc('complete_customer_registration',{
+   const {data,error}=await ocsSupabase.rpc('complete_customer_registration_v2',{
      p_full_name:safeName,
      p_phone:mobile
    });
@@ -1815,6 +1872,7 @@ async function saveProviderAccount(){
  if(otherChecked&&!otherSkill){alert('Other select kiya hai to apni skill / service ka naam likhein.');return}
  const bankHolder=paBankHolder.value.trim(),bankName=paBankName.value.trim(),accountNo=paAccountNo.value.replace(/\s/g,''),accountNo2=paAccountNo2.value.replace(/\s/g,''),ifsc=paIfsc.value.trim().toUpperCase(),upi=paUpi.value.trim();
  if(!name||mobile.replace(/\D/g,'').length<10||!email.includes('@')||!area||!skills.length){alert('Name, valid mobile, email, service area aur kam se kam 1 skill required.');return}
+ if(!accountVerified.providerMobile){alert('Mobile OTP verify karein.');return}
  if(!selfieOk){alert('Live selfie required for Service Provider verification.');return}
  if(!bankHolder||!bankName||accountNo.length<6||accountNo!==accountNo2||!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)){alert('Valid bank details required. Account number dono jagah same aur IFSC sahi enter karein.');return}
  const session=await refreshOcsEmailStatus();
@@ -1977,28 +2035,72 @@ function renderWorkHistory(){
 
 const OCS_SETTINGS_KEY='ocsSettingsV1';
 function getOcsSettings(){
- let x={notifications:true,payment:'ONLINE',language:'EN'};
+ let x={notifications:true,payment:'ONLINE',language:'EN',locationAllowed:false};
  try{x=Object.assign(x,JSON.parse(localStorage.getItem(OCS_SETTINGS_KEY)||'{}')||{})}catch(e){}
  return x;
 }
-function openSettings(){
+async function loadOcsSettings(){
+ let x=getOcsSettings();
+ const session=await getOcsSession();
+ if(session&&session.user&&ocsSupabase){
+   try{
+     const {data,error}=await ocsSupabase.rpc('get_user_preferences_v1');
+     if(error)throw error;
+     if(data&&data.length){
+       const p=data[0];
+       x={notifications:p.notifications!==false,payment:p.preferred_payment||'ONLINE',language:p.language||'EN',locationAllowed:!!p.location_allowed,updatedAt:p.updated_at};
+       localStorage.setItem(OCS_SETTINGS_KEY,JSON.stringify(x));
+     }
+   }catch(e){console.error('Settings load failed',e)}
+ }
+ return x;
+}
+async function openSettings(){
  closeAllBottomHubs();
- const s=getOcsSettings();
- document.getElementById('setNotifications').checked=s.notifications!==false;
- document.getElementById('setPayment').value=s.payment||'ONLINE';
- document.getElementById('setLanguage').value=s.language||'EN';
+ const x=await loadOcsSettings();
+ document.getElementById('setNotifications').checked=x.notifications!==false;
+ document.getElementById('setPayment').value=x.payment||'ONLINE';
+ document.getElementById('setLanguage').value=x.language||'EN';
+ const loc=document.getElementById('setLocationState');
+ if(loc)loc.textContent=x.locationAllowed?'Allowed':'Not allowed';
  document.getElementById('settingsModal').classList.add('show');
 }
 function closeSettings(){document.getElementById('settingsModal').classList.remove('show')}
-function saveSettings(){
- const s={notifications:document.getElementById('setNotifications').checked,payment:document.getElementById('setPayment').value,language:document.getElementById('setLanguage').value,updatedAt:new Date().toISOString()};
- localStorage.setItem(OCS_SETTINGS_KEY,JSON.stringify(s));
+async function saveSettings(){
+ const x={
+   notifications:document.getElementById('setNotifications').checked,
+   payment:document.getElementById('setPayment').value,
+   language:document.getElementById('setLanguage').value,
+   locationAllowed:!!getOcsSettings().locationAllowed,
+   updatedAt:new Date().toISOString()
+ };
+ localStorage.setItem(OCS_SETTINGS_KEY,JSON.stringify(x));
+ const session=await getOcsSession();
+ if(session&&session.user&&ocsSupabase){
+   try{
+     const {error}=await ocsSupabase.rpc('save_user_preferences_v1',{
+       p_notifications:x.notifications,
+       p_preferred_payment:x.payment,
+       p_language:x.language,
+       p_location_allowed:x.locationAllowed
+     });
+     if(error)throw error;
+   }catch(e){console.error('Settings backend save failed',e);alert('Settings phone par save hui, online sync fail hua: '+(e&&e.message?e.message:'Unknown error'));return}
+ }
  alert('Settings saved.');
  closeSettings();
 }
 function requestOcsLocation(){
  if(!navigator.geolocation){alert('Location is not available on this device/browser.');return}
- navigator.geolocation.getCurrentPosition(()=>alert('Location permission available for OCS.'),()=>alert('Location permission allow karein in phone/browser settings.'),{enableHighAccuracy:true,timeout:8000,maximumAge:30000});
+ navigator.geolocation.getCurrentPosition(async()=>{
+   const x=getOcsSettings();x.locationAllowed=true;x.updatedAt=new Date().toISOString();localStorage.setItem(OCS_SETTINGS_KEY,JSON.stringify(x));
+   const loc=document.getElementById('setLocationState');if(loc)loc.textContent='Allowed';
+   const session=await getOcsSession();
+   if(session&&session.user&&ocsSupabase){
+     try{await ocsSupabase.rpc('save_user_preferences_v1',{p_notifications:x.notifications!==false,p_preferred_payment:x.payment||'ONLINE',p_language:x.language||'EN',p_location_allowed:true})}catch(e){console.error(e)}
+   }
+   alert('Location permission available for OCS.');
+ },()=>alert('Location permission allow karein in phone/browser settings.'),{enableHighAccuracy:true,timeout:8000,maximumAge:30000});
 }
 
 const OCS_FEEDBACK_KEY='ocsPublicFeedbackV1';
