@@ -1233,8 +1233,7 @@ async function customerCancelBeforeStart(){
 
  if(effectiveStatus==="REQUESTED"&&S.activeBookingId&&ocsSupabase){
    try{
-     const {data,error}=await ocsSupabase.rpc("cancel_customer_searching_booking_v1",{
-       p_booking_id:S.activeBookingId,
+     const {data,error}=await ocsSupabase.rpc("cancel_all_customer_searching_bookings_v1",{
        p_reason:reason
      });
      if(error)throw error;
@@ -1243,6 +1242,20 @@ async function customerCancelBeforeStart(){
      S.visitCharge=0;S.currentJob=null;S.status="CANCELLED";S.payment="No payment collected";
      ocsCloseBooking("Customer cancelled before Service Provider assignment");
      S.activeBookingId=null;OCS_LIVE_BOOKING_ID=null;
+     S.bookingClosedAt=Date.now();
+     S.status="SELECT_SERVICE";
+     S.category="";
+     S.selectedItems=[];
+     S.service="";
+     S.serviceName="";
+     S.serviceType="fixed";
+     S.quantity=1;
+     S.base=0;
+     S.total=0;
+     S.bookingAmount=0;
+     S.finalAmount=0;
+     S.amount=0;
+     S.currentJob=null;
      saveHomeState();
      await ocsLoadLive("customer");
      renderCore();updateSelectionTray();
