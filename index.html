@@ -1258,7 +1258,7 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
 </head><body><div class="app ocs-approved-home">
 <section class="ocs-super-home" id="ocsSuperHome">
   <header class="ocs-super-top">
-    <div class="ocs-super-loc"><b>⌖ Current area ▾</b><span>Service location</span></div>
+    <div class="ocs-super-loc" onclick="openLocationPicker()" role="button" aria-label="Set service location"><b id="ocsHomeLocation">⌖ Set location ▾</b><span id="ocsHomeLocationSub">Use current location</span></div>
     <div class="ocs-super-brandrow">
       <img class="ocs-super-logo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS">
       <div class="ocs-super-brand"><strong>One Call Solution</strong><small>One for All • All for One</small></div>
@@ -1372,6 +1372,17 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <div class="bottom-hub-head"><div><h2>Work History</h2><div class="muted">Customer + Service Provider completed/cancelled work</div></div><button class="x" onclick="closeWorkHistory()">×</button></div>
   <div class="support-role-row"><button id="historyCustomerBtn" class="on" onclick="setWorkHistoryRole('CUSTOMER')">Customer</button><button id="historyProviderBtn" onclick="setWorkHistoryRole('PROVIDER')">Service Provider</button></div>
   <div id="workHistoryBody"></div>
+</div></div>
+
+<div class="modal" id="locationModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>Choose service location</h2><div class="muted">OCS nearby Service Providers ke liye</div></div><button class="x" onclick="closeLocationPicker()">×</button></div>
+  <button class="primary" style="width:100%;margin:4px 0 12px" onclick="useCurrentOcsLocation()">⌖ Use Current Location</button>
+  <div class="bottom-hub-card">
+    <b>Or enter area</b>
+    <small>Area / City / Pincode</small>
+    <input id="ocsManualLocation" placeholder="e.g. Khopoli / Panvel / 410203">
+    <button class="primary" style="width:100%;margin-top:10px" onclick="saveManualOcsLocation()">Use This Location</button>
+  </div>
 </div></div>
 
 <div class="modal" id="settingsModal"><div class="sheet">
@@ -2240,7 +2251,7 @@ function setBottomActive(id){
  const x=document.getElementById(id);if(x)x.classList.add('active');
 }
 function closeBottomHub(id){const m=document.getElementById(id);if(m)m.classList.remove('show')}
-function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','workHistoryModal','settingsModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
+function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','workHistoryModal','settingsModal','locationModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
 function bottomHome(){
  closeAllBottomHubs();
  if(document.getElementById('viewer')?.classList.contains('show'))closeModule();
@@ -2385,6 +2396,49 @@ async function renderWorkHistory(){
  }).join('');
 }
 
+const OCS_LOCATION_KEY='ocsServiceLocationV1';
+function getOcsLocation(){
+  try{return JSON.parse(localStorage.getItem(OCS_LOCATION_KEY)||'null')}catch(e){return null}
+}
+function renderOcsHomeLocation(){
+  const loc=getOcsLocation(),title=document.getElementById('ocsHomeLocation'),sub=document.getElementById('ocsHomeLocationSub');
+  if(!title||!sub)return;
+  if(!loc){title.textContent='⌖ Set location ▾';sub.textContent='Use current location';return}
+  title.textContent='⌖ '+(loc.label||'Current location')+' ▾';
+  sub.textContent=loc.source==='gps'?'Current location':'Service location';
+}
+function openLocationPicker(){
+  const loc=getOcsLocation(),input=document.getElementById('ocsManualLocation');
+  if(input&&loc&&loc.source==='manual')input.value=loc.label||'';
+  document.getElementById('locationModal').classList.add('show');
+}
+function closeLocationPicker(){document.getElementById('locationModal').classList.remove('show')}
+function saveManualOcsLocation(){
+  const input=document.getElementById('ocsManualLocation');
+  const label=(input?.value||'').trim();
+  if(label.length<2){alert('Area, city ya pincode enter karein.');return}
+  localStorage.setItem(OCS_LOCATION_KEY,JSON.stringify({source:'manual',label,updatedAt:new Date().toISOString()}));
+  const x=getOcsSettings();x.locationAllowed=false;x.updatedAt=new Date().toISOString();localStorage.setItem(OCS_SETTINGS_KEY,JSON.stringify(x));
+  renderOcsHomeLocation();closeLocationPicker();
+}
+function useCurrentOcsLocation(){
+  if(!navigator.geolocation){alert('Current location is device/browser me available nahi hai.');return}
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude);
+    localStorage.setItem(OCS_LOCATION_KEY,JSON.stringify({
+      source:'gps',label:'Current location',lat,lng,accuracy:Number(pos.coords.accuracy||0),updatedAt:new Date().toISOString()
+    }));
+    const x=getOcsSettings();x.locationAllowed=true;x.updatedAt=new Date().toISOString();localStorage.setItem(OCS_SETTINGS_KEY,JSON.stringify(x));
+    const locState=document.getElementById('setLocationState');if(locState)locState.textContent='Allowed';
+    const session=await getOcsSession();
+    if(session&&session.user&&ocsSupabase){
+      try{await ocsSupabase.rpc('save_user_preferences_v1',{p_notifications:x.notifications!==false,p_preferred_payment:x.payment||'ONLINE',p_language:x.language||'EN',p_location_allowed:true})}catch(e){console.error(e)}
+    }
+    renderOcsHomeLocation();closeLocationPicker();
+  },()=>alert('Current location use karne ke liye phone/browser me Location allow karein.'),{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
+}
+setTimeout(renderOcsHomeLocation,0);
+
 const OCS_SETTINGS_KEY='ocsSettingsV1';
 function getOcsSettings(){
  let x={notifications:true,payment:'ONLINE',language:'EN',locationAllowed:false};
@@ -2464,18 +2518,8 @@ async function saveSettings(){
  alert('Settings saved.');
  closeSettings();
 }
-function requestOcsLocation(){
- if(!navigator.geolocation){alert('Location is not available on this device/browser.');return}
- navigator.geolocation.getCurrentPosition(async()=>{
-   const x=getOcsSettings();x.locationAllowed=true;x.updatedAt=new Date().toISOString();localStorage.setItem(OCS_SETTINGS_KEY,JSON.stringify(x));
-   const loc=document.getElementById('setLocationState');if(loc)loc.textContent='Allowed';
-   const session=await getOcsSession();
-   if(session&&session.user&&ocsSupabase){
-     try{await ocsSupabase.rpc('save_user_preferences_v1',{p_notifications:x.notifications!==false,p_preferred_payment:x.payment||'ONLINE',p_language:x.language||'EN',p_location_allowed:true})}catch(e){console.error(e)}
-   }
-   alert('Location permission available for OCS.');
- },()=>alert('Location permission allow karein in phone/browser settings.'),{enableHighAccuracy:true,timeout:8000,maximumAge:30000});
-}
+function requestOcsLocation(){openLocationPicker()}
+
 
 const OCS_FEEDBACK_KEY='ocsPublicFeedbackV1';
 function getOcsFeedback(){
