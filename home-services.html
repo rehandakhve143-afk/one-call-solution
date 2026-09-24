@@ -396,7 +396,45 @@ async function ocsLoadLive(role){
       if(error)throw error;
       if(data&&data.length)booking=data[0];
     }
-    if(!booking)return false;
+    if(!booking){
+      const staleStages=["REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","VISIT_CASH_WAIT","CASH_WAIT","PROVIDER_CHANGE_HOLD","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","SUPPORT_REVIEW","DONE","COMPLETED","CANCELLED","CANCELLED_SETTLED"];
+      if(S.activeBookingId||staleStages.includes(String(S.status||"").toUpperCase())){
+        S.lastClosedBookingId=S.activeBookingId||S.lastClosedBookingId||null;
+        S.activeBookingId=null;
+        OCS_LIVE_BOOKING_ID=null;
+        S.status="SELECT_SERVICE";
+        S.category="";
+        S.selectedItems=[];
+        S.service="";
+        S.serviceName="";
+        S.serviceType="fixed";
+        S.quantity=1;
+        S.base=0;
+        S.total=0;
+        S.bookingAmount=0;
+        S.finalAmount=0;
+        S.amount=0;
+        S.startOtp=null;
+        S.quote=null;
+        S.quoteDecision=null;
+        S.reschedule=null;
+        S.cancelReason=null;
+        S.visitCharge=0;
+        S.payment=null;
+        S.paymentHeld=false;
+        S.heldAmount=0;
+        S.paymentFinalized=false;
+        S.currentJob=null;
+        S.pendingNextRequest=null;
+        S.nextJob=null;
+        S.customerExtraStatus="";
+        S.customerExtraRequest=null;
+        S.customerExtraItems=[];
+        S.extraQuote=null;
+        saveHomeState();
+      }
+      return false;
+    }
     ocsApplyBackendBooking(booking);
     await ocsSyncQuoteAndChat(role,booking);
     try{
@@ -571,7 +609,7 @@ function loadSavedHomeState(){
        S.providerRatings=Array.isArray(saved.providerRatings)?saved.providerRatings:[];
        S.supportTickets=Array.isArray(saved.supportTickets)?saved.supportTickets:[];
        S.rulesVersion=9;
-       S.flowVersion=10;
+       S.flowVersion=11;
        try{localStorage.removeItem(OCS_HOME_STATE_KEY)}catch(e){}
        try{if(window.parent&&window.parent.localStorage){window.parent.localStorage.removeItem(OCS_HOME_STATE_KEY);window.parent.localStorage.removeItem("ocsCurrentBooking")}}catch(e){}
        return;
@@ -595,7 +633,7 @@ function loadSavedHomeState(){
      S.pendingRatingComment=S.pendingRatingComment||"";
      S.customerRatingComment=S.customerRatingComment||"";
      S.rulesVersion=9;
-     S.flowVersion=10;
+     S.flowVersion=11;
      S.adminPaused=!!saved.adminPaused;
      S.jobAccess=!S.adminPaused;
      // Do not restore an unfinished browsing/cart screen on refresh or module reopen.
@@ -703,8 +741,9 @@ function archiveOcsWorkHistory(){
  writeOcsWorkHistory(rows);
 }
 function syncOcsWorkHistoryRating(){
- if(!S.activeBookingId)return;
- const rows=readOcsWorkHistory(),i=rows.findIndex(x=>x&&x.id===S.activeBookingId);
+ const bookingId=S.activeBookingId||S.lastClosedBookingId;
+ if(!bookingId)return;
+ const rows=readOcsWorkHistory(),i=rows.findIndex(x=>x&&x.id===bookingId);
  if(i<0)return;
  rows[i].rating=Number(S.customerRating||0);
  rows[i].ratingComment=S.customerRatingComment||"";
@@ -713,6 +752,7 @@ function syncOcsWorkHistoryRating(){
 function ocsCloseBooking(reason){
  S.bookingClosedAt=Date.now();
  S.bookingCloseReason=reason||S.status;
+ S.lastClosedBookingId=S.activeBookingId||S.lastClosedBookingId||null;
  archiveOcsWorkHistory();
 }
 
