@@ -175,7 +175,7 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 .ocs-inline-booking .ib-copy{flex:1;min-width:0}.ocs-inline-booking .ib-copy b{display:block;font-size:12px}.ocs-inline-booking .ib-copy small{display:block;margin-top:2px;font-size:10px;color:#d8e7e5}
 .ocs-inline-booking button{border:0;border-radius:10px;background:#0ba59a;color:#fff;font-weight:900;min-height:44px;padding:0 14px;white-space:nowrap}
 </style><style>
-.ocs-flow-nav{position:sticky;bottom:8px;z-index:10050;display:grid;grid-template-columns:.8fr 1.2fr;gap:9px;margin:14px 0 4px;padding:8px;background:rgba(255,255,255,.97);border:1px solid #dce8e6;border-radius:16px;box-shadow:0 10px 26px rgba(17,54,60,.16)}
+.ocs-flow-nav{display:none!important}
 .ocs-flow-nav button{width:100%;min-height:46px;margin:0;border:0;border-radius:12px;font-weight:900}
 .ocs-flow-nav .back-flow{background:#edf3f2;color:#173f48}
 .ocs-flow-nav .next-flow{background:linear-gradient(135deg,#087a70,#0aa47e);color:#fff}
@@ -1420,17 +1420,6 @@ function homeFlowNext(){
  if(S.status==="BOOKING_DETAILS"){booking();return}
 }
 function homeFlowNavHTML(){
- if(S.status==="SELECT_ITEM"){
-   const ready=(S.selectedItems||[]).length>0;
-   return '<div class="ocs-flow-nav"><button class="back-flow" onclick="homeFlowBack()">← Back</button><button class="next-flow" onclick="homeFlowNext()" '+(ready?'':'disabled')+'>Next • Booking →</button></div>';
- }
- if(S.status==="CUSTOM_REQUEST"){
-   return '<div class="ocs-flow-nav"><button class="back-flow" onclick="homeFlowBack()">← Back</button><button class="next-flow" onclick="homeFlowNext()">Next • Send Request →</button></div>';
- }
- if(S.status==="BOOKING_DETAILS"){
-   const locked=S.paymentHeld&&Number(S.heldAmount||0)>0;
-   return '<div class="ocs-flow-nav"><button class="back-flow" onclick="homeFlowBack()" '+(locked?'disabled':'')+'>← Back</button><button class="next-flow" onclick="homeFlowNext()">Next • Find Provider →</button></div>';
- }
  return "";
 }
 
