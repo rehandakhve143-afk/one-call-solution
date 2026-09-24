@@ -2130,18 +2130,37 @@ function rateProvider(stars){
  S.pendingRatingStars=stars;
  render();
 }
-function submitProviderRating(){
+async function submitProviderRating(){
  const stars=Number(S.pendingRatingStars||0);
  if(stars<1||stars>5){alert("Pehle 1 se 5 star select karein.");return}
  const comment=(document.getElementById("ratingComment")?.value||S.pendingRatingComment||"").trim();
- S.providerRatings=Array.isArray(S.providerRatings)?S.providerRatings:[];
- S.providerRatings.push({provider:S.provider,stars:stars,comment:comment,verifiedBooking:true,bookingId:S.activeBookingId||"",at:new Date().toISOString()});
- S.customerRating=stars;
- S.customerRatingComment=comment;
- S.pendingRatingStars=0;S.pendingRatingComment="";
- syncOcsWorkHistoryRating();
- hist("Customer submitted rating for "+S.provider+" • "+stars+"/5");
- render();
+ if(!S.activeBookingId){alert("Booking ID nahi mili.");return}
+ try{
+   const {data,error}=await ocsSupabase.rpc("submit_provider_rating_v1",{p_booking_id:S.activeBookingId,p_stars:stars,p_comment:comment});
+   if(error)throw error;
+   S.customerRating=Number(data.stars||stars);
+   S.customerRatingComment=data.comment||comment;
+   S.pendingRatingStars=0;S.pendingRatingComment="";
+   syncOcsWorkHistoryRating();
+   hist("Customer submitted LIVE rating • "+S.customerRating+"/5");
+   await ocsLoadProviderRatingSummary();
+   render();
+ }catch(e){alert("Rating save nahi hui: "+(e&&e.message?e.message:"Unknown error"))}
+}
+
+async function ocsLoadProviderRatingSummary(){
+ if(!ocsSupabase)return;
+ try{
+   const providerId=S.providerBackendId||null;
+   const {data,error}=await ocsSupabase.rpc("provider_rating_summary_v1",{p_provider_id:providerId});
+   if(error)throw error;
+   if(data){
+     const rows=Array.isArray(data.ratings)?data.ratings:[];
+     S.providerRatings=rows.map(x=>({provider:S.provider,stars:Number(x.stars||0),comment:x.comment||"",verifiedBooking:true,bookingId:x.booking_id||"",at:x.created_at||new Date().toISOString(),customerName:x.customer_name||"Customer"}));
+     S.providerRatingAverage=Number(data.average||0);
+     S.providerRatingCount=Number(data.count||0);
+   }
+ }catch(e){console.error("Provider rating summary load failed",e)}
 }
 
 function resetAll(){
