@@ -452,14 +452,34 @@ async function ocsSyncQuoteAndChat(role,booking){
       if(qe)throw qe;
       if(q&&q.length){
         const x=q[0];
-        S.quote={id:x.id,desc:x.description||booking.request_details||booking.service_name,amount:Number(x.amount||0),items:Array.isArray(x.items)?x.items:[],kind:x.quote_kind,version:x.version};
+        S.quote={id:x.id,desc:x.description||booking.request_details||booking.service_name,amount:Number(x.amount||0),items:Array.isArray(x.items)?x.items:[],kind:x.quote_kind,version:x.version,source:x.quote_kind==="add_work"?"PROVIDER_BACKEND_ADD_WORK":"BACKEND_QUOTE"};
         S.quoteDecision=String(x.status||"pending").toUpperCase();
         S.quoteHistory=[{version:x.version,amount:Number(x.amount||0),status:String(x.status||"").toUpperCase(),reason:x.description||"",at:new Date(x.created_at).getTime()}];
         if(x.quote_kind==="initial"){
           if(x.status==="pending")S.status="INITIAL_QUOTE";
           else if(x.status==="accepted"&&String(booking.status).toLowerCase()==="accepted")S.status="QUOTE_SECURE_PAYMENT";
         }
-      }else{S.quote=null;S.quoteDecision=null;}
+      }else if(S.requestType==="quote"){S.quote=null;S.quoteDecision=null;}
+
+      const {data:aw,error:awe}=await ocsSupabase.rpc("latest_add_work_request_v1",{p_booking_id:booking.id});
+      if(awe)throw awe;
+      if(aw&&aw.length){
+        const r=aw[0];
+        S.customerExtraBackendId=r.id;
+        S.customerExtraItems=Array.isArray(r.items)?r.items:[];
+        S.customerExtraRequest=r.description||"Add Work";
+        if(r.status==="pending_provider")S.customerExtraStatus="SENT_TO_PROVIDER";
+        else if(r.status==="provider_quoted"){
+          S.customerExtraStatus="AMOUNT_SENT";
+          S.extraQuote={desc:r.description||"Add Work",amount:Number(r.provider_amount||0),backendRequestId:r.id,fromCustomer:true};
+        }else if(r.status==="provider_accepted"){
+          S.customerExtraStatus="";
+          S.lastAddedWork={desc:r.description||"Add Work",amount:Number(r.requested_amount||0)};
+        }else if(["provider_rejected","customer_rejected"].includes(r.status)){
+          S.customerExtraStatus="";
+        }
+      }
+
       const {data:m,error:me}=await ocsSupabase.rpc("get_booking_messages_v1",{p_booking_id:booking.id});
       if(me)throw me;
       const uid=(await ocsSession())?.user?.id||"";
@@ -1583,36 +1603,53 @@ function providerAddForward(){
  }
  providerSendListedAddWork();
 }
-function providerSendListedAddWork(){
+async function providerSendListedAddWork(){
  const arr=services[S.category]?.items||[];
  const items=arr.map((x,i)=>S.providerAddSelected&&S.providerAddSelected[i]&&x.type==="fixed"?{name:x.name,price:Number(x.price||0),qty:(S.providerAddQty&&S.providerAddQty[i])||1}:null).filter(Boolean);
  if(!items.length){alert("Kam se kam 1 listed service select karein.");return}
  const amount=items.reduce((n,x)=>n+x.price*x.qty,0);
  const desc=items.map(x=>x.name+" × "+x.qty).join(", ");
- S.quote={desc,amount,items,source:"PROVIDER_RATE_CARD"};S.quoteDecision="PENDING";
- S.providerAddingWork=false;S.providerAddStep="SELECT";
- const sh=document.getElementById("providerAddWorkSheet");if(sh)sh.classList.add("hide");
- hist(S.provider+" selected Add Work from OCS rate card • "+desc+" • "+money(amount)+" • Customer approval pending");
- render();
+ try{
+   const {data,error}=await ocsSupabase.rpc("provider_send_quote_v1",{
+     p_booking_id:S.activeBookingId,p_amount:amount,p_description:desc,p_quote_kind:"add_work",p_items:items
+   });
+   if(error)throw error;
+   S.quote={id:data.id,desc,amount,items,source:"PROVIDER_RATE_CARD",kind:"add_work"};S.quoteDecision="PENDING";
+   S.providerAddingWork=false;S.providerAddStep="SELECT";
+   const sh=document.getElementById("providerAddWorkSheet");if(sh)sh.classList.add("hide");
+   hist("Provider sent LIVE Add Work • "+desc+" • "+money(amount));
+   ocsStartLive("provider");
+ }catch(e){alert("Add Work send failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
-function providerQuoteRateCardItem(i){
+async function providerQuoteRateCardItem(i){
  const x=(services[S.category]?.items||[])[i];if(!x)return;
- const amt=Number(prompt(x.name+" • Quote amount ₹"));
- if(!amt||amt<=0)return;
- S.quote={desc:x.name,amount:amt,source:"PROVIDER_GET_QUOTE"};S.quoteDecision="PENDING";
- S.providerAddingWork=false;
- const sh=document.getElementById("providerAddWorkSheet");if(sh)sh.classList.add("hide");
- hist(S.provider+" sent Get Quote for "+x.name+" • "+money(amt)+" • Customer approval pending");
- render();
+ const amt=Number(prompt(x.name+" • Quote amount ₹"));if(!amt||amt<=0)return;
+ try{
+   const {data,error}=await ocsSupabase.rpc("provider_send_quote_v1",{
+     p_booking_id:S.activeBookingId,p_amount:amt,p_description:x.name,p_quote_kind:"add_work",p_items:[{name:x.name,qty:1}]
+   });
+   if(error)throw error;
+   S.quote={id:data.id,desc:x.name,amount:amt,source:"PROVIDER_GET_QUOTE",kind:"add_work"};S.quoteDecision="PENDING";
+   S.providerAddingWork=false;
+   const sh=document.getElementById("providerAddWorkSheet");if(sh)sh.classList.add("hide");
+   hist("Provider sent LIVE Add Work quote • "+x.name+" • "+money(amt));
+   ocsStartLive("provider");
+ }catch(e){alert("Add Work quote failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
-function providerCustomAddWork(){
+async function providerCustomAddWork(){
  let d=prompt("Any Other / Custom work description");if(!d)return;
  let a=Number(prompt("Custom work quote ₹"));if(!a||a<=0)return;
- S.quote={desc:d,amount:a,source:"PROVIDER_CUSTOM"};S.quoteDecision="PENDING";
- S.providerAddingWork=false;
- const sh=document.getElementById("providerAddWorkSheet");if(sh)sh.classList.add("hide");
- hist(S.provider+" sent custom Add Work quote • "+d+" • "+money(a)+" • Customer approval pending");
- render();
+ try{
+   const {data,error}=await ocsSupabase.rpc("provider_send_quote_v1",{
+     p_booking_id:S.activeBookingId,p_amount:a,p_description:d,p_quote_kind:"add_work",p_items:[]
+   });
+   if(error)throw error;
+   S.quote={id:data.id,desc:d,amount:a,source:"PROVIDER_CUSTOM",kind:"add_work"};S.quoteDecision="PENDING";
+   S.providerAddingWork=false;
+   const sh=document.getElementById("providerAddWorkSheet");if(sh)sh.classList.add("hide");
+   hist("Provider sent LIVE custom Add Work quote • "+d+" • "+money(a));
+   ocsStartLive("provider");
+ }catch(e){alert("Custom Add Work failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 function renderProviderAddWorkSheet(){
  const sh=document.getElementById("providerAddWorkSheet"),box=document.getElementById("providerAddWorkSheetList");
@@ -1660,15 +1697,21 @@ function providerEditReturnedQuote(){
  S.quote={...q,desc:d||q.desc,amount:a};S.quoteDecision="PENDING";S.quoteReturnNote="";
  hist(S.provider+" revised Add Work and sent again • "+money(a));render();
 }
-function quoteDecide(d){
+async function quoteDecide(d){
  if(!ocsRequireStage("WORKING","Extra work decision"))return;
  if(!S.quote||S.quoteDecision!=="PENDING"){alert("Extra work quote already resolved hai.");return}
  if(!ocsGuardAction("extra-quote-"+d,1200))return;
- S.quoteDecision=d;
- if(d==="APPROVED"){
-   secureExtraQuoteAmount(S.quote.amount,S.quote.desc);
-   hist("Customer approved extra Get Quote work • New total "+money(S.total)+" • OCS secure amount "+money(S.heldAmount))
- }else hist("Customer rejected extra work • Total remains "+money(S.total))
+ try{
+   const decision=d==="APPROVED"?"accepted":"rejected";
+   const {data,error}=await ocsSupabase.rpc("customer_decide_quote_v1",{p_quote_id:S.quote.id,p_decision:decision});
+   if(error)throw error;
+   S.quoteDecision=String(data.status||decision).toUpperCase();
+   if(decision==="accepted"){
+     await ocsLoadLive("customer");
+     hist("Customer approved LIVE Add Work • Official total "+money(S.total));
+   }else hist("Customer rejected LIVE Add Work • Original total unchanged");
+   render();
+ }catch(e){alert("Add Work decision failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
 function openReschedule(by){
@@ -2608,30 +2651,43 @@ function customerAddForward(){
  }
  customerSendExtraRequest();
 }
-function customerSendExtraRequest(){
+async function customerSendExtraRequest(){
  const c=(services[S.category]?.items||[]);
  const a=c.map((x,i)=>S.addWorkSelected&&S.addWorkSelected[i]?{name:x.name,type:x.type,price:Number(x.price||0),qty:(S.addWorkQty&&S.addWorkQty[i])||1}:null).filter(Boolean);
  if(!a.length){alert("Extra service select kare.");return}
- S.customerExtraItems=a;
- S.customerExtraRequest=a.map(x=>x.name+" × "+x.qty).join(", ");
- S.customerExtraStatus="SENT_TO_PROVIDER";
- S.customerAddingWork=false;S.customerAddStep="SELECT";
- let sh=document.getElementById("addWorkSheet");if(sh)sh.classList.add("hide");
- hist("Customer sent Add Work to "+S.provider+" • "+S.customerExtraRequest);
- render();
- alert("Extra Work Request Service Provider ko send ho gaya.");
+ const fixed=a.every(x=>x.type==="fixed");
+ const amount=fixed?a.reduce((n,x)=>n+Number(x.price||0)*Number(x.qty||1),0):0;
+ const desc=a.map(x=>x.name+" × "+x.qty).join(", ");
+ try{
+   const {data,error}=await ocsSupabase.rpc("customer_create_add_work_request_v1",{
+     p_booking_id:S.activeBookingId,
+     p_request_kind:fixed?"fixed":"quote",
+     p_description:desc,
+     p_items:a,
+     p_requested_amount:amount
+   });
+   if(error)throw error;
+   S.customerExtraBackendId=data.id;S.customerExtraItems=a;S.customerExtraRequest=desc;S.customerExtraStatus="SENT_TO_PROVIDER";
+   S.customerAddingWork=false;S.customerAddStep="SELECT";
+   const sh=document.getElementById("addWorkSheet");if(sh)sh.classList.add("hide");
+   hist("Customer sent LIVE Add Work to Service Provider • "+desc);
+   ocsStartLive("customer");
+ }catch(e){alert("Add Work request send nahi hui: "+(e&&e.message?e.message:"Unknown error"))}
 }
-function customerRequestOtherQuote(){
+async function customerRequestOtherQuote(){
  if(S.status!=="WORKING")return;
  let d=prompt("Extra work / problem describe kare:");if(!d)return;
- S.customerExtraItems=[{name:d,type:"quote",price:0,qty:1}];
- S.customerExtraRequest="Get Quote: "+d;
- S.customerExtraStatus="SENT_TO_PROVIDER";
- S.customerAddingWork=false;
- let sh=document.getElementById("addWorkSheet");if(sh)sh.classList.add("hide");
- hist("Customer sent Add More Work / Get Quote to "+S.provider+" • "+d);
- render();
- alert("Get Quote request Service Provider ko send ho gaya.");
+ try{
+   const {data,error}=await ocsSupabase.rpc("customer_create_add_work_request_v1",{
+     p_booking_id:S.activeBookingId,p_request_kind:"quote",p_description:d,p_items:[],p_requested_amount:0
+   });
+   if(error)throw error;
+   S.customerExtraBackendId=data.id;S.customerExtraItems=[];S.customerExtraRequest="Get Quote: "+d;S.customerExtraStatus="SENT_TO_PROVIDER";
+   S.customerAddingWork=false;
+   const sh=document.getElementById("addWorkSheet");if(sh)sh.classList.add("hide");
+   hist("Customer sent LIVE Add Work Get Quote • "+d);
+   ocsStartLive("customer");
+ }catch(e){alert("Get Quote request send nahi hui: "+(e&&e.message?e.message:"Unknown error"))}
 }
 function customerExtraQty(i,d){
  if(!S.addWorkQty)S.addWorkQty={};S.addWorkQty[i]=Math.max(1,(S.addWorkQty[i]||1)+d);renderAddWorkSheet();
@@ -2641,14 +2697,24 @@ function customerExtraApprovalHTML(){
  if(S.status!=="WORKING"||S.customerExtraStatus!=="AMOUNT_SENT"||!S.extraQuote)return "";
  return `<div class="card"><h3>Get Quote Amount</h3><div class="notice"><b>${S.extraQuote.desc}</b><div>${money(S.extraQuote.amount)}</div></div><button class="btn" onclick="customerApproveRequestedExtra()">Approve Quote & Secure with OCS</button><button class="btn gray" onclick="customerRejectRequestedExtra()">Reject Quote</button></div>`;
 }
-function customerApproveRequestedExtra(){
- const q=S.extraQuote;if(!q)return;
- secureExtraQuoteAmount(q.amount,q.desc);
- hist("Customer approved Add Work quote • New total "+money(S.total)+" • OCS secure amount "+money(S.heldAmount));
- S.extraQuote=null;S.customerExtraStatus="";S.customerExtraRequest="";S.customerExtraItems=[];S.addWorkSelected={};S.addWorkQty={};render();
+async function customerApproveRequestedExtra(){
+ const q=S.extraQuote;if(!q||!q.backendRequestId)return;
+ try{
+   const {data,error}=await ocsSupabase.rpc("customer_decide_add_work_request_v1",{p_request_id:q.backendRequestId,p_decision:"accepted"});
+   if(error)throw error;
+   await ocsLoadLive("customer");
+   hist("Customer approved LIVE Add Work quote • Official total "+money(S.total));
+   S.extraQuote=null;S.customerExtraStatus="";S.customerExtraRequest="";S.customerExtraItems=[];S.addWorkSelected={};S.addWorkQty={};render();
+ }catch(e){alert("Add Work approval failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
-function customerRejectRequestedExtra(){
- if(!S.extraQuote)return;hist("Customer rejected Add Work amount");S.extraQuote=null;S.customerExtraStatus="SENT_TO_PROVIDER";render();
+async function customerRejectRequestedExtra(){
+ if(!S.extraQuote||!S.extraQuote.backendRequestId)return;
+ try{
+   const {error}=await ocsSupabase.rpc("customer_decide_add_work_request_v1",{p_request_id:S.extraQuote.backendRequestId,p_decision:"rejected"});
+   if(error)throw error;
+   hist("Customer rejected LIVE Add Work quote");
+   S.extraQuote=null;S.customerExtraStatus="";render();
+ }catch(e){alert("Add Work rejection failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 function customerAddWorkHTML(){
  if(S.status!=="WORKING")return "";
@@ -2691,24 +2757,30 @@ function renderAddWorkSheet(){
  if(send){send.textContent=count?"Review "+count+" Item"+(count>1?"s":"")+" →":"Review →";send.disabled=!count;send.style.opacity=count?"1":".55";}
 }
 
-function providerProcessCustomerAddWork(){
+async function providerProcessCustomerAddWork(){
  const a=S.customerExtraItems||[];
- if(S.status!=="WORKING"||!a.length){alert("Customer Add Work request nahi mila.");return}
- const fixed=a.every(x=>x.type==="fixed");
- if(fixed){
-   const amt=a.reduce((n,x)=>n+Number(x.price||0)*Number(x.qty||1),0);
-   S.total=Number(S.total||0)+amt;
-   hist(S.provider+" confirmed Customer Add Work • "+S.customerExtraRequest+" • Added "+money(amt)+" • New total "+money(S.total));
-   S.lastAddedWork={desc:S.customerExtraRequest,amount:amt};
-   S.extraQuote=null;S.customerExtraStatus="";S.customerExtraRequest="";S.customerExtraItems=[];S.addWorkSelected={};S.addWorkQty={};
-   render();return;
- }
- const amt=Number(prompt("Get Quote amount ₹"));
- if(!amt||amt<=0)return;
- S.extraQuote={desc:S.customerExtraRequest,amount:amt,fromCustomer:true};
- S.customerExtraStatus="AMOUNT_SENT";
- hist(S.provider+" sent Get Quote amount "+money(amt)+" to Customer");
- render();
+ if(S.status!=="WORKING"||!S.customerExtraBackendId){alert("Customer Add Work request nahi mila.");return}
+ const fixed=a.length&&a.every(x=>x.type==="fixed");
+ try{
+   let amount=null,action="accept";
+   if(!fixed){
+     amount=Number(prompt("Get Quote amount ₹"));if(!amount||amount<=0)return;
+     action="quote";
+   }
+   const {data,error}=await ocsSupabase.rpc("provider_respond_add_work_request_v1",{
+     p_request_id:S.customerExtraBackendId,p_action:action,p_amount:amount
+   });
+   if(error)throw error;
+   if(action==="accept"){
+     await ocsLoadLive("provider");
+     S.lastAddedWork={desc:data.description||S.customerExtraRequest,amount:Number(data.requested_amount||0)};
+     S.customerExtraStatus="";hist("Provider accepted LIVE Customer Add Work • New total "+money(S.total));
+   }else{
+     S.extraQuote={desc:data.description||S.customerExtraRequest,amount:Number(data.provider_amount||0),backendRequestId:data.id,fromCustomer:true};
+     S.customerExtraStatus="AMOUNT_SENT";hist("Provider sent LIVE Add Work quote "+money(data.provider_amount));
+   }
+   render();
+ }catch(e){alert("Add Work response failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 function providerReturnCustomerAddWork(){
  if(!S.customerExtraRequest)return;
@@ -2716,10 +2788,14 @@ function providerReturnCustomerAddWork(){
  S.customerExtraStatus="RETURNED_TO_CUSTOMER";S.customerExtraReturnNote=note;
  hist(S.provider+" sent Customer Add Work back for change • "+note);render();
 }
-function providerRejectCustomerAddWork(){
- if(!S.customerExtraRequest)return;
- hist(S.provider+" rejected Customer Add Work • "+S.customerExtraRequest);
- S.customerExtraStatus="";S.customerExtraRequest="";S.customerExtraItems=[];S.customerExtraReturnNote="";render();
+async function providerRejectCustomerAddWork(){
+ if(!S.customerExtraBackendId)return;
+ try{
+   const {error}=await ocsSupabase.rpc("provider_respond_add_work_request_v1",{p_request_id:S.customerExtraBackendId,p_action:"reject",p_amount:null});
+   if(error)throw error;
+   hist("Provider rejected LIVE Customer Add Work");
+   S.customerExtraStatus="";S.customerExtraRequest="";S.customerExtraItems=[];render();
+ }catch(e){alert("Reject failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 function customerEditReturnedExtra(){
  const a=S.customerExtraItems||[],arr=services[S.category]?.items||[];
