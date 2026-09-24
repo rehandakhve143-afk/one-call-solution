@@ -347,7 +347,12 @@ function ocsApplyBackendBooking(b){
   S.paymentChoice=String(b.payment_method||"online").toUpperCase()==="CASH"?"CASH":"ONLINE";
   S.address=b.address||S.address;
   S.startOtp=b.start_otp||S.startOtp;
+  S.requestType=b.request_type||S.requestType||"fixed";
+  S.customDescription=b.request_details||S.customDescription||"";
+  S.customSchedule=b.request_schedule||S.customSchedule||"";
+  if(Array.isArray(b.request_media))S.requestMedia=b.request_media;
   if(Array.isArray(b.selected_items))S.selectedItems=b.selected_items;
+  S.isQuoteBooking=S.requestType==="quote";
   S.status=ocsStatusFromBackend(b.status);
   if(b.provider_id){S.providerBackendId=b.provider_id;S.providerRequestForThisProfile=true}
   S.backendConnected=true;
@@ -357,27 +362,35 @@ async function ocsLoadLive(role){
   const session=await ocsSession();
   if(!session||!session.user)return false;
   try{
+    let booking=null;
     if(role==="provider"){
       const {data:snap,error:se}=await ocsSupabase.rpc("provider_status_snapshot");
       if(se)throw se;
       if(snap&&snap.length){
         S.available=!!snap[0].available_for_work;
         S.wallet=Number(snap[0].wallet_balance||0);
-        S.currentJob=snap[0].current_booking_id?("Current • "+(S.service||"Home Service")):S.currentJob;
-        S.nextJob=snap[0].next_booking_id?Object.assign({},S.nextJob||{}, {id:snap[0].next_booking_id,status:"QUEUED"}):S.nextJob;
       }
       const {data:cur,error:ce}=await ocsSupabase.rpc("provider_current_booking");
       if(ce)throw ce;
-      if(cur&&cur.length){ocsApplyBackendBooking(cur[0]);return true}
-      const {data:jobs,error:je}=await ocsSupabase.rpc("provider_open_jobs_v2");
-      if(je)throw je;
-      if(jobs&&jobs.length){ocsApplyBackendBooking(jobs[0]);S.status="REQUESTED";return true}
-      return false;
+      if(cur&&cur.length)booking=cur[0];
+      if(!booking){
+        const {data:jobs,error:je}=await ocsSupabase.rpc("provider_open_jobs_v3");
+        if(je)throw je;
+        if(jobs&&jobs.length)booking=jobs[0];
+      }
+    }else{
+      const {data,error}=await ocsSupabase.rpc("customer_active_booking");
+      if(error)throw error;
+      if(data&&data.length)booking=data[0];
     }
-    const {data,error}=await ocsSupabase.rpc("customer_active_booking");
-    if(error)throw error;
-    if(data&&data.length){ocsApplyBackendBooking(data[0]);return true}
-    return false;
+    if(!booking)return false;
+    ocsApplyBackendBooking(booking);
+    await ocsSyncQuoteAndChat(role,booking);
+    if(S.requestType==="quote"){
+      if(role==="provider"&&String(booking.status).toLowerCase()==="searching")S.status="REQUESTED";
+      else if(!S.quote&&["accepted","searching"].includes(String(booking.status).toLowerCase()))S.status="QUOTE_WAIT";
+    }
+    return true;
   }catch(e){console.error("OCS live load failed",e);return false}
 }
 async function ocsStartLive(role){
@@ -408,7 +421,7 @@ async function ocsCreateLiveBooking(){
 }
 async function ocsProviderDecisionLive(d){
   if(!ocsSupabase||!S.activeBookingId)return false;
-  const fn=d==="accept"?"accept_booking_v2":"reject_booking_v2";
+  const fn=d==="accept"?"accept_booking_v3":"reject_booking_v2";
   const args=d==="accept"?{p_booking_id:S.activeBookingId}:{p_booking_id:S.activeBookingId,p_reason:"Provider rejected"};
   const {data,error}=await ocsSupabase.rpc(fn,args);
   if(error)throw error;
@@ -430,6 +443,31 @@ async function ocsToggleAvailabilityLive(v){
   if(data)S.available=!!data.available_for_work;
   return true;
 }
+
+async function ocsSyncQuoteAndChat(role,booking){
+  if(!ocsSupabase||!booking||!booking.id)return;
+  try{
+    if(String(booking.status).toLowerCase()!=="searching"){
+      const {data:q,error:qe}=await ocsSupabase.rpc("latest_booking_quote_v1",{p_booking_id:booking.id});
+      if(qe)throw qe;
+      if(q&&q.length){
+        const x=q[0];
+        S.quote={id:x.id,desc:x.description||booking.request_details||booking.service_name,amount:Number(x.amount||0),items:Array.isArray(x.items)?x.items:[],kind:x.quote_kind,version:x.version};
+        S.quoteDecision=String(x.status||"pending").toUpperCase();
+        S.quoteHistory=[{version:x.version,amount:Number(x.amount||0),status:String(x.status||"").toUpperCase(),reason:x.description||"",at:new Date(x.created_at).getTime()}];
+        if(x.quote_kind==="initial"){
+          if(x.status==="pending")S.status="INITIAL_QUOTE";
+          else if(x.status==="accepted"&&String(booking.status).toLowerCase()==="accepted")S.status="QUOTE_SECURE_PAYMENT";
+        }
+      }else{S.quote=null;S.quoteDecision=null;}
+      const {data:m,error:me}=await ocsSupabase.rpc("get_booking_messages_v1",{p_booking_id:booking.id});
+      if(me)throw me;
+      const uid=(await ocsSession())?.user?.id||"";
+      S.chatMessages=(m||[]).map(x=>({from:x.sender_id===uid?(role==="provider"?"Service Provider":"Customer"):(role==="provider"?"Customer":"Service Provider"),text:x.message,at:new Date(x.created_at).getTime()}));
+    }
+  }catch(e){console.error("OCS quote/chat sync failed",e)}
+}
+
 
 const S={
 status:"SELECT_SERVICE",provider:"SP1",available:true,base:0,total:0,
@@ -764,13 +802,14 @@ function saveAfterWorkProof(){
  S.afterWorkProof=all;
  hist(S.provider+" added After Work proof • "+all.length+" file(s)");
 }
-function providerAcceptQuoteRequest(){
- if(S.status!=="QUOTE_WAIT")return;
- syncRegisteredProfiles();
- if(!S.providerProfileAvailable){alert("Service Provider profile registration required hai.");return}
- if(!S.providerRequestForThisProfile||!providerMatchesCurrentBooking()){alert("Ye Get Quote request aapke registered skills se match nahi karti.");return}
- S.quoteProviderAccepted=true;S.quoteResponseDeadline=0;
- hist(S.provider+" accepted Get Quote request • Discussion / quote preparation started");
+async function providerAcceptQuoteRequest(){
+ if(S.status!=="QUOTE_WAIT"&&S.status!=="REQUESTED")return;
+ try{
+   await ocsProviderDecisionLive("accept");
+   S.quoteProviderAccepted=true;
+   hist("Service Provider accepted LIVE Get Quote request");
+   await ocsLoadLive("provider");render();
+ }catch(e){alert("Get Quote accept failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 function customerRequestNewQuote(){
  if(!["QUOTE_EXPIRED","CUSTOM_REQUEST"].includes(S.status))return;
@@ -818,12 +857,16 @@ function quoteCall(side){
 function quoteVideoCall(side){
  alert((side==="provider"?"Customer":"Service Provider")+" video call yahan open hogi. Production app me secure video-call service connect hogi.");
 }
-function quoteChat(side){
+async function quoteChat(side){
  const from=side==="provider"?S.provider:"Customer";
  const m=prompt("Message from "+from);if(!m)return;
- S.chatMessages=Array.isArray(S.chatMessages)?S.chatMessages:[];
- S.chatMessages.push({from:from,text:m,at:Date.now()});
- hist(from+" sent booking chat message");
+ if(!S.activeBookingId){alert("Active booking nahi mili.");return}
+ try{
+   const {error}=await ocsSupabase.rpc("send_booking_message_v1",{p_booking_id:S.activeBookingId,p_message:m});
+   if(error)throw error;
+   hist(from+" sent LIVE booking chat message");
+   await ocsSyncQuoteAndChat(side,S);render();
+ }catch(e){alert("Chat message send nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
 }
 function secureHoldHTML(){
  const held=Number(S.heldAmount||0);
@@ -918,42 +961,67 @@ function selectServiceItem(i){
  render();
 }
 function setQty(q){q=Math.max(1,Number(q)||1);S.quantity=q;let it=(services[S.category]?.items||[]).find(x=>x.name===S.service);S.base=Number(it?.price||0)*q;S.total=S.base;render()}
-function submitCustomRequest(){
+async function submitCustomRequest(){
  let d=$("customDesc")?.value.trim(); let sch=document.querySelector('input[name="customSchedule"]:checked')?.value;
  if(!d){alert("Describe your work / problem mandatory hai.");return} if(!sch){alert("Preferred schedule select karein.");return}
- const photos=Array.from($("customPhoto")?.files||[]).slice(0,5).map(function(x){return {kind:"photo",name:x.name}});
- const videos=Array.from($("customVideo")?.files||[]).slice(0,1).map(function(x){return {kind:"video",name:x.name}});
+ const photos=Array.from($("customPhoto")?.files||[]).slice(0,5).map(x=>({kind:"photo",name:x.name}));
+ const videos=Array.from($("customVideo")?.files||[]).slice(0,1).map(x=>({kind:"video",name:x.name}));
  S.requestMedia=photos.concat(videos);S.chatMessages=[];S.customDescription=d;S.customSchedule=sch;
  S.service=S.service&&S.serviceType==="quote"?S.service:(S.category+" • New Service Request");
- S.serviceType="quote";S.isQuoteBooking=true;prepareProfileMatching();S.status="QUOTE_WAIT";S.currentJob="Quote Request";
- S.customerSnapshot={name:S.customerName,mobile:S.customerMobile,email:S.customerEmail,address:S.address};
- S.providerMatchSnapshot={name:S.registeredProviderName||"",skills:(S.registeredProviderSkills||[]).slice(),area:S.providerArea||"",radius:Number(S.providerRadius||0),matched:!!S.providerRequestForThisProfile};
- S.quoteProviderAccepted=false;S.quoteResponseDeadline=Date.now()+60*60*1000;S.quoteValidUntil=0;
- hist("Get Quote request sent • "+S.category+" • Photo/Video "+S.requestMedia.length+" • "+sch+" • Provider response window 60 min")
+ S.serviceType="quote";S.isQuoteBooking=true;
+ try{
+   const session=await ocsSession();if(!session||!session.user)throw new Error("Customer email login required");
+   const {data,error}=await ocsSupabase.rpc("create_customer_quote_request_v1",{
+     p_category:S.category,
+     p_service_name:S.service,
+     p_description:d,
+     p_schedule:sch,
+     p_address:S.address||"",
+     p_media:S.requestMedia
+   });
+   if(error)throw error;
+   ocsApplyBackendBooking(data);
+   S.status="QUOTE_WAIT";S.currentJob="Quote Request";S.quoteProviderAccepted=false;
+   hist("LIVE Get Quote request sent • "+S.category+" • Photo/Video "+S.requestMedia.length);
+   ocsStartLive("customer");
+ }catch(e){alert("Get Quote request send nahi hui: "+(e&&e.message?e.message:"Unknown error"))}
 }
-function sendInitialQuote(){
- if(!ocsRequireStage("QUOTE_WAIT","Send quote"))return;
+async function sendInitialQuote(){
+ if(!["QUOTE_WAIT","ASSIGNED"].includes(S.status))return;
  if(!ocsGuardAction("send-initial-quote",1200))return;
  let a=Number(prompt("Service Provider quote ₹"));if(!a||a<=0)return;
- S.quote={desc:S.customDescription||S.service,amount:a,initial:true};
- S.quoteHistory=Array.isArray(S.quoteHistory)?S.quoteHistory:[];
- S.quoteHistory.push({version:S.quoteHistory.length+1,amount:a,status:"SENT",reason:"Initial quote",at:Date.now()});
- S.quoteDecision="PENDING";S.quoteResponseDeadline=0;S.quoteProviderAccepted=true;S.quoteValidUntil=Date.now()+24*60*60*1000;S.status="INITIAL_QUOTE";
- hist(S.provider+" sent quote "+money(a)+" • Customer approval + OCS secure payment pending")
+ try{
+   const {data,error}=await ocsSupabase.rpc("provider_send_quote_v1",{
+     p_booking_id:S.activeBookingId,
+     p_amount:a,
+     p_description:S.customDescription||S.service||"Get Quote",
+     p_quote_kind:"initial",
+     p_items:[]
+   });
+   if(error)throw error;
+   S.quote={id:data.id,desc:data.description||S.customDescription,amount:Number(data.amount),initial:true,kind:"initial",version:data.version};
+   S.quoteDecision="PENDING";S.status="INITIAL_QUOTE";
+   hist("Service Provider sent LIVE official quote "+money(a));
+   ocsStartLive("provider");
+ }catch(e){alert("Quote send failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
-function initialQuoteDecision(d){
+async function initialQuoteDecision(d){
  if(!ocsRequireStage("INITIAL_QUOTE","Quote decision"))return;
- if(S.quoteDecision!=="PENDING"){alert("Quote ka decision already ho chuka hai.");return}
+ if(!S.quote||!S.quote.id)return;
  if(!ocsGuardAction("initial-quote-"+d,1200))return;
- if(d==="APPROVED"){
-   S.quoteDecision="APPROVED";S.base=Number(S.quote.amount||0);S.total=S.base;S.bookingAmount=S.total;S.isQuoteBooking=true;S.quoteValidUntil=0;S.status="QUOTE_SECURE_PAYMENT";
-   if(Array.isArray(S.quoteHistory)&&S.quoteHistory.length)S.quoteHistory[S.quoteHistory.length-1].status="ACCEPTED";
-   hist("Customer accepted quote • Amount locked "+money(S.total)+" • OCS secure payment required")
- }else{
-   S.quoteDecision="REJECTED";S.quoteValidUntil=0;
-   if(Array.isArray(S.quoteHistory)&&S.quoteHistory.length)S.quoteHistory[S.quoteHistory.length-1].status="REJECTED";
-   S.status="CUSTOM_REQUEST";hist("Customer rejected quote")
- }
+ try{
+   const decision=d==="APPROVED"?"accepted":"rejected";
+   const {data,error}=await ocsSupabase.rpc("customer_decide_quote_v1",{p_quote_id:S.quote.id,p_decision:decision});
+   if(error)throw error;
+   S.quoteDecision=String(data.status||decision).toUpperCase();
+   if(decision==="accepted"){
+     S.base=Number(data.amount||0);S.total=S.base;S.bookingAmount=S.total;S.isQuoteBooking=true;S.status="QUOTE_SECURE_PAYMENT";
+     hist("Customer accepted LIVE quote • Official amount "+money(S.total));
+   }else{
+     S.status="CUSTOM_REQUEST";hist("Customer rejected LIVE quote");
+   }
+   ocsStartLive("customer");
+ }catch(e){alert("Quote decision failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
 function providerRequestQuoteRevision(){
