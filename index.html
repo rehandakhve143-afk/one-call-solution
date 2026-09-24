@@ -1444,7 +1444,7 @@ body:not(.module-open) .ocs-super-main .slider-business-cta{
   <button class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('customer')">Continue</button>
   <div id="customerLoginOtpWrap" style="display:none;margin-top:10px"><label>SMS OTP *</label><div class="verifyrow"><input id="customerLoginOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifySimpleOcsOtp('customer')">Verify & Login</button></div></div>
   <div class="verifyok" id="customerEmailStatus">Mobile ya Email se simple login</div>
-  <div class="help" style="margin:7px 0 12px">New aur existing user ke liye same login. Password ya Create Account alag se nahi chahiye.</div>
+  <div class="help" style="margin:7px 0 12px">Mobile Number ya Email ID dalo → Continue. Login ke baad direct OCS Home khulega.</div>
   </div>
   <div id="customerProfileSetup" style="display:none">
   <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
@@ -1764,6 +1764,7 @@ async function saveNewOcsPassword(){
 }
 async function simpleOcsLogin(role){
   if(!ocsSupabase){alert('Online login service load nahi hua. Internet check karke page reopen karein.');return false}
+  try{localStorage.setItem('ocsLoginIntentRole',role||'customer')}catch(e){}
   const isProvider=role==='provider';
   const input=document.getElementById(isProvider?'paEmail':'caEmail');
   const raw=(input?.value||'').trim();
@@ -1966,7 +1967,15 @@ if(ocsSupabase){
   ocsSupabase.auth.onAuthStateChange((event)=>{
     setTimeout(refreshOcsEmailStatus,0);
     if(event==='PASSWORD_RECOVERY')setTimeout(openResetPassword,0);
-    if(event==='SIGNED_IN')setTimeout(()=>{refreshOcsEmailStatus();updateSettingsLoginState()},0);
+    if(event==='SIGNED_IN')setTimeout(()=>{
+      refreshOcsEmailStatus();
+      updateSettingsLoginState();
+      const m=document.getElementById('accountModal');
+      if(m)m.classList.remove('show');
+      document.body.classList.remove('ocs-account-open');
+      try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
+      bottomHome();
+    },0);
   });
   setTimeout(refreshOcsEmailStatus,0);
 }
@@ -2261,8 +2270,8 @@ function openBottomProfile(){
  const body=document.getElementById('bottomProfileBody');
 
  const customerCard=customer
- ? '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small><strong>'+((customer.name||'Customer'))+'</strong><br>📱 '+(customer.mobile||'—')+'<br>✉ '+(customer.email||'—')+'<br>✓ Customer account available</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Edit Profile</button><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');bottomHome()">Open Customer</button></div></div>'
- : '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small>Customer profile abhi create nahi hua.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Create Customer Profile</button><button onclick="closeBottomHub(\'bottomProfileModal\')">Not Now</button></div></div>';
+ ? '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small><strong>'+((customer.name||'Customer'))+'</strong><br>📱 '+(customer.mobile||'—')+'<br>✉ '+(customer.email||'—')+'<br>✓ Profile available</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Edit Profile</button><button onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">Settings</button></div></div>'
+ : '<div class="bottom-hub-card"><b>👤 Customer Profile</b><small>OCS use karne ke liye alag Customer mode open karna zaroori nahi. Profile details yahan complete/edit kar sakte hain.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">Complete Profile</button><button onclick="closeBottomHub(\'bottomProfileModal\');bottomHome()">OCS Home</button></div></div>';
 
  const skills=provider&&Array.isArray(provider.skills)?provider.skills.join(', '):'—';
  const providerCard=provider
