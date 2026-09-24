@@ -491,9 +491,18 @@ async function ocsStartLive(role){
 async function ocsCreateLiveBooking(){
   if(!ocsSupabase)throw new Error("Online service not connected");
   const session=await ocsSession();
-  if(!session||!session.user)throw new Error("Customer email login required");
-  const customerProfile=readSharedLocalJson("ocsCustomerProfile");
-  if(!customerProfile||!customerProfile.backendConnected)throw new Error("Customer profile online registration required");
+  if(!session||!session.user){
+    try{
+      localStorage.setItem("ocsPostLoginReturn","home-services.html?v=20260924-simpleflow&tab=customer");
+      saveHomeState();
+    }catch(e){}
+    location.href="index.html?login=1";
+    throw new Error("OCS_LOGIN_REDIRECT");
+  }
+  try{
+    const boot=await ocsSupabase.rpc("ensure_customer_account_v1");
+    if(boot.error)throw boot.error;
+  }catch(e){console.error("Customer account bootstrap failed",e)}
   const items=(S.selectedItems||[]).map(x=>({name:x.name,price:Number(x.price||0),qty:Number(x.qty||1)}));
   const {data,error}=await ocsSupabase.rpc("create_customer_booking_v3",{
     p_category:S.category||"",
@@ -1089,7 +1098,16 @@ async function submitCustomRequest(){
  S.service=S.service&&S.serviceType==="quote"?S.service:(S.category+" • New Service Request");
  S.serviceType="quote";S.isQuoteBooking=true;
  try{
-   const session=await ocsSession();if(!session||!session.user)throw new Error("Customer email login required");
+   const session=await ocsSession();
+   if(!session||!session.user){
+     try{
+       localStorage.setItem("ocsPostLoginReturn","home-services.html?v=20260924-simpleflow&tab=customer");
+       saveHomeState();
+     }catch(e){}
+     location.href="index.html?login=1";
+     return;
+   }
+   try{const boot=await ocsSupabase.rpc("ensure_customer_account_v1");if(boot.error)throw boot.error}catch(e){console.error("Customer account bootstrap failed",e)}
    const {data,error}=await ocsSupabase.rpc("create_customer_quote_request_v1",{
      p_category:S.category,
      p_service_name:S.service,
@@ -1584,13 +1602,8 @@ async function booking(){
  }catch(e){
    console.error("Live booking failed",e);
    const msg=(e&&e.message?e.message:"Unknown error");
-   if(msg==="Customer email login required"){
-     alert("Booking ke liye pehle Customer Profile me email login complete karein. Ye one-time login hai.");
-   }else if(msg==="Customer profile online registration required"){
-     alert("Booking ke liye pehle Customer Profile complete karein: Email + Mobile OTP verification required.");
-   }else{
-     alert("Live booking create nahi hui: "+msg);
-   }
+   if(msg==="OCS_LOGIN_REDIRECT")return;
+   alert("Live booking create nahi hui: "+msg);
  }
 }
 
