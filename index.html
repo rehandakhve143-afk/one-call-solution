@@ -2641,21 +2641,34 @@ async function openNotifications(){
    try{
      const {data,error}=await ocsSupabase.rpc('list_notifications_v1',{p_limit:30});
      if(error)throw error;
-     (Array.isArray(data)?data:[]).forEach(n=>{
+     const rows=(Array.isArray(data)?data:[])
+       .filter(n=>!n.read_at)
+       .sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+
+     const seenBookings=new Set();
+     const clean=[];
+     for(const n of rows){
+       const key=n.booking_id?String(n.booking_id):'global:'+String(n.type||'')+':'+String(n.title||'');
+       if(n.booking_id&&seenBookings.has(key))continue;
+       if(n.booking_id)seenBookings.add(key);
+       clean.push(n);
+       if(clean.length>=5)break;
+     }
+
+     clean.forEach(n=>{
        const dt=n.created_at?new Date(n.created_at).toLocaleString('en-IN'):'';
-       items.push('<div class="bottom-hub-card"><b>'+ocsSavedText(n.title||'OCS Update')+'</b><small>'+ocsSavedText(n.body||'')+(dt?'<br>'+ocsSavedText(dt):'')+'</small>'+(n.booking_id?'<div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomBookings()">View Booking</button></div>':'')+'</div>');
+       let title=String(n.title||'OCS Update');
+       let msg=String(n.body||'').trim();
+       if(/^confirm$/i.test(msg))msg='Booking status updated';
+       if(/^customer booking created$/i.test(msg))msg='Booking request sent successfully';
+       items.push('<div class="bottom-hub-card"><b>'+ocsSavedText(title)+'</b><small>'+ocsSavedText(msg)+(dt?'<br>'+ocsSavedText(dt):'')+'</small>'+(n.booking_id?'<div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomBookings()">View Booking</button></div>':'')+'</div>');
      });
      await ocsSupabase.rpc('mark_notifications_read_v1');
    }catch(e){console.error('Notification load failed',e)}
  }
  if(!items.length){
-   const b=getCurrentBooking();
-   const s=String(b?.status||b?.state||'').toUpperCase();
-   if(b&&s&&!['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED'].includes(s)){
-     items.push('<div class="bottom-hub-card"><b>Home Service Update</b><small>'+(b.service||b.category||b.task||'Home Service')+'<br>Status: '+dashStatusLabel(s)+'</small><div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomBookings()">View Booking</button></div></div>');
-   }
+   items.push('<div class="bottom-hub-card"><b>No new notification</b><small>New booking, quote, support aur payment updates yahan dikhengi.</small></div>');
  }
- if(!items.length)items.push('<div class="bottom-hub-card"><b>No new notification</b><small>Booking, quote, support aur payment updates yahan dikhengi.</small></div>');
  body.innerHTML=items.join('');
  document.getElementById('notificationsModal').classList.add('show');
 }
