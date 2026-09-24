@@ -2035,18 +2035,41 @@ function workHistoryStatusLabel(s){
  if(s==='CANCELLED')return 'Cancelled';
  return s||'Closed';
 }
-function renderWorkHistory(){
+async function renderWorkHistory(){
  const body=document.getElementById('workHistoryBody');if(!body)return;
- const rows=readOcsWorkHistory().slice().sort((a,b)=>Number(b.closedAt||0)-Number(a.closedAt||0));
- if(!rows.length){body.innerHTML='<div class="bottom-hub-card"><b>No Work History Yet</b><small>Completed, cancelled aur Work Not Completed jobs yahan save honge.</small></div>';return}
+ body.innerHTML='<div class="bottom-hub-card"><b>Loading history...</b><small>OCS backend se latest records aa rahe hain.</small></div>';
+ let rows=[];
+ const session=await getOcsSession();
+ if(session&&session.user&&ocsSupabase){
+   try{
+     const {data,error}=await ocsSupabase.rpc('booking_history_v2',{p_role:workHistoryRole==='PROVIDER'?'service_provider':'customer'});
+     if(error)throw error;
+     rows=Array.isArray(data)?data:[];
+   }catch(e){console.error('Backend history load failed',e)}
+ }
+ if(!rows.length){
+   rows=readOcsWorkHistory().slice().sort((a,b)=>Number(b.closedAt||0)-Number(a.closedAt||0));
+   if(!rows.length){body.innerHTML='<div class="bottom-hub-card"><b>No Work History Yet</b><small>Completed, cancelled aur Work Not Completed jobs yahan save honge.</small></div>';return}
+   body.innerHTML=rows.map(r=>{
+     const d=r.closedAt?new Date(r.closedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
+     const status=workHistoryStatusLabel(r.status);
+     if(workHistoryRole==='PROVIDER'){
+       return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customerName||'Customer')+'<br>Earning: ₹'+Number(r.providerEarning||0).toFixed(2)+' • OCS Commission: ₹'+Number(r.commission||0).toFixed(2)+'<br>Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
+     }
+     const paid=Number(r.status==='DONE'?r.amount:r.visitCharge||0);
+     return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Service Provider: '+ocsSavedText(r.provider||'Service Provider')+'<br>Amount: ₹'+paid.toFixed(2)+' • Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Your Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
+   }).join('');
+   return;
+ }
  body.innerHTML=rows.map(r=>{
-   const d=r.closedAt?new Date(r.closedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
+   const d=r.closed_at?new Date(r.closed_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
    const status=workHistoryStatusLabel(r.status);
+   const amount=Number(r.status==='completed'||r.status==='done'?r.booking_amount||0:r.visit_charge||0);
    if(workHistoryRole==='PROVIDER'){
-     return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customerName||'Customer')+'<br>Earning: ₹'+Number(r.providerEarning||0).toFixed(2)+' • OCS Commission: ₹'+Number(r.commission||0).toFixed(2)+'<br>Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
+     const commission=Number(r.commission||0), earning=Math.max(0,amount-commission);
+     return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service_name||'Home Service')+'</b><small>'+ocsSavedText(r.id)+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customer_name||'Customer')+'<br>Earning: ₹'+earning.toFixed(2)+' • OCS Commission: ₹'+commission.toFixed(2)+'<br>Payment: '+ocsSavedText(r.payment_status||r.payment_method||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.rating_comment?' • '+ocsSavedText(r.rating_comment):''):'')+'</small></div>';
    }
-   const paid=Number(r.status==='DONE'?r.amount:r.visitCharge||0);
-   return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Service Provider: '+ocsSavedText(r.provider||'Service Provider')+'<br>Amount: ₹'+paid.toFixed(2)+' • Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Your Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
+   return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service_name||'Home Service')+'</b><small>'+ocsSavedText(r.id)+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Service Provider: '+ocsSavedText(r.provider_name||'Service Provider')+'<br>Amount: ₹'+amount.toFixed(2)+' • Payment: '+ocsSavedText(r.payment_status||r.payment_method||'—')+(Number(r.rating||0)>0?'<br>Your Rating: '+Number(r.rating)+'/5 ⭐'+(r.rating_comment?' • '+ocsSavedText(r.rating_comment):''):'')+'</small></div>';
  }).join('');
 }
 
@@ -2175,20 +2198,30 @@ function submitOcsRating(){
  alert('OCS rating & comment saved.');
 }
 
-function openNotifications(){
+async function openNotifications(){
  const body=document.getElementById('notificationsBody');if(!body)return;
+ body.innerHTML='<div class="bottom-hub-card"><b>Loading notifications...</b></div>';
  const items=[];
- const b=getCurrentBooking();
- const s=String(b?.status||b?.state||'').toUpperCase();
- if(b&&s&&!['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED'].includes(s)){
-   items.push('<div class="bottom-hub-card"><b>Home Service Update</b><small>'+(b.service||b.category||b.task||'Home Service')+'<br>Status: '+dashStatusLabel(s)+'</small><div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomBookings()">View Booking</button><button onclick="closeNotifications()">Close</button></div></div>');
+ const session=await getOcsSession();
+ if(session&&session.user&&ocsSupabase){
+   try{
+     const {data,error}=await ocsSupabase.rpc('list_notifications_v1',{p_limit:30});
+     if(error)throw error;
+     (Array.isArray(data)?data:[]).forEach(n=>{
+       const dt=n.created_at?new Date(n.created_at).toLocaleString('en-IN'):'';
+       items.push('<div class="bottom-hub-card"><b>'+ocsSavedText(n.title||'OCS Update')+'</b><small>'+ocsSavedText(n.body||'')+(dt?'<br>'+ocsSavedText(dt):'')+'</small>'+(n.booking_id?'<div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomBookings()">View Booking</button></div>':'')+'</div>');
+     });
+     await ocsSupabase.rpc('mark_notifications_read_v1');
+   }catch(e){console.error('Notification load failed',e)}
  }
- let tickets=[];try{tickets=JSON.parse(localStorage.getItem('ocsSupportTickets')||'[]')}catch(e){}
- if(tickets.length){
-   const t=tickets[0];
-   items.push('<div class="bottom-hub-card"><b>Support Request</b><small>'+t.id+' • '+(t.role==='SERVICE_PROVIDER'?'Service Provider':'Customer')+' Support'+(t.callback?' • Callback requested':'')+'</small><div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomSupport()">Open Support</button><button onclick="closeNotifications()">Close</button></div></div>');
+ if(!items.length){
+   const b=getCurrentBooking();
+   const s=String(b?.status||b?.state||'').toUpperCase();
+   if(b&&s&&!['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED'].includes(s)){
+     items.push('<div class="bottom-hub-card"><b>Home Service Update</b><small>'+(b.service||b.category||b.task||'Home Service')+'<br>Status: '+dashStatusLabel(s)+'</small><div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomBookings()">View Booking</button></div></div>');
+   }
  }
- if(!items.length)items.push('<div class="bottom-hub-card"><b>No new notification</b><small>Booking, quote, support, enquiry aur important OCS updates yahan dikhengi.</small></div>');
+ if(!items.length)items.push('<div class="bottom-hub-card"><b>No new notification</b><small>Booking, quote, support aur payment updates yahan dikhengi.</small></div>');
  body.innerHTML=items.join('');
  document.getElementById('notificationsModal').classList.add('show');
 }
