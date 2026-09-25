@@ -226,9 +226,9 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
   <div id="customerAuthBox">
   <label>Mobile Number or Email ID *</label><input id="caEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
   <button class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('customer')">Continue</button>
-  <div id="customerLoginOtpWrap" style="display:none;margin-top:10px"><label id="customerLoginOtpLabel">6-digit OTP *</label><div class="verifyrow"><input id="customerLoginOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifySimpleOcsOtp('customer')">Verify & Login</button></div><button type="button" class="btn gray" style="margin-top:8px;width:100%" onclick="resendSimpleOcsOtp('customer')">Resend OTP</button></div>
+  <div id="customerLoginOtpWrap" style="display:none;margin-top:10px"><label id="customerLoginOtpLabel">OTP *</label><div class="verifyrow"><input id="customerLoginOtp" inputmode="numeric" maxlength="10" placeholder="Email/SMS OTP"><button onclick="verifySimpleOcsOtp('customer')">Verify & Login</button></div><button type="button" class="btn gray" style="margin-top:8px;width:100%" onclick="resendSimpleOcsOtp('customer')">Resend OTP</button></div>
   <div class="verifyok" id="customerEmailStatus">Mobile ya Email se simple login</div>
-  <div class="help" style="margin:7px 0 12px">Email ID ya Mobile Number dalo → Continue → 6-digit OTP → Verify & Login. Email link ki zarurat nahi. Login ke baad OCS Home khulega; pending profile Settings me complete karein.</div>
+  <div class="help" style="margin:7px 0 12px">Email ID ya Mobile Number dalo → Continue → email/SMS me jo OTP aaye wahi poora code enter karein → Verify & Login. Email link ki zarurat nahi. Login ke baad OCS Home khulega; pending profile Settings me complete karein.</div>
   </div>
   <div id="customerProfileSetup" style="display:none">
   <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
@@ -243,7 +243,7 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
   <div id="providerAuthBox">
   <label>Mobile Number or Email ID *</label><input id="paEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
   <button class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('provider')">Continue</button>
-  <div id="providerLoginOtpWrap" style="display:none;margin-top:10px"><label id="providerLoginOtpLabel">6-digit OTP *</label><div class="verifyrow"><input id="providerLoginOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifySimpleOcsOtp('provider')">Verify & Login</button></div><button type="button" class="btn gray" style="margin-top:8px;width:100%" onclick="resendSimpleOcsOtp('provider')">Resend OTP</button></div>
+  <div id="providerLoginOtpWrap" style="display:none;margin-top:10px"><label id="providerLoginOtpLabel">OTP *</label><div class="verifyrow"><input id="providerLoginOtp" inputmode="numeric" maxlength="10" placeholder="Email/SMS OTP"><button onclick="verifySimpleOcsOtp('provider')">Verify & Login</button></div><button type="button" class="btn gray" style="margin-top:8px;width:100%" onclick="resendSimpleOcsOtp('provider')">Resend OTP</button></div>
   <div class="verifyok" id="providerEmailStatus">Mobile ya Email se simple login</div>
   <div class="help" style="margin:7px 0 12px">New aur existing user ke liye same flow: Email/Mobile → OTP → Login. Password, magic link ya separate Create Account screen nahi chahiye.</div>
   </div>
@@ -546,7 +546,7 @@ async function simpleOcsLogin(role){
       const wrap=document.getElementById(isProvider?'providerLoginOtpWrap':'customerLoginOtpWrap');
       const label=document.getElementById(isProvider?'providerLoginOtpLabel':'customerLoginOtpLabel');
       if(wrap)wrap.style.display='block';
-      if(label)label.textContent='6-digit Email OTP *';
+      if(label)label.textContent='Email OTP *';
       if(st){st.textContent='✓ Email OTP sent • code yahin enter karein';st.style.color='#b7791f'}
       return true;
     }
@@ -556,7 +556,7 @@ async function simpleOcsLogin(role){
     const wrap=document.getElementById(isProvider?'providerLoginOtpWrap':'customerLoginOtpWrap');
     const label=document.getElementById(isProvider?'providerLoginOtpLabel':'customerLoginOtpLabel');
     if(wrap)wrap.style.display='block';
-    if(label)label.textContent='6-digit SMS OTP *';
+    if(label)label.textContent='SMS OTP *';
     if(st){st.textContent='✓ SMS OTP sent • code yahin enter karein';st.style.color='#b7791f'}
     return true;
   }catch(e){
@@ -586,7 +586,7 @@ async function verifySimpleOcsOtp(role){
   const isEmail=raw.includes('@');
   const phone=!isEmail?ocsIndiaPhone(raw):'';
   const token=(document.getElementById(isProvider?'providerLoginOtp':'customerLoginOtp')?.value||'').trim();
-  if(token.length!==6){alert('6-digit OTP enter karein.');return false}
+  if(!/^\d{6,10}$/.test(token)){alert('Email/SMS me jo poora OTP code aaya hai wahi enter karein.');return false}
   if(!isEmail&&!phone){alert('Valid Email ID ya Mobile Number check karein.');return false}
   try{
     const payload=isEmail?{email:raw,token,type:'email'}:{phone,token,type:'sms'};
