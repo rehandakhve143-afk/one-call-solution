@@ -849,12 +849,31 @@ async function ensureSimpleCustomerAccount(session){
 function ocsRequestedSpProfile(){
   try{return new URLSearchParams(location.search||'').get('open')==='sp-profile'}catch(e){return false}
 }
+function ocsRequestedSpDashboard(){
+  try{return new URLSearchParams(location.search||'').get('open')==='sp-dashboard'}catch(e){return false}
+}
 async function routeAfterOcsLogin(){
   const session=await getOcsSession();
   if(!session||!session.user)return;
   // Every OCS login can use Customer features. Service Provider is an additional profile/role.
   await ensureSimpleCustomerAccount(session);
   await updateSettingsLoginState();
+
+  if(ocsRequestedSpDashboard()){
+    const hasSp=await ocsUserHasRole('service_provider');
+    if(hasSp){
+      const m=document.getElementById('accountModal');
+      if(m)m.classList.remove('show');
+      document.body.classList.remove('ocs-account-open');
+      try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
+      location.replace('home-services.html?tab=provider&sp=1&v=20260926-spauth1');
+      return;
+    }
+    let intent='';
+    try{intent=localStorage.getItem('ocsLoginIntentRole')||''}catch(e){}
+    await openAccount('provider',intent==='provider');
+    return;
+  }
 
   // IMPORTANT: direct SP Profile route must never be redirected to Home.
   if(ocsRequestedSpProfile()){
@@ -909,12 +928,21 @@ if(ocsSupabase){
   setTimeout(()=>{try{if(new URLSearchParams(location.search||'').get('login')==='1')openLogin()}catch(e){}},150);
   setTimeout(async()=>{
     try{
+      if(ocsRequestedSpDashboard()){
+        const s=await getOcsSession();
+        if(s&&s.user&&await ocsUserHasRole('service_provider')){
+          location.replace('home-services.html?tab=provider&sp=1&v=20260926-spauth1');
+          return;
+        }
+        await openAccount('provider',false);
+        return;
+      }
       if(ocsRequestedSpProfile()){
         const s=await getOcsSession();
         if(s&&s.user)await openAccount('provider');
         else await openLogin();
       }
-    }catch(e){console.error('SP profile route failed',e)}
+    }catch(e){console.error('SP route failed',e)}
   },120);
 }
 
@@ -923,8 +951,9 @@ async function openAccountEntry(){
  if(session&&session.user){openBottomProfile();return}
  openLogin();
 }
-async function openAccount(role){
+async function openAccount(role,forceProviderSetup){
  const isProvider=role==='provider';
+ forceProviderSetup=forceProviderSetup===true;
  const existingProfile=isProvider?getProviderProfile():getCustomerProfile();
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
  document.getElementById('accountTitle').textContent=existingProfile?(isProvider?'Service Provider Profile':'Customer Profile'):(isProvider?'Service Provider Login':'Customer Login');
@@ -947,6 +976,12 @@ async function openAccount(role){
  }
  if(isProvider){
    const p=getProviderProfile();
+   const session=await getOcsSession();
+   const hasProviderRole=!!(session&&session.user&&await ocsUserHasRole('service_provider'));
+   const sum=document.getElementById('providerProfileSummary');
+   const auth=document.getElementById('providerAuthBox');
+   const setup=document.getElementById('providerProfileSetup');
+   const loginState=document.getElementById('providerEmailStatus');
    document.querySelectorAll('input[name="paSkill"]').forEach(x=>{
      x.disabled=false;
      x.removeAttribute('data-approved-locked');
@@ -966,14 +1001,27 @@ async function openAccount(role){
      if(a)a.value=p.area||'';
      if(r&&p.radius)r.value=String(p.radius);
      if(st){st.textContent=p.mobileVerified?'✓ Mobile verified':'Mobile verification: Verify later in Settings';st.style.color=p.mobileVerified?'#16815d':'#6f8188'}
+   }
+   if(hasProviderRole){
      await showProviderProfileSummary();
+   }else if(session&&session.user&&forceProviderSetup){
+     if(sum)sum.style.display='none';
+     if(auth)auth.style.display='none';
+     if(setup)setup.style.display='block';
+     document.getElementById('accountTitle').textContent='Complete Service Provider Profile';
+     document.getElementById('accountSub').textContent='Name, mobile, service area aur skill save karein';
    }else{
-     const sum=document.getElementById('providerProfileSummary');
-     const auth=document.getElementById('providerAuthBox');
-     const setup=document.getElementById('providerProfileSetup');
      if(sum)sum.style.display='none';
      if(auth)auth.style.display='block';
      if(setup)setup.style.display='none';
+     document.getElementById('accountTitle').textContent='Service Provider Login';
+     document.getElementById('accountSub').textContent='Apni registered SP Email ID ya Mobile Number se login karein';
+     const pa=document.getElementById('paEmail');
+     if(pa&&session&&session.user)pa.value='';
+     if(loginState&&session&&session.user){
+       loginState.textContent='Current OCS login Service Provider account nahi hai. Apni SP Email/Mobile se Continue karein.';
+       loginState.style.color='#b7791f';
+     }
    }
  }
  document.body.classList.add('ocs-account-open');
@@ -1198,6 +1246,10 @@ async function saveProviderAccount(){
      status:'Profile Saved • Verification Pending'
    }));
    alert('Changes saved. Approved skills active rahengi; nayi skill verification ke baad active hogi.');
+   if(ocsRequestedSpDashboard()){
+     location.replace('home-services.html?tab=provider&sp=1&v=20260926-spauth1');
+     return;
+   }
    await showProviderProfileSummary();
  }catch(e){
    console.error('Provider registration sync failed',e);
