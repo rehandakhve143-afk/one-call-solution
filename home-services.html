@@ -212,9 +212,17 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 .ocs-flow-nav .back-flow{background:#edf3f2;color:#173f48}
 .ocs-flow-nav .next-flow{background:linear-gradient(135deg,#087a70,#0aa47e);color:#fff}
 .ocs-flow-nav button:disabled{opacity:.45;cursor:not-allowed}
-.ocs-page-nav{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:11px}
-.ocs-page-nav button{min-height:40px;padding:8px 10px;border-radius:12px;border:1px solid #ffffff2b;background:#ffffff14;color:#fff;font-weight:850;box-shadow:none}
-.ocs-page-nav button:nth-child(2){background:#fff;color:#08756d}
+.ocs-page-nav{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;margin-top:9px;align-items:center}
+.ocs-page-nav button{min-height:36px;padding:7px 10px;border-radius:10px;border:1px solid #ffffff24;background:transparent;color:#e8f5f3;font-weight:800;font-size:12px;box-shadow:none}
+.ocs-page-nav button:nth-child(2){min-width:104px;background:#fff;color:#08756d;border-color:#fff;box-shadow:0 4px 12px #001b2018}
+.ocs-page-nav button:first-child{text-align:left}
+.ocs-page-nav button:last-child{text-align:right}
+.sp-only-route .tabs{display:flex!important;margin-top:8px!important;padding:0!important;background:transparent!important;border:0!important}
+.sp-only-route .tabs #ptab{width:auto!important;min-height:30px!important;padding:6px 11px!important;border-radius:999px!important;background:#ffffff12!important;border:1px solid #ffffff24!important;color:#dff3f0!important;box-shadow:none!important;font-size:11px!important}
+.sp-only-route .top{padding-bottom:12px!important}
+.customer-route-only .tabs{display:flex!important;margin-top:8px!important;padding:0!important;background:transparent!important;border:0!important}
+.customer-route-only .tabs #ctab{width:auto!important;min-height:30px!important;padding:6px 11px!important;border-radius:999px!important;background:#ffffff12!important;border:1px solid #ffffff24!important;color:#dff3f0!important;box-shadow:none!important;font-size:11px!important}
+.customer-route-only .top{padding-bottom:12px!important}
 </style>
 </head>
 <body>
@@ -3401,9 +3409,15 @@ try{
  OCS_SP_ONLY=qp.get("sp")==="1";
 }catch(e){}
 if(OCS_SP_ONLY){
+ document.body.classList.add("sp-only-route");
  const ct=document.getElementById("ctab"),pt=document.getElementById("ptab");
  if(ct)ct.style.display="none";
- if(pt){pt.style.width="100%";pt.textContent="Service Provider";}
+ if(pt){pt.style.width="auto";pt.textContent="Service Provider";}
+}else if(OCS_ROUTE_TAB==="customer"){
+ document.body.classList.add("customer-route-only");
+ const pt=document.getElementById("ptab"),ct=document.getElementById("ctab");
+ if(pt)pt.style.display="none";
+ if(ct){ct.style.width="auto";ct.textContent="Customer";}
 }
 setInterval(function(){
  if(["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_REVISION_PENDING"].includes(S.status))render();
