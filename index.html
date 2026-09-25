@@ -1801,10 +1801,14 @@ function setSuperSlide(n){
 setTimeout(()=>setSuperSlide(0),100);
 async function openModule(n,role,serviceCat){
  if(n==='Home Services'){
+   if(role==='provider'){
+     location.href='service-provider.html?v=20260925-spdirect2';
+     return;
+   }
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20260924-serviceflow3'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260925-serviceflow4'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
