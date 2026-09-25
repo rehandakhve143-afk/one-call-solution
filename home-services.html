@@ -107,6 +107,28 @@ button.provider-metric{width:100%;font:inherit;cursor:pointer}
 .provider-idle-state b{display:block;color:#173f46;margin-bottom:4px}
 .provider-idle-state span{display:block;color:#708589;font-size:12px;line-height:1.4}
 .provider-history-card{margin-top:10px!important}
+.ocs-profile-panel{position:fixed;inset:0;z-index:15000;background:rgba(7,34,40,.48);backdrop-filter:blur(6px);padding:76px 12px 20px;overflow:auto;box-sizing:border-box}
+.ocs-profile-panel.hide{display:none}
+.ocs-profile-card{max-width:520px;margin:0 auto;background:#fff;border-radius:22px;padding:16px;box-shadow:0 18px 50px rgba(5,35,40,.24)}
+.ocs-profile-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid #e6efed}
+.ocs-profile-top small{font-size:10px;font-weight:800;color:#148477;letter-spacing:.5px}
+.ocs-profile-top h3{margin:3px 0 0;font-size:21px;color:#173f46}
+.ocs-profile-close{width:40px;height:40px;border:0;border-radius:50%;background:#eef5f3;color:#35595f;font-size:25px}
+.ocs-profile-summary{padding:14px 0}
+.ocs-profile-name{font-size:18px;font-weight:850;color:#173f46}
+.ocs-profile-sub{font-size:12px;color:#71878b;margin-top:3px}
+.ocs-profile-skill-title{margin-top:15px;font-size:12px;font-weight:850;color:#365a60}
+.ocs-profile-chip{display:inline-block;margin:6px 5px 0 0;padding:7px 10px;border-radius:999px;font-size:11px;font-weight:800}
+.ocs-profile-chip.approved{background:#e8f7f1;color:#14745c}
+.ocs-profile-chip.pending{background:#fff3d9;color:#986315}
+.ocs-profile-note{margin-top:14px;padding:11px 12px;border-radius:14px;background:#f5f9f8;color:#61777c;font-size:12px;line-height:1.45}
+.ocs-profile-actions{display:grid;gap:8px;margin-top:14px}
+.ocs-profile-actions .btn{margin:0}
+.ocs-skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.ocs-skill-choice{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid #e1ebe8;border-radius:13px;background:#fff;font-size:12px}
+.ocs-skill-choice.locked{background:#f2f8f6;border-color:#cfe6df}
+.ocs-skill-choice input{width:18px;height:18px}
+@media(max-width:380px){.ocs-skill-grid{grid-template-columns:1fr}.ocs-profile-panel{padding-top:54px}}
 @media(max-width:380px){.provider-headline{gap:8px}.provider-availability{min-width:106px!important;font-size:12px!important}.provider-metrics>div{padding:10px 5px}.provider-metrics b{font-size:12px}}
 .pending-mini{margin-top:9px;padding:10px 12px;border-radius:13px;background:#eef9f5;border:1px solid #d2ebe2;font-size:12px}
 @media(max-width:380px){.dashboard-secondary{grid-template-columns:1fr}}
@@ -355,6 +377,16 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 </section>
 </div>
 
+
+<div id="providerProfilePanel" class="ocs-profile-panel hide" aria-hidden="true">
+  <div class="ocs-profile-card">
+    <div class="ocs-profile-top">
+      <div><small>SERVICE PROVIDER</small><h3>Profile & Skills</h3></div>
+      <button type="button" class="ocs-profile-close" onclick="closeProviderProfilePanel()">×</button>
+    </div>
+    <div id="providerProfilePanelBody"></div>
+  </div>
+</div>
 
 <div id="addWorkSheet" class="hide">
  <div class="sheetTop"><button class="sheetClose" onclick="customerCancelAddMoreWork()">←</button><h3>Add More Work</h3><span class="status" id="sheetCategory">Electrical</span></div>
@@ -1510,16 +1542,140 @@ function syncHomeState(){
   renderCore();
   updateSelectionTray();
 }
-function openProviderProfileSafe(){
+const OCS_PROVIDER_SKILL_OPTIONS=[
+  "Electrical","Plumbing","Carpenter","AC","Washing Machine","Refrigerator",
+  "Chimney","RO / Water Purifier","Cleaning","Maid","Cook","Pest Control",
+  "CCTV","Gas Stove","Wi-Fi / TV Setup","Packers & Movers","Painter",
+  "Tiles / Stone Work","Waterproofing","False Ceiling / POP / Gypsum / PVC",
+  "General Labour / Helper","Other"
+];
+function providerSkillLabel(row){
+  const cat=String(row?.category||"");
+  const svc=String(row?.service_name||"");
+  if(cat==="Appliance Repair"){
+    if(/Washing Machine/i.test(svc))return "Washing Machine";
+    if(/Refrigerator/i.test(svc))return "Refrigerator";
+    if(/Chimney/i.test(svc))return "Chimney";
+    if(/RO \/ Water Purifier/i.test(svc))return "RO / Water Purifier";
+  }
+  if(cat==="AC Service")return "AC";
+  if(cat==="Maid Service"&&/Cooking/i.test(svc))return "Cook";
+  if(cat==="Maid Service")return "Maid";
+  if(cat==="Wi-Fi / TV Installation & Setup")return "Wi-Fi / TV Setup";
+  if(cat==="Tiles / Stone")return "Tiles / Stone Work";
+  if(cat==="Custom / Other")return svc||"Other";
+  return cat||svc||"Other";
+}
+async function providerProfilePanelSnapshot(){
+  if(!ocsSupabase)throw new Error("Online service not connected");
+  const session=await ocsSession();
+  if(!session||!session.user)throw new Error("Service Provider login required");
+  const {data,error}=await ocsSupabase.rpc("provider_profile_snapshot_v1");
+  if(error)throw error;
+  return data||{};
+}
+async function openProviderProfileSafe(){
+  const panel=document.getElementById("providerProfilePanel");
+  const body=document.getElementById("providerProfilePanelBody");
+  if(!panel||!body)return;
+  panel.classList.remove("hide");
+  panel.setAttribute("aria-hidden","false");
+  body.innerHTML='<div class="ocs-profile-summary"><div class="muted">Profile loading...</div></div>';
   try{
-    if(window.parent && window.parent!==window && typeof window.parent.openAccount==="function"){
-      window.parent.openAccount("provider");
-      return;
-    }
-  }catch(e){}
+    const pp=await providerProfilePanelSnapshot();
+    renderProviderProfileSummaryPanel(pp);
+  }catch(e){
+    body.innerHTML='<div class="ocs-profile-note">Profile load nahi hua: '+escapeHtml(e&&e.message?e.message:"Unknown error")+'</div>';
+  }
+}
+function closeProviderProfilePanel(){
+  const panel=document.getElementById("providerProfilePanel");
+  if(panel){panel.classList.add("hide");panel.setAttribute("aria-hidden","true")}
+}
+function renderProviderProfileSummaryPanel(pp){
+  const body=document.getElementById("providerProfilePanelBody");
+  if(!body)return;
+  const rows=Array.isArray(pp.skills)?pp.skills.filter(x=>x&&x.enabled_by_provider!==false):[];
+  const seen=new Map();
+  rows.forEach(r=>{
+    const label=providerSkillLabel(r);
+    const approved=r.approved===true&&String(r.verification_status||"").toLowerCase()==="approved";
+    const prev=seen.get(label)||{label,approved:false,pending:false};
+    prev.approved=prev.approved||approved;
+    prev.pending=prev.pending||!approved;
+    seen.set(label,prev);
+  });
+  const chips=[...seen.values()].map(x=>'<span class="ocs-profile-chip '+(x.approved?'approved':'pending')+'">'+escapeHtml(x.label)+(x.approved?' ✓':' • Pending')+'</span>').join("");
+  const approvedCount=[...seen.values()].filter(x=>x.approved).length;
+  body.innerHTML=
+    '<div class="ocs-profile-summary">'+
+      '<div class="ocs-profile-name">'+escapeHtml(pp.full_name||S.registeredProviderName||"Service Provider")+'</div>'+
+      '<div class="ocs-profile-sub">'+escapeHtml(pp.phone||S.providerMobile||"Mobile not added")+' • '+(approvedCount?'Approved':'Verification Pending')+'</div>'+
+      '<div class="ocs-profile-skill-title">Skills</div>'+
+      '<div>'+(chips||'<span class="muted">No skill saved.</span>')+'</div>'+
+      '<div class="ocs-profile-note">Approved skill locked rahegi. Nayi skill add karoge to sirf nayi skill Admin approval me jayegi.</div>'+
+      '<div class="ocs-profile-actions">'+
+        '<button class="btn" onclick="showProviderSkillEditor()">Add / Change Skills</button>'+
+        '<button class="btn gray" onclick="closeProviderProfilePanel()">Close</button>'+
+      '</div>'+
+    '</div>';
+}
+async function showProviderSkillEditor(){
+  const body=document.getElementById("providerProfilePanelBody");
+  if(!body)return;
+  body.innerHTML='<div class="ocs-profile-summary"><div class="muted">Skills loading...</div></div>';
   try{
-    location.href="index.html?open=sp-profile&v=20260925-spfix2";
-  }catch(e){}
+    const pp=await providerProfilePanelSnapshot();
+    const rows=Array.isArray(pp.skills)?pp.skills:[];
+    const enabled=new Set();
+    const approved=new Set();
+    rows.forEach(r=>{
+      const label=providerSkillLabel(r);
+      if(r.enabled_by_provider!==false)enabled.add(label);
+      if(r.enabled_by_provider!==false&&r.approved===true&&String(r.verification_status||"").toLowerCase()==="approved")approved.add(label);
+    });
+    const opts=OCS_PROVIDER_SKILL_OPTIONS.map(label=>{
+      const locked=approved.has(label);
+      const checked=enabled.has(label)||locked;
+      return '<label class="ocs-skill-choice'+(locked?' locked':'')+'"><input type="checkbox" name="ocsProviderSkillEdit" value="'+escapeHtml(label)+'" '+(checked?'checked ':'')+(locked?'disabled ':'')+'><span>'+escapeHtml(label)+(locked?' ✓ Approved':'')+'</span></label>';
+    }).join("");
+    body.innerHTML=
+      '<div class="ocs-profile-summary">'+
+        '<div class="ocs-profile-name">Add / Change Skills</div>'+
+        '<div class="ocs-profile-sub">Approved skill remove nahi hogi. Nayi skill approval ke baad active hogi.</div>'+
+        '<div class="ocs-skill-grid">'+opts+'</div>'+
+        '<div class="ocs-profile-actions">'+
+          '<button class="btn" onclick="saveProviderSkillEditor()">Save Skill Changes</button>'+
+          '<button class="btn gray" onclick="openProviderProfileSafe()">← Profile Summary</button>'+
+        '</div>'+
+      '</div>';
+  }catch(e){
+    body.innerHTML='<div class="ocs-profile-note">Skills load nahi hui: '+escapeHtml(e&&e.message?e.message:"Unknown error")+'</div>';
+  }
+}
+async function saveProviderSkillEditor(){
+  const body=document.getElementById("providerProfilePanelBody");
+  try{
+    const pp=await providerProfilePanelSnapshot();
+    const selected=[...document.querySelectorAll('input[name="ocsProviderSkillEdit"]')].filter(x=>x.checked).map(x=>x.value);
+    const approvedRows=(Array.isArray(pp.skills)?pp.skills:[]).filter(r=>r.enabled_by_provider!==false&&r.approved===true&&String(r.verification_status||"").toLowerCase()==="approved");
+    approvedRows.forEach(r=>{const label=providerSkillLabel(r);if(!selected.includes(label))selected.push(label)});
+    if(!selected.length){alert("Kam se kam 1 skill select karein.");return}
+    if(body)body.innerHTML='<div class="ocs-profile-summary"><div class="muted">Saving skill changes...</div></div>';
+    const {error}=await ocsSupabase.rpc("complete_service_provider_registration",{
+      p_full_name:pp.full_name||S.registeredProviderName||"Service Provider",
+      p_phone:pp.phone||S.providerMobile||"",
+      p_skill_labels:selected
+    });
+    if(error)throw error;
+    await ocsLoadLive("provider");
+    render();
+    const fresh=await providerProfilePanelSnapshot();
+    renderProviderProfileSummaryPanel(fresh);
+    alert("Skill changes saved. Nayi skill approval ke baad active hogi.");
+  }catch(e){
+    if(body)body.innerHTML='<div class="ocs-profile-note">Skill save nahi hui: '+escapeHtml(e&&e.message?e.message:"Unknown error")+'</div><div class="ocs-profile-actions"><button class="btn gray" onclick="openProviderProfileSafe()">Back</button></div>';
+  }
 }
 
 async function toggleAvailability(){
