@@ -376,6 +376,48 @@ async function ocsLoadLive(role){
   try{
     let booking=null, bookingFromOpenJobs=false;
     if(role==="provider"){
+      try{
+        const {data:pp,error:ppe}=await ocsSupabase.rpc("provider_profile_snapshot_v1");
+        if(ppe)throw ppe;
+        if(pp&&pp.registered){
+          S.providerProfileAvailable=true;
+          S.providerBackendConnected=true;
+          S.registeredProviderName=pp.full_name||"Service Provider";
+          S.providerMobile=pp.phone||"Not added";
+          const skills=Array.isArray(pp.skills)?pp.skills:[];
+          S.registeredProviderSkills=skills.map(x=>{
+            if(x.category==="Appliance Repair"){
+              if(/Washing Machine/i.test(x.service_name||""))return "Washing Machine";
+              if(/Refrigerator/i.test(x.service_name||""))return "Refrigerator";
+              if(/Chimney/i.test(x.service_name||""))return "Chimney";
+              if(/RO \/ Water Purifier/i.test(x.service_name||""))return "RO / Water Purifier";
+            }
+            if(x.category==="AC Service")return "AC";
+            if(x.category==="Maid Service"&&/Cooking/i.test(x.service_name||""))return "Cook";
+            if(x.category==="Maid Service")return "Maid";
+            if(x.category==="Wi-Fi / TV Installation & Setup")return "Wi-Fi / TV Setup";
+            if(x.category==="Tiles / Stone")return "Tiles / Stone Work";
+            return x.category||x.service_name||x.skill;
+          }).filter(Boolean);
+          const approved=skills.some(x=>x.approved===true&&x.verification_status==="approved");
+          const pending=skills.some(x=>x.verification_status==="pending");
+          S.providerVerificationStatus=approved?"Approved":(pending?"Verification Pending":"Profile Saved");
+          S.providerVerified=approved;
+          S.available=pp.available_for_work!==false;
+          S.wallet=Number(pp.wallet_balance||100);
+          S.adminPaused=!!pp.admin_paused;
+          S.jobAccess=!S.adminPaused;
+          if(!S.provider||/^SP\d+$/i.test(S.provider)||S.provider==="Matching Provider")S.provider=S.registeredProviderName;
+        }else{
+          S.providerProfileAvailable=false;
+          S.providerBackendConnected=false;
+          S.registeredProviderName="";
+          S.registeredProviderSkills=[];
+          S.providerVerificationStatus="Not registered";
+          S.providerVerified=false;
+        }
+      }catch(e){console.error("Provider profile snapshot failed",e)}
+
       const {data:snap,error:se}=await ocsSupabase.rpc("provider_status_snapshot");
       if(se)throw se;
       if(snap&&snap.length){
