@@ -1542,6 +1542,11 @@ function syncHomeState(){
   renderCore();
   updateSelectionTray();
 }
+function providerProfileEsc(v){
+  return String(v==null?"":v).replace(/[&<>"']/g,function(ch){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]||ch;
+  });
+}
 const OCS_PROVIDER_SKILL_OPTIONS=[
   "Electrical","Plumbing","Carpenter","AC","Washing Machine","Refrigerator",
   "Chimney","RO / Water Purifier","Cleaning","Maid","Cook","Pest Control",
@@ -1585,7 +1590,7 @@ async function openProviderProfileSafe(){
     const pp=await providerProfilePanelSnapshot();
     renderProviderProfileSummaryPanel(pp);
   }catch(e){
-    body.innerHTML='<div class="ocs-profile-note">Profile load nahi hua: '+escapeHtml(e&&e.message?e.message:"Unknown error")+'</div>';
+    body.innerHTML='<div class="ocs-profile-note">Profile load nahi hua: '+providerProfileEsc(e&&e.message?e.message:"Unknown error")+'</div>';
   }
 }
 function closeProviderProfilePanel(){
@@ -1605,12 +1610,12 @@ function renderProviderProfileSummaryPanel(pp){
     prev.pending=prev.pending||!approved;
     seen.set(label,prev);
   });
-  const chips=[...seen.values()].map(x=>'<span class="ocs-profile-chip '+(x.approved?'approved':'pending')+'">'+escapeHtml(x.label)+(x.approved?' ✓':' • Pending')+'</span>').join("");
+  const chips=[...seen.values()].map(x=>'<span class="ocs-profile-chip '+(x.approved?'approved':'pending')+'">'+providerProfileEsc(x.label)+(x.approved?' ✓':' • Pending')+'</span>').join("");
   const approvedCount=[...seen.values()].filter(x=>x.approved).length;
   body.innerHTML=
     '<div class="ocs-profile-summary">'+
-      '<div class="ocs-profile-name">'+escapeHtml(pp.full_name||S.registeredProviderName||"Service Provider")+'</div>'+
-      '<div class="ocs-profile-sub">'+escapeHtml(pp.phone||S.providerMobile||"Mobile not added")+' • '+(approvedCount?'Approved':'Verification Pending')+'</div>'+
+      '<div class="ocs-profile-name">'+providerProfileEsc(pp.full_name||S.registeredProviderName||"Service Provider")+'</div>'+
+      '<div class="ocs-profile-sub">'+providerProfileEsc(pp.phone||S.providerMobile||"Mobile not added")+' • '+(approvedCount?'Approved':'Verification Pending')+'</div>'+
       '<div class="ocs-profile-skill-title">Skills</div>'+
       '<div>'+(chips||'<span class="muted">No skill saved.</span>')+'</div>'+
       '<div class="ocs-profile-note">Approved skill locked rahegi. Nayi skill add karoge to sirf nayi skill Admin approval me jayegi.</div>'+
@@ -1637,7 +1642,7 @@ async function showProviderSkillEditor(){
     const opts=OCS_PROVIDER_SKILL_OPTIONS.map(label=>{
       const locked=approved.has(label);
       const checked=enabled.has(label)||locked;
-      return '<label class="ocs-skill-choice'+(locked?' locked':'')+'"><input type="checkbox" name="ocsProviderSkillEdit" value="'+escapeHtml(label)+'" '+(checked?'checked ':'')+(locked?'disabled ':'')+'><span>'+escapeHtml(label)+(locked?' ✓ Approved':'')+'</span></label>';
+      return '<label class="ocs-skill-choice'+(locked?' locked':'')+'"><input type="checkbox" name="ocsProviderSkillEdit" value="'+providerProfileEsc(label)+'" '+(checked?'checked ':'')+(locked?'disabled ':'')+'><span>'+providerProfileEsc(label)+(locked?' ✓ Approved':'')+'</span></label>';
     }).join("");
     body.innerHTML=
       '<div class="ocs-profile-summary">'+
@@ -1650,7 +1655,7 @@ async function showProviderSkillEditor(){
         '</div>'+
       '</div>';
   }catch(e){
-    body.innerHTML='<div class="ocs-profile-note">Skills load nahi hui: '+escapeHtml(e&&e.message?e.message:"Unknown error")+'</div>';
+    body.innerHTML='<div class="ocs-profile-note">Skills load nahi hui: '+providerProfileEsc(e&&e.message?e.message:"Unknown error")+'</div>';
   }
 }
 async function saveProviderSkillEditor(){
@@ -1674,7 +1679,7 @@ async function saveProviderSkillEditor(){
     renderProviderProfileSummaryPanel(fresh);
     alert("Skill changes saved. Nayi skill approval ke baad active hogi.");
   }catch(e){
-    if(body)body.innerHTML='<div class="ocs-profile-note">Skill save nahi hui: '+escapeHtml(e&&e.message?e.message:"Unknown error")+'</div><div class="ocs-profile-actions"><button class="btn gray" onclick="openProviderProfileSafe()">Back</button></div>';
+    if(body)body.innerHTML='<div class="ocs-profile-note">Skill save nahi hui: '+providerProfileEsc(e&&e.message?e.message:"Unknown error")+'</div><div class="ocs-profile-actions"><button class="btn gray" onclick="openProviderProfileSafe()">Back</button></div>';
   }
 }
 
