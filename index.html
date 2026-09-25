@@ -1703,7 +1703,7 @@ function renderMyOcs(tab){
  if(tab==='inbox'){
    const bizChats=readBizChats();
    const chatCards=bizChats.length?bizChats.slice(0,12).map(x=>'<div class="myocs-card"><b>💬 '+ocsSavedText(x.business||x.category||'Business')+'</b><small>'+ocsSavedText(x.category||'Business')+' • '+ocsSavedText(x.text||'')+'</small><div class="myocs-actions"><button class="primary-mini" onclick="myOcsOpenModule('+JSON.stringify(x.category||'Local Shop')+')">Open Business</button></div></div>').join(''):'<div class="myocs-card"><b>No business chats yet</b><small>Kisi business window me Chat dabakar product/service enquiry bhejein.</small></div>';
-   body.innerHTML='<div class="myocs-card"><b>One OCS Inbox</b><small>Property ko chhodkar business windows me Product/Service enquiry ke liye Call, Chat aur WhatsApp available hain. Prototype Chat is device par save hoti hai; real cross-device messaging backend launch se pehle connect hoga.</small><div class="myocs-actions"><button onclick="myOcsOpenModule(\'Home Services\',\'customer\')">Home Service Support</button><button class="primary-mini" onclick="openCustomerDashboard();closeMyOcs()">Customer Dashboard</button></div></div>'+chatCards;
+   body.innerHTML='<div class="myocs-card"><b>One OCS Inbox</b><small>Business windows me Product/Service enquiry ke liye Call, Chat aur WhatsApp available hain. Inbox me sirf business enquiries aur chats rahengi.</small></div>'+chatCards;
    return;
  }
  renderMyOcs('saved');
