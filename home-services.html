@@ -502,10 +502,11 @@ async function ocsCreateLiveBooking(){
   const session=await ocsSession();
   if(!session||!session.user){
     try{
-      localStorage.setItem("ocsPostLoginReturn","home-services.html?v=20260924-simpleflow&tab=customer");
+      localStorage.setItem("ocsPostLoginReturn","home-services.html?v=20260925-flowfix2&tab=customer&resume=booking");
+      localStorage.setItem("ocsResumeBookingAfterLogin","1");
       saveHomeState();
     }catch(e){}
-    location.href="index.html?login=1";
+    location.href="index.html?v=20260925-otpflow3&login=1&resume=booking";
     throw new Error("OCS_LOGIN_REDIRECT");
   }
   try{
@@ -654,9 +655,15 @@ function loadSavedHomeState(){
      S.flowVersion=11;
      S.adminPaused=!!saved.adminPaused;
      S.jobAccess=!S.adminPaused;
-     // Do not restore an unfinished browsing/cart screen on refresh or module reopen.
-     // Only a real backend booking (activeBookingId) may resume its stage.
-     if(!S.activeBookingId&&["SELECT_ITEM","BOOKING_DETAILS","CUSTOM_REQUEST"].includes(S.status)){
+     // Normally do not restore unfinished browsing/cart on a plain refresh.
+     // Exception: when Find Service Provider redirected the Customer to login,
+     // preserve the exact booking/cart so login returns to the same flow.
+     let resumeAfterLogin=false;
+     try{
+       resumeAfterLogin=localStorage.getItem("ocsResumeBookingAfterLogin")==="1";
+       if(!resumeAfterLogin&&window.parent&&window.parent.localStorage)resumeAfterLogin=window.parent.localStorage.getItem("ocsResumeBookingAfterLogin")==="1";
+     }catch(e){}
+     if(!S.activeBookingId&&!resumeAfterLogin&&["SELECT_ITEM","BOOKING_DETAILS","CUSTOM_REQUEST"].includes(S.status)){
        S.status="SELECT_SERVICE";
        S.category="";
        S.selectedItems=[];
@@ -3176,6 +3183,21 @@ async function bootHomeServices(){
  if(OCS_ROUTE_TAB==="admin"){await showTab("admin");return}
 
  await ocsStartLive("customer");
+ let resumeBooking=false;
+ try{
+   const qp=new URLSearchParams(window.location.search||"");
+   resumeBooking=qp.get("resume")==="booking"||localStorage.getItem("ocsResumeBookingAfterLogin")==="1";
+   if(!resumeBooking&&window.parent&&window.parent.localStorage)resumeBooking=window.parent.localStorage.getItem("ocsResumeBookingAfterLogin")==="1";
+ }catch(e){}
+ if(resumeBooking&&!S.activeBookingId&&S.status==="BOOKING_DETAILS"&&(S.selectedItems||[]).length){
+   try{
+     localStorage.removeItem("ocsResumeBookingAfterLogin");
+     if(window.parent&&window.parent.localStorage)window.parent.localStorage.removeItem("ocsResumeBookingAfterLogin");
+   }catch(e){}
+   renderCore();updateSelectionTray();
+   await booking();
+   return;
+ }
  if(!S.activeBookingId&&OCS_ROUTE_CAT&&services[OCS_ROUTE_CAT]){
    S.category=OCS_ROUTE_CAT;
    S.selectedItems=[];
