@@ -534,8 +534,18 @@ async function ocsLoadLive(role){
       }
     }catch(e){console.error("OCS payment sync failed",e)}
     if(S.requestType==="quote"){
-      if(role==="provider"&&String(booking.status).toLowerCase()==="searching")S.status="REQUESTED";
-      else if(!S.quote&&["accepted","searching"].includes(String(booking.status).toLowerCase()))S.status="QUOTE_WAIT";
+      const quoteBookingStatus=String(booking.status).toLowerCase();
+      if(role==="provider"&&quoteBookingStatus==="searching"){
+        S.quoteProviderAccepted=false;
+        S.status="REQUESTED";
+      }else if(!S.quote&&quoteBookingStatus==="accepted"){
+        // Backend acceptance is the source of truth. Do not ask the same SP to accept twice.
+        S.quoteProviderAccepted=true;
+        S.status="QUOTE_WAIT";
+      }else if(!S.quote&&quoteBookingStatus==="searching"){
+        S.quoteProviderAccepted=false;
+        S.status="QUOTE_WAIT";
+      }
     }
     return true;
   }catch(e){console.error("OCS live load failed",e);return false}
@@ -994,12 +1004,30 @@ function saveAfterWorkProof(){
 }
 async function providerAcceptQuoteRequest(){
  if(S.status!=="QUOTE_WAIT"&&S.status!=="REQUESTED")return;
+ const bookingId=S.activeBookingId;
  try{
+   if(S.requestType==="quote"&&S.status==="QUOTE_WAIT"&&S.quoteProviderAccepted){
+     render();return;
+   }
    await ocsProviderDecisionLive("accept");
    S.quoteProviderAccepted=true;
    hist("Service Provider accepted LIVE Get Quote request");
    await ocsLoadLive("provider");render();
- }catch(e){alert("Get Quote accept failed: "+(e&&e.message?e.message:"Unknown error"))}
+ }catch(e){
+   // A quote booking may already have been accepted from the incoming-request card.
+   // Reconcile with backend instead of showing a false "no longer available" error.
+   const msg=String(e&&e.message?e.message:"");
+   if(/no longer available|already accepted|not available/i.test(msg)){
+     await ocsLoadLive("provider");
+     const stillMine=!!bookingId&&S.activeBookingId===bookingId&&S.requestType==="quote"&&S.providerRequestForThisProfile&&["QUOTE_WAIT","INITIAL_QUOTE"].includes(S.status);
+     if(stillMine){
+       S.quoteProviderAccepted=true;
+       hist("Get Quote request already accepted by this Service Provider");
+       render();return;
+     }
+   }
+   alert("Get Quote accept failed: "+(e&&e.message?e.message:"Unknown error"))
+ }
 }
 function customerRequestNewQuote(){
  if(!["QUOTE_EXPIRED","CUSTOM_REQUEST"].includes(S.status))return;
