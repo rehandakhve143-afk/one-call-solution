@@ -146,24 +146,16 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 </div></div>
 
 <div class="modal" id="settingsModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>⚙️ Settings & Account</h2><div class="muted">Profile completion, bookings, wallet, history & app preferences</div></div><button class="x" onclick="closeSettings()">×</button></div>
-  <div id="settingsAccountOverview" class="bottom-hub-card"><b>OCS Account</b><small>Loading account status...</small></div>
+  <div class="bottom-hub-head"><div><h2>⚙️ Settings</h2><div class="muted">Simple app preferences</div></div><button class="x" onclick="closeSettings()">×</button></div>
+  <div id="settingsAccountOverview" class="bottom-hub-card"><b>OCS Account</b><small>Loading account...</small></div>
   <div class="ocs-settings-grid">
-    <div class="ocs-setting-row"><div><b>OCS Login</b><small id="settingsLoginState">Not logged in</small></div><button id="settingsLoginBtn" onclick="settingsLoginAction()">Login</button></div>
-    <div class="ocs-setting-row"><div><b>Customer Profile</b><small id="settingsCustomerProfileState">Complete your Customer profile</small></div><button onclick="closeSettings();openAccount('customer')">Open</button></div>
-    <div class="ocs-setting-row"><div><b>Service Provider Profile</b><small id="settingsProviderProfileState">Complete SP profile & verification</small></div><button onclick="closeSettings();openAccount('provider')">Open</button></div>
-    <div class="ocs-setting-row"><div><b>Mobile Verification</b><small id="settingsMobileVerifyState">Check verification status</small></div><button onclick="openCustomerMobileVerification()">Verify</button></div>
-    <div class="ocs-setting-row"><div><b>My Bookings</b><small>Current Home Service booking & status</small></div><button onclick="closeSettings();openBottomBookings()">Open</button></div>
-    <div class="ocs-setting-row"><div><b>Customer Work History</b><small>Completed, cancelled & settled bookings</small></div><button onclick="closeSettings();openWorkHistory('CUSTOMER')">View</button></div>
-    <div class="ocs-setting-row"><div><b>SP Work History</b><small>Completed jobs, earning & OCS commission</small></div><button onclick="closeSettings();openWorkHistory('PROVIDER')">View</button></div>
-    <div class="ocs-setting-row"><div><b>Wallet & Earnings</b><small id="settingsWalletState">Customer wallet + SP wallet balance</small></div><button onclick="closeSettings();openWalletHub()">Open</button></div>
-    <div class="ocs-setting-row"><div><b>Saved & OCS Inbox</b><small>Liked listings, enquiries and chats</small></div><button onclick="closeSettings();openMyOcs('saved')">Open</button></div>
-    <div class="ocs-setting-row"><div><b>Notifications</b><small>Booking, quote, payment and support updates</small></div><input id="setNotifications" type="checkbox"></div>
-    <div class="ocs-setting-row"><div><b>Location</b><small>Nearby Service Provider and directions • <span id="setLocationState">Not allowed</span></small></div><button onclick="requestOcsLocation()">Set</button></div>
-    <div class="ocs-setting-row"><div><b>Preferred Payment</b><small>Online recommended • Cash for network issue</small></div><select id="setPayment" style="width:120px;margin:0"><option value="ONLINE">Online</option><option value="CASH">Cash</option></select></div>
-    <div class="ocs-setting-row"><div><b>Language</b><small>App display preference</small></div><select id="setLanguage" style="width:120px;margin:0"><option value="EN">English</option><option value="HI">Hindi</option><option value="MR">Marathi</option></select></div>
-    <div class="ocs-setting-row"><div><b>Privacy & Security</b><small>Contact/location used only for required OCS actions.</small></div><span>🔒</span></div>
+    <div class="ocs-setting-row"><div><b>Account</b><small id="settingsLoginState">Not logged in</small></div><button id="settingsLoginBtn" onclick="settingsLoginAction()">Login</button></div>
+    <div class="ocs-setting-row"><div><b>Notifications</b><small>Booking, payment and support updates</small></div><input id="setNotifications" type="checkbox"></div>
+    <div class="ocs-setting-row"><div><b>Location</b><small>Service area • <span id="setLocationState">Not allowed</span></small></div><button onclick="requestOcsLocation()">Set</button></div>
+    <div class="ocs-setting-row"><div><b>Language</b><small>App language</small></div><select id="setLanguage" style="width:120px;margin:0"><option value="EN">English</option><option value="HI">Hindi</option><option value="MR">Marathi</option></select></div>
+    <div class="ocs-setting-row"><div><b>Privacy & Security</b><small>Contact and location are used only when required.</small></div><span>🔒</span></div>
   </div>
+  <select id="setPayment" style="display:none"><option value="ONLINE">Online</option><option value="CASH">Cash</option></select>
   <button class="primary" style="margin-top:12px;width:100%" onclick="saveSettings()">Save Settings</button>
   <div class="bottom-hub-actions"><button onclick="closeSettings();openBottomSupport()">Help / Support</button><button onclick="closeSettings()">Close</button></div>
 </div></div>
