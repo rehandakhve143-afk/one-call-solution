@@ -3327,8 +3327,18 @@ async function adminLoadSkillQueue(){
  try{
    const {data,error}=await ocsSupabase.rpc("admin_pending_provider_skills_v2");
    if(error)throw error;
-   const rows=Array.isArray(data)?data:[];
-   if(!rows.length){box.innerHTML='<div class="notice">Abhi koi Service Provider skill verification pending nahi hai.</div>';return}
+   const allRows=Array.isArray(data)?data:[];
+   const rows=allRows.filter(x=>
+     String(x.verification_status||"pending").toLowerCase()==="pending" &&
+     x.approved!==true &&
+     x.enabled_by_provider!==false
+   );
+   window.OCS_ADMIN_SKILLS={};
+   if(!rows.length){
+     if(bulk)bulk.innerHTML='';
+     box.innerHTML='<div class="notice">Abhi koi Service Provider skill verification pending nahi hai.</div>';
+     return
+   }
    if(bulk){
      const groups={};
      rows.forEach(x=>{
@@ -3345,7 +3355,6 @@ async function adminLoadSkillQueue(){
    box.innerHTML=rows.slice(0,50).map((x,i)=>{
      const st=String(x.verification_status||"pending").toUpperCase();
      const key="skill_"+i;
-     window.OCS_ADMIN_SKILLS=window.OCS_ADMIN_SKILLS||{};
      window.OCS_ADMIN_SKILLS[key]={providerId:x.provider_id,skill:x.skill};
      return '<div class="card" style="padding:10px;margin:8px 0">'+
        '<b>'+ocsSafe(x.provider_name||"Service Provider")+'</b>'+
