@@ -1094,7 +1094,7 @@ function openBottomBookings(){
  const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'];
  const s=String(b?.status||b?.state||'').toUpperCase();
  if(!b||inactive.includes(s)){
-  body.innerHTML='<div class="bottom-hub-card"><b>No active booking</b><small>Abhi koi running Home Service booking nahi hai.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button><button onclick="closeBottomHub(\'bottomBookingsModal\')">Close</button></div></div>';
+  body.innerHTML='<div class="bottom-hub-card"><b>No active booking</b><small>Abhi koi running Home Service booking nahi hai.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openWorkHistory(\'CUSTOMER\')">Work History / Rating</button><button onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button></div></div>';
  }else{
   const service=b.service||b.category||b.task||'Home Service',label=dashStatusLabel(s),id=b.id||b.bookingId||'OCS Booking';
   body.innerHTML='<div class="bottom-hub-card"><b>'+service+'</b><small>'+id+'<br>Status: <b style="display:inline">'+label+'</b></small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Track Booking</button><button onclick="closeBottomHub(\'bottomBookingsModal\')">Close</button></div></div>';
@@ -1227,10 +1227,24 @@ function setWorkHistoryRole(role){
 }
 function workHistoryStatusLabel(s){
  s=String(s||'').toUpperCase();
- if(s==='DONE')return 'Completed';
+ if(s==='DONE'||s==='COMPLETED')return 'Completed';
  if(s==='CANCELLED_SETTLED')return 'Work Not Completed / Settled';
  if(s==='CANCELLED')return 'Cancelled';
  return s||'Closed';
+}
+
+async function rateCompletedBooking(bookingId){
+ const starText=prompt('Service Provider ko 1 se 5 star dein');
+ if(starText===null)return;
+ const stars=Number(starText);
+ if(!Number.isInteger(stars)||stars<1||stars>5){alert('1 se 5 ke beech star enter karein.');return}
+ const comment=prompt('Comment / feedback (optional)')||'';
+ try{
+   const {error}=await ocsSupabase.rpc('submit_provider_rating_v1',{p_booking_id:bookingId,p_stars:stars,p_comment:comment.trim()});
+   if(error)throw error;
+   alert('Rating save ho gayi.');
+   await renderWorkHistory();
+ }catch(e){alert('Rating save nahi hui: '+(e&&e.message?e.message:'Unknown error'))}
 }
 async function renderWorkHistory(){
  const body=document.getElementById('workHistoryBody');if(!body)return;
@@ -1266,7 +1280,9 @@ async function renderWorkHistory(){
      const commission=Number(r.commission||0), earning=Math.max(0,amount-commission);
      return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service_name||'Home Service')+'</b><small>'+ocsSavedText(r.id)+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customer_name||'Customer')+'<br>Earning: ₹'+earning.toFixed(2)+' • OCS Commission: ₹'+commission.toFixed(2)+'<br>Payment: '+ocsSavedText(r.payment_status||r.payment_method||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.rating_comment?' • '+ocsSavedText(r.rating_comment):''):'')+'</small></div>';
    }
-   return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service_name||'Home Service')+'</b><small>'+ocsSavedText(r.id)+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Service Provider: '+ocsSavedText(r.provider_name||'Service Provider')+'<br>Amount: ₹'+amount.toFixed(2)+' • Payment: '+ocsSavedText(r.payment_status||r.payment_method||'—')+(Number(r.rating||0)>0?'<br>Your Rating: '+Number(r.rating)+'/5 ⭐'+(r.rating_comment?' • '+ocsSavedText(r.rating_comment):''):'')+'</small></div>';
+   const rating=Number(r.rating||0);
+   const canRate=['COMPLETED','DONE'].includes(String(r.status||'').toUpperCase())&&rating<=0;
+   return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service_name||'Home Service')+'</b><small>'+ocsSavedText(r.id)+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Service Provider: '+ocsSavedText(r.provider_name||'Service Provider')+'<br>Amount: ₹'+amount.toFixed(2)+' • Payment: '+ocsSavedText(r.payment_status||r.payment_method||'—')+(rating>0?'<br>Your Rating: '+rating+'/5 ⭐'+(r.rating_comment?' • '+ocsSavedText(r.rating_comment):''):'')+'</small>'+(canRate?'<div class="bottom-hub-actions"><button class="main" onclick="rateCompletedBooking(\''+ocsSavedText(r.id)+'\')">⭐ Rate Service Provider</button></div>':'')+'</div>';
  }).join('');
 }
 
