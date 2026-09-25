@@ -1323,6 +1323,7 @@ render();
 }
 
 async function showTab(x){
+  if(typeof OCS_SP_ONLY!=="undefined"&&OCS_SP_ONLY&&x==="customer")x="provider";
   if(x==="admin"){
     try{
       const session=await ocsSession();
@@ -3192,7 +3193,18 @@ document.addEventListener("click",function(e){
 
 document.body.classList.add('customer-locked-ui');
 let OCS_ROUTE_TAB="customer";
-try{const rt=new URLSearchParams(window.location.search||"").get("tab");if(rt==="provider"||rt==="customer"||rt==="admin")OCS_ROUTE_TAB=rt}catch(e){}
+let OCS_SP_ONLY=false;
+try{
+ const qp=new URLSearchParams(window.location.search||"");
+ const rt=qp.get("tab");
+ if(rt==="provider"||rt==="customer"||rt==="admin")OCS_ROUTE_TAB=rt;
+ OCS_SP_ONLY=qp.get("sp")==="1";
+}catch(e){}
+if(OCS_SP_ONLY){
+ const ct=document.getElementById("ctab"),pt=document.getElementById("ptab");
+ if(ct)ct.style.display="none";
+ if(pt){pt.style.width="100%";pt.textContent="Service Provider";}
+}
 setInterval(function(){
  if(["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_REVISION_PENDING"].includes(S.status))render();
 },30000);
