@@ -725,7 +725,9 @@ function loadSavedHomeState(){
    }
  }catch(e){console.error("OCS booking restore failed",e)}
 }
+let OCS_BROWSE_MODE=false;
 function saveHomeState(){
+ if(OCS_BROWSE_MODE)return;
  try{
    const raw=JSON.stringify(S);
    try{localStorage.setItem(OCS_HOME_STATE_KEY,raw)}catch(e){}
@@ -1112,7 +1114,7 @@ function confirmHeldNoWorkSettlement(){
 
 async function selectCategory(cat){
  if(!services[cat]){alert("Service category not found: "+cat);return}
- if(S.activeBookingId&&!S.bookingClosedAt){
+ if(!OCS_BROWSE_MODE&&S.activeBookingId&&!S.bookingClosedAt){
    await ocsStartLive("customer");
    try{window.scrollTo(0,0)}catch(e){}
    return;
@@ -1689,6 +1691,20 @@ function settleVisitChargePayment(){
 async function booking(){
  if(!ocsRequireStage(["BOOKING_DETAILS","READY"],"Create booking"))return;
  if(!ocsGuardAction("create-booking",1600))return;
+ if(OCS_BROWSE_MODE&&ocsSupabase){
+   try{
+     const {data:active,error:ae}=await ocsSupabase.rpc("customer_active_booking");
+     if(ae)throw ae;
+     if(active&&active.length){
+       alert("Aapki ek booking already active hai. Nayi booking ke liye pehle current booking complete ya cancel karein.");
+       OCS_BROWSE_MODE=false;
+       ocsApplyBackendBooking(active[0]);
+       await ocsStartLive("customer");
+       try{window.scrollTo(0,0)}catch(e){}
+       return;
+     }
+   }catch(e){console.error("Active booking check failed",e)}
+ }
  if(S.activeBookingId&&!S.bookingClosedAt){await ocsStartLive("customer");try{window.scrollTo(0,0)}catch(e){}return}
  prepareProfileMatching();
  ensureBookingAmount();
@@ -3264,6 +3280,30 @@ setInterval(function(){
 async function bootHomeServices(){
  if(OCS_ROUTE_TAB==="provider"){await showTab("provider");return}
  if(OCS_ROUTE_TAB==="admin"){await showTab("admin");return}
+
+ // A direct service/category tap should open that rate card even if another booking is active.
+ // The active booking remains untouched in the backend and can still be tracked from Bookings.
+ if(OCS_ROUTE_CAT&&services[OCS_ROUTE_CAT]){
+   OCS_BROWSE_MODE=true;
+   if(OCS_LIVE_POLL){clearInterval(OCS_LIVE_POLL);OCS_LIVE_POLL=null}
+   S.activeBookingId=null;
+   OCS_LIVE_BOOKING_ID=null;
+   S.category=OCS_ROUTE_CAT;
+   S.selectedItems=[];
+   S.service="";
+   S.serviceName="";
+   S.serviceType="";
+   S.quantity=1;
+   S.base=0;
+   S.total=0;
+   S.bookingAmount=0;
+   S.finalAmount=0;
+   S.amount=0;
+   S.status="SELECT_ITEM";
+   renderCore();
+   updateSelectionTray();
+   return;
+ }
 
  await ocsStartLive("customer");
  let resumeBooking=false;
