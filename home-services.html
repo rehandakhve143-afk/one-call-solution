@@ -215,6 +215,7 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 <button class="btn gray" id="availabilityBtn" onclick="toggleAvailability()">Available: ON</button>
 </div>
 <div class="notice good" style="margin:10px 0"><b>Get Paid Online. Earn More. Win Rewards.</b></div>
+<button class="btn gray" style="margin-bottom:10px" onclick="try{window.parent.openAccount('provider')}catch(e){}">SP Profile / Skills / Verification</button>
 Status: <span class="status" id="pStatus">WAITING</span>
 <details class="card" style="margin-top:12px">
   <summary><b>OCS Wallet & Job Queue</b> <span class="muted">Tap to view</span></summary><div style="margin-top:10px">
@@ -373,7 +374,7 @@ async function ocsLoadLive(role){
   const session=await ocsSession();
   if(!session||!session.user)return false;
   try{
-    let booking=null;
+    let booking=null, bookingFromOpenJobs=false;
     if(role==="provider"){
       const {data:snap,error:se}=await ocsSupabase.rpc("provider_status_snapshot");
       if(se)throw se;
@@ -389,7 +390,7 @@ async function ocsLoadLive(role){
       if(!booking){
         const {data:jobs,error:je}=await ocsSupabase.rpc("provider_open_jobs_v3");
         if(je)throw je;
-        if(jobs&&jobs.length)booking=jobs[0];
+        if(jobs&&jobs.length){booking=jobs[0];bookingFromOpenJobs=true;}
       }
     }else{
       const {data,error}=await ocsSupabase.rpc("customer_active_booking");
@@ -436,6 +437,14 @@ async function ocsLoadLive(role){
       return false;
     }
     ocsApplyBackendBooking(booking);
+    if(role==="provider"&&bookingFromOpenJobs){
+      // provider_open_jobs_v3 already checked login, availability, Admin pause,
+      // rejection history and approved/enabled matching skills in the backend.
+      S.providerProfileAvailable=true;
+      S.providerRequestForThisProfile=true;
+      S.providerVerified=true;
+      if(!S.registeredProviderName)S.registeredProviderName=S.provider||"Service Provider";
+    }
     await ocsSyncQuoteAndChat(role,booking);
     try{
       const {data:caseData,error:caseErr}=await ocsSupabase.rpc("booking_case_snapshot_v1",{p_booking_id:booking.id});
@@ -2633,7 +2642,10 @@ return h;
 function providerHTML(){
 let h="";
 
-if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQUEST")h=`<p class="muted">No active job.</p>`;
+if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQUEST")h=
+  S.providerProfileAvailable
+  ?`<div class="card"><h3>Ready for New Jobs</h3><div class="muted">Available for Work ON rakhein. Sirf approved matching skills ke jobs yahan aayenge.</div><button class="btn gray" onclick="try{window.parent.openAccount('provider')}catch(e){}">Edit / Complete SP Profile</button></div>`
+  :`<div class="card"><h3>Complete Service Provider Profile</h3><div class="notice">Jobs receive karne ke liye SP profile, service area aur skills complete karein. Skills verification ke baad matching jobs milenge.</div><button class="btn" onclick="try{window.parent.openAccount('provider')}catch(e){}">Complete SP Profile</button></div>`;
 if(S.status==="BOOKING_DETAILS"){
  h=S.isQuoteBooking&&S.quoteDecision==="APPROVED"
  ?`<div class="card"><h3>Accepted Get Quote</h3><div class="money">${money(S.total)}</div><div class="muted">Customer booking details complete kar raha hai.</div><button class="btn alt" onclick="providerRequestQuoteRevision()">Request Quote Revision</button></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`
