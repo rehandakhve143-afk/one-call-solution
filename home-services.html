@@ -90,9 +90,11 @@ input,select,textarea{border-radius:13px;border-color:#dce7e6;padding:13px}.noti
 .provider-status-row{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:8px;margin:14px 0 12px;padding:10px 0;border-top:1px solid #e8efed;border-bottom:1px solid #e8efed;font-size:12px;color:#6d8285}
 .provider-status-row .provider-profile-link{justify-self:end;border:0;background:transparent;color:#087d72;font-weight:800;padding:6px 0}
 .provider-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
-.provider-metrics>div{min-width:0;padding:11px 8px;border:1px solid #e1ebe8;border-radius:14px;background:#f8fbfa;text-align:center}
+.provider-metric{min-width:0;padding:11px 8px;border:1px solid #e1ebe8;border-radius:14px;background:#f8fbfa;text-align:center;box-sizing:border-box}
+button.provider-metric{width:100%;font:inherit;cursor:pointer}
 .provider-metrics small{display:block;color:#788b8e;font-size:10px;margin-bottom:4px}
 .provider-metrics b{display:block;color:#173f46;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.provider-wallet-metric em{display:block;margin-top:4px;color:#087d72;font-size:10px;font-style:normal;font-weight:800}
 .provider-wallet-warning{margin:9px 0!important}
 .provider-mini-details{border-top:1px solid #e8efed;padding:10px 0;margin:0}
 .provider-mini-details summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;font-weight:800;color:#284c52;list-style:none}
@@ -277,19 +279,11 @@ body.customer-locked-ui #customer>details.card{display:none!important}
   </div>
 
   <div class="provider-metrics">
-    <div><small>Wallet</small><b id="walletBalance">₹100.00</b></div>
-    <div><small>Current Job</small><b id="currentJob">None</b></div>
-    <div><small>Next Job</small><b id="nextJob">None</b></div>
+    <button type="button" class="provider-metric provider-wallet-metric" onclick="rechargeWallet()"><small>Wallet</small><b id="walletBalance">₹100.00</b><em>Top Up ›</em></button>
+    <div class="provider-metric"><small>Current Job</small><b id="currentJob">None</b></div>
+    <div class="provider-metric"><small>Next Job</small><b id="nextJob">None</b></div>
   </div>
   <div id="walletWarning" class="notice hide provider-wallet-warning"></div>
-
-  <details class="provider-mini-details">
-    <summary>Wallet details & Top Up</summary>
-    <div class="provider-mini-body">
-      <div class="muted">₹100 Welcome Bonus one-time wallet credit hai. Wallet low/negative hone par warning aayegi; new jobs ka Pause/Resume OCS Admin control karega.</div>
-      <button class="btn alt" onclick="rechargeWallet()">Top Up Wallet</button>
-    </div>
-  </details>
 
   <details class="provider-mini-details">
     <summary>⭐ Ratings & Customer Comments</summary>
@@ -2842,7 +2836,7 @@ if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQ
  }else if(verification.includes("pending")||verification===""){
    h=`<div class="card"><h3>Verification Pending</h3><div class="notice">Profile saved hai. Selected skills ko OCS Admin approve karega. Approval ke baad hi matching jobs yahan aayenge.</div><button class="btn gray" onclick="openProviderProfileSafe()">View SP Profile / Skills</button></div>`;
  }else{
-   h=`<div class="provider-idle-state"><b>Ready for New Jobs</b><span>Approved matching skill ka request aate hi yahan dikh jayega.</span></div>`;
+   h="";
  }
 }
 if(S.status==="BOOKING_DETAILS"){
