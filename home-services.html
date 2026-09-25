@@ -74,6 +74,14 @@ input,select,textarea{border-radius:13px;border-color:#dce7e6;padding:13px}.noti
 .sheetSendTop{position:sticky;top:66px;z-index:12040;background:#fff;border-bottom:1px solid #dfe9e7;padding:10px 14px;box-shadow:0 6px 16px #173d4212}
 .sheetSendTop .btn{margin:0;min-height:48px}.addwork-nav{display:grid;grid-template-columns:.72fr 1.28fr;gap:9px}.addwork-nav .btn{width:100%}.addwork-review{border:1px solid #dbe8e5;border-radius:16px;background:#fff;padding:12px;margin-bottom:10px}.addwork-review .rowline{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #edf2f1}.addwork-review .rowline:last-child{border-bottom:0}.addwork-review-total{font-size:18px;font-weight:900;color:#087a70;text-align:right;margin-top:8px}
 .dashboard-tools{display:flex;gap:8px;overflow:auto;padding:2px 0 3px}.dashboard-tools button{white-space:nowrap;min-height:38px;padding:8px 12px}
+.customer-dashboard-card{padding:16px!important}
+.customer-context-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:11px;margin-bottom:10px;border-bottom:1px solid #e8efed}
+.customer-context-head h2{margin:0 0 4px;font-size:20px;color:#173f46}
+.customer-context-head .muted{font-size:12px}
+.customer-context-head .status{flex:0 0 auto}
+.customer-history-card{margin-top:10px!important}
+.customer-history-card summary{font-size:13px}
+.customer-dashboard-card .notice.good:first-child{margin-top:0}
 .provider-dashboard-card{padding:16px!important}
 .provider-headline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .provider-headline h2{margin:0 0 7px;font-size:22px}
@@ -228,15 +236,19 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 </div>
 
 <section id="customer" class="screen">
-<div class="card">
-<h2>Home Services</h2>
-<div class="muted" style="margin-bottom:8px">Book trusted Service Providers with clear rates and support.</div>
-<div class="notice good" style="margin-bottom:10px"><b>Pay Online. Keep Your Service & Payment History Safe.</b></div><span class="customer-debug-status">Status: <span class="status" id="cStatus">READY</span></span>
-<div id="cBody"></div>
-<div id="homeFlowNav"></div>
-<div id="customerAddWorkMount"></div>
+<div class="card customer-dashboard-card">
+  <div class="customer-context-head" id="customerContextHead">
+    <div>
+      <h2>Home Service Booking</h2>
+      <div class="muted" id="customerContextText">Your current OCS service status</div>
+    </div>
+    <span class="status" id="cStatus">READY</span>
+  </div>
+  <div id="cBody"></div>
+  <div id="homeFlowNav"></div>
+  <div id="customerAddWorkMount"></div>
 </div>
-<details class="card"><summary><b>Booking Activity & History</b> <span class="muted">Tap to view</span></summary><div id="cLog" class="log" style="margin-top:10px"></div></details>
+<details class="card customer-history-card"><summary><b>Booking History</b> <span class="muted">Tap to view</span></summary><div id="cLog" class="log" style="margin-top:10px"></div></details>
 </section>
 
 <section id="provider" class="screen hide">
@@ -3301,6 +3313,28 @@ $("pStatus").textContent=!S.providerProfileAvailable
      :(providerIdle?"WAITING FOR JOB":S.status)));
 const pt=$("ptab");const normalBookingNew=S.status==="REQUESTED";const extraWorkNew=S.customerExtraStatus==="SENT_TO_PROVIDER"&&S.customerExtraRequest;const nextWorkNew=!!S.pendingNextRequest;if(pt)pt.textContent=(normalBookingNew||extraWorkNew||nextWorkNew)?"Service Provider • NEW":"Service Provider";
 $("cBody").innerHTML=customerHTML();
+const customerBrowseMode=["SELECT_SERVICE","SELECT_ITEM","CUSTOM_REQUEST"].includes(S.status);
+const customerContextHead=$("customerContextHead");
+if(customerContextHead)customerContextHead.style.display=customerBrowseMode?"none":"flex";
+const customerContextText=$("customerContextText");
+if(customerContextText){
+  const customerStageText={
+    QUOTE_WAIT:"Waiting for Service Provider quote",
+    INITIAL_QUOTE:"Quote received",
+    QUOTE_SECURE_PAYMENT:"Quote accepted • payment choice",
+    ASSIGNED:"Service Provider assigned",
+    ON_WAY:"Service Provider on the way",
+    REACHED:"Service Provider reached",
+    WORKING:"Work in progress",
+    COMPLETION_CONFIRM:"Confirm completed work",
+    PAYMENT:"Payment pending",
+    CASH_WAIT:"Cash confirmation pending",
+    DONE:"Booking completed"
+  };
+  customerContextText.textContent=customerStageText[S.status]||"Your current OCS service status";
+}
+const customerHistoryCard=document.querySelector(".customer-history-card");
+if(customerHistoryCard)customerHistoryCard.style.display=customerBrowseMode?"none":"block";
 if($("homeFlowNav"))$("homeFlowNav").innerHTML=homeFlowNavHTML();
 $("pBody").innerHTML=providerHTML();
 const askExpertBtn=$("providerAskExpertBtn");
