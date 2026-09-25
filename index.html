@@ -819,6 +819,16 @@ if(ocsSupabase){
   });
   setTimeout(refreshOcsEmailStatus,0);
   setTimeout(()=>{try{if(new URLSearchParams(location.search||'').get('login')==='1')openLogin()}catch(e){}},150);
+  setTimeout(async()=>{
+    try{
+      const q=new URLSearchParams(location.search||'');
+      if(q.get('open')==='sp-profile'){
+        const s=await getOcsSession();
+        if(s&&s.user)openAccount('provider');
+        else openLogin();
+      }
+    }catch(e){}
+  },260);
 }
 
 async function openAccountEntry(){
