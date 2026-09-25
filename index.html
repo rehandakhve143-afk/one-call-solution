@@ -27,7 +27,7 @@ try{
 </script><div id="ocsBootSplash"><div class="b"><img src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><strong>One Call Solution</strong><small>Opening OCS...</small></div></div></div><div class="app ocs-approved-home">
 <section class="ocs-super-home" id="ocsSuperHome">
   <header class="ocs-super-top">
-    <div class="ocs-super-loc" onclick="openLocationPicker()" role="button" aria-label="Set service location"><b id="ocsHomeLocation">⌖ Set location ▾</b><span id="ocsHomeLocationSub">Use current location</span></div>
+    <div class="ocs-super-loc" onclick="openLocationPicker()" role="button" aria-label="Set service location"><b id="ocsHomeLocation">⌖ Set location ▾</b><span id="ocsHomeLocationSub">Current location or select area</span></div>
     <div class="ocs-super-brandrow">
       <img class="ocs-super-logo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS">
       <div class="ocs-super-brand"><strong>One Call Solution</strong><small>One for All • All for One</small></div>
@@ -144,13 +144,13 @@ try{
 </div></div>
 
 <div class="modal" id="locationModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>Choose service location</h2><div class="muted">OCS nearby Service Providers ke liye</div></div><button class="x" onclick="closeLocationPicker()">×</button></div>
+  <div class="bottom-hub-head"><div><h2>Choose service location</h2><div class="muted">Current location use karein ya area manually select karein</div></div><button class="x" onclick="closeLocationPicker()">×</button></div>
   <button class="primary" style="width:100%;margin:4px 0 12px" onclick="useCurrentOcsLocation()">⌖ Use Current Location</button>
   <div class="bottom-hub-card">
-    <b>Or enter area</b>
+    <b>Select Area Manually</b>
     <small>Area / City / Pincode</small>
     <input id="ocsManualLocation" placeholder="e.g. Khopoli / Panvel / 410203">
-    <button class="primary" style="width:100%;margin-top:10px" onclick="saveManualOcsLocation()">Use This Location</button>
+    <button style="width:100%;margin-top:10px" onclick="saveManualOcsLocation()">Select Area</button>
   </div>
 </div></div>
 
