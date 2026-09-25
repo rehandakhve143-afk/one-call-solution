@@ -74,7 +74,7 @@ input,select,textarea{border-radius:13px;border-color:#dce7e6;padding:13px}.noti
 .sheetSendTop{position:sticky;top:66px;z-index:12040;background:#fff;border-bottom:1px solid #dfe9e7;padding:10px 14px;box-shadow:0 6px 16px #173d4212}
 .sheetSendTop .btn{margin:0;min-height:48px}.addwork-nav{display:grid;grid-template-columns:.72fr 1.28fr;gap:9px}.addwork-nav .btn{width:100%}.addwork-review{border:1px solid #dbe8e5;border-radius:16px;background:#fff;padding:12px;margin-bottom:10px}.addwork-review .rowline{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #edf2f1}.addwork-review .rowline:last-child{border-bottom:0}.addwork-review-total{font-size:18px;font-weight:900;color:#087a70;text-align:right;margin-top:8px}
 .dashboard-tools{display:flex;gap:8px;overflow:auto;padding:2px 0 3px}.dashboard-tools button{white-space:nowrap;min-height:38px;padding:8px 12px}
-.customer-dashboard-card{padding:16px!important}
+.customer-dashboard-card{padding:14px!important}
 .customer-context-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:11px;margin-bottom:10px;border-bottom:1px solid #e8efed}
 .customer-context-head h2{margin:0 0 4px;font-size:20px;color:#173f46}
 .customer-context-head .muted{font-size:12px}
@@ -82,14 +82,14 @@ input,select,textarea{border-radius:13px;border-color:#dce7e6;padding:13px}.noti
 .customer-history-card{margin-top:10px!important}
 .customer-history-card summary{font-size:13px}
 .customer-dashboard-card .notice.good:first-child{margin-top:0}
-.provider-dashboard-card{padding:16px!important}
+.provider-dashboard-card{padding:14px!important}
 .provider-headline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.provider-headline h2{margin:0 0 7px;font-size:22px}
+.provider-headline h2{margin:0 0 6px;font-size:20px}
 .provider-headline #providerName{font-size:16px;color:#173f46}
 .provider-availability{width:auto!important;min-width:118px!important;margin:0!important;padding:10px 12px!important}
 .provider-status-row{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:8px;margin:14px 0 12px;padding:10px 0;border-top:1px solid #e8efed;border-bottom:1px solid #e8efed;font-size:12px;color:#6d8285}
 .provider-status-row .provider-profile-link{justify-self:end;border:0;background:transparent;color:#087d72;font-weight:800;padding:6px 0}
-.provider-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.provider-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 4px}
 .provider-metric{min-width:0;padding:11px 8px;border:1px solid #e1ebe8;border-radius:14px;background:#f8fbfa;text-align:center;box-sizing:border-box}
 button.provider-metric{width:100%;font:inherit;cursor:pointer}
 .provider-metrics small{display:block;color:#788b8e;font-size:10px;margin-bottom:4px}
@@ -317,15 +317,9 @@ body.customer-locked-ui #customer>details.card{display:none!important}
   </div>
 
   <div class="provider-metrics">
-    <button type="button" class="provider-metric provider-wallet-metric" onclick="rechargeWallet()"><small>Wallet</small><b id="walletBalance">₹100.00</b><em>Top Up ›</em></button>
     <div class="provider-metric"><small>Current Job</small><b id="currentJob">None</b></div>
     <div class="provider-metric"><small>Next Job</small><b id="nextJob">None</b></div>
   </div>
-  <div id="walletWarning" class="notice hide provider-wallet-warning"></div>
-
-  <button type="button" class="provider-payout-row" onclick="openProviderPayoutPanel()">
-    <span>Bank / Payout Details</span><span id="providerPayoutStatus">Add ›</span>
-  </button>
 
   <details class="provider-mini-details">
     <summary>⭐ Ratings & Customer Comments</summary>
@@ -3625,14 +3619,17 @@ const prl=$("providerRatingLine");if(prl)prl.innerHTML=providerRatingSummary();
 const prv=$("providerReviews");if(prv)prv.innerHTML=providerRatingCommentsHTML();
 $("availabilityBtn").textContent="Available: "+(S.available?"ON":"OFF");
 $("availabilityBtn").style.background=S.available?"#16a34a":"#64748b";
-$("walletBalance").textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
+if($("walletBalance"))$("walletBalance").textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 $("currentJob").textContent=S.currentJob||((["WORKING","ON_WAY","REACHED","ASSIGNED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?"Current Booking":"None");
 $("nextJob").textContent=S.nextJob?(S.nextJob.service||"Accepted Next Job"):(S.pendingNextRequest?"NEW REQUEST":"None");
 const walletLow=Number(S.wallet)<Number(S.walletWarningLevel||200);
-$("walletWarning").classList.toggle("hide",!S.adminPaused&&!walletLow);
-$("walletWarning").innerHTML=S.adminPaused
- ?"<b>New booking requests paused by OCS Admin.</b><br>Wallet balance se independent Admin control hai."
- :(walletLow?"<b>Wallet Warning</b><br>Current wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+". Maintain wallet to continue booking smoothly. Warning only; jobs automatically stop nahi hongi.":"");
+const walletWarningEl=$("walletWarning");
+if(walletWarningEl){
+  walletWarningEl.classList.toggle("hide",!S.adminPaused);
+  walletWarningEl.innerHTML=S.adminPaused
+   ?"<b>New booking requests paused by OCS Admin.</b><br>Wallet balance se independent Admin control hai."
+   :"";
+}
 $("cStatus").textContent=S.status;
 const providerIdle=["SELECT_SERVICE","SELECT_ITEM","CUSTOM_REQUEST"].includes(S.status);
 const providerHasSkills=Array.isArray(S.registeredProviderSkills)&&S.registeredProviderSkills.length>0;
