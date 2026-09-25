@@ -442,6 +442,7 @@ const accountVerified={customerMobile:false,customerEmail:false,providerMobile:f
 const OCS_SUPABASE_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
 const OCS_SUPABASE_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 let ocsSupabase=null;
+let ocsSupabaseHooksStarted=false;
 function ocsInitSupabaseClient(){
   try{
     if(!ocsSupabase&&window.supabase&&window.supabase.createClient){
@@ -449,6 +450,7 @@ function ocsInitSupabaseClient(){
         auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
       });
       try{refreshOcsEmailStatus()}catch(e){}
+      try{ocsStartSupabaseHooks()}catch(e){console.error('OCS auth hooks failed',e)}
     }
   }catch(e){console.error('OCS Supabase init failed',e)}
 }
@@ -881,7 +883,7 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('home-services.html?tab=provider&sp=1&v=20260926-spauth1');
+      location.replace('home-services.html?tab=provider&sp=1&v=20260926-sproutefix1');
       return;
     }
     let intent='';
@@ -932,7 +934,9 @@ async function openLogin(){
   document.body.classList.add('ocs-account-open');
   document.getElementById('accountModal').classList.add('show');
 }
-if(ocsSupabase){
+function ocsStartSupabaseHooks(){
+  if(!ocsSupabase||ocsSupabaseHooksStarted)return;
+  ocsSupabaseHooksStarted=true;
   ocsSupabase.auth.onAuthStateChange((event)=>{
     setTimeout(refreshOcsEmailStatus,0);
     if(event==='PASSWORD_RECOVERY')setTimeout(openResetPassword,0);
@@ -946,7 +950,7 @@ if(ocsSupabase){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('home-services.html?tab=provider&sp=1&v=20260926-spauth1');
+          location.replace('home-services.html?tab=provider&sp=1&v=20260926-sproutefix1');
           return;
         }
         await openAccount('provider',false);
@@ -960,6 +964,7 @@ if(ocsSupabase){
     }catch(e){console.error('SP route failed',e)}
   },120);
 }
+if(ocsSupabase)ocsStartSupabaseHooks();
 
 async function openAccountEntry(){
  const session=await getOcsSession();
@@ -1261,7 +1266,7 @@ async function saveProviderAccount(){
    }));
    alert('Changes saved. Approved skills active rahengi; nayi skill verification ke baad active hogi.');
    if(ocsRequestedSpDashboard()){
-     location.replace('home-services.html?tab=provider&sp=1&v=20260926-spauth1');
+     location.replace('home-services.html?tab=provider&sp=1&v=20260926-sproutefix1');
      return;
    }
    await showProviderProfileSummary();
@@ -1375,7 +1380,7 @@ function openBottomProfile(){
    '<button class="ocs-account-row ocs-account-role" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">'+
      '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span><span class="ar-copy"><b>Customer Profile</b><small>'+customerText+'</small></span><span class="ar-go">›</span>'+
    '</button>'+
-   '<button class="ocs-account-row ocs-account-role" onclick="closeBottomHub(\'bottomProfileModal\');'+(provider?"openModule('Home Services','provider')":"openAccount('provider')")+'">'+
+   '<button class="ocs-account-row ocs-account-role" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">'+
      '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5-5l2.1 2.1-2.4 2.4-2.1-2.1a4 4 0 0 0 5 5L20 16.4 16.4 20l-7.7-7.7a4 4 0 0 0-5-5l2.1 2.1-2.4 2.4-2.1-2.1a4 4 0 0 0 5 5l8-8Z"></path></svg></span><span class="ar-copy"><b>Service Provider Profile</b><small>'+providerText+'</small></span><span class="ar-go">›</span>'+
    '</button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">'+
