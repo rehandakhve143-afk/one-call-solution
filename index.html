@@ -781,6 +781,9 @@ async function ensureSimpleCustomerAccount(session){
 async function routeAfterOcsLogin(){
   const session=await getOcsSession();
   if(!session||!session.user)return;
+  // Every OCS login can use Customer features. Service Provider is an additional profile/role.
+  // This keeps one simple account able to book services and, if completed, also work as an SP.
+  await ensureSimpleCustomerAccount(session);
   await updateSettingsLoginState();
   const m=document.getElementById('accountModal');
   if(m)m.classList.remove('show');
