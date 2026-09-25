@@ -1099,8 +1099,15 @@ async function secureQuotePayment(mode){
  if(!ocsGuardAction("secure-quote-"+mode,1600))return;
  const amt=Number(S.total||(S.quote&&S.quote.amount)||0);if(!amt)return;
  if(mode==="CASH"){
-   S.paymentChoice="CASH";S.cashFallback=true;S.paymentHeld=false;S.heldAmount=0;S.payment="CASH_AT_COMPLETION";
-   S.status="BOOKING_DETAILS";hist("Network issue fallback selected • Cash at completion");render();return;
+   try{
+     const {data:b,error:ce}=await ocsSupabase.rpc("customer_select_quote_cash_v1",{p_booking_id:S.activeBookingId});
+     if(ce)throw ce;
+     ocsApplyBackendBooking(b);
+     S.paymentChoice="CASH";S.cashFallback=true;S.paymentHeld=false;S.heldAmount=0;S.payment="CASH_AT_COMPLETION";
+     S.status="ASSIGNED";
+     hist("Network issue fallback selected • Cash at completion • Current Service Provider retained");
+     await ocsLoadLive("customer");render();return;
+   }catch(e){alert("Cash at completion select nahi hua: "+(e&&e.message?e.message:"Unknown error"));return}
  }
  try{
    const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
