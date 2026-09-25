@@ -2649,10 +2649,19 @@ return h;
 function providerHTML(){
 let h="";
 
-if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQUEST")h=
-  S.providerProfileAvailable
-  ?`<div class="card"><h3>Ready for New Jobs</h3><div class="muted">Available for Work ON rakhein. Sirf approved matching skills ke jobs yahan aayenge.</div><button class="btn gray" onclick="try{window.parent.openAccount('provider')}catch(e){}">Edit / Complete SP Profile</button></div>`
-  :`<div class="card"><h3>Complete Service Provider Profile</h3><div class="notice">Jobs receive karne ke liye SP profile, service area aur skills complete karein. Skills verification ke baad matching jobs milenge.</div><button class="btn" onclick="try{window.parent.openAccount('provider')}catch(e){}">Complete SP Profile</button></div>`;
+if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQUEST"){
+ const hasSkills=Array.isArray(S.registeredProviderSkills)&&S.registeredProviderSkills.length>0;
+ const verification=String(S.providerVerificationStatus||"").toLowerCase();
+ if(!S.providerProfileAvailable){
+   h=`<div class="card"><h3>Complete Service Provider Profile</h3><div class="notice">Jobs receive karne ke liye SP profile, service area aur skills complete karein.</div><button class="btn" onclick="try{window.parent.openAccount('provider')}catch(e){}">Complete SP Profile</button></div>`;
+ }else if(!hasSkills){
+   h=`<div class="card"><h3>Skills Required</h3><div class="notice"><b>Abhi koi skill saved nahi hai.</b><br>Electrical ya jo kaam aata hai woh select karke profile save karein. Skill approve hone ke baad matching jobs milenge.</div><button class="btn" onclick="try{window.parent.openAccount('provider')}catch(e){}">Add / Edit Skills</button></div>`;
+ }else if(verification.includes("pending")||verification===""){
+   h=`<div class="card"><h3>Verification Pending</h3><div class="notice">Profile saved hai. Selected skills ko OCS Admin approve karega. Approval ke baad hi matching jobs yahan aayenge.</div><button class="btn gray" onclick="try{window.parent.openAccount('provider')}catch(e){}">View SP Profile / Skills</button></div>`;
+ }else{
+   h=`<div class="card"><h3>Ready for New Jobs</h3><div class="muted">Available for Work ON rakhein. Sirf approved matching skills ke jobs yahan aayenge.</div><button class="btn gray" onclick="try{window.parent.openAccount('provider')}catch(e){}">Edit SP Profile</button></div>`;
+ }
+}
 if(S.status==="BOOKING_DETAILS"){
  h=S.isQuoteBooking&&S.quoteDecision==="APPROVED"
  ?`<div class="card"><h3>Accepted Get Quote</h3><div class="money">${money(S.total)}</div><div class="muted">Customer booking details complete kar raha hai.</div><button class="btn alt" onclick="providerRequestQuoteRevision()">Request Quote Revision</button></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`
@@ -3117,7 +3126,16 @@ $("walletWarning").innerHTML=S.adminPaused
  ?"<b>New booking requests paused by OCS Admin.</b><br>Wallet balance se independent Admin control hai."
  :(walletLow?"<b>Wallet Warning</b><br>Current wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+". Maintain wallet to continue booking smoothly. Warning only; jobs automatically stop nahi hongi.":"");
 $("cStatus").textContent=S.status;
-$("pStatus").textContent=S.status;
+const providerIdle=["SELECT_SERVICE","SELECT_ITEM","CUSTOM_REQUEST"].includes(S.status);
+const providerHasSkills=Array.isArray(S.registeredProviderSkills)&&S.registeredProviderSkills.length>0;
+const providerVerification=String(S.providerVerificationStatus||"").toLowerCase();
+$("pStatus").textContent=!S.providerProfileAvailable
+ ?"PROFILE REQUIRED"
+ :(providerIdle&&!providerHasSkills
+   ?"SKILLS REQUIRED"
+   :(providerIdle&&(providerVerification.includes("pending")||providerVerification==="")
+     ?"VERIFICATION PENDING"
+     :(providerIdle?"WAITING FOR JOB":S.status)));
 const pt=$("ptab");const normalBookingNew=S.status==="REQUESTED";const extraWorkNew=S.customerExtraStatus==="SENT_TO_PROVIDER"&&S.customerExtraRequest;const nextWorkNew=!!S.pendingNextRequest;if(pt)pt.textContent=(normalBookingNew||extraWorkNew||nextWorkNew)?"Service Provider • NEW":"Service Provider";
 $("cBody").innerHTML=customerHTML();
 if($("homeFlowNav"))$("homeFlowNav").innerHTML=homeFlowNavHTML();
