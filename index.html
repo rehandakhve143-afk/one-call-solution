@@ -144,13 +144,14 @@ try{
 </div></div>
 
 <div class="modal" id="locationModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>Choose service location</h2><div class="muted">Current location use karein ya area manually select karein</div></div><button class="x" onclick="closeLocationPicker()">×</button></div>
-  <button class="primary" style="width:100%;margin:4px 0 12px" onclick="useCurrentOcsLocation()">⌖ Use Current Location</button>
-  <div class="bottom-hub-card">
+  <div class="bottom-hub-head"><div><h2>Choose service location</h2><div class="muted">Fast GPS location ya manual area — dono available hain</div></div><button class="x" onclick="closeLocationPicker()">×</button></div>
+  <button class="primary" style="width:100%;margin:4px 0 10px" onclick="useCurrentOcsLocation()">⌖ Use Current Location</button>
+  <button style="width:100%;margin:0 0 10px" onclick="toggleManualOcsLocation()">Select Area Manually</button>
+  <div id="ocsManualLocationWrap" class="bottom-hub-card" style="display:none">
     <b>Select Area Manually</b>
     <small>Area / City / Pincode</small>
     <input id="ocsManualLocation" placeholder="e.g. Khopoli / Panvel / 410203">
-    <button style="width:100%;margin-top:10px" onclick="saveManualOcsLocation()">Select Area</button>
+    <button style="width:100%;margin-top:10px" onclick="saveManualOcsLocation()">Use This Area</button>
   </div>
 </div></div>
 
@@ -1448,9 +1449,17 @@ function renderOcsHomeLocation(){
   sub.textContent=loc.source==='gps'?'Current location':'Service location';
 }
 function openLocationPicker(){
-  const loc=getOcsLocation(),input=document.getElementById('ocsManualLocation');
+  const loc=getOcsLocation(),input=document.getElementById('ocsManualLocation'),wrap=document.getElementById('ocsManualLocationWrap');
   if(input&&loc&&loc.source==='manual')input.value=loc.label||'';
+  if(wrap)wrap.style.display='none';
   document.getElementById('locationModal').classList.add('show');
+}
+function toggleManualOcsLocation(){
+  const wrap=document.getElementById('ocsManualLocationWrap');
+  if(!wrap)return;
+  const opening=wrap.style.display==='none'||!wrap.style.display;
+  wrap.style.display=opening?'block':'none';
+  if(opening)setTimeout(()=>document.getElementById('ocsManualLocation')?.focus(),50);
 }
 function closeLocationPicker(){document.getElementById('locationModal').classList.remove('show')}
 function saveManualOcsLocation(){
