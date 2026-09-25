@@ -24,6 +24,10 @@ try{
     location.replace("home-services.html?tab=provider&sp=1&v=20260926-dashboardclean1");
   }
 }catch(e){}
+</script><script>
+setTimeout(function(){
+  document.documentElement.classList.add('ocs-css-ready');
+},2500);
 </script><div id="ocsBootSplash"><div class="b"><img src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><strong>One Call Solution</strong><small>Opening OCS...</small></div></div></div><div class="app ocs-approved-home">
 <section class="ocs-super-home" id="ocsSuperHome">
   <header class="ocs-super-top">
@@ -403,7 +407,7 @@ try{
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
 <div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Photos / Videos</label><input type="file" accept="image/*,video/*" multiple></div>
 <div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button class="primary" onclick="continueBiz()">Save & Continue →</button></div><div class="muted" style="margin-top:8px">Back/Forward karne par saved details category draft me rahengi; baad me edit/update bhi kar sakte hain.</div></div></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script><script>
+<script>
 let homeSlide=0,homeSlideTimer=null,homeTouchStartX=0;
 function showSlide(index){
  const slides=document.getElementById('slides');
@@ -438,13 +442,24 @@ const accountVerified={customerMobile:false,customerEmail:false,providerMobile:f
 const OCS_SUPABASE_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
 const OCS_SUPABASE_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 let ocsSupabase=null;
-try{
-  if(window.supabase&&window.supabase.createClient){
-    ocsSupabase=window.supabase.createClient(OCS_SUPABASE_URL,OCS_SUPABASE_KEY,{
-      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
-    });
-  }
-}catch(e){console.error('OCS Supabase init failed',e)}
+function ocsInitSupabaseClient(){
+  try{
+    if(!ocsSupabase&&window.supabase&&window.supabase.createClient){
+      ocsSupabase=window.supabase.createClient(OCS_SUPABASE_URL,OCS_SUPABASE_KEY,{
+        auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+      });
+      try{refreshOcsEmailStatus()}catch(e){}
+    }
+  }catch(e){console.error('OCS Supabase init failed',e)}
+}
+(function loadOcsSupabaseNonBlocking(){
+  const s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js';
+  s.async=true;
+  s.onload=ocsInitSupabaseClient;
+  s.onerror=function(){console.warn('OCS online login library could not load; Home remains available.')};
+  document.head.appendChild(s);
+})();
 
 async function getOcsSession(){
   if(!ocsSupabase)return null;
