@@ -215,7 +215,7 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 <button class="btn gray" id="availabilityBtn" onclick="toggleAvailability()">Available: ON</button>
 </div>
 <div class="notice good" style="margin:10px 0"><b>Get Paid Online. Earn More. Win Rewards.</b></div>
-<button class="btn gray" style="margin-bottom:10px" onclick="try{window.parent.openAccount('provider')}catch(e){}">SP Profile / Skills / Verification</button>
+<button class="btn gray" style="margin-bottom:10px" onclick="openProviderProfileSafe()">SP Profile / Skills / Verification</button>
 Status: <span class="status" id="pStatus">WAITING</span>
 <details class="card" style="margin-top:12px">
   <summary><b>OCS Wallet & Job Queue</b> <span class="muted">Tap to view</span></summary><div style="margin-top:10px">
@@ -1400,6 +1400,17 @@ function syncHomeState(){
   syncRegisteredProfiles();
   renderCore();
   updateSelectionTray();
+}
+function openProviderProfileSafe(){
+  try{
+    if(window.parent && window.parent!==window && typeof window.parent.openAccount==="function"){
+      window.parent.openAccount("provider");
+      return;
+    }
+  }catch(e){}
+  try{
+    location.href="index.html?open=sp-profile&v=20260925-spfix1";
+  }catch(e){}
 }
 
 async function toggleAvailability(){
@@ -2696,13 +2707,13 @@ if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQ
  const hasSkills=Array.isArray(S.registeredProviderSkills)&&S.registeredProviderSkills.length>0;
  const verification=String(S.providerVerificationStatus||"").toLowerCase();
  if(!S.providerProfileAvailable){
-   h=`<div class="card"><h3>Complete Service Provider Profile</h3><div class="notice">Jobs receive karne ke liye SP profile, service area aur skills complete karein.</div><button class="btn" onclick="try{window.parent.openAccount('provider')}catch(e){}">Complete SP Profile</button></div>`;
+   h=`<div class="card"><h3>Complete Service Provider Profile</h3><div class="notice">Jobs receive karne ke liye SP profile, service area aur skills complete karein.</div><button class="btn" onclick="openProviderProfileSafe()">Complete SP Profile</button></div>`;
  }else if(!hasSkills){
-   h=`<div class="card"><h3>Skills Required</h3><div class="notice"><b>Abhi koi skill saved nahi hai.</b><br>Electrical ya jo kaam aata hai woh select karke profile save karein. Skill approve hone ke baad matching jobs milenge.</div><button class="btn" onclick="try{window.parent.openAccount('provider')}catch(e){}">Add / Edit Skills</button></div>`;
+   h=`<div class="card"><h3>Skills Required</h3><div class="notice"><b>Abhi koi skill saved nahi hai.</b><br>Electrical ya jo kaam aata hai woh select karke profile save karein. Skill approve hone ke baad matching jobs milenge.</div><button class="btn" onclick="openProviderProfileSafe()">Add / Edit Skills</button></div>`;
  }else if(verification.includes("pending")||verification===""){
-   h=`<div class="card"><h3>Verification Pending</h3><div class="notice">Profile saved hai. Selected skills ko OCS Admin approve karega. Approval ke baad hi matching jobs yahan aayenge.</div><button class="btn gray" onclick="try{window.parent.openAccount('provider')}catch(e){}">View SP Profile / Skills</button></div>`;
+   h=`<div class="card"><h3>Verification Pending</h3><div class="notice">Profile saved hai. Selected skills ko OCS Admin approve karega. Approval ke baad hi matching jobs yahan aayenge.</div><button class="btn gray" onclick="openProviderProfileSafe()">View SP Profile / Skills</button></div>`;
  }else{
-   h=`<div class="card"><h3>Ready for New Jobs</h3><div class="muted">Available for Work ON rakhein. Sirf approved matching skills ke jobs yahan aayenge.</div><button class="btn gray" onclick="try{window.parent.openAccount('provider')}catch(e){}">Edit SP Profile</button></div>`;
+   h=`<div class="card"><h3>Ready for New Jobs</h3><div class="muted">Available for Work ON rakhein. Sirf approved matching skills ke jobs yahan aayenge.</div><button class="btn gray" onclick="openProviderProfileSafe()">Edit SP Profile</button></div>`;
  }
 }
 if(S.status==="BOOKING_DETAILS"){
