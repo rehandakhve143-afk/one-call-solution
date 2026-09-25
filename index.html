@@ -15,7 +15,16 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 
 
 
-</head><body><div id="ocsBootSplash"><div class="b"><img src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><strong>One Call Solution</strong><small>Opening OCS...</small></div></div></div><div class="app ocs-approved-home">
+</head><body><script>
+try{
+  const q=new URLSearchParams(location.search||"");
+  if(q.get("admin")==="1"){
+    location.replace("home-services.html?tab=admin&v=20260925-adminstable1");
+  }else if(q.get("sp")==="1"){
+    location.replace("home-services.html?tab=provider&sp=1&v=20260925-spstable1");
+  }
+}catch(e){}
+</script><div id="ocsBootSplash"><div class="b"><img src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><strong>One Call Solution</strong><small>Opening OCS...</small></div></div></div><div class="app ocs-approved-home">
 <section class="ocs-super-home" id="ocsSuperHome">
   <header class="ocs-super-top">
     <div class="ocs-super-loc" onclick="openLocationPicker()" role="button" aria-label="Set service location"><b id="ocsHomeLocation">⌖ Set location ▾</b><span id="ocsHomeLocationSub">Use current location</span></div>
