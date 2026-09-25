@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20260924-lite1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260924-lite1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20260926-profileclean1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-profileclean1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -1358,11 +1358,11 @@ function openBottomProfile(){
 
  body.innerHTML=
  '<div class="ocs-account-list">'+
-   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">'+
-     '<span class="ar-ico">👤</span><span class="ar-copy"><b>Customer Profile</b><small>'+customerText+'</small></span><span class="ar-go">›</span>'+
+   '<button class="ocs-account-row ocs-account-role" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">'+
+     '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span><span class="ar-copy"><b>Customer Profile</b><small>'+customerText+'</small></span><span class="ar-go">›</span>'+
    '</button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');'+(provider?"openModule('Home Services','provider')":"openAccount('provider')")+'">'+
-     '<span class="ar-ico">🛠</span><span class="ar-copy"><b>Service Provider</b><small>'+providerText+'</small></span><span class="ar-go">›</span>'+
+     '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5-5l2.1 2.1-2.4 2.4-2.1-2.1a4 4 0 0 0 5 5L20 16.4 16.4 20l-7.7-7.7a4 4 0 0 0-5-5l2.1 2.1-2.4 2.4-2.1-2.1a4 4 0 0 0 5 5l8-8Z"></path></svg></span><span class="ar-copy"><b>Service Provider Profile</b><small>'+providerText+'</small></span><span class="ar-go">›</span>'+
    '</button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">'+
      '<span class="ar-ico">⚙️</span><span class="ar-copy"><b>Settings</b><small>Login, location, notifications & logout</small></span><span class="ar-go">›</span>'+
