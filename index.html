@@ -254,7 +254,8 @@ try{
   <div class="verifyok" id="providerMobileStatus">Mobile verification: Verify later in Settings</div>
   <label>Service Area / City *</label><input id="paArea" placeholder="e.g. Khopoli / Panvel">
   <label>Service Radius *</label><select id="paRadius"><option value="6">Up to 6 km</option><option value="12">Up to 12 km</option><option value="20">Up to 20 km</option><option value="30">Up to 30 km</option></select>
-  <label>Select Skills (multiple allowed)</label>
+  <label>Select Skills</label>
+  <div id="providerSkillLockHelp" class="help" style="margin:4px 0 9px">Approved skill lock rahegi. Nayi skill add kar sakte hain; nayi skill OCS Admin approval ke baad active hogi.</div>
   <div class="skillgrid">
     <label><input type="checkbox" name="paSkill" value="Electrical">Electrical</label>
     <label><input type="checkbox" name="paSkill" value="Plumbing">Plumbing</label>
@@ -284,7 +285,7 @@ try{
     <input id="paOtherSkill" placeholder="e.g. Glass work / Door repair / Custom service">
   </div>
   <div class="help" style="margin-top:12px">KYC, selfie, Mobile verification aur Bank / Payout details baad me Settings me complete honge. Pehle basic Service Provider profile save karein.</div>
-  <button class="primary account-submit" onclick="saveProviderAccount()">Save Service Provider Profile</button>
+  <button class="primary account-submit" onclick="saveProviderAccount()">Save Profile / Add New Skills</button>
   </div>
 </div>
 </div></div>
@@ -733,6 +734,67 @@ function providerSkillLabels(){
   }
   return skills;
 }
+function providerUiSkillMatchesBackend(label,s){
+  const cat=String(s&&s.category||'').trim();
+  const name=String(s&&s.service_name||'').trim();
+  if(label==='Electrical')return cat==='Electrical';
+  if(label==='Plumbing')return cat==='Plumbing';
+  if(label==='Carpenter')return cat==='Carpenter';
+  if(label==='AC')return cat==='AC Service';
+  if(label==='Washing Machine')return cat==='Appliance Repair'&&name==='Washing Machine Repair / Service';
+  if(label==='Refrigerator')return cat==='Appliance Repair'&&name==='Refrigerator Repair / Service';
+  if(label==='Chimney')return cat==='Appliance Repair'&&name==='Chimney Repair / Service';
+  if(label==='RO / Water Purifier')return cat==='Appliance Repair'&&name==='RO / Water Purifier Repair / Service';
+  if(label==='Cleaning')return cat==='Cleaning';
+  if(label==='Maid')return cat==='Maid Service'&&name!=='Cooking – Per Visit';
+  if(label==='Cook')return cat==='Maid Service'&&name==='Cooking – Per Visit';
+  if(label==='Pest Control')return cat==='Pest Control';
+  if(label==='CCTV')return cat==='CCTV';
+  if(label==='Gas Stove')return cat==='Gas Stove';
+  if(label==='Wi-Fi / TV Setup')return cat==='Wi-Fi / TV Installation & Setup';
+  if(label==='Packers & Movers')return cat==='Packers & Movers';
+  if(label==='Painter')return cat==='Painter';
+  if(label==='Tiles / Stone Work')return cat==='Tiles / Stone';
+  if(label==='Waterproofing')return cat==='Waterproofing';
+  if(label==='False Ceiling / POP / Gypsum / PVC')return cat==='False Ceiling / POP / Gypsum / PVC';
+  if(label==='General Labour / Helper')return name==='General Labour / Helper';
+  return false;
+}
+async function lockApprovedProviderSkills(){
+  const help=document.getElementById('providerSkillLockHelp');
+  if(!ocsSupabase)return;
+  try{
+    const session=await getOcsSession();
+    if(!session||!session.user)return;
+    const {data:snap,error}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
+    if(error)throw error;
+    const rows=Array.isArray(snap&&snap.skills)?snap.skills:[];
+    const approved=rows.filter(s=>s&&s.enabled_by_provider!==false&&(s.approved===true||String(s.verification_status||'').toLowerCase()==='approved'));
+    document.querySelectorAll('input[name="paSkill"]').forEach(x=>{
+      if(x.value==='Other')return;
+      if(approved.some(s=>providerUiSkillMatchesBackend(x.value,s))){
+        x.checked=true;
+        x.disabled=true;
+        x.setAttribute('data-approved-locked','1');
+        const lab=x.closest('label');
+        if(lab){
+          lab.style.background='#eef9f5';
+          lab.style.borderColor='#cde8dc';
+          if(!lab.querySelector('.ocs-approved-skill-tag')){
+            const tag=document.createElement('small');
+            tag.className='ocs-approved-skill-tag';
+            tag.textContent='Approved ✓';
+            tag.style.cssText='display:block;margin-left:24px;color:#16815d;font-size:10px;font-weight:800';
+            lab.appendChild(tag);
+          }
+        }
+      }
+    });
+    if(help&&approved.length){
+      help.innerHTML='<b>Approved skills locked.</b> Nayi skill select kar sakte hain; nayi skill Admin approval ke baad active hogi. Approved skill remove/change ke liye OCS Support/Admin request use karein.';
+    }
+  }catch(e){console.error('Approved skill lock failed',e)}
+}
 async function syncProviderRegistrationToBackend(name,mobile,skills){
   if(!ocsSupabase)throw new Error('Online service not connected');
   const session=await getOcsSession();
@@ -869,15 +931,27 @@ function openAccount(role){
  }
  if(isProvider){
    const p=getProviderProfile();
+   document.querySelectorAll('input[name="paSkill"]').forEach(x=>{
+     x.disabled=false;
+     x.removeAttribute('data-approved-locked');
+     x.checked=!!(p&&Array.isArray(p.skills)&&p.skills.includes(x.value));
+     const lab=x.closest('label');
+     if(lab){
+       lab.style.background='';
+       lab.style.borderColor='';
+       const old=lab.querySelector('.ocs-approved-skill-tag');
+       if(old)old.remove();
+     }
+   });
    if(p){
      const n=document.getElementById('paName'),m=document.getElementById('paMobile'),a=document.getElementById('paArea'),r=document.getElementById('paRadius'),st=document.getElementById('providerMobileStatus');
-     if(n&&!n.value)n.value=p.name||'';
-     if(m&&!m.value)m.value=p.mobile||'';
-     if(a&&!a.value)a.value=p.area||'';
+     if(n)n.value=p.name||'';
+     if(m)m.value=p.mobile||'';
+     if(a)a.value=p.area||'';
      if(r&&p.radius)r.value=String(p.radius);
      if(st){st.textContent=p.mobileVerified?'✓ Mobile verified':'Mobile verification: Verify later in Settings';st.style.color=p.mobileVerified?'#16815d':'#6f8188'}
-     document.querySelectorAll('input[name="paSkill"]').forEach(x=>{if(Array.isArray(p.skills)&&p.skills.includes(x.value))x.checked=true});
    }
+   setTimeout(lockApprovedProviderSkills,0);
  }
  document.body.classList.add('ocs-account-open');
  document.getElementById('accountModal').classList.add('show');
