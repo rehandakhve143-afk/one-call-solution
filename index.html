@@ -104,7 +104,7 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
   <button class="on" onclick="bottomHome()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3Z"/></svg>Home</button>
   <button onclick="openBottomBookings()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>Bookings</button>
   <button onclick="openMyOcs('inbox')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4V5Z"/><path d="M8 9h8M8 12h5"/></svg>Chat</button>
-  <button onclick="alert('OCS Wallet customer view will open here.')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h15a2 2 0 0 1 2 2v9H4V7Z"/><path d="M4 7V5h13M16 12h5"/></svg>Wallet</button>
+  <button onclick="openWalletHub()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h15a2 2 0 0 1 2 2v9H4V7Z"/><path d="M4 7V5h13M16 12h5"/></svg>Wallet</button>
   <button onclick="openAccountEntry()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>Profile</button>
 </nav>
 <div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div><button id="windowManageBtn" class="window-manage" onclick="manageCurrentWindow()">+ Add / Edit</button></div><iframe id="frame"></iframe></div>
@@ -146,19 +146,32 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 </div></div>
 
 <div class="modal" id="settingsModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>⚙️ Settings</h2><div class="muted">OCS app preferences</div></div><button class="x" onclick="closeSettings()">×</button></div>
+  <div class="bottom-hub-head"><div><h2>⚙️ Settings & Account</h2><div class="muted">Profile completion, bookings, wallet, history & app preferences</div></div><button class="x" onclick="closeSettings()">×</button></div>
+  <div id="settingsAccountOverview" class="bottom-hub-card"><b>OCS Account</b><small>Loading account status...</small></div>
   <div class="ocs-settings-grid">
-    <div class="ocs-setting-row"><div><b>OCS Account</b><small id="settingsLoginState">Not logged in</small></div><button id="settingsLoginBtn" onclick="settingsLoginAction()">Logout</button></div>
-    <div class="ocs-setting-row"><div><b>Customer Profile</b><small id="settingsCustomerProfileState">Create or edit your Customer profile</small></div><button onclick="closeSettings();openAccount('customer')">Create / Edit</button></div>
-    <div class="ocs-setting-row"><div><b>Service Provider Profile</b><small id="settingsProviderProfileState">Create SP profile • ₹100 Welcome Bonus on first setup</small></div><button onclick="closeSettings();openAccount('provider')">Create / Edit</button></div>
+    <div class="ocs-setting-row"><div><b>OCS Login</b><small id="settingsLoginState">Not logged in</small></div><button id="settingsLoginBtn" onclick="settingsLoginAction()">Login</button></div>
+    <div class="ocs-setting-row"><div><b>Customer Profile</b><small id="settingsCustomerProfileState">Complete your Customer profile</small></div><button onclick="closeSettings();openAccount('customer')">Open</button></div>
+    <div class="ocs-setting-row"><div><b>Service Provider Profile</b><small id="settingsProviderProfileState">Complete SP profile & verification</small></div><button onclick="closeSettings();openAccount('provider')">Open</button></div>
+    <div class="ocs-setting-row"><div><b>Mobile Verification</b><small id="settingsMobileVerifyState">Check verification status</small></div><button onclick="openCustomerMobileVerification()">Verify</button></div>
+    <div class="ocs-setting-row"><div><b>My Bookings</b><small>Current Home Service booking & status</small></div><button onclick="closeSettings();openBottomBookings()">Open</button></div>
+    <div class="ocs-setting-row"><div><b>Customer Work History</b><small>Completed, cancelled & settled bookings</small></div><button onclick="closeSettings();openWorkHistory('CUSTOMER')">View</button></div>
+    <div class="ocs-setting-row"><div><b>SP Work History</b><small>Completed jobs, earning & OCS commission</small></div><button onclick="closeSettings();openWorkHistory('PROVIDER')">View</button></div>
+    <div class="ocs-setting-row"><div><b>Wallet & Earnings</b><small id="settingsWalletState">Customer wallet + SP wallet balance</small></div><button onclick="closeSettings();openWalletHub()">Open</button></div>
+    <div class="ocs-setting-row"><div><b>Saved & OCS Inbox</b><small>Liked listings, enquiries and chats</small></div><button onclick="closeSettings();openMyOcs('saved')">Open</button></div>
     <div class="ocs-setting-row"><div><b>Notifications</b><small>Booking, quote, payment and support updates</small></div><input id="setNotifications" type="checkbox"></div>
-    <div class="ocs-setting-row"><div><b>Location</b><small>Nearby Service Provider and directions • <span id="setLocationState">Not allowed</span></small></div><button onclick="requestOcsLocation()">Allow</button></div>
-    <div class="ocs-setting-row"><div><b>Preferred Payment</b><small>Online recommended • Cash only for network issue</small></div><select id="setPayment" style="width:120px;margin:0"><option value="ONLINE">Online</option><option value="CASH">Cash</option></select></div>
+    <div class="ocs-setting-row"><div><b>Location</b><small>Nearby Service Provider and directions • <span id="setLocationState">Not allowed</span></small></div><button onclick="requestOcsLocation()">Set</button></div>
+    <div class="ocs-setting-row"><div><b>Preferred Payment</b><small>Online recommended • Cash for network issue</small></div><select id="setPayment" style="width:120px;margin:0"><option value="ONLINE">Online</option><option value="CASH">Cash</option></select></div>
     <div class="ocs-setting-row"><div><b>Language</b><small>App display preference</small></div><select id="setLanguage" style="width:120px;margin:0"><option value="EN">English</option><option value="HI">Hindi</option><option value="MR">Marathi</option></select></div>
-    <div class="ocs-setting-row"><div><b>Privacy</b><small>Use contact/location only for required booking and business actions.</small></div><span>🔒</span></div>
+    <div class="ocs-setting-row"><div><b>Privacy & Security</b><small>Contact/location used only for required OCS actions.</small></div><span>🔒</span></div>
   </div>
-  <button class="primary" style="margin-top:12px" onclick="saveSettings()">Save Settings</button>
-  <div class="bottom-hub-actions"><button onclick="closeSettings();openBottomSupport()">Help / Support</button><button onclick="closeSettings();openBottomProfile()">Profiles</button></div>
+  <button class="primary" style="margin-top:12px;width:100%" onclick="saveSettings()">Save Settings</button>
+  <div class="bottom-hub-actions"><button onclick="closeSettings();openBottomSupport()">Help / Support</button><button onclick="closeSettings()">Close</button></div>
+</div></div>
+
+<div class="modal" id="walletModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>OCS Wallet</h2><div class="muted">Customer rewards + Service Provider wallet & earnings</div></div><button class="x" onclick="closeWalletHub()">×</button></div>
+  <div id="walletHubBody"></div>
+  <div class="bottom-hub-actions"><button onclick="closeWalletHub();openWorkHistory('PROVIDER')">SP Work History</button><button onclick="closeWalletHub()">Close</button></div>
 </div></div>
 
 <div class="modal" id="ocsFeedbackModal"><div class="sheet">
@@ -213,9 +226,9 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
   <div id="customerAuthBox">
   <label>Mobile Number or Email ID *</label><input id="caEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
   <button class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('customer')">Continue</button>
-  <div id="customerLoginOtpWrap" style="display:none;margin-top:10px"><label>SMS OTP *</label><div class="verifyrow"><input id="customerLoginOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifySimpleOcsOtp('customer')">Verify & Login</button></div></div>
+  <div id="customerLoginOtpWrap" style="display:none;margin-top:10px"><label id="customerLoginOtpLabel">6-digit OTP *</label><div class="verifyrow"><input id="customerLoginOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifySimpleOcsOtp('customer')">Verify & Login</button></div><button type="button" class="btn gray" style="margin-top:8px;width:100%" onclick="resendSimpleOcsOtp('customer')">Resend OTP</button></div>
   <div class="verifyok" id="customerEmailStatus">Mobile ya Email se simple login</div>
-  <div class="help" style="margin:7px 0 12px">Email ID ya Mobile Number dalo → Continue. Login ke baad OCS Home khulega. Customer/SP profile Settings se create ya edit karein.</div>
+  <div class="help" style="margin:7px 0 12px">Email ID ya Mobile Number dalo → Continue → 6-digit OTP → Verify & Login. Email link ki zarurat nahi. Login ke baad OCS Home khulega; pending profile Settings me complete karein.</div>
   </div>
   <div id="customerProfileSetup" style="display:none">
   <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
@@ -230,9 +243,9 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
   <div id="providerAuthBox">
   <label>Mobile Number or Email ID *</label><input id="paEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
   <button class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('provider')">Continue</button>
-  <div id="providerLoginOtpWrap" style="display:none;margin-top:10px"><label>SMS OTP *</label><div class="verifyrow"><input id="providerLoginOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifySimpleOcsOtp('provider')">Verify & Login</button></div></div>
+  <div id="providerLoginOtpWrap" style="display:none;margin-top:10px"><label id="providerLoginOtpLabel">6-digit OTP *</label><div class="verifyrow"><input id="providerLoginOtp" inputmode="numeric" maxlength="6" placeholder="6-digit OTP"><button onclick="verifySimpleOcsOtp('provider')">Verify & Login</button></div><button type="button" class="btn gray" style="margin-top:8px;width:100%" onclick="resendSimpleOcsOtp('provider')">Resend OTP</button></div>
   <div class="verifyok" id="providerEmailStatus">Mobile ya Email se simple login</div>
-  <div class="help" style="margin:7px 0 12px">New aur existing user ke liye same login. Password ya Create Account alag se nahi chahiye.</div>
+  <div class="help" style="margin:7px 0 12px">New aur existing user ke liye same flow: Email/Mobile → OTP → Login. Password, magic link ya separate Create Account screen nahi chahiye.</div>
   </div>
   <div id="providerProfileSetup" style="display:none">
   <label>Full Name *</label><input id="paName" autocomplete="name" placeholder="Service Provider name">
@@ -524,46 +537,67 @@ async function simpleOcsLogin(role){
   if(!isEmail&&!phone){alert('Valid 10-digit Mobile Number ya Email ID enter karein.');return false}
   try{
     if(isEmail){
-      const redirect='https://rehandakhve143-afk.github.io/one-call-solution/';
       const {error}=await ocsSupabase.auth.signInWithOtp({
         email:raw,
-        options:{shouldCreateUser:true,emailRedirectTo:redirect,data:{last_login_role:isProvider?'service_provider':'customer'}}
+        options:{shouldCreateUser:true,data:{last_login_role:isProvider?'service_provider':'customer'}}
       });
       if(error)throw error;
-      if(st){st.textContent='✓ Login link email par bheja gaya';st.style.color='#b7791f'}
-      alert('Email par OCS login link bhej diya. Mail me link press karte hi login ho jayega. Alag confirmation ya password nahi chahiye.');
+      try{localStorage.setItem('ocsLoginOtpTarget',JSON.stringify({role:isProvider?'provider':'customer',type:'email',value:raw.toLowerCase()}))}catch(e){}
+      const wrap=document.getElementById(isProvider?'providerLoginOtpWrap':'customerLoginOtpWrap');
+      const label=document.getElementById(isProvider?'providerLoginOtpLabel':'customerLoginOtpLabel');
+      if(wrap)wrap.style.display='block';
+      if(label)label.textContent='6-digit Email OTP *';
+      if(st){st.textContent='✓ Email OTP sent • code yahin enter karein';st.style.color='#b7791f'}
       return true;
     }
     const {error}=await ocsSupabase.auth.signInWithOtp({phone});
     if(error)throw error;
+    try{localStorage.setItem('ocsLoginOtpTarget',JSON.stringify({role:isProvider?'provider':'customer',type:'sms',value:phone}))}catch(e){}
     const wrap=document.getElementById(isProvider?'providerLoginOtpWrap':'customerLoginOtpWrap');
+    const label=document.getElementById(isProvider?'providerLoginOtpLabel':'customerLoginOtpLabel');
     if(wrap)wrap.style.display='block';
-    if(st){st.textContent='✓ SMS OTP sent';st.style.color='#b7791f'}
+    if(label)label.textContent='6-digit SMS OTP *';
+    if(st){st.textContent='✓ SMS OTP sent • code yahin enter karein';st.style.color='#b7791f'}
     return true;
   }catch(e){
     const msg=(e&&e.message?e.message:'Unknown error');
-    console.error('Simple OCS login failed',e);
+    console.error('Simple OCS OTP login failed',e);
     if(/phone logins are disabled|phone provider disabled/i.test(msg)){
-      alert('Mobile OTP backend SMS setup abhi pending hai. Final OCS me Mobile Number → OTP → Login rahega. Abhi Email ID se Continue karein.');
+      alert('Mobile OTP/SMS provider setup abhi pending hai. Email OTP use karein; final OCS me Email aur Mobile dono same OTP screen par rahenge.');
     }else{
-      alert('Login start nahi hua: '+msg);
+      alert('OTP send nahi hua: '+msg);
     }
     return false;
+  }
+}
+async function resendSimpleOcsOtp(role){
+  const ok=await simpleOcsLogin(role);
+  if(ok){
+    const isProvider=role==='provider';
+    const st=document.getElementById(isProvider?'providerEmailStatus':'customerEmailStatus');
+    if(st)st.textContent=st.textContent.replace('sent','resent');
   }
 }
 async function verifySimpleOcsOtp(role){
   if(!ocsSupabase)return false;
   const isProvider=role==='provider';
   const input=document.getElementById(isProvider?'paEmail':'caEmail');
-  const phone=ocsIndiaPhone(input?.value||'');
+  const raw=(input?.value||'').trim();
+  const isEmail=raw.includes('@');
+  const phone=!isEmail?ocsIndiaPhone(raw):'';
   const token=(document.getElementById(isProvider?'providerLoginOtp':'customerLoginOtp')?.value||'').trim();
-  if(!phone||token.length<6){alert('Mobile Number aur 6-digit OTP check karein.');return false}
+  if(token.length!==6){alert('6-digit OTP enter karein.');return false}
+  if(!isEmail&&!phone){alert('Valid Email ID ya Mobile Number check karein.');return false}
   try{
-    const {error}=await ocsSupabase.auth.verifyOtp({phone,token,type:'sms'});
+    const payload=isEmail?{email:raw,token,type:'email'}:{phone,token,type:'sms'};
+    const {error}=await ocsSupabase.auth.verifyOtp(payload);
     if(error)throw error;
+    try{localStorage.removeItem('ocsLoginOtpTarget')}catch(e){}
     await refreshOcsEmailStatus();
     const wrap=document.getElementById(isProvider?'providerLoginOtpWrap':'customerLoginOtpWrap');
+    const st=document.getElementById(isProvider?'providerEmailStatus':'customerEmailStatus');
     if(wrap)wrap.style.display='none';
+    if(st){st.textContent='✓ OTP verified • Logged in';st.style.color='#16815d'}
     await routeAfterOcsLogin(role);
     return true;
   }catch(e){
@@ -773,7 +807,7 @@ async function openLogin(){
   const setup=document.getElementById('customerProfileSetup');
   if(pill)pill.textContent='OCS ACCOUNT';
   if(title)title.textContent='Login to One Call Solution';
-  if(sub)sub.textContent='Email ID ya Mobile Number se login • OCS Home par wapas jayega';
+  if(sub)sub.textContent='Email ID ya Mobile Number → 6-digit OTP → direct OCS Home';
   if(cf)cf.style.display='block';
   if(pf)pf.style.display='none';
   if(auth)auth.style.display='block';
@@ -1019,7 +1053,7 @@ function setBottomActive(id){
  const x=document.getElementById(id);if(x)x.classList.add('active');
 }
 function closeBottomHub(id){const m=document.getElementById(id);if(m)m.classList.remove('show')}
-function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','workHistoryModal','settingsModal','locationModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
+function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','workHistoryModal','settingsModal','walletModal','locationModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
 function bottomHome(){
  closeAllBottomHubs();
  if(document.getElementById('viewer')?.classList.contains('show'))closeModule();
@@ -1112,6 +1146,42 @@ function openBottomProfile(){
  '</div>';
  document.getElementById('bottomProfileModal').classList.add('show');
 }
+
+
+function getOcsWalletSnapshot(){
+ let customer=0,sp=0,spPaused=false,commission=9,welcome=100;
+ try{customer=Number(localStorage.getItem('ocsCustomerWalletBalance')||0)||0}catch(e){}
+ try{
+   const s=JSON.parse(localStorage.getItem('ocsHomeServiceFullState')||'null');
+   if(s&&typeof s==='object'){
+     if(Number.isFinite(Number(s.wallet)))sp=Number(s.wallet);
+     spPaused=!!s.adminPaused;
+     commission=Number.isFinite(Number(s.platformCharge))?Number(s.platformCharge):9;
+     welcome=Number.isFinite(Number(s.welcomeBonus))?Number(s.welcomeBonus):100;
+   }else{
+     const p=getProviderProfile();
+     if(p)sp=Number(p.wallet||welcome)||welcome;
+   }
+ }catch(e){
+   const p=getProviderProfile();
+   if(p)sp=Number(p.wallet||welcome)||welcome;
+ }
+ return {customer,sp,spPaused,commission,welcome};
+}
+function renderWalletHub(){
+ const body=document.getElementById('walletHubBody');if(!body)return;
+ const w=getOcsWalletSnapshot(),cp=getCustomerProfile(),sp=getProviderProfile();
+ body.innerHTML=
+ '<div class="bottom-hub-card"><b>Customer Wallet</b><small>Referral / reward balance</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.customer).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Share & Earn reward qualifying booking ke baad credit hoga.</div></div>'+
+ '<div class="bottom-hub-card"><b>Service Provider Wallet</b><small>'+(sp?(sp.name||'Service Provider'):'SP profile not created')+'</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.sp).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">OCS commission: '+Number(w.commission)+'% • Welcome Bonus: ₹'+Number(w.welcome).toLocaleString('en-IN')+' • Wallet negative hone par job automatically block nahi hogi; Admin warning/pause control rahega.</div>'+(w.spPaused?'<div class="notice" style="margin-top:8px">New jobs temporarily paused by Admin.</div>':'')+'</div>'+
+ '<div class="bottom-hub-card"><b>Wallet Safety</b><small>Wallet balance, commission and reward history final backend records se sync honge. Customer payment history Bookings / Work History me alag rahegi.</small></div>';
+}
+function openWalletHub(){
+ closeAllBottomHubs();
+ renderWalletHub();
+ const m=document.getElementById('walletModal');if(m)m.classList.add('show');
+}
+function closeWalletHub(){const m=document.getElementById('walletModal');if(m)m.classList.remove('show')}
 
 const OCS_WORK_HISTORY_KEY='ocsWorkHistoryV1';
 let workHistoryRole='CUSTOMER';
@@ -1265,10 +1335,24 @@ async function openSettings(){
  document.getElementById('setLanguage').value=x.language||'EN';
  const loc=document.getElementById('setLocationState');
  if(loc)loc.textContent=x.locationAllowed?'Allowed':'Not allowed';
- const cp=getCustomerProfile(),sp=getProviderProfile();
+ const cp=getCustomerProfile(),sp=getProviderProfile(),w=getOcsWalletSnapshot();
  const cs=document.getElementById('settingsCustomerProfileState'),ps=document.getElementById('settingsProviderProfileState');
- if(cs)cs.textContent=cp?'Customer Profile created • tap to edit':'Create Customer Profile';
- if(ps)ps.textContent=sp?'Service Provider Profile created • tap to edit':'Create SP profile • ₹100 Welcome Bonus on first setup';
+ const cpComplete=!!(cp&&cp.name&&cp.mobile&&cp.email);
+ const spComplete=!!(sp&&sp.name&&sp.mobile&&sp.area&&Array.isArray(sp.skills)&&sp.skills.length);
+ if(cs)cs.textContent=cpComplete?'✓ Basic profile complete • tap to edit':(cp?'Profile saved • pending details / verification':'Pending • create Customer profile');
+ if(ps)ps.textContent=spComplete?('Basic profile complete • '+(sp.status||sp.kycStatus||'verification pending')):(sp?'Profile saved • pending skills/area/verification':'Pending • create Service Provider profile');
+ const ws=document.getElementById('settingsWalletState');
+ if(ws)ws.textContent='Customer ₹'+Number(w.customer).toLocaleString('en-IN')+' • SP ₹'+Number(w.sp).toLocaleString('en-IN');
+ const session=await getOcsSession();
+ const overview=document.getElementById('settingsAccountOverview');
+ if(overview){
+   const id=session&&session.user?(session.user.email||session.user.phone||'Logged in'):'Not logged in';
+   const pending=[];
+   if(!cpComplete)pending.push('Customer Profile');
+   if(!spComplete)pending.push('SP Profile');
+   if(!(cp&&cp.mobileVerified))pending.push('Mobile Verification');
+   overview.innerHTML='<b>'+ocsSavedText(id)+'</b><small>'+(pending.length?'Pending: '+pending.join(' • '):'Account & basic profiles complete')+'</small>';
+ }
  document.getElementById('settingsModal').classList.add('show');
  await updateSettingsLoginState();
  await refreshCustomerMobileVerificationState();
