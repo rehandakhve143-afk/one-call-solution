@@ -624,7 +624,16 @@ async function ocsSyncQuoteAndChat(role,booking){
         S.quoteHistory=[{version:x.version,amount:Number(x.amount||0),status:String(x.status||"").toUpperCase(),reason:x.description||"",at:new Date(x.created_at).getTime()}];
         if(x.quote_kind==="initial"){
           if(x.status==="pending")S.status="INITIAL_QUOTE";
-          else if(x.status==="accepted"&&String(booking.status).toLowerCase()==="accepted")S.status="QUOTE_SECURE_PAYMENT";
+          else if(x.status==="accepted"&&String(booking.status).toLowerCase()==="accepted"){
+            if(String(booking.payment_method||"").toLowerCase()==="cash"){
+              S.paymentChoice="CASH";
+              S.cashFallback=true;
+              S.payment="CASH_AT_COMPLETION";
+              S.status="ASSIGNED";
+            }else{
+              S.status="QUOTE_SECURE_PAYMENT";
+            }
+          }
         }
       }else if(S.requestType==="quote"){S.quote=null;S.quoteDecision=null;}
 
