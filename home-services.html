@@ -257,6 +257,12 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 .customer-route-only .tabs{display:flex!important;margin-top:8px!important;padding:0!important;background:transparent!important;border:0!important}
 .customer-route-only .tabs #ctab{width:auto!important;min-height:30px!important;padding:6px 11px!important;border-radius:999px!important;background:#ffffff12!important;border:1px solid #ffffff24!important;color:#dff3f0!important;box-shadow:none!important;font-size:11px!important}
 .customer-route-only .top{padding-bottom:12px!important}
+.admin-route-only .tabs{display:flex!important;margin-top:8px!important;padding:0!important;background:transparent!important;border:0!important}
+.admin-route-only .tabs #ctab,.admin-route-only .tabs #ptab{display:none!important}
+.admin-route-only .tabs #atab{display:inline-flex!important;width:auto!important;min-height:30px!important;padding:6px 12px!important;border-radius:999px!important;background:#ffffff12!important;border:1px solid #ffffff24!important;color:#dff3f0!important;box-shadow:none!important;font-size:11px!important}
+.admin-route-only .ocs-page-nav{grid-template-columns:1fr auto!important}
+.admin-route-only .ocs-page-nav button:last-child{display:none!important}
+.admin-route-only .top{padding-bottom:12px!important}
 </style>
 </head>
 <body>
@@ -268,7 +274,7 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 <div class="tabs">
 <button id="ctab" class="active" onclick="showTab('customer')">Customer</button>
 <button id="ptab" onclick="showTab('provider')">Service Provider</button>
-
+<button id="atab" style="display:none" type="button">Admin</button>
 </div>
 <div class="ocs-page-nav" aria-label="OCS navigation">
   <button type="button" onclick="ocsNavBack()">← Back</button>
@@ -3399,13 +3405,15 @@ function adminHTMLState(){
  <div class="row"><span>Booking Amount</span><b>${amount?money(amount):"Pending"}</b></div>
  <div class="row"><span>Payment</span><b>${ocsSafe(S.paymentChoice||"—")}</b></div>`:
  `<div class="muted">No active booking.</div>`;
- let customer=`
+ const hasActiveBooking=!!S.service;
+ let customer=hasActiveBooking?`
  <div class="row"><span>Name</span><b>${ocsSafe(S.customerName||"Customer 1")}</b></div>
  <div class="row"><span>Mobile</span><b>${ocsSafe(S.customerMobile||"Not added")}</b></div>
  <div class="row"><span>Email</span><b>${ocsSafe(S.customerEmail||"Not added")}</b></div>
  <div class="row"><span>Address</span><b>${ocsSafe(S.address||"Not added")}</b></div>
- <div class="row"><span>Current Service</span><b>${ocsSafe(S.service||"—")}</b></div>`;
- let providerDetails=`
+ <div class="row"><span>Current Service</span><b>${ocsSafe(S.service||"—")}</b></div>`:
+ '<div class="muted">No active booking. Customer details booking ke saath yahan dikhenge.</div>';
+ let providerDetails=hasActiveBooking?`
  <div class="row"><span>Service Provider</span><b>${ocsSafe(S.provider||"—")}</b></div>
  <div class="row"><span>Verified</span><b>${S.providerVerified!==false?"YES ✓":"PENDING"}</b></div>
  <div class="row"><span>Mobile</span><b>${ocsSafe(S.providerMobile||"Not added")}</b></div>
@@ -3414,7 +3422,8 @@ function adminHTMLState(){
  <div class="row"><span>Available for Work</span><b>${S.available?"ON":"OFF"}</b></div>
  <div class="row"><span>Wallet Balance</span><b>${walletText}</b></div>
  <div class="row"><span>Welcome Bonus</span><b>₹100 • One-time • Non-withdrawable</b></div>
- <div class="row"><span>OCS Commission</span><b>9%</b></div>`;
+ <div class="row"><span>OCS Commission</span><b>9%</b></div>`:
+ '<div class="muted">No active booking. Assigned Service Provider details booking ke saath yahan dikhenge.</div>';
  let provider=`<div><b>${S.provider}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div>
  <div class="muted">Wallet Balance: ${walletText} • OCS Commission: 9%</div>`;
  let visit=`<div class="muted">GPS one-way: ${Number(S.oneWayDistanceKm||0).toFixed(1)} km • Suggested: ${S.suggestedVisitCharge?money(S.suggestedVisitCharge):"—"} • Final: ${S.visitCharge?money(S.visitCharge):"—"}</div>`;
@@ -3728,6 +3737,12 @@ if(OCS_SP_ONLY){
  const ct=document.getElementById("ctab"),pt=document.getElementById("ptab");
  if(ct)ct.style.display="none";
  if(pt){pt.style.width="auto";pt.textContent="Service Provider";}
+}else if(OCS_ROUTE_TAB==="admin"){
+ document.body.classList.add("admin-route-only");
+ const ct=document.getElementById("ctab"),pt=document.getElementById("ptab"),at=document.getElementById("atab");
+ if(ct)ct.style.display="none";
+ if(pt)pt.style.display="none";
+ if(at){at.style.display="inline-flex";at.textContent="Admin";}
 }else if(OCS_ROUTE_TAB==="customer"){
  document.body.classList.add("customer-route-only");
  const pt=document.getElementById("ptab"),ct=document.getElementById("ctab");
