@@ -1608,7 +1608,9 @@ async function providerProfilePanelSnapshot(){
   if(!session||!session.user)throw new Error("Service Provider login required");
   const {data,error}=await ocsSupabase.rpc("provider_profile_snapshot_v1");
   if(error)throw error;
-  return data||{};
+  const snapshot=data||{};
+  if(snapshot.registered===false)throw new Error("Is browser me Service Provider account login nahi hai. SP account se login karein.");
+  return snapshot;
 }
 async function openProviderProfileSafe(){
   const panel=document.getElementById("providerProfilePanel");
