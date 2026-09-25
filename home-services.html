@@ -3799,7 +3799,25 @@ function ocsNavNext(){
 })();
 
 async function bootHomeServices(){
- if(OCS_ROUTE_TAB==="provider"){await showTab("provider");return}
+ if(OCS_ROUTE_TAB==="provider"){
+   try{
+     const session=await ocsSession();
+     if(!session||!session.user){
+       location.replace("index.html?open=sp-dashboard&v=20260926-spauth1");
+       return;
+     }
+     const {data,error}=await ocsSupabase.rpc("provider_profile_snapshot_v1");
+     if(error||!data||data.registered!==true){
+       location.replace("index.html?open=sp-dashboard&v=20260926-spauth1");
+       return;
+     }
+   }catch(e){
+     location.replace("index.html?open=sp-dashboard&v=20260926-spauth1");
+     return;
+   }
+   await showTab("provider");
+   return
+ }
  if(OCS_ROUTE_TAB==="admin"){await showTab("admin");return}
 
  // A direct service/category tap should open that rate card even if another booking is active.
