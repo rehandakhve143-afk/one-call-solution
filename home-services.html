@@ -354,6 +354,7 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 <div class="card">
 <h3>SP Skill Verification</h3>
 <div class="muted">Service Provider ke selected skills yahan approve/reject honge. Sirf approved skill par Customer job milega.</div>
+<div id="adminSkillBulkActions" style="margin-top:10px"></div>
 <div id="adminSkillQueue" style="margin-top:10px"></div>
 </div>
 <div class="card">
@@ -3320,12 +3321,27 @@ async function adminCloseSupport(){
 
 async function adminLoadSkillQueue(){
  const box=document.getElementById("adminSkillQueue");if(!box)return;
+ const bulk=document.getElementById("adminSkillBulkActions");
  box.innerHTML='<div class="muted">Loading provider skills...</div>';
+ if(bulk)bulk.innerHTML='';
  try{
    const {data,error}=await ocsSupabase.rpc("admin_pending_provider_skills_v2");
    if(error)throw error;
    const rows=Array.isArray(data)?data:[];
    if(!rows.length){box.innerHTML='<div class="notice">Abhi koi Service Provider skill verification pending nahi hai.</div>';return}
+   if(bulk){
+     const groups={};
+     rows.forEach(x=>{
+       const k=String(x.provider_id||"")+"||"+String(x.category||"");
+       if(!groups[k])groups[k]={providerId:x.provider_id,providerName:x.provider_name||"Service Provider",category:x.category||"Custom / Other",count:0};
+       groups[k].count++;
+     });
+     const buttons=Object.values(groups).filter(g=>g.count>1).map(g=>
+       '<button class="btn red" style="margin:4px 6px 4px 0" onclick="adminRemovePendingCategory(\''+g.providerId+'\',\''+String(g.category).replace(/'/g,"\\'")+'\')">'+
+       'Remove all '+ocsSafe(g.category)+' Pending ('+g.count+')</button>'
+     ).join('');
+     if(buttons)bulk.innerHTML='<div class="notice"><b>Bulk cleanup</b><br>'+buttons+'</div>';
+   }
    box.innerHTML=rows.slice(0,50).map((x,i)=>{
      const st=String(x.verification_status||"pending").toUpperCase();
      const key="skill_"+i;
@@ -3352,6 +3368,16 @@ async function adminReviewSkill(key,decision){
    hist("Admin "+decision+" SP skill • "+x.skill);
    await adminLoadSkillQueue();
  }catch(e){alert("Skill review failed: "+(e&&e.message?e.message:"Unknown error"))}
+}
+async function adminRemovePendingCategory(providerId,category){
+ if(!confirm(category+" ke sab Pending skills remove karne hain?"))return;
+ try{
+   const {data,error}=await ocsSupabase.rpc("admin_remove_pending_provider_category_v1",{p_provider_id:providerId,p_category:category});
+   if(error)throw error;
+   hist("Admin removed "+Number(data||0)+" pending SP skills • "+category);
+   alert(Number(data||0)+" pending "+category+" skills removed.");
+   await adminLoadSkillQueue();
+ }catch(e){alert("Bulk remove failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
 function adminHTMLState(){
