@@ -96,6 +96,16 @@ button.provider-metric{width:100%;font:inherit;cursor:pointer}
 .provider-metrics b{display:block;color:#173f46;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .provider-wallet-metric em{display:block;margin-top:4px;color:#087d72;font-size:10px;font-style:normal;font-weight:800}
 .provider-wallet-warning{margin:9px 0!important}
+.provider-payout-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border:0;border-top:1px solid #e8efed;background:transparent;color:#284c52;font-size:13px;font-weight:800;text-align:left}
+.provider-payout-row span:last-child{color:#087d72;font-size:11px}
+.provider-payout-form label{display:block;margin-top:9px;font-size:11px;font-weight:800;color:#526c71}
+.provider-payout-form input{margin-top:5px}
+.provider-payout-summary{padding:14px 0}
+.provider-payout-summary .rowline{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #edf2f1;font-size:12px}
+.provider-payout-summary .rowline:last-child{border-bottom:0}
+.provider-payout-status{display:inline-block;padding:5px 8px;border-radius:999px;background:#fff3d9;color:#956117;font-size:10px;font-weight:850}
+.provider-payout-status.approved{background:#e8f7f1;color:#15745c}
+.provider-payout-status.rejected{background:#feecec;color:#b63333}
 .provider-mini-details{border-top:1px solid #e8efed;padding:10px 0;margin:0}
 .provider-mini-details summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;font-weight:800;color:#284c52;list-style:none}
 .provider-mini-details summary::-webkit-details-marker{display:none}
@@ -307,6 +317,10 @@ body.customer-locked-ui #customer>details.card{display:none!important}
   </div>
   <div id="walletWarning" class="notice hide provider-wallet-warning"></div>
 
+  <button type="button" class="provider-payout-row" onclick="openProviderPayoutPanel()">
+    <span>Bank / Payout Details</span><span id="providerPayoutStatus">Add ›</span>
+  </button>
+
   <details class="provider-mini-details">
     <summary>⭐ Ratings & Customer Comments</summary>
     <div id="providerReviews" class="provider-mini-body"></div>
@@ -377,6 +391,16 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 </section>
 </div>
 
+
+<div id="providerPayoutPanel" class="ocs-profile-panel hide" aria-hidden="true">
+  <div class="ocs-profile-card">
+    <div class="ocs-profile-top">
+      <div><small>SERVICE PROVIDER</small><h3>Bank / Payout Details</h3></div>
+      <button type="button" class="ocs-profile-close" onclick="closeProviderPayoutPanel()">×</button>
+    </div>
+    <div id="providerPayoutPanelBody"></div>
+  </div>
+</div>
 
 <div id="providerProfilePanel" class="ocs-profile-panel hide" aria-hidden="true">
   <div class="ocs-profile-card">
@@ -1679,6 +1703,107 @@ async function saveProviderSkillEditor(){
     alert("Skill changes saved. Nayi skill approval ke baad active hogi.");
   }catch(e){
     if(body)body.innerHTML='<div class="ocs-profile-note">Skill save nahi hui: '+providerProfileEsc(e&&e.message?e.message:"Unknown error")+'</div><div class="ocs-profile-actions"><button class="btn gray" onclick="openProviderProfileSafe()">Back</button></div>';
+  }
+}
+
+async function providerPayoutSnapshot(){
+  if(!ocsSupabase)throw new Error("Online service not connected");
+  const session=await ocsSession();
+  if(!session||!session.user)throw new Error("Service Provider login required");
+  const {data,error}=await ocsSupabase.rpc("provider_payout_snapshot_v1");
+  if(error)throw error;
+  return data||{has_details:false,verification_status:"not_added"};
+}
+function closeProviderPayoutPanel(){
+  const p=document.getElementById("providerPayoutPanel");
+  if(p){p.classList.add("hide");p.setAttribute("aria-hidden","true")}
+}
+async function refreshProviderPayoutStatus(){
+  const el=document.getElementById("providerPayoutStatus");
+  if(!el)return;
+  try{
+    const d=await providerPayoutSnapshot();
+    const s=String(d.verification_status||"not_added").toLowerCase();
+    el.textContent=s==="approved"?"Verified ✓ ›":s==="pending"?"Pending ›":s==="rejected"?"Rejected ›":"Add ›";
+  }catch(e){el.textContent="Add ›"}
+}
+async function openProviderPayoutPanel(){
+  const panel=document.getElementById("providerPayoutPanel");
+  const body=document.getElementById("providerPayoutPanelBody");
+  if(!panel||!body)return;
+  panel.classList.remove("hide");
+  panel.setAttribute("aria-hidden","false");
+  body.innerHTML='<div class="ocs-profile-summary"><div class="muted">Bank details loading...</div></div>';
+  try{
+    const d=await providerPayoutSnapshot();
+    if(d.has_details)renderProviderPayoutSummary(d);
+    else renderProviderPayoutForm(d);
+  }catch(e){
+    body.innerHTML='<div class="ocs-profile-note">Bank details load nahi hui: '+providerProfileEsc(e&&e.message?e.message:"Unknown error")+'</div>';
+  }
+}
+function renderProviderPayoutSummary(d){
+  const body=document.getElementById("providerPayoutPanelBody");
+  if(!body)return;
+  const s=String(d.verification_status||"pending").toLowerCase();
+  const cls=s==="approved"?"approved":s==="rejected"?"rejected":"";
+  const label=s==="approved"?"Verified":s==="rejected"?"Rejected":"Pending Verification";
+  body.innerHTML=
+    '<div class="provider-payout-summary">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px"><b>Saved Bank Account</b><span class="provider-payout-status '+cls+'">'+label+'</span></div>'+
+      '<div class="rowline"><span>Account Holder</span><b>'+providerProfileEsc(d.account_holder_name||"—")+'</b></div>'+
+      '<div class="rowline"><span>Bank</span><b>'+providerProfileEsc(d.bank_name||"—")+'</b></div>'+
+      '<div class="rowline"><span>Account</span><b>'+providerProfileEsc(d.masked_account_number||"—")+'</b></div>'+
+      '<div class="rowline"><span>IFSC</span><b>'+providerProfileEsc(d.ifsc||"—")+'</b></div>'+
+      '<div class="rowline"><span>UPI</span><b>'+providerProfileEsc(d.upi_id||"—")+'</b></div>'+
+      '<div class="ocs-profile-note">Bank detail change karoge to verification status dobara Pending ho jayega.</div>'+
+      '<div class="ocs-profile-actions">'+
+        '<button class="btn" onclick="renderProviderPayoutForm(window.__ocsPayoutSnapshot||{})">Update Bank Details</button>'+
+        '<button class="btn gray" onclick="closeProviderPayoutPanel()">Close</button>'+
+      '</div>'+
+    '</div>';
+  window.__ocsPayoutSnapshot=d;
+}
+function renderProviderPayoutForm(d){
+  const body=document.getElementById("providerPayoutPanelBody");
+  if(!body)return;
+  body.innerHTML=
+    '<div class="provider-payout-form">'+
+      '<label>Account Holder Name *</label><input id="payoutHolder" autocomplete="name" value="'+providerProfileEsc(d.account_holder_name||S.registeredProviderName||"")+'">'+
+      '<label>Bank Name</label><input id="payoutBank" value="'+providerProfileEsc(d.bank_name||"")+'">'+
+      '<label>Account Number *</label><input id="payoutAccount" inputmode="numeric" placeholder="'+(d.has_details?"Re-enter full account number":"Enter bank account number")+'">'+
+      '<label>IFSC *</label><input id="payoutIfsc" autocapitalize="characters" value="'+providerProfileEsc(d.ifsc||"")+'" placeholder="e.g. HDFC0001234">'+
+      '<label>UPI ID (optional)</label><input id="payoutUpi" value="'+providerProfileEsc(d.upi_id||"")+'" placeholder="name@bank">'+
+      '<div class="ocs-profile-note">Bank details payout/settlement ke liye hain. Save ke baad Admin verification Pending rahega.</div>'+
+      '<div class="ocs-profile-actions">'+
+        '<button class="btn" onclick="saveProviderPayoutDetails()">Save Bank Details</button>'+
+        '<button class="btn gray" onclick="openProviderPayoutPanel()">Cancel</button>'+
+      '</div>'+
+    '</div>';
+}
+async function saveProviderPayoutDetails(){
+  const body=document.getElementById("providerPayoutPanelBody");
+  const holder=(document.getElementById("payoutHolder")?.value||"").trim();
+  const bank=(document.getElementById("payoutBank")?.value||"").trim();
+  const account=(document.getElementById("payoutAccount")?.value||"").trim();
+  const ifsc=(document.getElementById("payoutIfsc")?.value||"").trim().toUpperCase();
+  const upi=(document.getElementById("payoutUpi")?.value||"").trim();
+  if(!holder||!account||!ifsc){alert("Account Holder, Account Number aur IFSC required hai.");return}
+  try{
+    if(body)body.innerHTML='<div class="ocs-profile-summary"><div class="muted">Saving bank details...</div></div>';
+    const {data,error}=await ocsSupabase.rpc("save_provider_payout_v1",{
+      p_account_holder_name:holder,
+      p_bank_name:bank,
+      p_account_number:account,
+      p_ifsc:ifsc,
+      p_upi_id:upi||null
+    });
+    if(error)throw error;
+    renderProviderPayoutSummary(data||{});
+    refreshProviderPayoutStatus();
+    alert("Bank details saved. Verification Pending.");
+  }catch(e){
+    if(body)body.innerHTML='<div class="ocs-profile-note">Bank details save nahi hui: '+providerProfileEsc(e&&e.message?e.message:"Unknown error")+'</div><div class="ocs-profile-actions"><button class="btn gray" onclick="openProviderPayoutPanel()">Back</button></div>';
   }
 }
 
@@ -3499,6 +3624,7 @@ const customerHistoryCard=document.querySelector(".customer-history-card");
 if(customerHistoryCard)customerHistoryCard.style.display=customerBrowseMode?"none":"block";
 if($("homeFlowNav"))$("homeFlowNav").innerHTML=homeFlowNavHTML();
 $("pBody").innerHTML=providerHTML();
+refreshProviderPayoutStatus();
 const askExpertBtn=$("providerAskExpertBtn");
 if(askExpertBtn){
   askExpertBtn.style.display=["ASSIGNED","ON_WAY","REACHED","WORKING","QUOTE_WAIT","INITIAL_QUOTE","QUOTE_REVISION_PENDING"].includes(S.status)?"":"none";
