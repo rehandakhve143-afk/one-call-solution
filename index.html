@@ -241,6 +241,7 @@ try{
   </div>
 </div>
 <div id="providerAccountForm" style="display:none">
+  <div id="providerProfileSummary" style="display:none"></div>
   <div id="providerAuthBox">
   <label>Mobile Number or Email ID *</label><input id="paEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
   <button class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('provider')">Continue</button>
@@ -249,6 +250,7 @@ try{
   <div class="help" style="margin:7px 0 12px">New aur existing user ke liye same flow: Email/Mobile → OTP → Login. Password, magic link ya separate Create Account screen nahi chahiye.</div>
   </div>
   <div id="providerProfileSetup" style="display:none">
+  <button type="button" id="providerProfileSummaryBack" class="btn gray" style="display:none;width:100%;margin:0 0 10px" onclick="showProviderProfileSummary()">← Profile Summary</button>
   <label>Full Name *</label><input id="paName" autocomplete="name" placeholder="Service Provider name">
   <label>Mobile Number *</label><input id="paMobile" inputmode="tel" placeholder="10-digit mobile">
   <div class="verifyok" id="providerMobileStatus">Mobile verification: Verify later in Settings</div>
@@ -284,8 +286,8 @@ try{
     <label>Other Skill / Service Name *</label>
     <input id="paOtherSkill" placeholder="e.g. Glass work / Door repair / Custom service">
   </div>
-  <div class="help" style="margin-top:12px">KYC, selfie, Mobile verification aur Bank / Payout details baad me Settings me complete honge. Pehle basic Service Provider profile save karein.</div>
-  <button class="primary account-submit" onclick="saveProviderAccount()">Save Profile / Add New Skills</button>
+  <div class="help" style="margin-top:12px">Approved skills locked rahengi. Nayi skill save karne par sirf nayi skill Admin approval me jayegi. KYC / payout production onboarding me separately complete hoga.</div>
+  <button class="primary account-submit" onclick="saveProviderAccount()">Save Changes / Add New Skills</button>
   </div>
 </div>
 </div></div>
@@ -907,12 +909,12 @@ async function openAccountEntry(){
  if(session&&session.user){openBottomProfile();return}
  openLogin();
 }
-function openAccount(role){
+async function openAccount(role){
  const isProvider=role==='provider';
  const existingProfile=isProvider?getProviderProfile():getCustomerProfile();
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
  document.getElementById('accountTitle').textContent=existingProfile?(isProvider?'Service Provider Profile':'Customer Profile'):(isProvider?'Service Provider Login':'Customer Login');
- document.getElementById('accountSub').textContent=existingProfile?'Profile details yahan edit karein':(isProvider?'Mobile Number ya Email se login • Existing SP direct dashboard':'Mobile Number ya Email se login • Direct OCS Home');
+ document.getElementById('accountSub').textContent=existingProfile?(isProvider?'Profile locked • approved skills protected':'Profile details yahan edit karein'):(isProvider?'Mobile Number ya Email se login • Existing SP direct dashboard':'Mobile Number ya Email se login • Direct OCS Home');
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  refreshOcsEmailStatus();
@@ -950,8 +952,15 @@ function openAccount(role){
      if(a)a.value=p.area||'';
      if(r&&p.radius)r.value=String(p.radius);
      if(st){st.textContent=p.mobileVerified?'✓ Mobile verified':'Mobile verification: Verify later in Settings';st.style.color=p.mobileVerified?'#16815d':'#6f8188'}
+     await showProviderProfileSummary();
+   }else{
+     const sum=document.getElementById('providerProfileSummary');
+     const auth=document.getElementById('providerAuthBox');
+     const setup=document.getElementById('providerProfileSetup');
+     if(sum)sum.style.display='none';
+     if(auth)auth.style.display='block';
+     if(setup)setup.style.display='none';
    }
-   setTimeout(lockApprovedProviderSkills,0);
  }
  document.body.classList.add('ocs-account-open');
  document.getElementById('accountModal').classList.add('show');
@@ -960,6 +969,61 @@ function closeAccount(){
  document.getElementById('accountModal').classList.remove('show');
  document.body.classList.remove('ocs-account-open');
 }
+async function showProviderProfileSummary(){
+ const p=getProviderProfile()||{};
+ const summary=document.getElementById('providerProfileSummary');
+ const auth=document.getElementById('providerAuthBox');
+ const setup=document.getElementById('providerProfileSetup');
+ const back=document.getElementById('providerProfileSummaryBack');
+ if(auth)auth.style.display='none';
+ if(setup)setup.style.display='none';
+ if(back)back.style.display='none';
+ if(!summary)return;
+ summary.style.display='block';
+ let rows=[];
+ try{
+   const session=await getOcsSession();
+   if(session&&session.user&&ocsSupabase){
+     const {data,error}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
+     if(!error&&data&&Array.isArray(data.skills))rows=data.skills.filter(x=>x&&x.enabled_by_provider!==false);
+   }
+ }catch(e){console.error('Provider summary load failed',e)}
+ const approved=rows.filter(x=>x.approved===true||String(x.verification_status||'').toLowerCase()==='approved');
+ const pending=rows.filter(x=>!(x.approved===true||String(x.verification_status||'').toLowerCase()==='approved'));
+ const skillHtml=rows.length
+   ? rows.map(x=>'<span style="display:inline-block;margin:4px 5px 0 0;padding:6px 9px;border-radius:999px;background:'+
+      ((x.approved===true||String(x.verification_status||'').toLowerCase()==='approved')?'#e9f8f2;color:#157458':'#fff5df;color:#9a6714')+
+      ';font-size:11px;font-weight:800">'+ocsEsc(x.category||x.service_name||'Skill')+
+      ((x.approved===true||String(x.verification_status||'').toLowerCase()==='approved')?' ✓':' • Pending')+'</span>').join('')
+   : '<span class="muted">'+ocsEsc((p.skills||[]).join(', ')||'No skill saved')+'</span>';
+ summary.innerHTML=
+   '<div style="border:1px solid #e3ece9;border-radius:18px;padding:14px;background:#f8fbfa">'+
+     '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">'+
+       '<div><b style="font-size:17px">'+ocsEsc(p.name||'Service Provider')+'</b>'+
+       '<div class="muted" style="margin-top:3px">'+ocsEsc(p.area||'Service area')+' • '+ocsEsc(String(p.radius||12))+' km</div></div>'+
+       '<span class="rolepill" style="background:#e9f8f2;color:#157458">'+(approved.length?'APPROVED':'PROFILE SAVED')+'</span>'+
+     '</div>'+
+     '<div style="margin-top:13px"><b style="font-size:12px">Skills</b><div>'+skillHtml+'</div></div>'+
+     '<div class="help" style="margin-top:12px">Approved skill locked rahegi. Sirf nayi skill add/change approval ke liye jayegi.</div>'+
+     '<button class="primary" style="width:100%;margin-top:12px" onclick="editProviderProfileSkills()">Add / Change Skills</button>'+
+     '<button class="btn gray" style="width:100%;margin-top:8px" onclick="closeAccount()">Close</button>'+
+   '</div>';
+}
+function editProviderProfileSkills(){
+ const summary=document.getElementById('providerProfileSummary');
+ const auth=document.getElementById('providerAuthBox');
+ const setup=document.getElementById('providerProfileSetup');
+ const back=document.getElementById('providerProfileSummaryBack');
+ if(summary)summary.style.display='none';
+ if(auth)auth.style.display='none';
+ if(setup)setup.style.display='block';
+ if(back)back.style.display='block';
+ const t=document.getElementById('accountTitle'),s=document.getElementById('accountSub');
+ if(t)t.textContent='Add / Change Skills';
+ if(s)s.textContent='Approved skills locked • nayi skill Admin approval ke baad active hogi';
+ setTimeout(lockApprovedProviderSkills,0);
+}
+
 async function demoVerify(kind){
  const isMobile=kind.toLowerCase().includes('mobile');
  if(isMobile){
@@ -1119,9 +1183,8 @@ async function saveProviderAccount(){
      payoutStatus:'Not Added',
      status:'Profile Saved • Verification Pending'
    }));
-   alert('SP Profile saved. Selected skills: '+skills.join(', ')+'. Verification pending.');
-   closeAccount();
-   openModule('Home Services','provider');
+   alert('Changes saved. Approved skills active rahengi; nayi skill verification ke baad active hogi.');
+   await showProviderProfileSummary();
  }catch(e){
    console.error('Provider registration sync failed',e);
    alert('Profile online save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
