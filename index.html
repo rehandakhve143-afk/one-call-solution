@@ -845,13 +845,22 @@ async function ensureSimpleCustomerAccount(session){
     return profile;
   }catch(e){console.error('Simple customer bootstrap failed',e);return null}
 }
+function ocsRequestedSpProfile(){
+  try{return new URLSearchParams(location.search||'').get('open')==='sp-profile'}catch(e){return false}
+}
 async function routeAfterOcsLogin(){
   const session=await getOcsSession();
   if(!session||!session.user)return;
   // Every OCS login can use Customer features. Service Provider is an additional profile/role.
-  // This keeps one simple account able to book services and, if completed, also work as an SP.
   await ensureSimpleCustomerAccount(session);
   await updateSettingsLoginState();
+
+  // IMPORTANT: direct SP Profile route must never be redirected to Home.
+  if(ocsRequestedSpProfile()){
+    await openAccount('provider');
+    return;
+  }
+
   const m=document.getElementById('accountModal');
   if(m)m.classList.remove('show');
   document.body.classList.remove('ocs-account-open');
@@ -867,7 +876,10 @@ async function routeAfterOcsLogin(){
 }
 async function openLogin(){
   const session=await getOcsSession();
-  if(session&&session.user){bottomHome();return}
+  if(session&&session.user){
+    if(ocsRequestedSpProfile()){await openAccount('provider');return}
+    bottomHome();return
+  }
   const pill=document.getElementById('accountRolePill');
   const title=document.getElementById('accountTitle');
   const sub=document.getElementById('accountSub');
@@ -896,14 +908,13 @@ if(ocsSupabase){
   setTimeout(()=>{try{if(new URLSearchParams(location.search||'').get('login')==='1')openLogin()}catch(e){}},150);
   setTimeout(async()=>{
     try{
-      const q=new URLSearchParams(location.search||'');
-      if(q.get('open')==='sp-profile'){
+      if(ocsRequestedSpProfile()){
         const s=await getOcsSession();
-        if(s&&s.user)openAccount('provider');
-        else openLogin();
+        if(s&&s.user)await openAccount('provider');
+        else await openLogin();
       }
-    }catch(e){}
-  },260);
+    }catch(e){console.error('SP profile route failed',e)}
+  },120);
 }
 
 async function openAccountEntry(){
