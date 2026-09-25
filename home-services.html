@@ -180,6 +180,9 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 .ocs-flow-nav .back-flow{background:#edf3f2;color:#173f48}
 .ocs-flow-nav .next-flow{background:linear-gradient(135deg,#087a70,#0aa47e);color:#fff}
 .ocs-flow-nav button:disabled{opacity:.45;cursor:not-allowed}
+.ocs-page-nav{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:11px}
+.ocs-page-nav button{min-height:40px;padding:8px 10px;border-radius:12px;border:1px solid #ffffff2b;background:#ffffff14;color:#fff;font-weight:850;box-shadow:none}
+.ocs-page-nav button:nth-child(2){background:#fff;color:#08756d}
 </style>
 </head>
 <body>
@@ -192,6 +195,11 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 <button id="ctab" class="active" onclick="showTab('customer')">Customer</button>
 <button id="ptab" onclick="showTab('provider')">Service Provider</button>
 
+</div>
+<div class="ocs-page-nav" aria-label="OCS navigation">
+  <button type="button" onclick="ocsNavBack()">← Back</button>
+  <button type="button" onclick="ocsNavHome()">⌂ Home</button>
+  <button type="button" onclick="ocsNavNext()">Next →</button>
 </div>
 </div>
 
@@ -3277,6 +3285,50 @@ if(OCS_SP_ONLY){
 setInterval(function(){
  if(["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_REVISION_PENDING"].includes(S.status))render();
 },30000);
+function ocsNavHome(){
+ try{location.href="index.html?v=20260925-safenav1"}catch(e){}
+}
+function ocsNavBack(){
+ try{
+   if(typeof OCS_ROUTE_TAB!=="undefined"&&OCS_ROUTE_TAB==="customer"){
+     if(S.status==="BOOKING_DETAILS"){S.status="SELECT_ITEM";render();window.scrollTo(0,0);return}
+     if(S.status==="CUSTOM_REQUEST"){S.status="SELECT_ITEM";render();window.scrollTo(0,0);return}
+     if(S.status==="SELECT_ITEM"){backToCategories();window.scrollTo(0,0);return}
+   }
+ }catch(e){}
+ ocsNavHome();
+}
+function ocsNavNext(){
+ try{
+   if(typeof OCS_ROUTE_TAB!=="undefined"&&OCS_ROUTE_TAB==="customer"){
+     if(S.status==="SELECT_SERVICE"){alert("Pehle service category select karein.");return}
+     if(S.status==="SELECT_ITEM"){
+       if(!(S.selectedItems||[]).length){alert("Kam se kam 1 service select karein.");return}
+       continueSelectedItems();window.scrollTo(0,0);return
+     }
+     if(S.status==="CUSTOM_REQUEST"){
+       const el=document.getElementById("customDesc");if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus()}
+       return
+     }
+     if(S.status==="BOOKING_DETAILS"){
+       const el=document.querySelector('[data-ocs-find-provider]');if(el)el.scrollIntoView({behavior:"smooth",block:"center"});
+       return
+     }
+   }
+ }catch(e){}
+ alert("Current screen ka next action isi page par available hai.");
+}
+(function ocsInstallSafeBrowserBack(){
+ try{
+   if(!/home-services\.html$/i.test(location.pathname))return;
+   history.replaceState({ocsBase:true},"",location.href);
+   history.pushState({ocsGuard:true},"",location.href);
+   window.addEventListener("popstate",function(){
+     location.replace("index.html?v=20260925-safenav1");
+   },{once:true});
+ }catch(e){}
+})();
+
 async function bootHomeServices(){
  if(OCS_ROUTE_TAB==="provider"){await showTab("provider");return}
  if(OCS_ROUTE_TAB==="admin"){await showTab("admin");return}
