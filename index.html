@@ -1016,17 +1016,27 @@ async function saveProviderAccount(){
  }
  try{
    const sync=await syncProviderRegistrationToBackend(name,mobile,skills);
+   const {data:snap,error:snapErr}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
+   if(snapErr)throw snapErr;
+   const backendSkills=Array.isArray(snap&&snap.skills)?snap.skills.filter(x=>x&&x.enabled_by_provider!==false):[];
+   const selectedCategories=new Set(skills.map(x=>String(x||'').trim()));
+   const electricalSelected=selectedCategories.has('Electrical');
+   const electricalSaved=backendSkills.some(x=>String(x.category||'').trim()==='Electrical');
+   if(electricalSelected&&!electricalSaved){
+     throw new Error('Electrical skill backend me save nahi hui. Please retry after page refresh.');
+   }
    localStorage.setItem('ocsProviderProfile',JSON.stringify({
      name,mobile,email,area,radius,skills,
      backendConnected:true,
      backendProviderId:sync&&sync.provider_id?sync.provider_id:(session.user&&session.user.id),
-     skillsSaved:sync&&sync.skills_saved?sync.skills_saved:0,
+     skillsSaved:backendSkills.length,
      mobileVerified:!!accountVerified.providerMobile,
      mobileVerificationPending:!accountVerified.providerMobile,
      kycStatus:'Pending',
      payoutStatus:'Not Added',
      status:'Profile Saved • Verification Pending'
    }));
+   alert('SP Profile saved. Selected skills: '+skills.join(', ')+'. Verification pending.');
    closeAccount();
    openModule('Home Services','provider');
  }catch(e){
