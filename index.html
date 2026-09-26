@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20260926-locationpolish1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-locationpolish1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20260926-locationsearch1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-locationsearch1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -147,15 +147,28 @@ setTimeout(function(){
   <div id="workHistoryBody"></div>
 </div></div>
 
-<div class="modal" id="locationModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>Choose service location</h2><div class="muted">Fast GPS location ya manual area — dono available hain</div></div><button class="x" onclick="closeLocationPicker()">×</button></div>
-  <button class="primary ocs-location-current" onclick="useCurrentOcsLocation()">⌖ Use Current Location</button>
-  <button class="ocs-location-manual-toggle" onclick="toggleManualOcsLocation()">Enter Area Manually</button>
-  <div id="ocsManualLocationWrap" class="bottom-hub-card ocs-location-manual-card" style="display:none">
-    <div class="ocs-location-manual-head"><b>Manual Location</b><small>Area, city or pincode enter karein</small></div>
-    <input class="ocs-location-input" id="ocsManualLocation" placeholder="e.g. Khopoli / Panvel / 410203">
-    <button class="ocs-location-save" onclick="saveManualOcsLocation()">Use This Area</button>
+<div class="modal" id="locationModal"><div class="sheet ocs-location-sheet">
+  <div class="bottom-hub-head"><div><h2>Select your location</h2><div class="muted">Search your area or use your current location</div></div><button class="x" onclick="closeLocationPicker()">×</button></div>
+
+  <div class="ocs-location-search-card">
+    <div class="ocs-location-search-row">
+      <span class="ocs-location-search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z"></path><circle cx="12" cy="10" r="2.2"></circle></svg>
+      </span>
+      <input class="ocs-location-input" id="ocsManualLocation" placeholder="Search area, landmark or pincode" onkeydown="if(event.key==='Enter')saveManualOcsLocation()">
+      <button class="ocs-location-apply" onclick="saveManualOcsLocation()">Apply</button>
+    </div>
   </div>
+
+  <div class="ocs-location-divider"><span>OR</span></div>
+
+  <button class="ocs-location-current-row" onclick="useCurrentOcsLocation()">
+    <span class="ocs-location-current-icon">⌖</span>
+    <span class="ocs-location-current-copy"><b>Use current location</b><small>Using GPS</small></span>
+    <span class="ocs-location-current-go">›</span>
+  </button>
+
+  <div class="ocs-location-note">Your location helps OCS show nearby Service Providers.</div>
 </div></div>
 
 <div class="modal" id="settingsModal"><div class="sheet">
@@ -1517,10 +1530,10 @@ function renderOcsHomeLocation(){
   sub.textContent=loc.source==='gps'?'Current location':'Service location';
 }
 function openLocationPicker(){
-  const loc=getOcsLocation(),input=document.getElementById('ocsManualLocation'),wrap=document.getElementById('ocsManualLocationWrap');
-  if(input&&loc&&loc.source==='manual')input.value=loc.label||'';
-  if(wrap)wrap.style.display='none';
+  const loc=getOcsLocation(),input=document.getElementById('ocsManualLocation');
+  if(input)input.value=(loc&&loc.source==='manual')?(loc.label||''):'';
   document.getElementById('locationModal').classList.add('show');
+  setTimeout(()=>input?.focus(),120);
 }
 function toggleManualOcsLocation(){
   const wrap=document.getElementById('ocsManualLocationWrap');
