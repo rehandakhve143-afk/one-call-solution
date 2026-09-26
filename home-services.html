@@ -1148,6 +1148,7 @@ async function providerAcceptQuoteRequest(){
    S.quoteProviderAccepted=true;
    hist("Service Provider accepted LIVE Get Quote request");
    await ocsLoadLive("provider");render();
+   try{window.scrollTo({top:0,behavior:"smooth"})}catch(e){try{window.scrollTo(0,0)}catch(_){}}
  }catch(e){
    // A quote booking may already have been accepted from the incoming-request card.
    // Reconcile with backend instead of showing a false "no longer available" error.
@@ -2169,10 +2170,12 @@ async function providerDecision(d){
    await ocsProviderDecisionLive(d);
    if(d==="accept"){
      S.providerAssignedAt=Date.now();S.providerReleasedNotice=null;hist("Service Provider accepted LIVE booking");
-     ocsStartLive("provider");
+     await ocsStartLive("provider");
+     try{window.scrollTo({top:0,behavior:"smooth"})}catch(e){try{window.scrollTo(0,0)}catch(_){}}
    }else{
      hist("Service Provider rejected LIVE booking • OCS checking next eligible provider");
      await ocsLoadLive("provider");render();
+     try{window.scrollTo({top:0,behavior:"smooth"})}catch(e){try{window.scrollTo(0,0)}catch(_){}}
    }
  }catch(e){
    console.error("Provider decision failed",e);
