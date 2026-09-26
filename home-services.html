@@ -3203,7 +3203,7 @@ if(S.status==="COMPLETION_CONFIRM")h=`
 
 if(S.status==="PAYMENT")h=`
 <div class="card ocs-payment-card"><h3>Complete Payment</h3>${S.paymentHeld?secureHoldHTML():""}<div class="muted">Remaining to pay</div><div class="money">${money(paymentDueAmount())}</div>${Number(S.customerRewardUsed||0)>0?`<div class="notice good"><b>OCS Rewards Used: ${money(Number(S.customerRewardUsed||0))}</b></div>`:""}
-${policy}
+<div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div>
 <button class="btn alt" onclick="useCustomerRewards('JOB')">Use OCS Rewards</button>
 <button class="btn" onclick="openOnline('JOB')">Pay Remaining Online</button>
 <button class="btn gray" onclick="payCash('JOB')">Cash • If Needed</button></div>`;
