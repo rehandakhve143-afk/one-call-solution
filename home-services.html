@@ -3222,6 +3222,13 @@ if(S.status==="BOOKING_DETAILS"){
 if(S.status==="QUOTE_WAIT")h=(!S.providerProfileAvailable||!S.providerRequestForThisProfile||!providerMatchesCurrentBooking())
  ?`<div class="card"><h3>No Matching Get Quote</h3><div class="notice">Ye request aapke registered skills ke liye nahi hai. OCS matching Service Provider ko bhej raha hai.</div></div>`
  :`<div class="card"><h3>Get Quote Request</h3><b>${S.category}</b><p>${ocsSafe(S.customDescription||"Custom work")}</p><div class="muted">Customer: ${ocsSafe(S.customerName||"Customer")} • Preferred: ${ocsSafe(S.customSchedule||"")}</div>${quoteTimerHTML()}<div class="notice"><b>OCS Rule:</b> Verbal/Chat amount official nahi hai. Customer app me quote accept kare tabhi amount official hoga.</div>${quoteMediaHTML()}${S.quoteProviderAccepted?"":'<button class="btn ok" onclick="providerAcceptQuoteRequest()">Accept & Discuss</button>'}<button class="btn" onclick="sendInitialQuote()">Send Official Quote</button><button class="btn gray" onclick="askExpert()">Ask to Expert</button></div>${quoteChatHTML("provider")}`;
+if(S.status==="INITIAL_QUOTE")h=`<div class="card"><h3>Quote Sent</h3><div class="money">${money(S.quote&&S.quote.amount)}</div><div class="notice good"><b>Waiting for Customer</b><br>Official quote Customer ko bhej diya gaya hai. Customer Accept / Reject karega.</div><button class="btn alt" onclick="providerRequestQuoteRevision()">Request Quote Revision</button></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`;
+
+if(S.status==="QUOTE_SECURE_PAYMENT")h=`<div class="card"><h3>Quote Accepted</h3><div class="money">${money(S.total||S.quote&&S.quote.amount||0)}</div><div class="notice good"><b>Customer Payment Choice Pending</b><br>Customer Online Secure Payment ya Network Issue • Cash at Completion select karega. Payment choice confirm hone se pehle travel start na karein.</div><button class="btn alt" onclick="providerRequestQuoteRevision()">Request Quote Revision</button></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`;
+
+if(S.status==="QUOTE_REVISION_PENDING")h=`<div class="card"><h3>Quote Revision Sent</h3><div class="row"><span>Old Quote</span><b>${money(S.quoteRevision&&S.quoteRevision.oldAmount)}</b></div><div class="row"><span>Revised Quote</span><b>${money(S.quoteRevision&&S.quoteRevision.newAmount)}</b></div><div class="notice">Customer approval ka wait hai.</div></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`;
+
+if(S.status==="QUOTE_REVISION_TOPUP")h=`<div class="card"><h3>Revised Quote Accepted</h3><div class="notice">Customer extra secure payment complete kar raha hai.</div></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`;
 
 if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice">No incoming request.<br>Customer provider-change request is under OCS Support review. Another provider will receive it only after Admin approval.</div>`;
 
@@ -3710,7 +3717,7 @@ $("availabilityBtn").textContent="Available: "+(S.available?"ON":"OFF");
 $("availabilityBtn").style.background=S.available?"#16a34a":"#64748b";
 if($("walletBalance"))$("walletBalance").textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 const walletQuick=$("providerWalletQuick");if(walletQuick)walletQuick.textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
-$("currentJob").textContent=S.currentJob||((["WORKING","ON_WAY","REACHED","ASSIGNED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?"Current Booking":"None");
+$("currentJob").textContent=S.currentJob||((["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","WORKING","ON_WAY","REACHED","ASSIGNED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?(S.service||S.serviceName||"Current Booking"):"None");
 $("nextJob").textContent=S.nextJob?(S.nextJob.service||"Accepted Next Job"):(S.pendingNextRequest?"NEW REQUEST":"None");
 const walletLow=Number(S.wallet)<Number(S.walletWarningLevel||200);
 const walletWarningEl=$("walletWarning");
