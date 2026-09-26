@@ -3708,6 +3708,7 @@ function paintAdminSnapshotOnly(){
   const admin=document.getElementById("admin");
   if(!admin||admin.classList.contains("hide"))return;
   const A=adminHTMLState();
+  const overview=document.getElementById("adminOverview");
   const booking=document.getElementById("adminBooking");
   const customer=document.getElementById("adminCustomer");
   const providerDetails=document.getElementById("adminProviderDetails");
@@ -3715,6 +3716,10 @@ function paintAdminSnapshotOnly(){
   const visit=document.getElementById("adminVisit");
   const support=document.getElementById("adminSupport");
   const accounting=document.getElementById("adminAccounting");
+  const liveDetails=document.getElementById("adminLiveDetails");
+  const liveCard=document.getElementById("adminLiveCard");
+  const status=document.getElementById("aStatus");
+  if(overview)overview.innerHTML=A.overview;
   if(booking)booking.innerHTML=A.booking;
   if(customer)customer.innerHTML=A.customer;
   if(providerDetails)providerDetails.innerHTML=A.providerDetails;
@@ -3722,6 +3727,12 @@ function paintAdminSnapshotOnly(){
   if(visit)visit.innerHTML=A.visit;
   if(support)support.innerHTML=A.support;
   if(accounting)accounting.textContent=A.accounting;
+  if(liveDetails)liveDetails.hidden=!A.liveActive;
+  if(liveCard)liveCard.classList.toggle("empty",!A.liveActive);
+  if(status){
+    status.style.display=A.liveActive?"inline-block":"none";
+    status.textContent=A.activeStatus||"";
+  }
   const note=document.getElementById("adminLiveRefreshNote");
   if(note)note.textContent="Live updated • "+new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
 }
@@ -3790,7 +3801,7 @@ function adminHTMLState(){
    <div class="row"><span>Booking Amount</span><b>${money(amount)}</b></div>
    <div class="row"><span>Payment</span><b>${ocsSafe(String(liveSnap.payment_method||"—").toUpperCase())}${liveSnap.payment_status?" • "+ocsSafe(String(liveSnap.payment_status).toUpperCase()):""}</b></div>`;
  }else{
-   booking='<div class="muted">No active live booking.</div>';
+   booking='<div class="admin-empty-live"><b>No Active Live Booking</b><small>Abhi koi running Home Service booking nahi hai.</small></div>';
  }
 
  let customer=liveSnap?`
@@ -3817,9 +3828,19 @@ function adminHTMLState(){
  let support=S.supportTicket?`<b>${S.supportTicket}</b> • ${S.cancelReason||S.providerChangeReason||"Review required"}`:`<span class="muted">No open support ticket.</span>`;
  let accounting=liveSnap
    ?`Booking Amount: ${money(amount)} • Adjustment: ${money(charge)} • SP Wallet: ${walletText}`
-   :`Booking Amount: ₹0 • Adjustment: ₹0 • SP Wallet: ${walletText}`;
+   :`No live settlement. SP Wallet: ${walletText}`;
 
- return {booking,customer,providerDetails,provider,visit,support,accounting};
+ const activeCount=liveSnap?1:0;
+ const providerAvailable=liveSnap&&liveSnap.provider_id?!!liveSnap.available_for_work:!!S.available;
+ const walletAlert=Number(wallet)<=0;
+ const supportPending=!!S.supportTicket;
+ const overview=
+   '<div class="admin-kpi '+(activeCount?'good':'')+'"><span>Active Booking</span><b>'+activeCount+'</b><small>'+(activeCount?'Live job running':'No live job')+'</small></div>'+
+   '<div class="admin-kpi '+(providerAvailable?'good':'')+'"><span>SP Available</span><b>'+(providerAvailable?'ON':'OFF')+'</b><small>Current provider status</small></div>'+
+   '<div class="admin-kpi '+(walletAlert?'alert':'good')+'"><span>Wallet Alert</span><b>'+(walletAlert?'YES':'OK')+'</b><small>'+walletText+'</small></div>'+
+   '<div class="admin-kpi '+(supportPending?'alert':'good')+'"><span>Support Pending</span><b>'+(supportPending?'YES':'0')+'</b><small>'+(supportPending?'Needs review':'No open issue')+'</small></div>';
+
+ return {booking,customer,providerDetails,provider,visit,support,accounting,overview,liveActive:!!liveSnap,activeStatus:liveSnap?String(liveSnap.status||'').toUpperCase():''};
 }
 
 function customerOpenAddMoreWork(){
@@ -4074,10 +4095,14 @@ if($("providerCustomerExtraMount")) $("providerCustomerExtraMount").innerHTML=pr
 try{renderProviderAddWorkSheet();}catch(e){console.error(e)}
 if($("admin")){
  let A=adminHTMLState();
- $("aStatus").textContent=(window.OCS_ADMIN_LATEST_BOOKING&&window.OCS_ADMIN_LATEST_BOOKING.has_booking&&window.OCS_ADMIN_LATEST_BOOKING.is_active)?String(window.OCS_ADMIN_LATEST_BOOKING.status||S.status).toUpperCase():S.status;
+ const ast=$("aStatus");
+ if(ast){ast.style.display=A.liveActive?"inline-block":"none";ast.textContent=A.activeStatus||""}
+ if($("adminOverview"))$("adminOverview").innerHTML=A.overview;
  $("adminBooking").innerHTML=A.booking;
  if($("adminCustomer")) $("adminCustomer").innerHTML=A.customer;
  if($("adminProviderDetails")) $("adminProviderDetails").innerHTML=A.providerDetails;
+ if($("adminLiveDetails"))$("adminLiveDetails").hidden=!A.liveActive;
+ if($("adminLiveCard"))$("adminLiveCard").classList.toggle("empty",!A.liveActive);
  $("adminProvider").innerHTML=A.provider;
  $("adminVisit").innerHTML=A.visit;
  $("adminSupport").innerHTML=A.support;
