@@ -3996,7 +3996,7 @@ if($("providerCustomerExtraMount")) $("providerCustomerExtraMount").innerHTML=pr
 try{renderProviderAddWorkSheet();}catch(e){console.error(e)}
 if($("admin")){
  let A=adminHTMLState();
- $("aStatus").textContent=S.status;
+ $("aStatus").textContent=(window.OCS_ADMIN_LATEST_BOOKING&&window.OCS_ADMIN_LATEST_BOOKING.has_booking&&window.OCS_ADMIN_LATEST_BOOKING.is_active)?String(window.OCS_ADMIN_LATEST_BOOKING.status||S.status).toUpperCase():S.status;
  $("adminBooking").innerHTML=A.booking;
  if($("adminCustomer")) $("adminCustomer").innerHTML=A.customer;
  if($("adminProviderDetails")) $("adminProviderDetails").innerHTML=A.providerDetails;
