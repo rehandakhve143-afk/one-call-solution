@@ -119,6 +119,8 @@ button.provider-metric{width:100%;font:inherit;cursor:pointer}
 .provider-quick-tools button>b{min-width:0;font-size:11.5px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .provider-quick-tools button>small{min-width:0;font-size:9.5px;color:#75898c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .provider-quick-tools button:active{transform:scale(.985);background:#f1f8f6}
+.provider-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.provider-contact-grid .btn{margin:0!important;min-height:44px!important}
 @media(max-width:360px){.provider-quick-tools{grid-template-columns:1fr 1fr}.provider-quick-tools button{padding:8px}.provider-quick-tools button>b{font-size:10.5px}}
 .provider-idle-state{margin-top:12px;padding:14px;border-radius:15px;background:#f2f8f6;border:1px solid #deebe7}
 .provider-idle-state b{display:block;color:#173f46;margin-bottom:4px}
@@ -2841,6 +2843,47 @@ function customerProviderContactHTML(){
  if(!["ASSIGNED","ON_WAY","REACHED","WORKING"].includes(S.status))return "";
  return "<div class=\"card\"><h3>Contact Service Provider</h3><div class=\"muted\">"+S.provider+" assigned • Booking contact only</div><div class=\"row\" style=\"margin-top:8px\"><button class=\"btn\" onclick=\"customerCallProvider()\">📞 Call</button><button class=\"btn alt\" onclick=\"customerChatProvider()\">💬 Chat</button></div><button class=\"btn gray\" onclick=\"customerShareLocation()\">📍 Share My Location</button></div>";
 }
+function ocsCustomerPhone(){
+ const d=String(S.customerMobile||"").replace(/\D/g,"");
+ return d.length>=10?d.slice(-10):"";
+}
+function providerCallCustomer(){
+ const d=ocsCustomerPhone();
+ if(!d){alert("Customer mobile number booking me available nahi hai.");return}
+ location.href="tel:"+d;
+}
+function providerWhatsAppCustomer(){
+ const d=ocsCustomerPhone();
+ if(!d){alert("Customer mobile number booking me available nahi hai.");return}
+ window.open("https://wa.me/91"+d+"?text="+encodeURIComponent("Hello, I am your One Call Solution Service Provider regarding your current booking."),"_blank");
+}
+function providerChatCustomer(){
+ const m=(prompt("Message to "+(S.customerName||"Customer"))||"").trim();
+ if(!m)return;
+ S.chatMessages=S.chatMessages||[];
+ S.chatMessages.push({from:"Service Provider",text:m,at:Date.now()});
+ hist("Service Provider sent chat message to "+(S.customerName||"Customer"));
+ alert("Message saved in this OCS booking.");
+}
+function providerViewCustomerMedia(){
+ const media=Array.isArray(S.requestMedia)?S.requestMedia:[];
+ if(!media.length){alert("Is booking me Customer photo/video nahi hai.");return}
+ alert(media.map((x,i)=>(i+1)+". "+(x.kind==="video"?"Video":"Photo")+" • "+(x.name||"Attachment")).join("\n"));
+}
+function providerCustomerContactHTML(){
+ if(!["ASSIGNED","ON_WAY","REACHED","WORKING"].includes(S.status))return "";
+ const hasMedia=Array.isArray(S.requestMedia)&&S.requestMedia.length>0;
+ return '<div class="card provider-customer-contact"><h3>Customer Contact</h3>'+
+   '<div class="muted">'+ocsSafe(S.customerName||"Customer")+' • Booking contact only</div>'+
+   '<div class="provider-contact-grid">'+
+     '<button class="btn" onclick="providerCallCustomer()">📞 Call</button>'+
+     '<button class="btn alt" onclick="providerWhatsAppCustomer()">WhatsApp</button>'+
+     '<button class="btn gray" onclick="providerChatCustomer()">💬 Chat</button>'+
+     '<button class="btn gray" onclick="ocsDirections()">📍 Location</button>'+
+   '</div>'+
+   (hasMedia?'<button class="btn gray" onclick="providerViewCustomerMedia()">📷 View Photo / Video</button>':'')+
+ '</div>';
+}
 async function ocsReached(){
  if(!ocsRequireStage("ON_WAY","GPS Reached"))return;
  if(!ocsGuardAction("gps-reached",1000))return;
@@ -3293,6 +3336,7 @@ if(S.status==="WORKING"&&S.quote&&S.quoteDecision==="RETURNED")h+=`
 if(S.isQuoteBooking&&S.quoteDecision==="APPROVED"&&["REQUESTED","ASSIGNED","ON_WAY","REACHED"].includes(S.status)){
  h+=`<div class="card"><h3>Accepted Quote</h3><div class="row"><span>Official Amount</span><b>${money(S.total)}</b></div><button class="btn alt" onclick="providerRequestQuoteRevision()">Request Quote Revision</button><div class="muted" style="margin-top:8px">Work Start ke baad original quote edit nahi hoga; extra work ke liye Add Work / New Quote use karein.</div></div>`+quoteHistoryHTML()+quoteChatHTML("provider");
 }
+if(["ASSIGNED","ON_WAY","REACHED","WORKING"].includes(S.status))h+=providerCustomerContactHTML();
 if(S.paymentHeld&&Number(S.heldAmount||0)>0&&["REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","COMPLETION_CONFIRM","SUPPORT_REVIEW"].includes(S.status))h=secureHoldHTML()+h;
 return h;
 }
