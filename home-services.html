@@ -4332,6 +4332,8 @@ function ocsNavHome(){
 }
 function ocsNavBack(){
  try{
+   const am=document.getElementById("providerActionModal");
+   if(am&&!am.classList.contains("hide")){closeProviderActionModal();return}
    const pp=document.getElementById("providerProfilePanel");
    if(pp&&!pp.classList.contains("hide")){closeProviderProfilePanel();return}
    const po=document.getElementById("providerPayoutPanel");
