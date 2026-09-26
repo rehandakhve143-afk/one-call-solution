@@ -401,12 +401,6 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 <div id="adminProviderDetails"></div>
 </div>
 <div class="card">
-<h3>SP Skill Verification</h3>
-<div class="muted">Service Provider ke selected skills yahan approve/reject honge. Sirf approved skill par Customer job milega.</div>
-<div id="adminSkillBulkActions" style="margin-top:10px"></div>
-<div id="adminSkillQueue" style="margin-top:10px"></div>
-</div>
-<div class="card">
 <h3>Provider Control</h3>
 <div id="adminProvider"></div>
 <button class="btn alt" onclick="adminToggleNewJobs()">Pause / Resume New Jobs</button>
@@ -1655,7 +1649,7 @@ async function showTab(x){
     if(S.status==="REQUESTED"){S.providerRequestSeen=true;saveHomeState();}
   }
   if(x==="admin"){
-    await Promise.all([adminLoadSkillQueue(),adminLoadLatestBookingSnapshot()]);
+    await adminLoadLatestBookingSnapshot();
     render();
     startAdminLiveRefresh();
   }else{
@@ -4011,7 +4005,6 @@ if($("admin")){
  $("adminSupport").innerHTML=A.support;
  $("adminAccounting").textContent=A.accounting;
  $("aLog").innerHTML=$("cLog").innerHTML;
- if(!document.getElementById("admin").classList.contains("hide"))adminLoadSkillQueue();
 }
 }
 function render(){
