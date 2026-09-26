@@ -279,6 +279,63 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 .admin-route-only .top{padding-bottom:12px!important}
 </style>
 
+<style id="ocs-admin-dashboard-design">
+.admin-dashboard{padding:14px 12px 34px!important;background:linear-gradient(180deg,#f5f9f8,#f8faf9)}
+.admin-dashboard .card{margin-left:0!important;margin-right:0!important}
+.admin-titlebar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:8px 2px 13px}
+.admin-eyebrow{display:block;font-size:9px;font-weight:950;letter-spacing:1px;color:#138277;margin-bottom:4px}
+.admin-titlebar h2{margin:0 0 3px;font-size:22px;letter-spacing:-.45px;color:#123f48}
+.admin-titlebar .muted{font-size:11px;line-height:1.4}
+.admin-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:11px}
+.admin-kpi{border:1px solid #dce9e6;border-radius:16px;background:#fff;padding:12px;box-shadow:0 5px 16px rgba(17,65,70,.045)}
+.admin-kpi span{display:block;font-size:8.5px;font-weight:900;letter-spacing:.65px;color:#7a8d91;text-transform:uppercase}
+.admin-kpi b{display:block;margin-top:5px;font-size:18px;line-height:1.1;color:#173f46}
+.admin-kpi small{display:block;margin-top:4px;font-size:9px;color:#7a8b8f;line-height:1.3}
+.admin-kpi.alert b{color:#a45c18}.admin-kpi.good b{color:#087a70}
+.admin-panel-card{border:1px solid #dce9e6;border-radius:19px;background:#fff;padding:14px;margin:0 0 11px;box-shadow:0 7px 22px rgba(17,65,70,.055)}
+.admin-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+.admin-panel-head span{display:block;font-size:8.5px;font-weight:950;letter-spacing:.8px;color:#148276}
+.admin-panel-head h3{margin:2px 0 0!important;font-size:17px!important;color:#153f47!important}
+.admin-refresh-btn{min-height:36px!important;padding:8px 11px!important;border:1px solid #dce9e6!important;border-radius:11px!important;background:#f2f6f5!important;color:#35575d!important;font-size:10.5px!important;box-shadow:none!important}
+.admin-refresh-note{font-size:9.5px;color:#819094;margin-bottom:9px}
+.admin-live-card.empty{padding-bottom:16px}
+.admin-empty-live{padding:17px 12px;text-align:center;border:1px dashed #d7e6e2;border-radius:14px;background:#f8fbfa;color:#6e8185}
+.admin-empty-live b{display:block;color:#244d53;font-size:13px;margin-bottom:3px}
+.admin-empty-live small{font-size:10px}
+.admin-live-details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px;padding-top:11px;border-top:1px solid #edf2f1}
+.admin-mini-card{border:1px solid #e3ecea;border-radius:14px;background:#f9fbfb;padding:11px}
+.admin-mini-title{font-size:9px;font-weight:950;letter-spacing:.7px;color:#148276;text-transform:uppercase;margin-bottom:6px}
+.admin-mini-card .row{display:grid!important;grid-template-columns:.85fr 1.15fr!important;gap:7px!important;padding:4px 0}
+.admin-mini-card .row span{font-size:9px;color:#7b898c}
+.admin-mini-card .row b{font-size:10px;line-height:1.3;text-align:right;word-break:break-word;color:#284a50}
+.admin-provider-control #adminProvider{padding:10px 11px;border:1px solid #e3ecea;border-radius:14px;background:#f8fbfa;font-size:12px;line-height:1.45;color:#294e54}
+.admin-provider-control #adminProvider b{font-size:13px;color:#173f46}
+.admin-provider-control #adminProvider .muted{font-size:10px;line-height:1.4;margin-top:4px}
+.admin-primary-action{width:100%;min-height:43px;margin-top:9px;border:0;border-radius:12px;background:#087a70;color:#fff;font-size:11px;font-weight:900;box-shadow:0 5px 13px rgba(8,122,112,.12)}
+.admin-secondary-action{width:100%;min-height:40px;margin-top:8px;border:1px solid #dce9e6;border-radius:11px;background:#f3f7f6;color:#35575d;font-size:10.5px;font-weight:850}
+.admin-reminder-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:7px}
+.admin-reminder-row button{min-height:36px;padding:7px 4px;border:1px solid #dce9e6;border-radius:10px;background:#fff;color:#506b70;font-size:9.5px;font-weight:850}
+.admin-more-tools{border:1px solid #dce9e6;border-radius:17px;background:#fff;overflow:hidden;box-shadow:0 6px 18px rgba(17,65,70,.045)}
+.admin-more-tools>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;cursor:pointer}
+.admin-more-tools>summary::-webkit-details-marker{display:none}
+.admin-more-tools>summary span{font-size:12px;font-weight:900;color:#244d53}
+.admin-more-tools>summary small{font-size:8.5px;color:#839195;text-align:right}
+.admin-more-tools>summary:after{content:"›";font-size:20px;color:#6e8488;transform:rotate(90deg)}
+.admin-more-tools[open]>summary:after{transform:rotate(-90deg)}
+.admin-more-body{padding:0 12px 12px;border-top:1px solid #edf2f1}
+.admin-tool-block{padding:12px 1px;border-bottom:1px solid #edf2f1}
+.admin-tool-block:last-child{border-bottom:0}
+.admin-tool-block h3{font-size:13px!important;margin:0 0 7px!important}
+.admin-tool-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.admin-tool-actions button{min-height:36px;border:1px solid #dce9e6;border-radius:10px;background:#f7faf9;color:#35575d;font-weight:850}
+.admin-dashboard #aStatus{font-size:9px!important;padding:6px 8px!important}
+@media(max-width:390px){
+ .admin-live-details{grid-template-columns:1fr}
+ .admin-overview{gap:6px}
+ .admin-kpi{padding:10px}
+ .admin-kpi b{font-size:16px}
+}
+</style>
 <style id="ocs-customer-final-design">
 .ocs-payment-policy{display:flex;align-items:flex-start;gap:10px;margin:11px 0;padding:12px 13px;border:1px solid #d8ebe5;border-radius:15px;background:linear-gradient(145deg,#f0faf6,#fff);color:#365b61}
 .ocs-payment-policy .pp-icon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:10px;background:#dff4ed;color:#087a70;font-size:15px;font-weight:950}
@@ -382,56 +439,76 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 </section>
 
 <!-- Admin is internal only; no public tab. -->
-<section id="admin" class="screen hide">
-<div class="head"><div><h2>OCS Admin Control</h2><div class="muted">Admin Panel Active</div><div class="muted">Same live booking state • internal control</div></div><span class="status" id="aStatus">READY</span></div>
-<div class="card">
-<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-  <h3 style="margin:0">Live Booking</h3>
-  <button type="button" class="btn gray" style="width:auto;min-height:34px;margin:0;padding:7px 11px;font-size:11px" onclick="refreshAdminLiveSnapshot()">↻ Refresh Live</button>
-</div>
-<div class="muted" id="adminLiveRefreshNote" style="margin:7px 0 10px">Auto refresh every 5 seconds</div>
-<div id="adminBooking"></div>
-</div>
-<div class="card">
-<h3>Customer Details</h3>
-<div id="adminCustomer"></div>
-</div>
-<div class="card">
-<h3>Service Provider Details</h3>
-<div id="adminProviderDetails"></div>
-</div>
-<div class="card">
-<h3>Provider Control</h3>
-<div id="adminProvider"></div>
-<button class="btn alt" onclick="adminToggleNewJobs()">Pause / Resume New Jobs</button>
-<div class="row" style="margin-top:8px">
-  <button class="btn gray" onclick="sendWalletReminder('SMS')">SMS Reminder</button>
-  <button class="btn gray" onclick="sendWalletReminder('EMAIL')">Email Reminder</button>
-  <button class="btn gray" onclick="sendWalletReminder('CALL')">Call Reminder</button>
-</div>
-</div>
-<div class="card">
-<h3>Visit / No-Work Review</h3>
-<div id="adminVisit"></div>
-<div class="row"><button class="btn gray" onclick="adminResolveVisitCharge(0)">₹0</button><button class="btn" onclick="adminResolveVisitCharge(199)">₹199</button><button class="btn" onclick="adminResolveVisitCharge(249)">₹249</button></div>
-</div>
-<div class="card">
-<h3>Provider Change / Reassign</h3>
-<div class="muted">Customer-requested provider change stays on HOLD. No automatic SP2.</div>
-<button class="btn" onclick="adminApproveReassign()">Admin Approve & Find Another Provider</button>
-</div>
-<div class="card">
-<h3>Support</h3>
-<div id="adminSupport"></div>
-<button class="btn gray" onclick="adminCloseSupport()">Close Support Ticket</button>
-</div>
-<div class="card">
-<h3>Internal Accounting</h3>
-<div class="muted">Completed Home Service settlement record.</div>
-<div><b>Settlement Adjustment</b></div>
-<div id="adminAccounting" class="muted"></div>
-</div>
-<div class="card"><h3>Admin History</h3><div id="aLog" class="log"></div></div>
+<section id="admin" class="screen hide admin-dashboard">
+  <div class="admin-titlebar">
+    <div>
+      <span class="admin-eyebrow">OCS INTERNAL</span>
+      <h2>Admin Dashboard</h2>
+      <div class="muted">Live booking control and Service Provider monitoring</div>
+    </div>
+    <span class="status" id="aStatus" style="display:none">READY</span>
+  </div>
+
+  <div class="admin-overview" id="adminOverview"></div>
+
+  <section class="admin-panel-card admin-live-card" id="adminLiveCard">
+    <div class="admin-panel-head">
+      <div><span>LIVE</span><h3>Live Booking</h3></div>
+      <button type="button" class="admin-refresh-btn" onclick="refreshAdminLiveSnapshot()">↻ Refresh</button>
+    </div>
+    <div class="admin-refresh-note" id="adminLiveRefreshNote">Auto refresh every 5 seconds</div>
+    <div id="adminBooking"></div>
+    <div class="admin-live-details" id="adminLiveDetails" hidden>
+      <div class="admin-mini-card" id="adminCustomerWrap">
+        <div class="admin-mini-title">Customer</div>
+        <div id="adminCustomer"></div>
+      </div>
+      <div class="admin-mini-card" id="adminProviderDetailsWrap">
+        <div class="admin-mini-title">Service Provider</div>
+        <div id="adminProviderDetails"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-panel-card admin-provider-control">
+    <div class="admin-panel-head"><div><span>CONTROL</span><h3>Provider Control</h3></div></div>
+    <div id="adminProvider"></div>
+    <button class="admin-primary-action" onclick="adminToggleNewJobs()">Pause / Resume New Jobs</button>
+    <div class="admin-reminder-row">
+      <button onclick="sendWalletReminder('SMS')">SMS</button>
+      <button onclick="sendWalletReminder('EMAIL')">Email</button>
+      <button onclick="sendWalletReminder('CALL')">Call</button>
+    </div>
+  </section>
+
+  <details class="admin-more-tools">
+    <summary><span>More Admin Tools</span><small>Visit charge • Support • Reassign • History</small></summary>
+    <div class="admin-more-body">
+      <div class="admin-tool-block">
+        <h3>Visit / No-Work Review</h3>
+        <div id="adminVisit"></div>
+        <div class="admin-tool-actions"><button onclick="adminResolveVisitCharge(0)">₹0</button><button onclick="adminResolveVisitCharge(199)">₹199</button><button onclick="adminResolveVisitCharge(249)">₹249</button></div>
+      </div>
+      <div class="admin-tool-block">
+        <h3>Provider Change / Reassign</h3>
+        <div class="muted">Customer-requested provider change stays on HOLD until Admin approval.</div>
+        <button class="admin-primary-action" onclick="adminApproveReassign()">Approve & Find Another Provider</button>
+      </div>
+      <div class="admin-tool-block">
+        <h3>Support</h3>
+        <div id="adminSupport"></div>
+        <button class="admin-secondary-action" onclick="adminCloseSupport()">Close Support Ticket</button>
+      </div>
+      <div class="admin-tool-block">
+        <h3>Internal Accounting</h3>
+        <div id="adminAccounting" class="muted"></div>
+      </div>
+      <div class="admin-tool-block">
+        <h3>Admin History</h3>
+        <div id="aLog" class="log"></div>
+      </div>
+    </div>
+  </details>
 </section>
 </div>
 
