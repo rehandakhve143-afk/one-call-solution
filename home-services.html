@@ -2989,7 +2989,7 @@ if(S.status==="BOOKING_DETAILS"){
 if(S.status==="READY")h=`
 <div class="card">
 <b>${S.service}</b><div class="muted">Approx. service area • Exact address unlocks after Accept</div>
-<div class="money">₹${S.base}</div>
+<div class="money">${S.requestType==="quote"?"Get Quote":"₹"+S.base}</div>
 <div class="card">
   <h3>Payment Method</h3>
   <div class="row">
@@ -3235,7 +3235,7 @@ if(S.status==="REQUESTED"){
 <div class="card"><h3>Incoming Request</h3>
 ${walletLow?'<div class="notice"><b>Wallet Reserve Warning</b><br>Reserve target ₹200 hai. Current balance kam hai, lekin booking auto-block nahi hogi. Sirf OCS Admin new jobs Pause / Resume kar sakta hai.</div>':''}
 <b>${S.service}</b><div class="muted">Customer: ${ocsSafe(S.customerName||"Customer")} • ${ocsSafe(S.address)}</div>
-<div class="money">₹${S.base}</div>
+<div class="money">${S.requestType==="quote"?"Get Quote":"₹"+S.base}</div>
 <div class="row">
 <button class="btn ok" onclick="providerDecision('accept')">Accept</button>
 <button class="btn red" onclick="providerDecision('reject')">Reject</button>
