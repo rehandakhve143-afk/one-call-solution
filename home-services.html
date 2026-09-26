@@ -1576,7 +1576,7 @@ async function showTab(x){
     refreshProviderPayoutStatus();
     if(S.status==="REQUESTED"){S.providerRequestSeen=true;saveHomeState();}
   }
-  if(x==="admin"){await adminLoadSkillQueue();render()}
+  if(x==="admin"){await Promise.all([adminLoadSkillQueue(),adminLoadLatestBookingSnapshot()]);render()}
   window.scrollTo(0,0);
 }
 function syncHomeState(){
@@ -3486,41 +3486,75 @@ async function adminRemovePendingCategory(providerId,category){
  }catch(e){alert("Bulk remove failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
+async function adminLoadLatestBookingSnapshot(){
+  if(!ocsSupabase)return null;
+  try{
+    const {data,error}=await ocsSupabase.rpc("admin_latest_booking_snapshot_v1");
+    if(error)throw error;
+    window.OCS_ADMIN_LATEST_BOOKING=data||null;
+    if(data&&data.provider_id){
+      S.providerBackendId=data.provider_id;
+      S.provider=data.provider_name||S.provider;
+      S.wallet=Number(data.wallet_balance||0);
+      S.available=!!data.available_for_work;
+      S.adminPaused=!!data.admin_paused;
+      S.jobAccess=!S.adminPaused;
+    }
+    return data||null;
+  }catch(e){
+    console.error("Admin latest booking snapshot failed",e);
+    window.OCS_ADMIN_LATEST_BOOKING=null;
+    return null;
+  }
+}
+
 function adminHTMLState(){
- let amount=ensureBookingAmount();
- const walletText=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
- const charge=amount?auditPlatformCharge(amount):0;
- let booking=S.service?`
- <div class="row"><span>Service</span><b>${ocsSafe(S.category||"—")} • ${ocsSafe(S.service)}</b></div>
- <div class="row"><span>Status</span><b>${ocsSafe(S.status)}</b></div>
- <div class="row"><span>Booking Amount</span><b>${amount?money(amount):"Pending"}</b></div>
- <div class="row"><span>Payment</span><b>${ocsSafe(S.paymentChoice||"—")}</b></div>`:
- `<div class="muted">No active booking.</div>`;
- const hasActiveBooking=!!S.service;
- let customer=hasActiveBooking?`
- <div class="row"><span>Name</span><b>${ocsSafe(S.customerName||"Customer 1")}</b></div>
- <div class="row"><span>Mobile</span><b>${ocsSafe(S.customerMobile||"Not added")}</b></div>
- <div class="row"><span>Email</span><b>${ocsSafe(S.customerEmail||"Not added")}</b></div>
- <div class="row"><span>Address</span><b>${ocsSafe(S.address||"Not added")}</b></div>
- <div class="row"><span>Current Service</span><b>${ocsSafe(S.service||"—")}</b></div>`:
- '<div class="muted">No active booking. Customer details booking ke saath yahan dikhenge.</div>';
- let providerDetails=hasActiveBooking?`
- <div class="row"><span>Service Provider</span><b>${ocsSafe(S.provider||"—")}</b></div>
- <div class="row"><span>Verified</span><b>${S.providerVerified!==false?"YES ✓":"PENDING"}</b></div>
- <div class="row"><span>Mobile</span><b>${ocsSafe(S.providerMobile||"Not added")}</b></div>
- <div class="row"><span>Email</span><b>${ocsSafe(S.providerEmail||"Not added")}</b></div>
- <div class="row"><span>Skill / Category</span><b>${ocsSafe(S.category||"—")}</b></div>
- <div class="row"><span>Available for Work</span><b>${S.available?"ON":"OFF"}</b></div>
+ const snap=window.OCS_ADMIN_LATEST_BOOKING||null;
+ const hasSnap=!!(snap&&snap.has_booking);
+ const isActive=!!(hasSnap&&snap.is_active);
+ const amount=hasSnap?Number(snap.booking_amount||snap.payment_amount||0):ensureBookingAmount();
+ const wallet=hasSnap?Number(snap.wallet_balance||0):Number(S.wallet||0);
+ const walletText=wallet<0?"−₹"+Math.abs(wallet).toFixed(2):"₹"+wallet.toFixed(2);
+ const charge=hasSnap?Number(snap.commission_amount||0):(amount?auditPlatformCharge(amount):0);
+
+ let booking;
+ if(hasSnap){
+   booking=`
+   <div class="row"><span>${isActive?"Live Booking":"Last Completed Booking"}</span><b>${ocsSafe(snap.service_name||"—")}</b></div>
+   <div class="row"><span>Category</span><b>${ocsSafe(snap.category||"—")}</b></div>
+   <div class="row"><span>Status</span><b>${ocsSafe(String(snap.status||"").toUpperCase())}</b></div>
+   <div class="row"><span>Booking Amount</span><b>${money(amount)}</b></div>
+   <div class="row"><span>Payment</span><b>${ocsSafe(String(snap.payment_method||"—").toUpperCase())}${snap.payment_status?" • "+ocsSafe(String(snap.payment_status).toUpperCase()):""}</b></div>`;
+ }else{
+   booking='<div class="muted">No booking record found.</div>';
+ }
+
+ let customer=hasSnap?`
+ <div class="row"><span>Name</span><b>${ocsSafe(snap.customer_name||"Customer")}</b></div>
+ <div class="row"><span>Mobile</span><b>${ocsSafe(snap.customer_mobile||"Not added")}</b></div>
+ <div class="row"><span>Address</span><b>${ocsSafe(snap.address||"Not added")}</b></div>
+ <div class="row"><span>Service</span><b>${ocsSafe(snap.service_name||"—")}</b></div>`:
+ '<div class="muted">No booking customer details.</div>';
+
+ let providerDetails=hasSnap&&snap.provider_id?`
+ <div class="row"><span>Service Provider</span><b>${ocsSafe(snap.provider_name||"Service Provider")}</b></div>
+ <div class="row"><span>Mobile</span><b>${ocsSafe(snap.provider_mobile||"Not added")}</b></div>
+ <div class="row"><span>Available for Work</span><b>${snap.available_for_work?"ON":"OFF"}</b></div>
  <div class="row"><span>Wallet Balance</span><b>${walletText}</b></div>
  <div class="row"><span>Reserve Target</span><b>₹200 • Warning only • No auto-block</b></div>
- <div class="row"><span>Welcome Bonus</span><b>₹100 • One-time • Non-withdrawable</b></div>
  <div class="row"><span>OCS Commission</span><b>9% • Cash: wallet debit • Online: settlement deduction</b></div>`:
- '<div class="muted">No active booking. Assigned Service Provider details booking ke saath yahan dikhenge.</div>';
- let provider=`<div><b>${S.provider}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div>
- <div class="muted">Wallet Balance: ${walletText} • OCS Commission: 9%</div>`;
+ '<div class="muted">No assigned Service Provider record.</div>';
+
+ let provider=hasSnap&&snap.provider_id?`<div><b>${ocsSafe(snap.provider_name||"Service Provider")}</b> • Available: ${snap.available_for_work?"ON":"OFF"} • New Jobs: ${snap.admin_paused?"PAUSED":"ACTIVE"}</div>
+ <div class="muted">Wallet Balance: ${walletText} • OCS Commission: 9%</div>`:
+ `<div><b>${ocsSafe(S.provider||"Service Provider")}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div><div class="muted">Wallet Balance: ${walletText} • OCS Commission: 9%</div>`;
+
  let visit=`<div class="muted">GPS one-way: ${Number(S.oneWayDistanceKm||0).toFixed(1)} km • Suggested: ${S.suggestedVisitCharge?money(S.suggestedVisitCharge):"—"} • Final: ${S.visitCharge?money(S.visitCharge):"—"}</div>`;
  let support=S.supportTicket?`<b>${S.supportTicket}</b> • ${S.cancelReason||S.providerChangeReason||"Review required"}`:`<span class="muted">No open support ticket.</span>`;
- let accounting=`Booking Amount: ${amount?money(amount):"₹0"} • OCS 9% Commission: ${money(charge)} • SP Wallet: ${walletText}`;
+ let accounting=hasSnap
+   ?`Booking Amount: ${money(amount)} • OCS 9% Commission: ${money(charge)} • SP Wallet: ${walletText}`
+   :`Booking Amount: ₹0 • OCS 9% Commission: ₹0 • SP Wallet: ${walletText}`;
+
  return {booking,customer,providerDetails,provider,visit,support,accounting};
 }
 
