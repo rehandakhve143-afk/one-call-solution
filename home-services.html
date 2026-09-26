@@ -1267,7 +1267,7 @@ function releaseHeldJobPayment(){
  S.paymentFinalized=true;
  const total=Number(S.total||0),held=Number(S.heldAmount||0);
  S.status="DONE";S.paymentHeld=false;S.paymentReleased=true;S.releasedAmount=held;S.heldAmount=0;S.currentJob=null;S.payment="ONLINE • OCS Secure Payment Released";
- if(total>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(total)}
+ if(total>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(total,"ONLINE")}
  ocsCloseBooking("Secure payment released after completion");
  hist("Customer confirmed Work Completed • OCS released "+money(held||total)+" for settlement to "+S.provider);
  unlockQueuedNextJob();
@@ -1285,7 +1285,7 @@ function confirmHeldNoWorkSettlement(){
  S.paymentFinalized=true;
  const charge=Number(S.heldNoWorkCharge||0),refund=Number(S.refundAmount||0);
  S.paymentHeld=false;S.heldAmount=0;S.status="CANCELLED_SETTLED";S.payment="OCS_HOLD_SETTLED";
- if(charge>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(charge)}
+ if(charge>0&&!S.commissionApplied){S.commissionApplied=true;applyCommission(charge,"ONLINE")}
  ocsCloseBooking("No-work secure settlement complete");
  hist("OCS hold settled • Provider visit charge "+money(charge)+" • Customer refund "+money(refund));
 }
@@ -1729,14 +1729,13 @@ async function saveProviderSkillEditor(){
 function openProviderWalletQuick(){
   const bal=Number(S.wallet||0);
   const text=bal<0?"−₹"+Math.abs(bal).toFixed(2):"₹"+bal.toFixed(2);
-  const topup=confirm("OCS Wallet\nCurrent balance: "+text+"\nOCS Commission: 9%\n\nWallet top-up karna hai?");
+  const topup=confirm("OCS Wallet\nCurrent balance: "+text+"\nReserve target: ₹200\nOCS Commission: 9%\n\n₹200 hard block nahi hai. New jobs sirf Admin pause kar sakta hai.\n\nWallet top-up karna hai?");
   if(topup)rechargeWallet();
 }
 function openProviderHistoryQuick(){
-  const d=document.getElementById("providerHistoryCard");
-  if(!d)return;
-  d.open=true;
-  d.scrollIntoView({behavior:"smooth",block:"start"});
+  const logs=Array.isArray(S.logs)?S.logs:[];
+  const recent=logs.slice(0,20);
+  alert(recent.length?("Work History\n\n"+recent.join("\n")):"No work history yet.");
 }
 async function providerPayoutSnapshot(){
   if(!ocsSupabase)throw new Error("Online service not connected");
@@ -2008,7 +2007,7 @@ async function rechargeWallet(){
  const target=Number(S.walletWarningLevel||200);
  const suggested=Math.max(100,Math.round((target-current)*100)/100);
  const currentText=current<0?"−₹"+Math.abs(current).toFixed(2):"₹"+current.toFixed(2);
- let a=Number(prompt("OCS Wallet\nCurrent balance: "+currentText+"\nRecommended warning level: ₹"+target.toFixed(2)+"\nTop-up amount enter karein.",suggested.toFixed(2)));
+ let a=Number(prompt("OCS Wallet\nCurrent balance: "+currentText+"\nReserve target: ₹"+target.toFixed(2)+"\nBelow ₹200 warning only • no automatic job block\nTop-up amount enter karein.",suggested.toFixed(2)));
  if(!a||a<50){alert("Minimum wallet top-up ₹50.");return}
  try{
    const {data:intent,error:ie}=await ocsSupabase.rpc("create_wallet_topup_intent_v1",{p_amount:a});
@@ -2018,7 +2017,8 @@ async function rechargeWallet(){
 }
 function settleCollectedAmount(amount,label){
  amount=Number(amount)||0;if(amount<=0)return;
- applyCommission(amount);
+ const method=String(S.payment||S.paymentChoice||"ONLINE").toUpperCase().includes("CASH")?"CASH":"ONLINE";
+ applyCommission(amount,method);
  hist((label||"Collected amount")+" ₹"+amount.toFixed(2)+" settled through OCS accounting");
 }
 
@@ -2028,22 +2028,36 @@ function auditPlatformCharge(amount){
 }
 function queueWalletMaintenanceEmail(){
  const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
- const msg="Maintain your OCS Wallet to continue booking smoothly. Current wallet balance: "+bal+".";
+ const msg="Maintain your OCS Wallet reserve target ₹200. Current wallet balance: "+bal+". New jobs remain active unless OCS Admin pauses them.";
  S.walletReminderHistory=S.walletReminderHistory||[];
  S.walletReminderHistory.unshift({channel:"EMAIL",message:msg,status:"QUEUED",at:new Date().toISOString()});
  S.walletEmailReminderQueuedAt=new Date().toISOString();
  hist("Wallet warning + email reminder queued for "+S.provider+" • "+msg);
 }
-function applyCommission(amount){
+function queueWalletZeroReminders(){
+ const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
+ const msg="OCS Wallet is "+bal+". Recharge wallet reserve to continue bookings smoothly. Account is not auto-blocked; Admin controls new-job pause/resume.";
+ S.walletReminderHistory=S.walletReminderHistory||[];
+ ["SMS","EMAIL","CALL"].forEach(ch=>S.walletReminderHistory.unshift({channel:ch,message:msg,status:"QUEUED",at:new Date().toISOString()}));
+ hist("Wallet ₹0/negative • SMS + Email + Call reminder queued • Admin controls Pause / Resume");
+}
+function applyCommission(amount,method){
  let charge=Math.round((Number(amount||0)*9/100)*100)/100;
  S.platformCharge=9;
+ const isCash=String(method||S.payment||S.paymentChoice||"").toUpperCase().includes("CASH");
+ if(!isCash){
+   hist("OCS platform commission 9% • ₹"+charge.toFixed(2)+" retained from online settlement • Wallet reserve unchanged");
+   return charge;
+ }
  S.wallet=Math.round((Number(S.wallet||0)-charge)*100)/100;
  S.jobAccess=!S.adminPaused;
- hist("OCS platform commission 9% • ₹"+charge.toFixed(2)+" adjusted in Wallet");
+ hist("Cash payment • OCS platform commission 9% • ₹"+charge.toFixed(2)+" deducted from Wallet");
  if(S.wallet<Number(S.walletWarningLevel||200)){
-   hist("Wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+" • Warning level below ₹200 • Jobs remain active unless OCS Admin pauses them");
+   hist("Wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+" • Below ₹200 reserve target • Warning only • Jobs remain active unless OCS Admin pauses them");
    queueWalletMaintenanceEmail();
  }
+ if(S.wallet<=0)queueWalletZeroReminders();
+ return charge;
 }
 
 
@@ -3219,7 +3233,7 @@ if(S.status==="REQUESTED"){
  }else if(canReceive){
    h=`
 <div class="card"><h3>Incoming Request</h3>
-${walletLow?'<div class="notice"><b>Wallet Warning</b><br>Maintain wallet to continue booking smoothly. This warning does not block this job.</div>':''}
+${walletLow?'<div class="notice"><b>Wallet Reserve Warning</b><br>Reserve target ₹200 hai. Current balance kam hai, lekin booking auto-block nahi hogi. Sirf OCS Admin new jobs Pause / Resume kar sakta hai.</div>':''}
 <b>${S.service}</b><div class="muted">Customer: ${ocsSafe(S.customerName||"Customer")} • ${ocsSafe(S.address)}</div>
 <div class="money">₹${S.base}</div>
 <div class="row">
@@ -3488,8 +3502,9 @@ function adminHTMLState(){
  <div class="row"><span>Skill / Category</span><b>${ocsSafe(S.category||"—")}</b></div>
  <div class="row"><span>Available for Work</span><b>${S.available?"ON":"OFF"}</b></div>
  <div class="row"><span>Wallet Balance</span><b>${walletText}</b></div>
+ <div class="row"><span>Reserve Target</span><b>₹200 • Warning only • No auto-block</b></div>
  <div class="row"><span>Welcome Bonus</span><b>₹100 • One-time • Non-withdrawable</b></div>
- <div class="row"><span>OCS Commission</span><b>9%</b></div>`:
+ <div class="row"><span>OCS Commission</span><b>9% • Cash: wallet debit • Online: settlement deduction</b></div>`:
  '<div class="muted">No active booking. Assigned Service Provider details booking ke saath yahan dikhenge.</div>';
  let provider=`<div><b>${S.provider}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div>
  <div class="muted">Wallet Balance: ${walletText} • OCS Commission: 9%</div>`;
