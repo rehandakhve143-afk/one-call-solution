@@ -1294,6 +1294,10 @@ body{background:#eef2f1!important}
 #locationModal .bottom-hub-head{margin-bottom:16px!important}
 #locationModal .bottom-hub-head h2{font-size:22px!important;letter-spacing:-.45px!important}
 #locationModal .bottom-hub-head .muted{font-size:11px!important;line-height:1.35!important;color:#75878a!important}
+#locationModal .ocs-location-selected{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:10px 12px;border-radius:14px;background:#f2f8f6;color:#17383e}
+#locationModal .ocs-location-selected-pin{width:34px;height:34px;border-radius:11px;background:#e4f3ef;color:#08786e;display:grid;place-items:center;font-weight:900}
+#locationModal .ocs-location-selected b{display:block;font-size:10px;color:#6f8386;margin-bottom:2px;text-transform:uppercase;letter-spacing:.25px}
+#locationModal .ocs-location-selected small{display:block;font-size:12px;color:#17383e;font-weight:800}
 #locationModal .ocs-location-search-card{margin:0!important;padding:0!important}
 #locationModal .ocs-location-search-row{height:54px!important;display:grid!important;grid-template-columns:42px minmax(0,1fr) auto!important;align-items:center!important;border:1.5px solid #d7e4e1!important;border-radius:16px!important;background:#fff!important;overflow:hidden!important;box-shadow:0 5px 14px rgba(18,50,71,.05)!important}
 #locationModal .ocs-location-search-icon{display:grid!important;place-items:center!important;color:#08786e!important}
