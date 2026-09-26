@@ -446,6 +446,10 @@ setTimeout(function(){
  <div class="banner-preview-media" id="bpMedia">📣</div>
 </div></div>
 
+<div id="bannerAdminFreeWrap" class="free-box" style="display:none;margin:12px 0">
+  <label style="display:flex;align-items:center;gap:9px;margin:0"><input id="bannerAdminFree" type="checkbox" style="width:auto" onchange="updateBannerPrice()"> <b>Admin: Make this Ad FREE</b></label>
+  <div class="muted" style="margin-top:6px">₹0 payment • GST ₹0 • direct LIVE.</div>
+</div>
 <label>Plan</label><select id="bannerPlan" onchange="updateBannerPrice()"><option value="banner28">28 Days</option><option value="banner6m">6 Months</option></select>
 <div id="bannerPriceNow" class="price-now">Price: —</div>
 <div id="bannerGstNote" class="muted" style="margin:7px 0 10px">18% GST will be added on paid ads.</div>
@@ -455,6 +459,10 @@ setTimeout(function(){
 
 <div class="modal" id="bizModal"><div class="sheet"><button class="x" onclick="closeBiz()">×</button><h2>Add / Edit Your Business</h2><p class="muted">Category select karein. Basic details yahin save rahengi; phir us window ka full setup khulega.</p>
 <label>Business Category</label><select id="bizCat"><option>Property</option><option>Local Shop</option><option>Sliding / Aluminium</option><option>Welding / Fabrication</option><option>Beauty / Make-up</option><option>Used Vehicle</option><option>New Vehicle</option><option>Medical Store</option><option>Diagnostic Lab</option><option>Modular Kitchen</option><option>Hotel / Restaurant / Lodging</option><option>Other Business</option></select>
+<div id="bizAdminFreeWrap" class="free-box" style="display:none;margin:10px 0">
+  <label style="display:flex;align-items:center;gap:9px;margin:0"><input id="bizAdminFree" type="checkbox" style="width:auto" onchange="updateBizPrice()"> <b>Admin: Make this Listing FREE</b></label>
+  <div class="muted" style="margin-top:6px">₹0 payment • GST ₹0 • direct LIVE for selected plan.</div>
+</div>
 <div id="bizCurrentPrice" class="price-now">Current 28-day plan: —</div>
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
@@ -1070,6 +1078,7 @@ async function renderHomeDashboardShortcuts(){
   }
   if(hasAdmin){
     html+='<button class="ocs-home-dash-btn admin" onclick="openHomeAdminDashboard()"><span class="ico">A</span><b>Admin Dashboard</b><small>Live booking • control</small></button>';
+    html+='<button class="ocs-home-dash-btn admin" onclick="openPricingAdmin()"><span class="ico">₹0</span><b>Pricing / Free Posts</b><small>Rates • GST • FREE override</small></button>';
   }
   grid.innerHTML=html;
   wrap.hidden=false;
@@ -2197,6 +2206,21 @@ function buildOcsGstInvoice(service,base,paymentRef,recipient,opts){
    supplier:{legalName:cfg.legalName||'One Call Solution',gstin:cfg.gstin||'',address:cfg.businessAddress||''}
  };
 }
+async function ocsAdminFreeAllowed(){
+ const session=await getOcsSession();if(!session||!session.user)return false;
+ return await ocsUserHasRole('admin');
+}
+async function syncAdminFreePostControls(){
+ const ok=await ocsAdminFreeAllowed();
+ const bw=document.getElementById('bannerAdminFreeWrap'),zw=document.getElementById('bizAdminFreeWrap');
+ if(bw)bw.style.display=ok?'block':'none';
+ if(zw)zw.style.display=ok?'block':'none';
+ if(!ok){
+   const b=document.getElementById('bannerAdminFree'),z=document.getElementById('bizAdminFree');
+   if(b)b.checked=false;if(z)z.checked=false;
+ }
+ return ok;
+}
 function getFreeOverrides(){try{return JSON.parse(localStorage.getItem('ocsFreeOverrides')||'[]')}catch(e){return []}}
 function setFreeOverrides(v){localStorage.setItem('ocsFreeOverrides',JSON.stringify(v))}
 function isFreeFor(name,scope){
@@ -2209,7 +2233,8 @@ function isFreeFor(name,scope){
 }
 function pricingValue(key,name,scope){return isFreeFor(name,scope||'LISTING')?0:Number(getPricing()[key]||0)}
 function moneyINR(n){return Number(n||0)===0?'FREE':'₹'+Number(n||0).toLocaleString('en-IN')}
-function openPricingAdmin(){
+async function openPricingAdmin(){
+ if(!await ocsAdminFreeAllowed()){alert('Admin access allowed nahi hai.');return}
  const p=getPricing(),map={
   pBanner28:'banner28',pBanner6m:'banner6m',
   pLocalShop:'localShop',pLocalShop6m:'localShop6m',
@@ -2268,11 +2293,12 @@ function savePricingAdmin(){
  });
  updateBizPrice();updateBannerPrice();alert('Prices & GST settings saved. ₹0 means FREE.');
 }
-function addFreeOverride(){
+async function addFreeOverride(){
+ if(!await ocsAdminFreeAllowed()){alert('Admin access allowed nahi hai.');return}
  const name=(document.getElementById('freeName').value||'').trim(),scope=document.getElementById('freeScope').value;if(!name){alert('Business / person name enter karein.');return}
  const a=getFreeOverrides().filter(x=>String(x.name||'').trim().toLowerCase()!==name.toLowerCase());a.push({name,scope});setFreeOverrides(a);document.getElementById('freeName').value='';renderFreeOverrides();updateBannerPrice();updateBizPrice();
 }
-function removeFreeOverride(i){const a=getFreeOverrides();a.splice(i,1);setFreeOverrides(a);renderFreeOverrides();updateBannerPrice();updateBizPrice()}
+async function removeFreeOverride(i){if(!await ocsAdminFreeAllowed()){alert('Admin access allowed nahi hai.');return}const a=getFreeOverrides();a.splice(i,1);setFreeOverrides(a);renderFreeOverrides();updateBannerPrice();updateBizPrice()}
 function renderFreeOverrides(){const a=getFreeOverrides(),box=document.getElementById('freeOverrideList');if(!box)return;const label=s=>({ALL:'Any Post / All',BOTH:'Any Post / All',BANNER:'Slider / Banner Ad',LISTING:'Shop / Property / Business Listing'})[String(s||'').toUpperCase()]||String(s||'');box.innerHTML=a.length?a.map((x,i)=>'<div class="free-pill"><span><b>'+x.name+'</b><br>'+label(x.scope)+' • ADMIN FREE</span><button onclick="removeFreeOverride('+i+')">Remove</button></div>').join(''):'No Admin FREE override yet.'}
 let bannerImageData="",editingBannerId="";
 function getBannerRequests(){try{return JSON.parse(localStorage.getItem('ocsBannerRequests')||'[]')}catch(e){return []}}
@@ -2315,14 +2341,14 @@ function renderBannerPendingState(){
  box.innerHTML='<div class="banner-builder-note" style="background:#eef8f5;border-left-color:#0b8a75"><b>Pending Ad • Editable before payment</b><br>'+String(p.name||'')+' • '+String(p.plan||'')+'<div style="margin-top:8px"><button type="button" class="primary" style="padding:9px 12px" onclick="editPendingBannerAd(\''+p.id+'\')">Edit Pending Ad</button></div></div>';
 }
 function clearBannerForm(){
- editingBannerId='';bannerImageData='';
+ editingBannerId='';bannerImageData='';const af=document.getElementById('bannerAdminFree');if(af)af.checked=false;
  ['bannerBusiness','bannerTitle','bannerDesc','bannerArea','bannerActionValue','bannerBillingEmail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
  const cta=document.getElementById('bannerCta');if(cta)cta.value='CALL';
  const plan=document.getElementById('bannerPlan');if(plan)plan.value='banner28';
  const img=document.getElementById('bannerImage');if(img)img.value='';
  const btn=document.querySelector('#bannerModal button[onclick="submitBannerAd()"]');if(btn)btn.textContent='Continue to Secure Payment';
 }
-function openBannerAd(){clearBannerForm();document.getElementById('bannerModal').classList.add('show');renderBannerPendingState();syncBannerCta();updateBannerPrice();renderBannerPreview()}
+function openBannerAd(){clearBannerForm();document.getElementById('bannerModal').classList.add('show');syncAdminFreePostControls().then(()=>updateBannerPrice());renderBannerPendingState();syncBannerCta();updateBannerPrice();renderBannerPreview()}
 function editPendingBannerAd(id){
  const a=getBannerRequests(),p=a.find(x=>x.id===id);
  if(!p)return alert('Pending ad nahi mila.');
@@ -2336,8 +2362,8 @@ function editPendingBannerAd(id){
 }
 function closeBannerAd(){document.getElementById('bannerModal').classList.remove('show')}
 function updateBannerPrice(){
- const n=(document.getElementById('bannerBusiness')?.value||'').trim(),key=document.getElementById('bannerPlan')?.value||'banner28',price=pricingValue(key,n,'BANNER'),box=document.getElementById('bannerPriceNow');
- if(box)box.innerHTML='Current plan • '+gstPriceHTML(price);
+ const n=(document.getElementById('bannerBusiness')?.value||'').trim(),key=document.getElementById('bannerPlan')?.value||'banner28',normalPrice=pricingValue(key,n,'BANNER'),adminFree=!!document.getElementById('bannerAdminFree')?.checked,price=adminFree?0:normalPrice,box=document.getElementById('bannerPriceNow');
+ if(box)box.innerHTML=adminFree?'Current plan • <b>ADMIN FREE</b> • Pay ₹0 • GST ₹0':'Current plan • '+gstPriceHTML(price);
  const note=document.getElementById('bannerGstNote'),x=getGstBreakup(price);
  if(note)note.textContent=price===0?'Admin FREE override • GST ₹0':(x.enabled?('GST '+x.rate+'% added at payment • GST invoice after successful payment'):'GST currently disabled by Admin');
 }
@@ -2369,10 +2395,13 @@ async function submitBannerAd(){
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
  if((cta==='CALL'||cta==='WHATSAPP')&&av.replace(/\D/g,'').length<10){alert('Valid mobile / WhatsApp number enter karein.');return}
  if(cta==='WEBSITE'&&!/^https?:\/\//i.test(av)){alert('Website link http:// ya https:// se start karein.');return}
- const price=pricingValue(key,n,'BANNER'),plan=key==='banner6m'?'6 Months':'28 Days';
+ const normalPrice=pricingValue(key,n,'BANNER'),requestedAdminFree=!!document.getElementById('bannerAdminFree')?.checked;
+ const adminFree=requestedAdminFree?await ocsAdminFreeAllowed():false;
+ if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
+ const price=adminFree?0:normalPrice,plan=key==='banner6m'?'6 Months':'28 Days';
  const pending=getBannerRequests();
  const tax=getGstBreakup(price);
- const payload={name:n,title:t,description:d,area:a,cta,actionValue:av,billingEmail,plan,planDays:key==='banner6m'?180:28,price,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,image:bannerImageData||''};
+ const payload={name:n,title:t,description:d,area:a,cta,actionValue:av,billingEmail,plan,planDays:key==='banner6m'?180:28,price,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,image:bannerImageData||''};
  if(editingBannerId){
    const i=pending.findIndex(x=>x.id===editingBannerId);
    if(i<0)return alert('Pending ad nahi mila.');
@@ -2422,8 +2451,8 @@ function lockBannerAfterPayment(id,paymentRef){
 const BIZ_PRICE_KEY={'Property':'propertyOwner','Local Shop':'localShop','Sliding / Aluminium':'sliding','Welding / Fabrication':'welding','Beauty / Make-up':'beauty','Used Vehicle':'used2w','New Vehicle':'new2w','Medical Store':'medical','Diagnostic Lab':'lab','Modular Kitchen':'kitchen','Hotel / Restaurant / Lodging':'hotel','Other Business':'localShop'};
 function updateBizPrice(){
  const sel=document.getElementById('bizCat'),box=document.getElementById('bizCurrentPrice');if(!sel||!box)return;
- const key=BIZ_PRICE_KEY[sel.value]||'localShop',name=(document.getElementById('obName')?.value||'').trim(),price=pricingValue(key,name,'LISTING');
- box.innerHTML='28-day plan • '+gstPriceHTML(price);
+ const key=BIZ_PRICE_KEY[sel.value]||'localShop',name=(document.getElementById('obName')?.value||'').trim(),normalPrice=pricingValue(key,name,'LISTING'),adminFree=!!document.getElementById('bizAdminFree')?.checked,price=adminFree?0:normalPrice;
+ box.innerHTML=adminFree?'28-day plan • <b>ADMIN FREE</b> • Pay ₹0 • GST ₹0':'28-day plan • '+gstPriceHTML(price);
  const note=document.getElementById('bizGstNote'),x=getGstBreakup(price);
  if(note)note.textContent=price===0?'Admin FREE override • No payment / GST':(x.enabled?('Final payment '+moneyINRPay(x.total)+' • GST invoice after successful payment'):'GST currently disabled by Admin');
 }
@@ -2798,7 +2827,7 @@ function loadBizDraft(cat){
 function openBiz(category){
  const modal=document.getElementById('bizModal'),sel=document.getElementById('bizCat');
  if(category&&[...sel.options].some(o=>o.value===category||o.text===category))sel.value=category;
- document.getElementById('otherFields').style.display='block';loadBizDraft(sel.value);updateBizPrice();updateBizLikeSummary(sel.value);modal.classList.add('show')
+ document.getElementById('otherFields').style.display='block';const af=document.getElementById('bizAdminFree');if(af)af.checked=false;loadBizDraft(sel.value);updateBizPrice();updateBizLikeSummary(sel.value);modal.classList.add('show');syncAdminFreePostControls().then(()=>updateBizPrice())
 }
 function closeBiz(){document.getElementById('bizModal').classList.remove('show')}
 function manageCurrentWindow(){
@@ -2815,8 +2844,11 @@ async function continueBiz(){
  if(!name||!area||phone.replace(/\D/g,'').length<10){alert('Business/Profile name, City/Area aur valid Mobile/WhatsApp required.');return}
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
  const drafts=readBizDrafts(),previous=drafts[cat]||{},oldLikeKey=getBizLikeKey(cat),listingId=previous.listingId||('biz_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8));
- const key=BIZ_PRICE_KEY[cat]||'localShop',base=pricingValue(key,name,'LISTING'),tax=getGstBreakup(base);
- drafts[cat]={name,type,area,about,phone,billingEmail,listingId,planLabel:'28 Days',planDays:28,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'LIVE':'PAYMENT_PENDING',paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:base===0?new Date().toISOString():null,expiresAt:base===0?addDaysIso(new Date().toISOString(),28):null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
+ const key=BIZ_PRICE_KEY[cat]||'localShop',normalBase=pricingValue(key,name,'LISTING'),requestedAdminFree=!!document.getElementById('bizAdminFree')?.checked;
+ const adminFree=requestedAdminFree?await ocsAdminFreeAllowed():false;
+ if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
+ const base=adminFree?0:normalBase,tax=getGstBreakup(base);
+ drafts[cat]={name,type,area,about,phone,billingEmail,listingId,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'LIVE':'PAYMENT_PENDING',paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:base===0?new Date().toISOString():null,expiresAt:base===0?addDaysIso(new Date().toISOString(),28):null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
  if(base>0){
    try{
