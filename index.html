@@ -2320,7 +2320,7 @@ function clearBannerForm(){
  const cta=document.getElementById('bannerCta');if(cta)cta.value='CALL';
  const plan=document.getElementById('bannerPlan');if(plan)plan.value='banner28';
  const img=document.getElementById('bannerImage');if(img)img.value='';
- const btn=document.querySelector('#bannerModal button[onclick="submitBannerAd()"]');if(btn)btn.textContent='Continue to Payment / Submit';
+ const btn=document.querySelector('#bannerModal button[onclick="submitBannerAd()"]');if(btn)btn.textContent='Continue to Secure Payment';
 }
 function openBannerAd(){clearBannerForm();document.getElementById('bannerModal').classList.add('show');renderBannerPendingState();syncBannerCta();updateBannerPrice();renderBannerPreview()}
 function editPendingBannerAd(id){
@@ -2331,7 +2331,7 @@ function editPendingBannerAd(id){
  bannerBusiness.value=p.name||'';bannerTitle.value=p.title||'';bannerDesc.value=p.description||'';bannerArea.value=p.area||'';
  bannerCta.value=p.cta||'CALL';bannerActionValue.value=p.actionValue||'';if(document.getElementById('bannerBillingEmail'))document.getElementById('bannerBillingEmail').value=p.billingEmail||'';bannerPlan.value=p.plan==='6 Months'?'banner6m':'banner28';
  bannerImageData=p.image||'';
- const btn=document.querySelector('#bannerModal button[onclick="submitBannerAd()"]');if(btn)btn.textContent='Save Changes / Continue to Payment';
+ const btn=document.querySelector('#bannerModal button[onclick="submitBannerAd()"]');if(btn)btn.textContent='Save Changes / Secure Payment';
  syncBannerCta();updateBannerPrice();renderBannerPreview();
 }
 function closeBannerAd(){document.getElementById('bannerModal').classList.remove('show')}
