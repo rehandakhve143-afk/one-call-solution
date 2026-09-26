@@ -657,6 +657,19 @@ async function ocsLoadLive(role){
           else S.paymentFinalized=true;
         }
       }
+      if(payData&&payData.customer_rewards){
+        const rw=payData.customer_rewards;
+        S.customerRewardBalance=Number(rw.balance||0);
+        if(S.status==="PAYMENT")S.customerRewardUsed=Number(rw.job_used||0);
+        else if(S.status==="VISIT_PAYMENT")S.customerRewardUsed=Number(rw.visit_used||0);
+        if(S.isQuoteBooking){
+          const secured=Number(rw.secure_hold_total||0);
+          if(secured>0){S.heldAmount=secured;S.paymentHeld=true}
+          if(S.status==="QUOTE_SECURE_PAYMENT"&&secured>=Number(S.total||0)&&Number(S.total||0)>0){
+            S.paymentChoice="ONLINE";S.payment="OCS_REWARDS";S.status="ASSIGNED";
+          }
+        }
+      }
       if(payData&&payData.provider_wallet){
         S.wallet=Number(payData.provider_wallet.wallet_balance||S.wallet||0);
         S.adminPaused=!!payData.provider_wallet.admin_paused;
@@ -1232,8 +1245,35 @@ function secureHoldHTML(){
  return '<div class="notice good"><b>🔒 OCS Secure Payment: '+money(held)+'</b><br>Amount Service Provider ko abhi release nahi hoga. Work complete + Customer confirmation ke baad settlement hoga.</div>';
 }
 function paymentDueAmount(){
- return Math.max(0,Number(S.total||0)-Number(S.heldAmount||0));
+ return Math.max(0,Number(S.total||0)-Number(S.heldAmount||0)-Number(S.customerRewardUsed||0));
 }
+async function useCustomerRewards(purpose){
+  if(!S.activeBookingId){alert("Active booking nahi mili.");return}
+  const p=purpose==="VISIT"?"visit":purpose==="SECURE_HOLD"?"secure_hold":"job";
+  try{
+    const {data:preview,error:pe}=await ocsSupabase.rpc("customer_reward_payment_preview_v1",{p_booking_id:S.activeBookingId,p_purpose:p});
+    if(pe)throw pe;
+    const max=Number(preview&&preview.max_usable||0);
+    const bal=Number(preview&&preview.reward_balance||0);
+    if(max<=0){alert(bal<=0?"OCS Rewards balance ₹0 hai.":"Is booking me aur Rewards use nahi ho sakte.");return}
+    if(!confirm("Use OCS Rewards ₹"+max.toFixed(2)+" on this booking?"))return;
+    const {data,error}=await ocsSupabase.rpc("apply_customer_rewards_v1",{p_booking_id:S.activeBookingId,p_purpose:p});
+    if(error)throw error;
+    S.customerRewardBalance=Number(data&&data.reward_balance||0);
+    S.customerRewardUsed=Number(data&&data.reward_used||0);
+    if(p==="secure_hold"){
+      S.heldAmount=Number(data&&data.reward_used||0);
+      S.paymentHeld=S.heldAmount>0;
+      if(Number(data&&data.remaining_amount||0)<=0){
+        S.paymentChoice="ONLINE";S.payment="OCS_REWARDS";S.status="ASSIGNED";
+      }
+    }
+    hist("Customer used OCS Rewards ₹"+max.toFixed(2)+" on booking");
+    await ocsLoadLive("customer");
+    render();
+  }catch(e){alert("OCS Rewards use nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
+}
+
 async function secureQuotePayment(mode){
  if(!ocsRequireStage("QUOTE_SECURE_PAYMENT","Secure quote payment"))return;
  if(!ocsGuardAction("secure-quote-"+mode,1600))return;
@@ -1250,6 +1290,7 @@ async function secureQuotePayment(mode){
    }catch(e){alert("Cash at completion select nahi hua: "+(e&&e.message?e.message:"Unknown error"));return}
  }
  try{
+   if(paymentDueAmount()<=0&&p==="job"){await ocsLoadLive("customer");render();return}
    const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
      p_booking_id:S.activeBookingId,p_purpose:"secure_hold",p_method:"online"
    });
@@ -3045,7 +3086,7 @@ if(S.status==="QUOTE_EXPIRED"){h=`<div class="card"><h3>Quote Expired</h3><div c
 if(S.status==="INITIAL_QUOTE"){h=`<div class="card"><h3>Service Provider Quote</h3><p>${ocsSafe(S.quote.desc)}</p><div class="money">${money(S.quote.amount)}</div>${quoteTimerHTML()}<div class="notice good"><b>Before Accepting Quote</b><br>Customer aur Service Provider OCS par Call / Video Call / Chat se work clear kar sakte hain. Final official amount sirf OCS quote approval se lock hoga.</div></div>${quoteChatHTML("customer")}<div class="card"><div class="row"><button class="btn ok" onclick="initialQuoteDecision('APPROVED')">Accept & Lock Amount</button><button class="btn red" onclick="initialQuoteDecision('REJECTED')">Reject</button></div><div class="muted">Accept ke baad extra photo/video proof mandatory nahi. Quote, discussion, payment aur booking history dono sides me rahegi.</div></div>${quoteHistoryHTML()}`;return h}
 if(S.status==="QUOTE_REVISION_PENDING"){const r=S.quoteRevision;h=`<div class="card"><h3>Quote Revision Requested</h3><div class="row"><span>Old Quote</span><b>${money(r.oldAmount)}</b></div><div class="row"><span>Revised Quote</span><b>${money(r.newAmount)}</b></div><div class="row"><span>Difference</span><b>${r.newAmount>=r.oldAmount?"+":""}${money(r.newAmount-r.oldAmount)}</b></div><div class="notice"><b>Reason:</b> ${ocsSafe(r.reason)}</div>${quoteTimerHTML()}<div class="row"><button class="btn ok" onclick="customerQuoteRevisionDecision('APPROVE')">Accept Revised Quote</button><button class="btn red" onclick="customerQuoteRevisionDecision('REJECT')">Reject Revision</button></div><button class="btn alt" onclick="customerQuoteRevisionDecision('DISCUSS')">Discuss in Chat</button><button class="btn gray" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Booking</button></div>${quoteHistoryHTML()}${quoteChatHTML("customer")}`;return h}
 if(S.status==="QUOTE_REVISION_TOPUP"){h=`<div class="card"><h3>Secure Revised Quote Difference</h3><div class="row"><span>New Official Quote</span><b>${money(S.total)}</b></div><div class="row"><span>Already Secured</span><b>${money(S.heldAmount)}</b></div><div class="row"><span>Extra to Secure</span><b>${money(S.pendingRevisionTopUp)}</b></div><button class="btn ok" onclick="secureQuoteRevisionTopUp()">Pay Extra & Secure with OCS</button><button class="btn gray" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Booking</button></div>${quoteHistoryHTML()}${quoteChatHTML("customer")}`;return h}
-if(S.status==="QUOTE_SECURE_PAYMENT"){h=`<div class="card"><h3>Secure Quote Payment</h3><div class="money">${money(S.total)}</div><div class="notice good"><b>🔒 OCS Secure Payment</b><br>Accepted quote OCS record me lock hai. Work complete + Customer confirmation ke baad settlement hoga.</div><button class="btn ok" onclick="secureQuotePayment('ONLINE')">Pay Online & Secure with OCS</button><button class="btn gray" onclick="secureQuotePayment('CASH')">Network Issue • Cash at Completion</button><button class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button><div class="muted" style="margin-top:8px">Ab extra photo/video step nahi. Quote, chat/discussion, payment aur booking history retained rahegi.</div></div>${quoteHistoryHTML()}${quoteChatHTML("customer")}`;return h}
+if(S.status==="QUOTE_SECURE_PAYMENT"){h=`<div class="card"><h3>Secure Quote Payment</h3><div class="money">${money(S.total)}</div><div class="notice good"><b>🔒 OCS Secure Payment</b><br>Accepted quote OCS record me lock hai. Work complete + Customer confirmation ke baad settlement hoga.</div><button class="btn alt" onclick="useCustomerRewards('SECURE_HOLD')">Use OCS Rewards</button><button class="btn ok" onclick="secureQuotePayment('ONLINE')">Pay Remaining Online</button><button class="btn gray" onclick="secureQuotePayment('CASH')">Network Issue • Cash at Completion</button><button class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button><div class="muted" style="margin-top:8px">Rewards available ho to booking amount me use kar sakte hain. Remaining amount normal payment se hoga.</div></div>${quoteHistoryHTML()}${quoteChatHTML("customer")}`;return h}
 if(S.status==="BOOKING_DETAILS"){
  let fixed=S.serviceType==='fixed';
  let selected=Array.isArray(S.selectedItems)?S.selectedItems.filter(x=>Number(x.qty||0)>0):[];
@@ -3141,9 +3182,10 @@ if(S.status==="COMPLETION_CONFIRM")h=`
 </div></div>`;
 
 if(S.status==="PAYMENT")h=`
-<div class="card"><h3>Payment</h3>${S.paymentHeld?secureHoldHTML():""}<div class="muted">Remaining to pay</div><div class="money">${money(paymentDueAmount())}</div>
-<button class="btn" onclick="openOnline('JOB')">Online Payment</button>
-<button class="btn alt" onclick="payCash('JOB')">Cash</button></div>`;
+<div class="card"><h3>Payment</h3>${S.paymentHeld?secureHoldHTML():""}<div class="muted">Remaining to pay</div><div class="money">${money(paymentDueAmount())}</div>${Number(S.customerRewardUsed||0)>0?`<div class="notice good"><b>OCS Rewards Used: ${money(Number(S.customerRewardUsed||0))}</b></div>`:""}
+<button class="btn alt" onclick="useCustomerRewards('JOB')">Use OCS Rewards</button>
+<button class="btn" onclick="openOnline('JOB')">Pay Remaining Online</button>
+<button class="btn gray" onclick="payCash('JOB')">Cash</button></div>`;
 
 if(S.status==="ONLINE_PAY"){
 let amt=S.payPurpose==="VISIT"?S.visitCharge:paymentDueAmount();
