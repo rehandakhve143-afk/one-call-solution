@@ -423,7 +423,7 @@ setTimeout(function(){
 
 <div class="modal" id="bannerModal"><div class="sheet"><button class="x" onclick="closeBannerAd()">×</button><h2>📣 Post Premium Home Banner Ad</h2>
 <p class="muted">Ye Home Screen ke sliding sponsored banner ke liye hai. OCS Business Listing karna compulsory nahi hai.</p>
-<div class="banner-builder-note"><b>Banner Ad = separate product.</b><br>Business OCS me registered ho ya na ho, banner le sakta hai. Payment ke baad OCS Admin approval ke baad ad live hoga.</div>
+<div class="banner-builder-note"><b>Banner Ad = separate product.</b><br>Business OCS me registered ho ya na ho, banner le sakta hai. Verified payment ke baad ad automatically LIVE hoga.</div>
 <div id="bannerEditRule" class="banner-builder-note" style="background:#fff8e8;border-left-color:#e29b16"><b>Edit rule:</b> Payment se pehle ad editable hai. Payment successful hone ke baad ad LOCK ho jayega aur change nahi hoga.</div>
 <div id="bannerPendingBox"></div>
 
@@ -449,8 +449,8 @@ setTimeout(function(){
 <label>Plan</label><select id="bannerPlan" onchange="updateBannerPrice()"><option value="banner28">28 Days</option><option value="banner6m">6 Months</option></select>
 <div id="bannerPriceNow" class="price-now">Price: —</div>
 <div id="bannerGstNote" class="muted" style="margin:7px 0 10px">18% GST will be added on paid ads.</div>
-<button class="primary" onclick="submitBannerAd()">Continue to Payment / Submit</button>
-<div class="muted" style="margin-top:8px">FREE override ho to payment skip hoga. Paid banner me production payment gateway connect hone ke baad payment complete karke Admin approval me jayega.</div>
+<button class="primary" onclick="submitBannerAd()">Continue to Secure Payment</button>
+<div class="muted" style="margin-top:8px">Verified Razorpay payment ke baad ad automatically LIVE hoga aur GST invoice billing email par generate hoga. Admin sirf Pause / Block / Remove control use karega.</div>
 </div></div>
 
 <div class="modal" id="bizModal"><div class="sheet"><button class="x" onclick="closeBiz()">×</button><h2>Add / Edit Your Business</h2><p class="muted">Category select karein. Basic details yahin save rahengi; phir us window ka full setup khulega.</p>
@@ -2278,6 +2278,36 @@ let bannerImageData="",editingBannerId="";
 function getBannerRequests(){try{return JSON.parse(localStorage.getItem('ocsBannerRequests')||'[]')}catch(e){return []}}
 function setBannerRequests(a){localStorage.setItem('ocsBannerRequests',JSON.stringify(a))}
 function bannerEditableStatus(s){return s==='PAYMENT_PENDING'||s==='DRAFT'}
+function bannerIsLive(x){
+ if(!x||x.status!=='LIVE')return false;
+ const end=x.expiresAt?new Date(x.expiresAt).getTime():0;
+ return !end||end>Date.now();
+}
+function openLiveBannerAction(id){
+ const x=getBannerRequests().find(v=>v.id===id);if(!x||!bannerIsLive(x))return;
+ const val=String(x.actionValue||'').trim(),type=String(x.cta||'CALL');
+ if(type==='CALL'){location.href='tel:'+val.replace(/[^0-9+]/g,'');return}
+ if(type==='WHATSAPP'){const n=val.replace(/\D/g,'');window.open('https://wa.me/'+n,'_blank','noopener');return}
+ if(type==='WEBSITE'){if(/^https?:\/\//i.test(val))window.open(val,'_blank','noopener');return}
+ if(type==='OCS_PROFILE'){if(/^https?:\/\//i.test(val))window.open(val,'_blank','noopener');else alert('OCS profile link available nahi hai.')}
+}
+function renderLivePaidBanners(){
+ const hero=document.querySelector('.ocs-super-hero'),dots=document.querySelector('.ocs-super-dots');if(!hero||!dots)return;
+ hero.querySelectorAll('.ocs-paid-live-banner').forEach(x=>x.remove());
+ dots.querySelectorAll('.ocs-paid-live-dot').forEach(x=>x.remove());
+ const live=getBannerRequests().filter(bannerIsLive).slice(-6);
+ live.forEach(x=>{
+   const slide=document.createElement('div');
+   slide.className='ocs-super-slide ocs-paid-live-banner';
+   slide.dataset.bannerId=x.id;
+   if(x.image)slide.style.backgroundImage="url("+JSON.stringify(x.image)+")";
+   slide.innerHTML='<div class="ocs-super-hero-copy"><div class="k">Sponsored • OCS</div><h1>'+ocsSavedText(x.title||'Sponsored Offer')+'</h1><p>'+ocsSavedText(x.description||x.name||'')+'</p><button type="button" onclick="openLiveBannerAction(\''+String(x.id).replace(/'/g,"")+'\')">'+ocsSavedText(bannerCtaText(x.cta).replace(/^\S+\s*/,''))+'</button></div>';
+   hero.insertBefore(slide,dots);
+   const dot=document.createElement('button');dot.type='button';dot.className='ocs-paid-live-dot';
+   dot.onclick=()=>setSuperSlide([...document.querySelectorAll('.ocs-super-slide')].indexOf(slide));
+   dots.appendChild(dot);
+ });
+}
 function renderBannerPendingState(){
  const box=document.getElementById('bannerPendingBox');if(!box)return;
  const a=getBannerRequests(),p=[...a].reverse().find(x=>bannerEditableStatus(x.status));
@@ -2349,7 +2379,7 @@ async function submitBannerAd(){
    if(!bannerEditableStatus(pending[i].status))return alert('Payment complete hone ke baad ad locked hai. Is ad ko edit nahi kar sakte.');
    pending[i]=Object.assign({},pending[i],payload,{status:'PAYMENT_PENDING',updatedAt:new Date().toISOString()});
  }else{
-   pending.push(Object.assign({id:'OCSB'+Date.now(),status:price===0?'ADMIN_APPROVAL_PENDING':'PAYMENT_PENDING',createdAt:new Date().toISOString(),locked:price===0},payload));
+   pending.push(Object.assign({id:'OCSB'+Date.now(),status:price===0?'LIVE':'PAYMENT_PENDING',createdAt:new Date().toISOString(),locked:price===0},payload));
  }
  try{setBannerRequests(pending)}catch(e){
    const i=editingBannerId?pending.findIndex(x=>x.id===editingBannerId):pending.length-1;
@@ -2359,7 +2389,11 @@ async function submitBannerAd(){
  const wasEdit=!!editingBannerId;
  const currentId=editingBannerId||pending[pending.length-1]?.id||'';
  editingBannerId='';
- if(price===0){closeBannerAd();alert('FREE banner request submitted and locked for Admin approval.');return}
+ if(price===0){
+   const a=getBannerRequests(),i=a.findIndex(x=>x.id===currentId);
+   if(i>=0){const start=new Date().toISOString();a[i].status='LIVE';a[i].startsAt=start;a[i].expiresAt=addDaysIso(start,Number(a[i].planDays||28));a[i].locked=true;setBannerRequests(a)}
+   renderLivePaidBanners();closeBannerAd();alert('FREE banner is LIVE ✅');return
+ }
  try{
    const paid=await ocsPayPaidPost({
      sourceKind:'banner',sourceRef:currentId,title:'OCS Slider / Banner Advertisement',
@@ -2369,7 +2403,8 @@ async function submitBannerAd(){
    if(!paid){renderBannerPendingState();return}
    lockBannerAfterPayment(currentId,paid.razorpayPaymentId||'');
    closeBannerAd();
-   alert('Payment verified ✅\nFinal paid: '+moneyINRPay(tax.total)+'\nGST invoice '+billingEmail+' ke liye generated/queued hai.\nAd ab Admin approval me hai.');
+   renderLivePaidBanners();
+   alert('Payment verified ✅\nFinal paid: '+moneyINRPay(tax.total)+'\nGST invoice '+billingEmail+' ke liye generated/queued hai.\nAd is now LIVE.');
  }catch(e){
    alert('Payment complete nahi hua: '+(e&&e.message?e.message:'Unknown error'));
    renderBannerPendingState();
@@ -2377,8 +2412,9 @@ async function submitBannerAd(){
 }
 function lockBannerAfterPayment(id,paymentRef){
  const a=getBannerRequests(),i=a.findIndex(x=>x.id===id);if(i<0)return false;
- a[i].status='PAID_LOCKED';a[i].locked=true;a[i].paidAt=new Date().toISOString();if(paymentRef)a[i].paymentRef=paymentRef;
+ a[i].status='LIVE';a[i].locked=true;a[i].paidAt=new Date().toISOString();a[i].startsAt=a[i].paidAt;if(paymentRef)a[i].paymentRef=paymentRef;
  const base=Number(a[i].basePrice??a[i].price??0),days=Number(a[i].planDays||invoiceDurationDays(a[i].plan||'28 Days')),start=a[i].paidAt;
+ a[i].expiresAt=addDaysIso(start,days);
  a[i].invoice=buildOcsGstInvoice('OCS Slider / Banner Advertisement',base,paymentRef,a[i].name||'',{recipientEmail:a[i].billingEmail||'',planLabel:a[i].plan||days+' Days',durationDays:days,validFrom:start,validUntil:addDaysIso(start,days)});
  a[i].invoiceEmailStatus=queueOcsInvoiceEmail(a[i].invoice)?'QUEUED':'EMAIL_REQUIRED';
  setBannerRequests(a);return true;
@@ -2477,7 +2513,7 @@ function setSuperSlide(n){
  clearInterval(ocsSuperSlideTimer);
  ocsSuperSlideTimer=setInterval(()=>setSuperSlide(ocsSuperSlideIndex+1),5000);
 }
-setTimeout(()=>setSuperSlide(0),100);
+setTimeout(()=>{renderLivePaidBanners();setSuperSlide(0)},100);
 async function openModule(n,role,serviceCat){
  if(n==='Home Services'){
    if(role==='provider'){
@@ -2780,7 +2816,7 @@ async function continueBiz(){
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
  const drafts=readBizDrafts(),previous=drafts[cat]||{},oldLikeKey=getBizLikeKey(cat),listingId=previous.listingId||('biz_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8));
  const key=BIZ_PRICE_KEY[cat]||'localShop',base=pricingValue(key,name,'LISTING'),tax=getGstBreakup(base);
- drafts[cat]={name,type,area,about,phone,billingEmail,listingId,planLabel:'28 Days',planDays:28,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
+ drafts[cat]={name,type,area,about,phone,billingEmail,listingId,planLabel:'28 Days',planDays:28,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'LIVE':'PAYMENT_PENDING',paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:base===0?new Date().toISOString():null,expiresAt:base===0?addDaysIso(new Date().toISOString(),28):null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
  if(base>0){
    try{
@@ -2791,7 +2827,7 @@ async function continueBiz(){
      });
      if(!paid)return;
      const latest=readBizDrafts();if(latest[cat]){
-       latest[cat].paymentStatus='VERIFIED';latest[cat].paymentRef=paid.razorpayPaymentId||'';
+       latest[cat].status='LIVE';latest[cat].paymentStatus='VERIFIED';latest[cat].paymentRef=paid.razorpayPaymentId||'';
        latest[cat].invoiceEmailStatus='QUEUED';latest[cat].activatedAt=new Date().toISOString();
        latest[cat].expiresAt=addDaysIso(latest[cat].activatedAt,28);
        localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(latest));
@@ -2800,7 +2836,7 @@ async function continueBiz(){
    }catch(e){alert('Payment complete nahi hua: '+(e&&e.message?e.message:'Unknown error'));return}
  }
  closeBiz();
- if(cat==='Other Business'){alert('Business details saved. Admin approval ke baad listing live hogi.');return}
+ if(cat==='Other Business'){alert('Business listing is LIVE ✅');return}
  openModule(cat);
 }
 
