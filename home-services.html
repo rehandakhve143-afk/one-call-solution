@@ -274,8 +274,8 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 .admin-route-only .tabs{display:flex!important;margin-top:8px!important;padding:0!important;background:transparent!important;border:0!important}
 .admin-route-only .tabs #ctab,.admin-route-only .tabs #ptab{display:none!important}
 .admin-route-only .tabs #atab{display:inline-flex!important;width:auto!important;min-height:30px!important;padding:6px 12px!important;border-radius:999px!important;background:#ffffff12!important;border:1px solid #ffffff24!important;color:#dff3f0!important;box-shadow:none!important;font-size:11px!important}
-.admin-route-only .ocs-page-nav{grid-template-columns:1fr auto!important}
-.admin-route-only .ocs-page-nav button:last-child{display:none!important}
+.admin-route-only .ocs-page-nav,.sp-only-route .ocs-page-nav{grid-template-columns:1fr auto!important}
+.admin-route-only #ocsPageNext,.sp-only-route #ocsPageNext{display:none!important}
 .admin-route-only .top{padding-bottom:12px!important}
 </style>
 
@@ -374,10 +374,10 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 <button id="ptab" onclick="showTab('provider')">Service Provider</button>
 <button id="atab" style="display:none" type="button">Admin</button>
 </div>
-<div class="ocs-page-nav" aria-label="OCS navigation">
-  <button type="button" onclick="ocsNavBack()">← Back</button>
-  <button type="button" onclick="ocsNavHome()">⌂ Home</button>
-  <button type="button" onclick="ocsNavNext()">Next →</button>
+<div class="ocs-page-nav" id="ocsPageNav" aria-label="OCS navigation">
+  <button id="ocsPageBack" type="button" onclick="ocsNavBack()">← Back</button>
+  <button id="ocsPageHome" type="button" onclick="ocsNavHome()">⌂ Home</button>
+  <button id="ocsPageNext" type="button" onclick="ocsNavNext()">Next →</button>
 </div>
 </div>
 
@@ -4115,6 +4115,7 @@ function render(){
  saveHomeState();
  renderCore();
  updateSelectionTray();
+ updateOcsPageNav();
  try{window.parent.postMessage({type:"OCS_BOOKING_STATE",booking:{flowVersion:11,updatedAt:Date.now(),status:S.status,provider:S.provider,category:S.category,service:S.service||S.serviceName||"",total:S.total,base:S.base,paymentChoice:S.paymentChoice,currentJob:S.currentJob,rescheduleTime:S.rescheduleTime||null,visitCharge:S.visitCharge||0},fullState:S},"*")}catch(e){}
 }
 
@@ -4170,15 +4171,41 @@ if(OCS_SP_ONLY){
 setInterval(function(){
  if(["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_REVISION_PENDING"].includes(S.status))render();
 },30000);
+function updateOcsPageNav(){
+ const nav=document.getElementById("ocsPageNav"),next=document.getElementById("ocsPageNext");
+ if(!nav||!next)return;
+ let showNext=false;
+ try{
+   if(typeof OCS_ROUTE_TAB!=="undefined"&&OCS_ROUTE_TAB==="customer"){
+     showNext=["SELECT_ITEM","CUSTOM_REQUEST","BOOKING_DETAILS"].includes(String(S.status||""));
+   }
+ }catch(e){}
+ next.style.display=showNext?"block":"none";
+ nav.style.gridTemplateColumns=showNext?"1fr auto 1fr":"1fr auto";
+}
 function ocsNavHome(){
- try{location.href="index.html?v=20260925-safenav1"}catch(e){}
+ try{location.href="index.html?v=20260926-navfix1"}catch(e){}
 }
 function ocsNavBack(){
  try{
+   const pp=document.getElementById("providerProfilePanel");
+   if(pp&&!pp.classList.contains("hide")){closeProviderProfilePanel();return}
+   const po=document.getElementById("providerPayoutPanel");
+   if(po&&!po.classList.contains("hide")){closeProviderPayoutPanel();return}
+   const aw=document.getElementById("addWorkSheet");
+   if(aw&&!aw.classList.contains("hide")){customerCancelAddMoreWork();return}
+   const paw=document.getElementById("providerAddWorkSheet");
+   if(paw&&!paw.classList.contains("hide")){providerCancelAddWork();return}
+
    if(typeof OCS_ROUTE_TAB!=="undefined"&&OCS_ROUTE_TAB==="customer"){
      if(S.status==="BOOKING_DETAILS"){S.status="SELECT_ITEM";render();window.scrollTo(0,0);return}
      if(S.status==="CUSTOM_REQUEST"){S.status="SELECT_ITEM";render();window.scrollTo(0,0);return}
      if(S.status==="SELECT_ITEM"){backToCategories();window.scrollTo(0,0);return}
+   }
+
+   const ref=document.referrer||"";
+   if(ref&&new URL(ref,location.href).origin===location.origin&&history.length>1){
+     history.back();return
    }
  }catch(e){}
  ocsNavHome();
@@ -4186,7 +4213,6 @@ function ocsNavBack(){
 function ocsNavNext(){
  try{
    if(typeof OCS_ROUTE_TAB!=="undefined"&&OCS_ROUTE_TAB==="customer"){
-     if(S.status==="SELECT_SERVICE"){alert("Pehle service category select karein.");return}
      if(S.status==="SELECT_ITEM"){
        if(!(S.selectedItems||[]).length){alert("Kam se kam 1 service select karein.");return}
        continueSelectedItems();window.scrollTo(0,0);return
@@ -4201,7 +4227,7 @@ function ocsNavNext(){
      }
    }
  }catch(e){}
- alert("Current screen ka next action isi page par available hai.");
+ updateOcsPageNav();
 }
 (function ocsInstallSafeBrowserBack(){
  try{
