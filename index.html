@@ -19,9 +19,9 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 try{
   const q=new URLSearchParams(location.search||"");
   if(q.get("admin")==="1"){
-    location.replace("home-services.html?tab=admin&v=20260926-dashboardclean1");
+    location.replace("home-services.html?tab=admin&v=20260926-rolelock2");
   }else if(q.get("sp")==="1"){
-    location.replace("home-services.html?tab=provider&sp=1&v=20260926-dashboardclean1");
+    location.replace("home-services.html?tab=provider&sp=1&v=20260926-rolelock2");
   }
 }catch(e){}
 </script><script>
@@ -916,7 +916,7 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('home-services.html?tab=provider&sp=1&v=20260926-spsameaccount1');
+      location.replace('home-services.html?tab=provider&sp=1&v=20260926-rolelock2');
       return;
     }
     await openAccount('provider',true);
@@ -985,7 +985,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('home-services.html?tab=provider&sp=1&v=20260926-spsameaccount1');
+          location.replace('home-services.html?tab=provider&sp=1&v=20260926-rolelock2');
           return;
         }
         await openAccount('provider',true);
@@ -1003,7 +1003,7 @@ if(ocsSupabase)ocsStartSupabaseHooks();
 
 function openProviderDashboardFromMenu(){
   closeAllBottomHubs();
-  location.href='home-services.html?tab=provider&sp=1&v=20260926-roleclean1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260926-rolelock2';
 }
 
 function openProviderProfileFromMenu(){
@@ -1314,7 +1314,7 @@ async function saveProviderAccount(){
    }));
    alert('Changes saved. Approved skills active rahengi; nayi skill verification ke baad active hogi.');
    if(ocsRequestedSpDashboard()){
-     location.replace('home-services.html?tab=provider&sp=1&v=20260926-spsameaccount1');
+     location.replace('home-services.html?tab=provider&sp=1&v=20260926-rolelock2');
      return;
    }
    await showProviderProfileSummary();
@@ -2221,7 +2221,7 @@ async function openModule(n,role,serviceCat){
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20260926-dashboardclean1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260926-rolelock2'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -2241,7 +2241,7 @@ async function openModule(n,role,serviceCat){
    frame.src='property.html?v=20260921-3';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260926-dashboardclean1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260926-rolelock2'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
