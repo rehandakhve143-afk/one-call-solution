@@ -230,6 +230,10 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <label>Listing Package</label>
 <select class="field" id="propertyPlanSelect" onchange="propertyPlanDurationChange()"><option value="28">28 Days</option><option value="180">6 Months</option></select>
 <div class="muted">Package validity ke dauran listing editable rahegi. Expiry se 7 days aur 1 day pehle email reminder jayega.</div>
+<div id="propertyAdminFreeWrap" class="property-plan-box hidden" style="margin-top:12px">
+  <label style="display:flex;align-items:center;gap:9px;margin:0"><input id="propertyAdminFree" type="checkbox" style="width:auto" onchange="propertyPlanDurationChange()"> <b>Admin: Make this Property Post FREE</b></label>
+  <small>₹0 payment • GST ₹0 • direct LIVE for selected plan.</small>
+</div>
 <div class="notice" id="propertyPaymentNotice"><b>Final step:</b> Payment successful hone ke baad listing live hogi.</div>
 <button class="next primary-action" id="propertyPublishBtn" onclick="publish()">Continue to Payment & Publish</button>
 </div>
@@ -323,13 +327,23 @@ function propertyPlanPayText(days){
  if(!x.enabled||Number(x.rate)<=0)return propertyMoney(x.base);
  return 'Base '+propertyMoney(x.base)+' + GST '+x.rate+'% '+propertyMoney(x.gst)+' = '+propertyMoney(x.total);
 }
+async function syncPropertyAdminFreeControl(){
+ const wrap=$('propertyAdminFreeWrap'),box=$('propertyAdminFree');if(!wrap||!box)return false;
+ let ok=false;
+ try{if(window.parent&&typeof window.parent.ocsUserHasRole==='function')ok=await window.parent.ocsUserHasRole('admin')}catch(e){}
+ wrap.classList.toggle('hidden',!ok);
+ if(!ok)box.checked=false;
+ propertyPlanDurationChange();
+ return ok;
+}
+function propertyAdminFreeSelected(){return !!$('propertyAdminFree')?.checked}
 function propertyPlanDurationChange(){
  const sel=$('propertyPlanSelect');propertyPlanDays=sel?Number(sel.value)||28:28;
  const notice=$('propertyPaymentNotice');if(!notice)return;
  const b=$('poster').value.includes('Builder'),label=propertyPlanDays===180?'6 Months':'28 Days',p=propertyPlanPrice(propertyPlanDays);
  const tax=propertyPlanTax(propertyPlanDays);
- const invoiceEmail=($('renewalEmail')?.value||'').trim();
- notice.innerHTML='<b>Final step:</b> '+(b?'Builder Advertisement':'Owner Single Post')+' • '+label+'<br>'+(tax?propertyPlanPayText(propertyPlanDays):'Rate not set')+'<br>Validity: '+propertyPlanDays+' days • GST invoice: '+(invoiceEmail||'registered email')+'.';
+ const invoiceEmail=($('renewalEmail')?.value||'').trim(),adminFree=propertyAdminFreeSelected();
+ notice.innerHTML='<b>Final step:</b> '+(b?'Builder Advertisement':'Owner Single Post')+' • '+label+'<br>'+(adminFree?'<b>ADMIN FREE • Pay ₹0 • GST ₹0</b>':(tax?propertyPlanPayText(propertyPlanDays):'Rate not set'))+'<br>Validity: '+propertyPlanDays+' days'+(adminFree?' • No GST invoice required':' • GST invoice: '+(invoiceEmail||'registered email'))+'.';
 }
 function validEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim())}
 function validPhone(v){return String(v||'').replace(/\D/g,'').length>=10}
@@ -508,6 +522,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
  };
  go=function(n){
    rawGo(n);
+   if(n===6&&!editMode)syncPropertyAdminFreeControl();
    if(editMode){
      const t=$("stepTitle");if(t)t.textContent="Edit Property Listing";
      if(n===6){
@@ -520,14 +535,19 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
  };
  publish=async function(){
    const wasEdit=editMode;
-   let paid=null,tax=null,invoiceEmail="",planLabel=ocsPropertyPlanLabel(propertyPlanDays);
+   let paid=null,tax=null,invoiceEmail="",planLabel=ocsPropertyPlanLabel(propertyPlanDays),adminFree=false;
    if(!wasEdit){
      invoiceEmail=($("renewalEmail")?.value||"").trim();
      if(!ocsPropertyValidEmail(invoiceEmail)){alert("GST invoice / renewal ke liye valid registered email required.");go(4);return}
      const ps=$("propertyPlanSelect");if(ps)propertyPlanDays=Number(ps.value)||OCS_PROPERTY_PLAN_DAYS;
      const pp=propertyPlanPrice(propertyPlanDays);if(pp===null){alert((propertyPlanDays===180?"6 Months":"28 Days")+" rate Admin me set hona baki hai.");return}
-     tax=propertyPlanTax(propertyPlanDays);planLabel=ocsPropertyPlanLabel(propertyPlanDays);
-     if(Number(pp)>0){
+     const requestedAdminFree=propertyAdminFreeSelected();
+     if(requestedAdminFree){
+       try{adminFree=!!(window.parent&&typeof window.parent.ocsUserHasRole==='function'&&await window.parent.ocsUserHasRole('admin'))}catch(e){adminFree=false}
+       if(!adminFree){alert("Admin FREE access allowed nahi hai.");return}
+     }
+     tax=adminFree?{base:0,rate:0,gst:0,total:0,enabled:false}:propertyPlanTax(propertyPlanDays);planLabel=ocsPropertyPlanLabel(propertyPlanDays);
+     if(Number(pp)>0&&!adminFree){
        try{
          if(!window.parent||typeof window.parent.ocsPayPaidPost!=="function")throw new Error("OCS payment service ready nahi hai");
          paid=await window.parent.ocsPayPaidPost({
@@ -554,11 +574,11 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    if(!wasEdit){try{
      const state=JSON.parse(localStorage.getItem(KEY)||"{}");
      tax=tax||propertyPlanTax(propertyPlanDays);
-     state.planDays=propertyPlanDays;state.planPrice=propertyPlanPrice(propertyPlanDays);
-     state.basePrice=tax?tax.base:state.planPrice;state.gstRate=tax?tax.rate:0;state.gstAmount=tax?tax.gst:0;state.payable=tax?tax.total:state.planPrice;
-     state.paymentStatus=Number(state.planPrice||0)===0?"ADMIN_FREE":"VERIFIED";
+     state.planDays=propertyPlanDays;state.planPrice=propertyPlanPrice(propertyPlanDays);state.adminFree=adminFree;
+     state.basePrice=adminFree?0:(tax?tax.base:state.planPrice);state.gstRate=adminFree?0:(tax?tax.rate:0);state.gstAmount=adminFree?0:(tax?tax.gst:0);state.payable=adminFree?0:(tax?tax.total:state.planPrice);
+     state.paymentStatus=adminFree?"ADMIN_FREE":"VERIFIED";
      state.paymentRef=paid&&paid.razorpayPaymentId?paid.razorpayPaymentId:"";
-     state.invoiceEmailStatus=Number(state.planPrice||0)===0?"NOT_REQUIRED":"QUEUED";
+     state.invoiceEmailStatus=adminFree?"NOT_REQUIRED":"QUEUED";
      state.invoiceEmail=invoiceEmail;state.planLabel=planLabel;
      state.validFrom=new Date().toISOString();state.validUntil=new Date(Date.now()+propertyPlanDays*24*60*60*1000).toISOString();
      state.expiresAt=state.validUntil;state.renewalEmail=state.invoiceEmail;
@@ -572,7 +592,9 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
      if(done)done.innerHTML="<b>✓ Changes saved</b><br>Your property listing is updated and remains live. No new payment charged for editing.";
    }else{
      const done=document.querySelector("#done .notice");
-     if(done)done.innerHTML="<b>✓ Payment verified & Property listing live</b><br>Plan: "+planLabel+" • GST invoice "+invoiceEmail+" ke liye generated/queued hai.";
+     if(done)done.innerHTML=adminFree
+       ?"<b>✓ Admin FREE • Property listing LIVE</b><br>Plan: "+planLabel+" • Payment ₹0 • GST ₹0."
+       :"<b>✓ Payment verified & Property listing live</b><br>Plan: "+planLabel+" • GST invoice "+invoiceEmail+" ke liye generated/queued hai.";
    }
    editMode=false;
  };
