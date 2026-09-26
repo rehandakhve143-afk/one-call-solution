@@ -119,6 +119,7 @@ button.provider-metric{width:100%;font:inherit;cursor:pointer}
 .provider-quick-tools button>b{min-width:0;font-size:11.5px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .provider-quick-tools button>small{min-width:0;font-size:9.5px;color:#75898c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .provider-quick-tools button:active{transform:scale(.985);background:#f1f8f6}
+.provider-quick-tools .provider-quick-wide{grid-column:1/-1;min-height:58px}
 .provider-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .provider-contact-grid .btn{margin:0!important;min-height:44px!important}
 @media(max-width:360px){.provider-quick-tools{grid-template-columns:1fr 1fr}.provider-quick-tools button{padding:8px}.provider-quick-tools button>b{font-size:10.5px}}
@@ -340,13 +341,13 @@ body.customer-locked-ui #customer>details.card{display:none!important}
     <button type="button" onclick="openProviderPayoutPanel()"><span>🏦</span><b>Bank / Payout</b><small id="providerPayoutStatus">Add ›</small></button>
     <button type="button" onclick="openProviderHistoryQuick()"><span>↻</span><b>Work History</b><small>Jobs & earnings</small></button>
     <button type="button" onclick="openSupport('provider')"><span>💬</span><b>Support</b><small>OCS Help</small></button>
-    <button type="button" onclick="askExpert()"><span>?</span><b>Ask Expert</b><small>Rate / work help</small></button>
+    <button type="button" class="provider-quick-wide" onclick="askExpert()"><span>?</span><b>Ask Expert</b><small>Rate / work help</small></button>
   </div>
 
   <div id="pBody"></div>
 </div>
 <div id="providerCustomerExtraMount"></div>
-<details class="card provider-history-card" id="providerHistoryCard"><summary><b>Provider History</b> <span class="muted">Tap to view</span></summary><div id="pLog" class="log" style="margin-top:10px"></div></details>
+<div id="providerHistoryCard" style="display:none"><div id="pLog" class="log"></div></div>
 </section>
 
 <!-- Admin is internal only; no public tab. -->
