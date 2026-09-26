@@ -1,6 +1,6 @@
 # One Call Solution — FINAL RULES (Authoritative)
 
-Last audited: 19 Sep 2026
+Last audited: 26 Sep 2026
 
 This file is the source of truth for business rules. If any HTML/demo file conflicts with this file, update the HTML/demo file — do not change these rules from an older build.
 
@@ -10,15 +10,17 @@ This file is the source of truth for business rules. If any HTML/demo file confl
 - Welcome Bonus is **wallet credit, non-withdrawable**.
 - **No fixed ₹200 minimum wallet balance.**
 - **No fixed ₹500 Company Due threshold.**
-- If the provider wallet becomes exhausted / zero / negative after OCS charge, show warning and **pause new-job access**.
-- Recharge/payment restores new-job access. Do **not** permanently delete/close the provider account.
-- Already accepted / ongoing jobs are **not cancelled** when wallet/job access is paused.
+- If the provider wallet becomes zero / negative after OCS charge, the Service Provider may still receive jobs by default. Show wallet warning/email reminders.
+- OCS Admin may manually pause/temporarily block new-job access when required; recharge/payment can restore access. Do **not** permanently delete/close the provider account.
+- Already accepted / ongoing jobs are **not cancelled** when Admin pauses new-job access.
 
 ## 2) Payments
 - **Online payment is preferred/default.**
 - **Cash is allowed as network/payment fallback.**
-- Online settlement: OCS receives the customer payment, retains the applicable 9% commission in settlement, and does **not** debit the SP reserve wallet again.
-- Cash job: customer pays the Service Provider directly; applicable 9% OCS commission is deducted from the Service Provider OCS Wallet. Wallet may go below ₹200, ₹0, or negative until recharged/admin action.
+- Customer bank account details are **not mandatory** for normal booking/payment. Customer chooses supported payment method; collect bank details only when genuinely required for an exceptional refund/transfer flow.
+- Service Provider bank details are **not required to create the basic SP profile**, but verified bank/payout details are **mandatory before OCS releases payout/settlement**.
+- Online settlement: OCS receives the customer payment, retains the applicable **9% commission**, and settles the remaining **91%** to the Service Provider's verified payout account. Do **not** debit the SP wallet again for the same online job.
+- Cash job: customer pays the Service Provider directly; applicable **9% OCS commission** is deducted from the Service Provider OCS Wallet. Wallet may reach ₹0 or go negative; Admin warning/email and manual hold rules apply.
 - Customer may switch from Cash to OCS Online / Company QR / Payment Link.
 
 ## 3) Visit charge / Start OTP / Work Not Completed
