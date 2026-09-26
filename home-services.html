@@ -1819,22 +1819,6 @@ async function openProviderWalletQuick(){
       '<div class="ocs-profile-actions"><button class="btn gray" onclick="closeProviderPayoutPanel()">Close</button></div>';
   }catch(e){alert("Wallet details load nahi hui: "+(e&&e.message?e.message:"Unknown error"))}
 }
-async function openProviderWithdraw(){
-  try{
-    const {data,error}=await ocsSupabase.rpc("provider_withdrawal_preview_v1");
-    if(error)throw error;
-    const d=data||{};
-    if(!d.has_details&&String(d.bank_status||"")==="not_added"){openProviderPayoutPanel();return}
-    if(String(d.bank_status||"")!=="approved"){
-      alert("Bank verification required.\n\nPehle Bank & Payout me verified bank account complete karein.");
-      openProviderPayoutPanel();return;
-    }
-    if(Number(d.withdrawable_amount||0)<=0){
-      alert("Withdrawable amount ₹0 hai.\n₹200 reserve wallet me rehna zaruri hai.");return;
-    }
-    alert("Withdrawable: ₹"+Number(d.withdrawable_amount||0).toFixed(2)+"\nReserve: ₹200\n\nAuto payout integration RazorpayX/API Payouts activation milte hi live hogi. Abhi real transfer start nahi hoga.");
-  }catch(e){alert("Withdraw details load nahi hui: "+(e&&e.message?e.message:"Unknown error"))}
-}
 function openProviderHistoryQuick(){
   const logs=Array.isArray(S.logs)?S.logs:[];
   const recent=logs.slice(0,20);
@@ -1889,7 +1873,7 @@ function renderProviderPayoutSummary(d){
       '<div class="rowline"><span>Bank</span><b>'+providerProfileEsc(d.bank_name||"—")+'</b></div>'+
       '<div class="rowline"><span>Account</span><b>'+providerProfileEsc(d.masked_account_number||"—")+'</b></div>'+
       '<div class="rowline"><span>IFSC</span><b>'+providerProfileEsc(d.ifsc||"—")+'</b></div>'+
-      '<div class="rowline"><span>Account Type</span><b>'+providerProfileEsc((d.account_type||"savings").toUpperCase())+'</b></div>'+ '<div class="rowline"><span>UPI</span><b>'+providerProfileEsc(d.upi_id||"—")+'</b></div>'+ '<div class="rowline"><span>Wallet Balance</span><b>₹'+Number(d.wallet_balance||0).toFixed(2)+'</b></div>'+ '<div class="rowline"><span>Withdrawable</span><b>₹'+Number(d.withdrawable_amount||0).toFixed(2)+'</b></div>'+
+      '<div class="rowline"><span>Account Type</span><b>'+providerProfileEsc((d.account_type||"savings").toUpperCase())+'</b></div>'+ '<div class="rowline"><span>UPI</span><b>'+providerProfileEsc(d.upi_id||"—")+'</b></div>'+ '<div class="rowline"><span>Wallet Balance</span><b>₹'+Number(d.wallet_balance||0).toFixed(2)+'</b></div>'+ '<div class="rowline"><span>Settlement Rule</span><b>Online: 91% to SP • 9% OCS</b></div>'+
       '<div class="ocs-profile-note">Bank detail change karoge to verification status dobara Pending ho jayega.</div>'+
       '<div class="ocs-profile-actions">'+
         '<button class="btn" onclick="renderProviderPayoutForm(window.__ocsPayoutSnapshot||{})">Update Bank Details</button>'+
@@ -2113,10 +2097,9 @@ function choosePayment(v){
 
 async function rechargeWallet(){
  const current=Math.round((Number(S.wallet||0))*100)/100;
- const target=Number(S.walletWarningLevel||200);
- const suggested=Math.max(100,Math.round((target-current)*100)/100);
+ const suggested=Math.max(100,Math.round(Math.max(0,-current)+100));
  const currentText=current<0?"−₹"+Math.abs(current).toFixed(2):"₹"+current.toFixed(2);
- let a=Number(prompt("OCS Wallet\nCurrent balance: "+currentText+"\nReserve: ₹"+target.toFixed(2)+"\n₹200 se niche reminder rahega. New jobs Admin control me rahengi.\nTop-up amount enter karein.",suggested.toFixed(2)));
+ let a=Number(prompt("OCS Wallet\nCurrent balance: "+currentText+"\nNo fixed minimum balance. ₹0/negative par recharge reminder rahega; new jobs ka hold OCS Admin control me hai.\nTop-up amount enter karein.",suggested.toFixed(2)));
  if(!a||a<50){alert("Minimum wallet top-up ₹50.");return}
  try{
    const {data:intent,error:ie}=await ocsSupabase.rpc("create_wallet_topup_intent_v1",{p_amount:a});
@@ -2914,11 +2897,11 @@ function resetAll(){
    available:S.available!==false,
    wallet:Number.isFinite(Number(S.wallet))?Number(S.wallet):100,
    welcomeBonus:100,
-   walletWarningLevel:200,
+   walletWarningLevel:0,
    platformCharge:9,
    nextJob:S.nextJob&&typeof S.nextJob==="object"?S.nextJob:null,
    adminPaused:!!S.adminPaused,
-   rulesVersion:9,
+   rulesVersion:10,
    supportTickets:Array.isArray(S.supportTickets)?S.supportTickets:[],
    providerRatings:Array.isArray(S.providerRatings)?S.providerRatings:[]
  };
@@ -3351,7 +3334,7 @@ if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice">No incoming request.
 if(S.status==="REQUESTED"){
  const skillMatch=providerMatchesCurrentBooking();
  const canReceive=S.available&&!S.adminPaused&&S.jobAccess&&S.providerProfileAvailable&&S.providerRequestForThisProfile&&skillMatch;
- const walletLow=Number(S.wallet)<Number(S.walletWarningLevel||200);
+ const walletLow=Number(S.wallet)<=0;
  if(!S.providerProfileAvailable){
    h=`<div class="card"><h3>Service Provider Registration Required</h3><div class="notice">New Home Service request receive karne ke liye pehle Service Provider profile complete karein.</div></div>`;
  }else if(!S.providerRequestForThisProfile||!skillMatch){
@@ -3359,7 +3342,7 @@ if(S.status==="REQUESTED"){
  }else if(canReceive){
    h=`
 <div class="card"><h3>Incoming Request</h3>
-${walletLow?'<div class="notice"><b>Wallet Reminder</b><br>Reserve ₹200 se niche hai. Wallet recharge karein. New jobs automatically block nahi hongi; Work ON/OFF OCS Admin control me rahega.</div>':''}
+${walletLow?'<div class="notice"><b>Wallet Reminder</b><br>Wallet ₹0 ya negative hai. Recharge karein. New jobs automatically block nahi hongi; Work ON/OFF OCS Admin control me rahega.</div>':''}
 <b>${S.service}</b><div class="muted">Customer: ${ocsSafe(S.customerName||"Customer")} • ${ocsSafe(S.address)}</div>
 <div class="money">${S.requestType==="quote"?"Get Quote":"₹"+S.base}</div>
 <div class="row">
@@ -3486,7 +3469,7 @@ return h;
 function sendWalletReminder(channel){
  const ch=String(channel||"SMS").toUpperCase();
  const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
- const msg="OCS Wallet balance "+bal+". Please add money to maintain the ₹200 reserve. Work status remains under OCS Admin control.";
+ const msg="OCS Wallet balance "+bal+". Please recharge the wallet. New-job access remains under OCS Admin control.";
  S.walletReminderHistory=S.walletReminderHistory||[];
  S.walletReminderHistory.unshift({channel:ch,message:msg,at:new Date().toISOString()});
  hist("Wallet "+ch+" reminder sent to "+S.provider+" • "+msg);
@@ -3657,13 +3640,13 @@ function adminHTMLState(){
  <div class="row"><span>Mobile</span><b>${ocsSafe(snap.provider_mobile||"Not added")}</b></div>
  <div class="row"><span>Available for Work</span><b>${snap.available_for_work?"ON":"OFF"}</b></div>
  <div class="row"><span>Wallet Balance</span><b>${walletText}</b></div>
- <div class="row"><span>Wallet Reserve</span><b>₹200</b></div>
- <div class="row"><span>Wallet Status</span><b>${Number(wallet)>=200?"Reserve OK":"Recharge Reminder"}</b></div>`:
+ <div class="row"><span>Wallet Rule</span><b>No fixed minimum</b></div>
+ <div class="row"><span>Wallet Status</span><b>${Number(wallet)<=0?"Recharge Reminder":"Active"}</b></div>`:
  '<div class="muted">No assigned Service Provider record.</div>';
 
  let provider=hasSnap&&snap.provider_id?`<div><b>${ocsSafe(snap.provider_name||"Service Provider")}</b> • Available: ${snap.available_for_work?"ON":"OFF"} • New Jobs: ${snap.admin_paused?"PAUSED":"ACTIVE"}</div>
- <div class="muted">Wallet Balance: ${walletText} • Reserve ₹200 • Work status Admin controlled</div>`:
- `<div><b>${ocsSafe(S.provider||"Service Provider")}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div><div class="muted">Wallet Balance: ${walletText} • Wallet reserve ₹200 • Work status Admin controlled</div>`;
+ <div class="muted">Wallet Balance: ${walletText} • No fixed minimum • Work status Admin controlled</div>`:
+ `<div><b>${ocsSafe(S.provider||"Service Provider")}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div><div class="muted">Wallet Balance: ${walletText} • No fixed minimum • Work status Admin controlled</div>`;
 
  let visit=`<div class="muted">GPS one-way: ${Number(S.oneWayDistanceKm||0).toFixed(1)} km • Suggested: ${S.suggestedVisitCharge?money(S.suggestedVisitCharge):"—"} • Final: ${S.visitCharge?money(S.visitCharge):"—"}</div>`;
  let support=S.supportTicket?`<b>${S.supportTicket}</b> • ${S.cancelReason||S.providerChangeReason||"Review required"}`:`<span class="muted">No open support ticket.</span>`;
@@ -3869,7 +3852,7 @@ if($("walletBalance"))$("walletBalance").textContent=S.wallet<0?"−₹"+Math.ab
 const walletQuick=$("providerWalletQuick");if(walletQuick)walletQuick.textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 $("currentJob").textContent=S.currentJob||((["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","WORKING","ON_WAY","REACHED","ASSIGNED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?(S.service||S.serviceName||"Current Booking"):"None");
 $("nextJob").textContent=S.nextJob?(S.nextJob.service||"Accepted Next Job"):(S.pendingNextRequest?"NEW REQUEST":"None");
-const walletLow=Number(S.wallet)<Number(S.walletWarningLevel||200);
+const walletLow=Number(S.wallet)<=0;
 const walletWarningEl=$("walletWarning");
 if(walletWarningEl){
   walletWarningEl.classList.toggle("hide",!S.adminPaused);
