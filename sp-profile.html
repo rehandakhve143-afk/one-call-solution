@@ -124,7 +124,7 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function readProfile(){try{return JSON.parse(localStorage.getItem('ocsProviderProfile')||'null')}catch(e){return null}}
 function readCustomer(){try{return JSON.parse(localStorage.getItem('ocsCustomerProfile')||'null')}catch(e){return null}}
 function goHome(){location.href='index.html?v=20260926-profilehome1'}
-function openDashboard(){location.href='home-services.html?tab=provider&sp=1&v=20260926-profiledashboard1'}
+function openDashboard(){location.href='home-services.html?tab=provider&sp=1&v=20260926-rolelock2'}
 
 function renderSkillsGrid(){
  const box=document.getElementById('skillsGrid');
