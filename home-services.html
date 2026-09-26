@@ -1290,7 +1290,9 @@ async function secureQuotePayment(mode){
    }catch(e){alert("Cash at completion select nahi hua: "+(e&&e.message?e.message:"Unknown error"));return}
  }
  try{
-   if(paymentDueAmount()<=0&&p==="job"){await ocsLoadLive("customer");render();return}
+   const {data:rp,error:rpe}=await ocsSupabase.rpc("customer_reward_payment_preview_v1",{p_booking_id:S.activeBookingId,p_purpose:"secure_hold"});
+   if(rpe)throw rpe;
+   if(Number(rp&&rp.remaining_amount||0)<=0){await ocsLoadLive("customer");render();return}
    const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
      p_booking_id:S.activeBookingId,p_purpose:"secure_hold",p_method:"online"
    });
@@ -2751,6 +2753,9 @@ async function openOnline(purpose){
  ensureBookingAmount();
  try{
    const p=purpose==="VISIT"?"visit":"job";
+   const {data:rp,error:rpe}=await ocsSupabase.rpc("customer_reward_payment_preview_v1",{p_booking_id:S.activeBookingId,p_purpose:p});
+   if(rpe)throw rpe;
+   if(Number(rp&&rp.remaining_amount||0)<=0){await ocsLoadLive("customer");render();return}
    const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
      p_booking_id:S.activeBookingId,p_purpose:p,p_method:"online"
    });
@@ -2774,6 +2779,9 @@ async function payCash(purpose){
  ensureBookingAmount();
  try{
    const p=purpose==="VISIT"?"visit":"job";
+   const {data:rp,error:rpe}=await ocsSupabase.rpc("customer_reward_payment_preview_v1",{p_booking_id:S.activeBookingId,p_purpose:p});
+   if(rpe)throw rpe;
+   if(Number(rp&&rp.remaining_amount||0)<=0){await ocsLoadLive("customer");render();return}
    const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
      p_booking_id:S.activeBookingId,p_purpose:p,p_method:"cash"
    });
@@ -3273,8 +3281,9 @@ if(S.status==="VISIT_PAYMENT")h=`
 <div class="card"><h3>Visit Charge</h3>
 <div class="muted">${S.distanceSlab}</div>
 <div class="money">₹${S.visitCharge}</div>
-<button class="btn" onclick="openOnline('VISIT')">Online Payment</button>
-<button class="btn alt" onclick="payCash('VISIT')">Cash</button>
+<button class="btn alt" onclick="useCustomerRewards('VISIT')">Use OCS Rewards</button>
+<button class="btn" onclick="openOnline('VISIT')">Pay Remaining Online</button>
+<button class="btn gray" onclick="payCash('VISIT')">Cash</button>
 <button class="btn red" onclick="disputeVisit()">Need OCS Help</button>
 </div>`;
 
