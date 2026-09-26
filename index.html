@@ -1521,15 +1521,17 @@ async function renderWorkHistory(){
  const body=document.getElementById('workHistoryBody');if(!body)return;
  body.innerHTML='<div class="bottom-hub-card"><b>Loading history...</b><small>OCS backend se latest records aa rahe hain.</small></div>';
  let rows=[];
+ let backendResolved=false;
  const session=await getOcsSession();
  if(session&&session.user&&ocsSupabase){
    try{
      const {data,error}=await ocsSupabase.rpc('booking_history_v2',{p_role:workHistoryRole==='PROVIDER'?'service_provider':'customer'});
      if(error)throw error;
      rows=Array.isArray(data)?data:[];
+     backendResolved=true;
    }catch(e){console.error('Backend history load failed',e)}
  }
- if(!rows.length){
+ if(!rows.length&&!backendResolved){
    rows=readOcsWorkHistory().slice().sort((a,b)=>Number(b.closedAt||0)-Number(a.closedAt||0));
    if(!rows.length){body.innerHTML='<div class="bottom-hub-card"><b>No Work History Yet</b><small>Completed, cancelled aur Work Not Completed jobs yahan save honge.</small></div>';return}
    body.innerHTML=rows.map(r=>{
@@ -1541,6 +1543,10 @@ async function renderWorkHistory(){
      const paid=Number(r.status==='DONE'?r.amount:r.visitCharge||0);
      return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Service Provider: '+ocsSavedText(r.provider||'Service Provider')+'<br>Amount: ₹'+paid.toFixed(2)+' • Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Your Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
    }).join('');
+   return;
+ }
+ if(backendResolved&&!rows.length){
+   body.innerHTML='<div class="bottom-hub-card"><b>No '+(workHistoryRole==='PROVIDER'?'Service Provider':'Customer')+' Work History Yet</b><small>Is signed-in account ke completed/cancelled records yahan dikhenge.</small></div>';
    return;
  }
  const historyCard=r=>{
