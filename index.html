@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20260926-navfix1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-navfix1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20260926-spsheets1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-spsheets1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -19,9 +19,9 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 try{
   const q=new URLSearchParams(location.search||"");
   if(q.get("admin")==="1"){
-    location.replace("home-services.html?tab=admin&v=20260926-navfix1");
+    location.replace("home-services.html?tab=admin&v=20260926-spsheets1");
   }else if(q.get("sp")==="1"){
-    location.replace("home-services.html?tab=provider&sp=1&v=20260926-navfix1");
+    location.replace("home-services.html?tab=provider&sp=1&v=20260926-spsheets1");
   }
 }catch(e){}
 </script><script>
@@ -926,7 +926,7 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('home-services.html?tab=provider&sp=1&v=20260926-navfix1');
+      location.replace('home-services.html?tab=provider&sp=1&v=20260926-spsheets1');
       return;
     }
     await openAccount('provider',true);
@@ -998,7 +998,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('home-services.html?tab=provider&sp=1&v=20260926-navfix1');
+          location.replace('home-services.html?tab=provider&sp=1&v=20260926-spsheets1');
           return;
         }
         await openAccount('provider',true);
@@ -1025,14 +1025,14 @@ async function openHomeProviderDashboard(){
   if(!session||!session.user){ocsProviderProfileMenuIntent=true;openLogin();return}
   const hasSp=await ocsUserHasRole('service_provider');
   if(!hasSp){await openAccount('provider',true);return}
-  location.href='home-services.html?tab=provider&sp=1&v=20260926-navfix1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260926-spsheets1';
 }
 async function openHomeAdminDashboard(){
   const session=await getOcsSession();
   if(!session||!session.user){openLogin();return}
   const hasAdmin=await ocsUserHasRole('admin');
   if(!hasAdmin){alert('Admin access allowed nahi hai.');return}
-  location.href='home-services.html?tab=admin&v=20260926-navfix1';
+  location.href='home-services.html?tab=admin&v=20260926-spsheets1';
 }
 async function renderHomeDashboardShortcuts(){
   const wrap=document.getElementById('ocsHomeDashboards');
@@ -1061,7 +1061,7 @@ async function renderHomeDashboardShortcuts(){
 
 function openProviderDashboardFromMenu(){
   closeAllBottomHubs();
-  location.href='home-services.html?tab=provider&sp=1&v=20260926-navfix1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260926-spsheets1';
 }
 
 function openProviderProfileFromMenu(){
@@ -1372,7 +1372,7 @@ async function saveProviderAccount(){
    }));
    alert('Changes saved. Approved skills active rahengi; nayi skill verification ke baad active hogi.');
    if(ocsRequestedSpDashboard()){
-     location.replace('home-services.html?tab=provider&sp=1&v=20260926-navfix1');
+     location.replace('home-services.html?tab=provider&sp=1&v=20260926-spsheets1');
      return;
    }
    await showProviderProfileSummary();
@@ -2328,7 +2328,7 @@ async function openModule(n,role,serviceCat){
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20260926-navfix1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260926-spsheets1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -2348,7 +2348,7 @@ async function openModule(n,role,serviceCat){
    frame.src='property.html?v=20260921-3';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260926-navfix1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260926-spsheets1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
