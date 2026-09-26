@@ -981,12 +981,13 @@ function ocsStartSupabaseHooks(){
   ocsSupabaseHooksStarted=true;
   ocsSupabase.auth.onAuthStateChange((event)=>{
     setTimeout(refreshOcsEmailStatus,0);
-  setTimeout(()=>renderHomeDashboardShortcuts(),120);
+    setTimeout(()=>renderHomeDashboardShortcuts(),120);
     if(event==='PASSWORD_RECOVERY')setTimeout(openResetPassword,0);
     if(event==='SIGNED_IN'){setTimeout(()=>routeAfterOcsLogin(),0);setTimeout(()=>renderHomeDashboardShortcuts(),100)}
     if(event==='SIGNED_OUT'){setTimeout(()=>updateSettingsLoginState(),0);setTimeout(()=>renderHomeDashboardShortcuts(),100)}
   });
   setTimeout(refreshOcsEmailStatus,0);
+  setTimeout(()=>renderHomeDashboardShortcuts(),120);
   setTimeout(()=>{try{if(new URLSearchParams(location.search||'').get('login')==='1')openLogin()}catch(e){}},150);
   setTimeout(async()=>{
     try{
