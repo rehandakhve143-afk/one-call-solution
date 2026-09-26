@@ -17,8 +17,8 @@ This file is the source of truth for business rules. If any HTML/demo file confl
 ## 2) Payments
 - **Online payment is preferred/default.**
 - **Cash is allowed as network/payment fallback.**
-- Online settlement: OCS commission is adjusted automatically.
-- Cash job: applicable 9% OCS charge is adjusted from the Service Provider OCS Wallet.
+- Online settlement: OCS receives the customer payment, retains the applicable 9% commission in settlement, and does **not** debit the SP reserve wallet again.
+- Cash job: customer pays the Service Provider directly; applicable 9% OCS commission is deducted from the Service Provider OCS Wallet. Wallet may go below ₹200, ₹0, or negative until recharged/admin action.
 - Customer may switch from Cash to OCS Online / Company QR / Payment Link.
 
 ## 3) Visit charge / Start OTP / Work Not Completed
