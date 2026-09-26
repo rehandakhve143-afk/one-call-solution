@@ -1561,11 +1561,15 @@ async function renderWorkHistory(){
    const canRate=['COMPLETED','DONE'].includes(String(r.status||'').toUpperCase())&&rating<=0;
    return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service_name||'Home Service')+'</b><small>'+ocsSavedText(r.id)+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Service Provider: '+ocsSavedText(r.provider_name||'Service Provider')+'<br>Amount: ₹'+amount.toFixed(2)+' • Payment: '+ocsSavedText(r.payment_status||r.payment_method||'—')+(rating>0?'<br>Your Rating: '+rating+'/5 ⭐'+(r.rating_comment?' • '+ocsSavedText(r.rating_comment):''):'')+'</small>'+(canRate?'<div class="bottom-hub-actions"><button class="main" onclick="rateCompletedBooking(\''+ocsSavedText(r.id)+'\')">⭐ Rate Service Provider</button></div>':'')+'</div>';
  };
- const oldZeroCancelled=rows.filter(r=>String(r.status||'').toLowerCase()==='cancelled'&&Number(r.booking_amount||0)<=0&&Number(r.visit_charge||0)<=0);
- const mainRows=rows.filter(r=>!oldZeroCancelled.includes(r));
- body.innerHTML=mainRows.map(historyCard).join('')+
-   (oldZeroCancelled.length
-     ?'<details class="bottom-hub-card" style="padding:12px 14px"><summary style="font-weight:800;cursor:pointer">Cancelled / ₹0 records ('+oldZeroCancelled.length+')</summary><div style="margin-top:10px">'+oldZeroCancelled.map(historyCard).join('')+'</div></details>'
+ const cancelledRows=rows.filter(r=>String(r.status||'').toLowerCase()==='cancelled');
+ const mainRows=rows.filter(r=>String(r.status||'').toLowerCase()!=='cancelled');
+ const completedRows=mainRows.filter(r=>['completed','done'].includes(String(r.status||'').toLowerCase()));
+ const otherClosedRows=mainRows.filter(r=>!['completed','done'].includes(String(r.status||'').toLowerCase()));
+ body.innerHTML=
+   completedRows.map(historyCard).join('')+
+   otherClosedRows.map(historyCard).join('')+
+   (cancelledRows.length
+     ?'<details class="bottom-hub-card" style="padding:12px 14px"><summary style="font-weight:800;cursor:pointer">Cancelled / Test Work ('+cancelledRows.length+')</summary><div style="margin-top:10px">'+cancelledRows.map(historyCard).join('')+'</div></details>'
      :'');
 }
 
