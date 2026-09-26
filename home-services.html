@@ -3698,46 +3698,47 @@ function adminHTMLState(){
  const snap=window.OCS_ADMIN_LATEST_BOOKING||null;
  const hasSnap=!!(snap&&snap.has_booking);
  const isActive=!!(hasSnap&&snap.is_active);
- const amount=hasSnap?Number(snap.booking_amount||snap.payment_amount||0):ensureBookingAmount();
- const wallet=hasSnap?Number(snap.wallet_balance||0):Number(S.wallet||0);
+ const liveSnap=isActive?snap:null;
+ const amount=liveSnap?Number(liveSnap.booking_amount||liveSnap.payment_amount||0):0;
+ const wallet=liveSnap?Number(liveSnap.wallet_balance||0):Number(S.wallet||0);
  const walletText=wallet<0?"−₹"+Math.abs(wallet).toFixed(2):"₹"+wallet.toFixed(2);
  const charge=hasSnap?Number(snap.commission_amount||0):(amount?auditPlatformCharge(amount):0);
 
  let booking;
- if(hasSnap){
+ if(liveSnap){
    booking=`
-   <div class="row"><span>${isActive?"Live Booking":"Last Completed Booking"}</span><b>${ocsSafe(snap.service_name||"—")}</b></div>
-   <div class="row"><span>Category</span><b>${ocsSafe(snap.category||"—")}</b></div>
-   <div class="row"><span>Status</span><b>${ocsSafe(String(snap.status||"").toUpperCase())}</b></div>
+   <div class="row"><span>Live Booking</span><b>${ocsSafe(liveSnap.service_name||"—")}</b></div>
+   <div class="row"><span>Category</span><b>${ocsSafe(liveSnap.category||"—")}</b></div>
+   <div class="row"><span>Status</span><b>${ocsSafe(String(liveSnap.status||"").toUpperCase())}</b></div>
    <div class="row"><span>Booking Amount</span><b>${money(amount)}</b></div>
-   <div class="row"><span>Payment</span><b>${ocsSafe(String(snap.payment_method||"—").toUpperCase())}${snap.payment_status?" • "+ocsSafe(String(snap.payment_status).toUpperCase()):""}</b></div>`;
+   <div class="row"><span>Payment</span><b>${ocsSafe(String(liveSnap.payment_method||"—").toUpperCase())}${liveSnap.payment_status?" • "+ocsSafe(String(liveSnap.payment_status).toUpperCase()):""}</b></div>`;
  }else{
-   booking='<div class="muted">No booking record found.</div>';
+   booking='<div class="muted">No active live booking.</div>';
  }
 
- let customer=hasSnap?`
- <div class="row"><span>Name</span><b>${ocsSafe(snap.customer_name||"Customer")}</b></div>
- <div class="row"><span>Mobile</span><b>${ocsSafe(snap.customer_mobile||"Not added")}</b></div>
- <div class="row"><span>Address</span><b>${ocsSafe(snap.address||"Not added")}</b></div>
- <div class="row"><span>Service</span><b>${ocsSafe(snap.service_name||"—")}</b></div>`:
+ let customer=liveSnap?`
+ <div class="row"><span>Name</span><b>${ocsSafe(liveSnap.customer_name||"Customer")}</b></div>
+ <div class="row"><span>Mobile</span><b>${ocsSafe(liveSnap.customer_mobile||"Not added")}</b></div>
+ <div class="row"><span>Address</span><b>${ocsSafe(liveSnap.address||"Not added")}</b></div>
+ <div class="row"><span>Service</span><b>${ocsSafe(liveSnap.service_name||"—")}</b></div>`:
  '<div class="muted">No booking customer details.</div>';
 
- let providerDetails=hasSnap&&snap.provider_id?`
- <div class="row"><span>Service Provider</span><b>${ocsSafe(snap.provider_name||"Service Provider")}</b></div>
- <div class="row"><span>Mobile</span><b>${ocsSafe(snap.provider_mobile||"Not added")}</b></div>
- <div class="row"><span>Available for Work</span><b>${snap.available_for_work?"ON":"OFF"}</b></div>
+ let providerDetails=liveSnap&&liveSnap.provider_id?`
+ <div class="row"><span>Service Provider</span><b>${ocsSafe(liveSnap.provider_name||"Service Provider")}</b></div>
+ <div class="row"><span>Mobile</span><b>${ocsSafe(liveSnap.provider_mobile||"Not added")}</b></div>
+ <div class="row"><span>Available for Work</span><b>${liveSnap.available_for_work?"ON":"OFF"}</b></div>
  <div class="row"><span>Wallet Balance</span><b>${walletText}</b></div>
  <div class="row"><span>Wallet Rule</span><b>No fixed minimum</b></div>
  <div class="row"><span>Wallet Status</span><b>${Number(wallet)<=0?"Recharge Reminder":"Active"}</b></div>`:
  '<div class="muted">No assigned Service Provider record.</div>';
 
- let provider=hasSnap&&snap.provider_id?`<div><b>${ocsSafe(snap.provider_name||"Service Provider")}</b> • Available: ${snap.available_for_work?"ON":"OFF"} • New Jobs: ${snap.admin_paused?"PAUSED":"ACTIVE"}</div>
+ let provider=liveSnap&&liveSnap.provider_id?`<div><b>${ocsSafe(liveSnap.provider_name||"Service Provider")}</b> • Available: ${liveSnap.available_for_work?"ON":"OFF"} • New Jobs: ${liveSnap.admin_paused?"PAUSED":"ACTIVE"}</div>
  <div class="muted">Wallet Balance: ${walletText} • No fixed minimum • Work status Admin controlled</div>`:
  `<div><b>${ocsSafe(S.provider||"Service Provider")}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div><div class="muted">Wallet Balance: ${walletText} • No fixed minimum • Work status Admin controlled</div>`;
 
  let visit=`<div class="muted">GPS one-way: ${Number(S.oneWayDistanceKm||0).toFixed(1)} km • Suggested: ${S.suggestedVisitCharge?money(S.suggestedVisitCharge):"—"} • Final: ${S.visitCharge?money(S.visitCharge):"—"}</div>`;
  let support=S.supportTicket?`<b>${S.supportTicket}</b> • ${S.cancelReason||S.providerChangeReason||"Review required"}`:`<span class="muted">No open support ticket.</span>`;
- let accounting=hasSnap
+ let accounting=liveSnap
    ?`Booking Amount: ${money(amount)} • Adjustment: ${money(charge)} • SP Wallet: ${walletText}`
    :`Booking Amount: ₹0 • Adjustment: ₹0 • SP Wallet: ${walletText}`;
 
