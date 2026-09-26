@@ -19,9 +19,9 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 try{
   const q=new URLSearchParams(location.search||"");
   if(q.get("admin")==="1"){
-    location.replace("home-services.html?tab=admin&v=20260926-settlement1");
+    location.replace("home-services.html?tab=admin&v=20260926-customerfinal1");
   }else if(q.get("sp")==="1"){
-    location.replace("home-services.html?tab=provider&sp=1&v=20260926-settlement1");
+    location.replace("home-services.html?tab=provider&sp=1&v=20260926-customerfinal1");
   }
 }catch(e){}
 </script><script>
@@ -102,7 +102,7 @@ setTimeout(function(){
     </section>
     <section class="ocs-super-business ocs-share-earn-strip">
       <div class="bi"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg></div>
-      <div class="bc"><b>Share & Earn ₹50</b><small>₹50 OCS Wallet reward after the referred new user registers and completes their first successful booking.</small></div>
+      <div class="bc"><b>Share & Earn ₹50</b><small>Unlimited genuine referrals. ₹50 OCS Wallet reward after each referred new user completes their first successful paid service booking.</small></div>
       <button onclick="shareOcsWhatsApp()">Share Now</button>
     </section>
     <section class="ocs-super-business ocs-public-feedback" onclick="openOcsFeedback()">
@@ -122,7 +122,12 @@ setTimeout(function(){
 </nav>
 <div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div><button id="windowManageBtn" class="window-manage" onclick="manageCurrentWindow()">+ Add / Edit</button></div><iframe id="frame"></iframe></div>
 <div class="modal" id="bottomBookingsModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>Bookings</h2><div class="muted">Your Home Service booking status</div></div><button class="x" onclick="closeBottomHub('bottomBookingsModal')">×</button></div>
+  <div class="bottom-hub-head"><div><h2>Bookings</h2><div class="muted">Active, completed and cancelled Home Service bookings</div></div><button class="x" onclick="closeBottomHub('bottomBookingsModal')">×</button></div>
+  <div class="support-role-row">
+    <button id="bookingTabActive" class="on" onclick="setBottomBookingsTab('ACTIVE')">Active</button>
+    <button id="bookingTabCompleted" onclick="setBottomBookingsTab('COMPLETED')">Completed</button>
+    <button id="bookingTabCancelled" onclick="setBottomBookingsTab('CANCELLED')">Cancelled</button>
+  </div>
   <div id="bottomBookingsBody"></div>
 </div></div>
 
@@ -916,7 +921,7 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('home-services.html?tab=provider&sp=1&v=20260926-settlement1');
+      location.replace('home-services.html?tab=provider&sp=1&v=20260926-customerfinal1');
       return;
     }
     await openAccount('provider',true);
@@ -985,7 +990,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('home-services.html?tab=provider&sp=1&v=20260926-settlement1');
+          location.replace('home-services.html?tab=provider&sp=1&v=20260926-customerfinal1');
           return;
         }
         await openAccount('provider',true);
@@ -1003,7 +1008,7 @@ if(ocsSupabase)ocsStartSupabaseHooks();
 
 function openProviderDashboardFromMenu(){
   closeAllBottomHubs();
-  location.href='home-services.html?tab=provider&sp=1&v=20260926-settlement1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260926-customerfinal1';
 }
 
 function openProviderProfileFromMenu(){
@@ -1314,7 +1319,7 @@ async function saveProviderAccount(){
    }));
    alert('Changes saved. Approved skills active rahengi; nayi skill verification ke baad active hogi.');
    if(ocsRequestedSpDashboard()){
-     location.replace('home-services.html?tab=provider&sp=1&v=20260926-settlement1');
+     location.replace('home-services.html?tab=provider&sp=1&v=20260926-customerfinal1');
      return;
    }
    await showProviderProfileSummary();
@@ -1358,18 +1363,67 @@ function bottomServices(){
  setBottomActive('bnServices');
  openModule('Home Services','customer');
 }
-function openBottomBookings(){
- closeAllBottomHubs();setBottomActive('bnBookings');
- const body=document.getElementById('bottomBookingsBody'),b=getCurrentBooking();
- const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'];
- const s=String(b?.status||b?.state||'').toUpperCase();
- if(!b||inactive.includes(s)){
-  body.innerHTML='<div class="bottom-hub-card"><b>No active booking</b><small>Abhi koi running Home Service booking nahi hai.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openWorkHistory(\'CUSTOMER\')">Work History / Rating</button><button onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button></div></div>';
- }else{
-  const service=b.service||b.category||b.task||'Home Service',label=dashStatusLabel(s),id=b.id||b.bookingId||'OCS Booking';
-  body.innerHTML='<div class="bottom-hub-card"><b>'+service+'</b><small>'+id+'<br>Status: <b style="display:inline">'+label+'</b></small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Track Booking</button><button onclick="closeBottomHub(\'bottomBookingsModal\')">Close</button></div></div>';
+let bottomBookingsTab='ACTIVE';
+function setBottomBookingsTab(tab){
+ bottomBookingsTab=['ACTIVE','COMPLETED','CANCELLED'].includes(String(tab||'').toUpperCase())?String(tab).toUpperCase():'ACTIVE';
+ const ids={ACTIVE:'bookingTabActive',COMPLETED:'bookingTabCompleted',CANCELLED:'bookingTabCancelled'};
+ Object.entries(ids).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',k===bottomBookingsTab)});
+ renderBottomBookings();
+}
+async function renderBottomBookings(){
+ const body=document.getElementById('bottomBookingsBody');if(!body)return;
+ if(bottomBookingsTab==='ACTIVE'){
+  const b=getCurrentBooking();
+  const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'];
+  const s=String(b?.status||b?.state||'').toUpperCase();
+  if(!b||inactive.includes(s)){
+   body.innerHTML='<div class="bottom-hub-card"><b>No active booking</b><small>Abhi koi running Home Service booking nahi hai.</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button></div></div>';
+  }else{
+   const service=b.service||b.category||b.task||'Home Service',label=dashStatusLabel(s),id=b.id||b.bookingId||'OCS Booking';
+   body.innerHTML='<div class="bottom-hub-card"><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+'<br>Status: <b style="display:inline">'+ocsSavedText(label)+'</b></small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Track Booking</button></div></div>';
+  }
+  return;
  }
+ body.innerHTML='<div class="bottom-hub-card"><b>Loading '+(bottomBookingsTab==='COMPLETED'?'completed':'cancelled')+' bookings...</b></div>';
+ let rows=[],backendResolved=false;
+ const session=await getOcsSession();
+ if(session&&session.user&&ocsSupabase){
+  try{
+   const {data,error}=await ocsSupabase.rpc('booking_history_v2',{p_role:'customer'});
+   if(error)throw error;
+   rows=Array.isArray(data)?data:[];
+   backendResolved=true;
+  }catch(e){console.error('Bookings history load failed',e)}
+ }
+ if(!backendResolved){
+  rows=readOcsWorkHistory().slice().sort((a,b)=>Number(b.closedAt||0)-Number(a.closedAt||0));
+ }
+ const wanted=bottomBookingsTab==='COMPLETED'
+  ?new Set(['COMPLETED','DONE'])
+  :new Set(['CANCELLED','CANCELLED_SETTLED','WNC_CLOSED']);
+ rows=rows.filter(r=>wanted.has(String(r.status||'').toUpperCase()));
+ if(!rows.length){
+  body.innerHTML='<div class="bottom-hub-card"><b>No '+(bottomBookingsTab==='COMPLETED'?'completed':'cancelled')+' bookings</b><small>Is category me abhi koi booking record nahi hai.</small></div>';
+  return;
+ }
+ body.innerHTML=rows.map(r=>{
+  const service=r.service_name||r.service||r.category||'Home Service';
+  const id=r.id||r.booking_id||'OCS Booking';
+  const rawStatus=String(r.status||'').toUpperCase();
+  const status=workHistoryStatusLabel(rawStatus);
+  const dateValue=r.closed_at||r.closedAt||r.updated_at||r.created_at||'';
+  const d=dateValue?new Date(dateValue).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
+  const amount=Number((rawStatus==='COMPLETED'||rawStatus==='DONE')?(r.booking_amount??r.amount??0):(r.visit_charge??r.visitCharge??0));
+  return '<div class="bottom-hub-card"><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+' • '+ocsSavedText(d)+'<br>Status: '+ocsSavedText(status)+'<br>Amount: ₹'+amount.toFixed(2)+'</small>'+(bottomBookingsTab==='COMPLETED'?'<div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomBookingsModal\');openWorkHistory(\'CUSTOMER\')">View Rating / Details</button></div>':'')+'</div>';
+ }).join('');
+}
+function openBottomBookings(tab){
+ closeAllBottomHubs();setBottomActive('bnBookings');
+ bottomBookingsTab=['ACTIVE','COMPLETED','CANCELLED'].includes(String(tab||'').toUpperCase())?String(tab).toUpperCase():'ACTIVE';
+ const ids={ACTIVE:'bookingTabActive',COMPLETED:'bookingTabCompleted',CANCELLED:'bookingTabCancelled'};
+ Object.entries(ids).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',k===bottomBookingsTab)});
  document.getElementById('bottomBookingsModal').classList.add('show');
+ renderBottomBookings();
 }
 let bottomSupportRole='CUSTOMER';
 function setBottomSupportRole(role){
@@ -1473,7 +1527,7 @@ async function renderWalletHub(){
  const w=getOcsWalletSnapshot(),cp=getCustomerProfile(),sp=getProviderProfile();
  const paint=()=>{
    body.innerHTML=
-   '<div class="bottom-hub-card"><b>OCS Rewards</b><small>Referral reward balance</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.customer).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Share & Earn reward qualifying booking ke baad credit hoga. Available balance booking payment me poora use kar sakte hain; cash withdrawal nahi.</div></div>'+
+   '<div class="bottom-hub-card"><b>OCS Rewards</b><small>Referral reward balance</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.customer).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Unlimited genuine referrals allowed. Har referred new user ki first successful paid service booking ke baad ₹50 reward credit hoga. Available balance eligible OCS service payment me poora use kar sakte hain; cash withdrawal nahi.</div></div>'+
    '<div class="bottom-hub-card"><b>Service Provider Wallet</b><small>'+(sp?(sp.name||'Service Provider'):'SP profile not created')+'</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.sp).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">No fixed minimum wallet balance. Cash jobs ka 9% OCS commission wallet se debit hoga; wallet ₹0 ya negative ho sakta hai. Warning/email rahega, aur new jobs pause karna OCS Admin ke control me hoga.</div>'+(w.spPaused?'<div class="notice" style="margin-top:8px">New jobs temporarily paused by Admin.</div>':'')+'</div>'+
    '<div class="bottom-hub-card"><b>Wallet Safety</b><small>Wallet balance, transactions and reward history final backend records se sync honge. Customer payment history Bookings / Work History me alag rahegi.</small></div>';
  };
@@ -2221,7 +2275,7 @@ async function openModule(n,role,serviceCat){
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20260926-settlement1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260926-customerfinal1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -2241,7 +2295,7 @@ async function openModule(n,role,serviceCat){
    frame.src='property.html?v=20260921-3';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260926-settlement1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260926-customerfinal1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
