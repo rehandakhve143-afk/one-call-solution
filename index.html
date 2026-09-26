@@ -988,23 +988,13 @@ function ocsStartSupabaseHooks(){
 }
 if(ocsSupabase)ocsStartSupabaseHooks();
 
-async function openProviderProfileFromMenu(){
-  ocsProviderProfileMenuIntent=true;
+function openProviderProfileFromMenu(){
   try{
-    const u=new URL(location.href);
-    if(u.searchParams.get('open')==='sp-dashboard'){
-      u.searchParams.delete('open');
-      history.replaceState(null,'',u.pathname+(u.search||'')+(u.hash||''));
-    }
     localStorage.removeItem('ocsLoginIntentRole');
     localStorage.removeItem('ocsPostLoginReturn');
   }catch(e){}
   closeBottomHub('bottomProfileModal');
-  try{
-    await openAccount('provider',true);
-  }finally{
-    setTimeout(()=>{ocsProviderProfileMenuIntent=false},1200);
-  }
+  location.href='index.html?open=sp-profile&v=20260926-profilehard1';
 }
 async function openAccountEntry(){
  const session=await getOcsSession();
@@ -1017,7 +1007,7 @@ async function openAccount(role,forceProviderSetup){
  const existingProfile=isProvider?getProviderProfile():getCustomerProfile();
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
  document.getElementById('accountTitle').textContent=existingProfile?(isProvider?'Service Provider Profile':'Customer Profile'):(isProvider?'Service Provider Login':'Customer Login');
- document.getElementById('accountSub').textContent=existingProfile?(isProvider?'Profile locked • approved skills protected':'Profile details yahan edit karein'):(isProvider?'Mobile Number ya Email se login • Existing SP direct dashboard':'Mobile Number ya Email se login • Direct OCS Home');
+ document.getElementById('accountSub').textContent=existingProfile?(isProvider?'Profile locked • approved skills protected':'Profile details yahan edit karein'):(isProvider?'Same OCS login • Complete or view Service Provider Profile':'Mobile Number ya Email se login • Direct OCS Home');
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  await refreshOcsEmailStatus();
