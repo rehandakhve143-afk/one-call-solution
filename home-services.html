@@ -814,7 +814,7 @@ service:"",category:"",serviceType:"fixed",quantity:1,address:"Customer Address"
 startOtp:null,quote:null,quoteDecision:null,reschedule:null,rescheduleBy:null,
 cancelReason:null,cancelBy:null,visitCharge:0,distanceSlab:null,
 payment:null,paymentChoice:"ONLINE",payPurpose:"JOB",supportTickets:[],logs:[],
-wallet:100,welcomeBonus:100,welcomeBonusGranted:true,welcomeBonusWithdrawable:false,walletWarningLevel:200,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:9,flowVersion:11,
+wallet:100,welcomeBonus:100,welcomeBonusGranted:true,welcomeBonusWithdrawable:false,walletWarningLevel:0,platformCharge:9,commissionDue:0,jobAccess:true,adminPaused:false,rulesVersion:10,flowVersion:11,
 providerRatings:[],customerRating:null,pendingRatingStars:0,pendingRatingComment:"",customerRatingComment:"",
 currentJob:null,nextJob:null,pendingNextRequest:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null,
 customerName:"Customer 1",customerMobile:"Not added",customerEmail:"Not added",customerProfileAvailable:false,customerVerified:false,
@@ -846,7 +846,7 @@ function loadSavedHomeState(){
        return;
      }
      Object.assign(S,saved);
-     S.walletWarningLevel=200;
+     S.walletWarningLevel=0;
      delete S.walletMinimum;
      S.platformCharge=9;
      S.customerName=S.customerName||"Customer 1";
@@ -1780,8 +1780,7 @@ async function openProviderWalletQuick(){
     if(error)throw error;
     const d=data||{};
     const bal=Number(d.wallet_balance||0);
-    const reserve=Number(d.reserve_amount||200);
-    const withdrawable=Number(d.withdrawable_amount||0);
+    const commissionRate=9;
     const todayCredit=Number(d.today_credit||0);
     const todayDebit=Number(d.today_debit||0);
     const tx=Array.isArray(d.transactions)?d.transactions:[];
@@ -1809,12 +1808,12 @@ async function openProviderWalletQuick(){
     body.innerHTML=
       '<div class="provider-wallet-grid">'+
         '<div class="box"><small>Wallet Balance</small><b>'+moneyText(bal)+'</b></div>'+
-        '<div class="box"><small>Reserve</small><b>₹'+reserve.toFixed(2)+'</b></div>'+
-        '<div class="box"><small>Withdrawable</small><b>₹'+withdrawable.toFixed(2)+'</b></div>'+
+        '<div class="box"><small>OCS Commission</small><b>'+commissionRate+'%</b></div>'+
+        '<div class="box"><small>Job Access</small><b>'+(d.admin_paused?'Admin Hold':'Active')+'</b></div>'+
       '</div>'+
-      (d.wallet_warning?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Reserve ₹200 se niche hai. Add Money karein. Work ON/OFF OCS Admin control me rahega.</div>':'')+
+      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Wallet ₹0 ya negative ho sakta hai. Recharge reminder/email rahega; new jobs ka hold OCS Admin control me hai.</div>':'')+
       (d.admin_paused?'<div class="notice bad"><b>Admin Hold</b><br>New jobs OCS Admin ne pause ki hain.</div>':'')+
-      '<div class="provider-wallet-actions"><button class="btn" onclick="rechargeWallet()">Add Money</button><button class="btn alt" onclick="openProviderWithdraw()">Withdraw</button></div>'+
+      '<div class="provider-wallet-actions"><button class="btn" onclick="rechargeWallet()">Add Money</button><button class="btn alt" onclick="openProviderPayoutPanel()">Bank &amp; Payout</button></div>'+
       '<div class="provider-payout-summary"><div class="rowline"><span>Today Credit</span><b>₹'+todayCredit.toFixed(2)+'</b></div><div class="rowline"><span>Today Debit</span><b>₹'+todayDebit.toFixed(2)+'</b></div></div>'+
       '<div style="margin-top:8px"><b>Transaction History</b>'+txHtml+'</div>'+
       '<div class="ocs-profile-actions"><button class="btn gray" onclick="closeProviderPayoutPanel()">Close</button></div>';
@@ -1911,7 +1910,7 @@ function renderProviderPayoutForm(d){
       '<label>Account Type *</label><select id="payoutAccountType"><option value="savings" '+((d.account_type||"savings")==="savings"?"selected":"")+'>Savings</option><option value="current" '+((d.account_type||"")==="current"?"selected":"")+'>Current</option></select>'+ 
       '<label>IFSC *</label><input id="payoutIfsc" autocapitalize="characters" value="'+providerProfileEsc(d.ifsc||"")+'" placeholder="e.g. HDFC0001234">'+
       '<label>UPI ID (optional)</label><input id="payoutUpi" value="'+providerProfileEsc(d.upi_id||"")+'" placeholder="name@bank">'+
-      '<div class="ocs-profile-note">Bank details payout/settlement ke liye hain. Save ke baad Admin verification Pending rahega.</div>'+
+      '<div class="ocs-profile-note">Basic SP profile banate waqt bank details optional hain. OCS payout/settlement release se pehle verified bank details mandatory hain. Save ke baad verification Pending rahega.</div>'+
       '<div class="ocs-profile-actions">'+
         '<button class="btn" onclick="saveProviderPayoutDetails()">Save Bank Details</button>'+
         '<button class="btn gray" onclick="openProviderPayoutPanel()">Cancel</button>'+
@@ -2138,7 +2137,7 @@ function auditPlatformCharge(amount){
 }
 function queueWalletMaintenanceEmail(){
  const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
- const msg="Maintain your OCS Wallet reserve at ₹200. Current wallet balance: "+bal+". Please recharge to keep your wallet healthy.";
+ const msg="Your OCS Wallet balance is "+bal+". Please recharge to keep your wallet healthy. New-job access remains under OCS Admin control.";
  S.walletReminderHistory=S.walletReminderHistory||[];
  S.walletReminderHistory.unshift({channel:"EMAIL",message:msg,status:"QUEUED",at:new Date().toISOString()});
  S.walletEmailReminderQueuedAt=new Date().toISOString();
@@ -2162,11 +2161,11 @@ function applyCommission(amount,method){
  S.wallet=Math.round((Number(S.wallet||0)-charge)*100)/100;
  S.jobAccess=!S.adminPaused;
  hist("Cash job settlement • ₹"+charge.toFixed(2)+" deducted from Wallet");
- if(S.wallet<Number(S.walletWarningLevel||200)){
-   hist("Wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+" • Below ₹200 • Recharge reminder • Work status remains under Admin control");
+ if(S.wallet<=0){
+   hist("Wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+" • Recharge reminder • Work status remains under Admin control");
    queueWalletMaintenanceEmail();
+   queueWalletZeroReminders();
  }
- if(S.wallet<=0)queueWalletZeroReminders();
  return charge;
 }
 
