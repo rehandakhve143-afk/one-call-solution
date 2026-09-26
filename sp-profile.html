@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Service Provider Profile • OCS</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#eef4f2;color:#17383e}
+body{padding:18px 12px 30px}
+.wrap{max-width:680px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.back{border:0;background:#fff;width:42px;height:42px;border-radius:50%;font-size:24px;color:#17383e;box-shadow:0 3px 12px rgba(18,50,71,.08)}
+.brand{display:flex;align-items:center;gap:9px;font-weight:900}
+.brand img{width:36px;height:36px;border-radius:10px}
+.card{background:#fff;border-radius:26px;padding:20px 18px;box-shadow:0 18px 45px rgba(18,50,71,.12)}
+.pill{display:inline-block;padding:7px 12px;border-radius:999px;background:#e8f6f2;color:#08786e;font-size:11px;font-weight:900}
+h1{font-size:29px;line-height:1.1;margin:16px 0 8px;letter-spacing:-.7px}
+.sub{color:#74878b;font-size:13px;line-height:1.4;margin-bottom:18px}
+.info{border:1px solid #e1ece9;background:#f8fbfa;border-radius:18px;padding:14px;margin-top:12px}
+.info .row{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid #eaf1ef}
+.info .row:last-child{border-bottom:0}
+.info .k{font-size:11px;color:#7a8d90}
+.info .v{font-size:12px;font-weight:800;text-align:right;overflow-wrap:anywhere}
+.skills{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.skill{padding:7px 10px;border-radius:999px;background:#eaf7f3;color:#176f63;font-size:10.5px;font-weight:850}
+.status{margin-top:12px;padding:11px 12px;border-radius:14px;background:#fff7e8;color:#936313;font-size:11px;line-height:1.4}
+label{display:block;font-size:12px;font-weight:850;margin:14px 0 6px}
+input,select{width:100%;height:50px;border:1px solid #d9e5e2;border-radius:14px;padding:0 13px;background:#fff;color:#17383e;font-size:14px;outline:none}
+input:focus,select:focus{border-color:#0a8377;box-shadow:0 0 0 3px rgba(10,131,119,.09)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.skillcheck{display:flex;align-items:center;gap:7px;border:1px solid #e0eae7;border-radius:13px;padding:10px;background:#fbfdfc;font-size:11px;font-weight:750}
+.skillcheck input{width:17px;height:17px;margin:0}
+.btn{width:100%;min-height:50px;border:0;border-radius:15px;margin-top:12px;font-size:13px;font-weight:900}
+.primary{background:#ff6508;color:#fff}
+.secondary{background:#173f48;color:#fff}
+.light{background:#f1f6f4;color:#176b62}
+.note{font-size:10.5px;color:#7c8d90;line-height:1.45;margin-top:10px}
+.loading{text-align:center;padding:26px 10px;color:#74878b}
+.err{display:none;margin-top:12px;padding:11px;border-radius:12px;background:#fff1ef;color:#a24637;font-size:11px}
+@media(max-width:430px){body{padding:0;background:#fff}.wrap{max-width:none}.top{padding:12px 14px;margin:0;background:#eef4f2}.card{border-radius:26px 26px 0 0;box-shadow:none;min-height:calc(100vh - 66px)}h1{font-size:27px}.grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <button class="back" onclick="goHome()" aria-label="Back">‹</button>
+    <div class="brand"><img src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS">One Call Solution</div>
+    <span style="width:42px"></span>
+  </div>
+
+  <div class="card">
+    <span class="pill">SERVICE PROVIDER</span>
+    <h1 id="title">Service Provider Profile</h1>
+    <div class="sub" id="sub">Your OCS Service Provider profile</div>
+
+    <div id="loading" class="loading">Loading profile…</div>
+
+    <div id="summary" style="display:none">
+      <div class="info">
+        <div class="row"><span class="k">Full Name</span><span class="v" id="sumName">—</span></div>
+        <div class="row"><span class="k">Mobile</span><span class="v" id="sumMobile">—</span></div>
+        <div class="row"><span class="k">Email</span><span class="v" id="sumEmail">—</span></div>
+        <div class="row"><span class="k">Service Area</span><span class="v" id="sumArea">—</span></div>
+        <div class="row"><span class="k">Service Radius</span><span class="v" id="sumRadius">—</span></div>
+      </div>
+      <div class="info">
+        <b style="font-size:12px">Approved / Saved Skills</b>
+        <div id="sumSkills" class="skills"></div>
+      </div>
+      <div class="status" id="sumStatus">Profile saved • verification pending</div>
+      <button class="btn secondary" onclick="openDashboard()">Open Service Provider Dashboard</button>
+      <button class="btn light" onclick="goHome()">Back to OCS Home</button>
+      <div class="note">Approved skills profile se remove/change nahi hongi. Skill change ke liye OCS Support/Admin request use karein.</div>
+    </div>
+
+    <div id="setup" style="display:none">
+      <label>Full Name *</label>
+      <input id="paName" autocomplete="name" placeholder="Service Provider name">
+
+      <label>Mobile Number *</label>
+      <input id="paMobile" inputmode="tel" placeholder="10-digit mobile">
+
+      <label>Service Area / City *</label>
+      <input id="paArea" placeholder="e.g. Khopoli / Panvel">
+
+      <label>Service Radius *</label>
+      <select id="paRadius">
+        <option value="6">Up to 6 km</option>
+        <option value="12">Up to 12 km</option>
+        <option value="20">Up to 20 km</option>
+        <option value="30">Up to 30 km</option>
+      </select>
+
+      <label>Select Skills *</label>
+      <div class="grid" id="skillsGrid"></div>
+
+      <div id="otherWrap" style="display:none">
+        <label>Other Skill / Service Name *</label>
+        <input id="paOtherSkill" placeholder="e.g. Glass work / Door repair">
+      </div>
+
+      <button class="btn primary" id="saveBtn" onclick="saveProfile()">Save Service Provider Profile</button>
+      <div class="note">Same OCS login use hoga. Separate Service Provider login ki zarurat nahi.</div>
+      <div class="err" id="errorBox"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
+const SUPABASE_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
+let sb=null, session=null;
+
+const SKILLS=[
+ 'Electrical','Plumbing','Carpenter','AC','Washing Machine','Refrigerator','Chimney',
+ 'RO / Water Purifier','Cleaning','Maid','Cook','Pest Control','CCTV','Gas Stove',
+ 'Wi-Fi / TV Setup','Packers & Movers','Painter','Tiles / Stone Work','Waterproofing',
+ 'False Ceiling / POP / Gypsum / PVC','General Labour / Helper','Other'
+];
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function readProfile(){try{return JSON.parse(localStorage.getItem('ocsProviderProfile')||'null')}catch(e){return null}}
+function readCustomer(){try{return JSON.parse(localStorage.getItem('ocsCustomerProfile')||'null')}catch(e){return null}}
+function goHome(){location.href='index.html?v=20260926-profilehome1'}
+function openDashboard(){location.href='home-services.html?tab=provider&sp=1&v=20260926-profiledashboard1'}
+
+function renderSkillsGrid(){
+ const box=document.getElementById('skillsGrid');
+ box.innerHTML=SKILLS.map(x=>'<label class="skillcheck"><input type="checkbox" name="spSkill" value="'+esc(x)+'" '+(x==='Other'?'onchange="toggleOther(this.checked)"':'')+'><span>'+esc(x)+'</span></label>').join('');
+}
+function toggleOther(on){document.getElementById('otherWrap').style.display=on?'block':'none'}
+
+function showSummary(p){
+ document.getElementById('loading').style.display='none';
+ document.getElementById('setup').style.display='none';
+ document.getElementById('summary').style.display='block';
+ document.getElementById('title').textContent='Service Provider Profile';
+ document.getElementById('sub').textContent='Your saved OCS Service Provider details';
+ document.getElementById('sumName').textContent=p.name||'—';
+ document.getElementById('sumMobile').textContent=p.mobile||'—';
+ document.getElementById('sumEmail').textContent=p.email||((session&&session.user&&session.user.email)||'—');
+ document.getElementById('sumArea').textContent=p.area||'—';
+ document.getElementById('sumRadius').textContent=(p.radius?('Up to '+p.radius+' km'):'—');
+ const arr=Array.isArray(p.skills)?p.skills:[];
+ document.getElementById('sumSkills').innerHTML=arr.length?arr.map(x=>'<span class="skill">'+esc(x)+'</span>').join(''):'<span class="note">No skill saved</span>';
+ document.getElementById('sumStatus').textContent=p.status||p.kycStatus||'Profile saved • verification pending';
+}
+
+function showSetup(){
+ const cp=readCustomer()||{};
+ document.getElementById('loading').style.display='none';
+ document.getElementById('summary').style.display='none';
+ document.getElementById('setup').style.display='block';
+ document.getElementById('title').textContent='Complete Service Provider Profile';
+ document.getElementById('sub').textContent='Name, mobile, service area and skills';
+ document.getElementById('paName').value=cp.name||'';
+ document.getElementById('paMobile').value=cp.mobile||'';
+ document.getElementById('paArea').value='';
+ document.getElementById('paRadius').value='12';
+}
+
+function showError(msg){
+ const e=document.getElementById('errorBox');
+ e.textContent=msg;e.style.display='block';
+}
+
+async function saveProfile(){
+ const name=document.getElementById('paName').value.trim();
+ const mobile=document.getElementById('paMobile').value.replace(/\D/g,'');
+ const area=document.getElementById('paArea').value.trim();
+ const radius=document.getElementById('paRadius').value;
+ let skills=[...document.querySelectorAll('input[name="spSkill"]:checked')].map(x=>x.value);
+ const other=skills.includes('Other');
+ const otherText=document.getElementById('paOtherSkill').value.trim();
+ if(other){skills=skills.filter(x=>x!=='Other');if(otherText)skills.push(otherText)}
+ if(!name||mobile.length<10||!area||!skills.length){showError('Name, valid mobile, service area aur kam se kam 1 skill required.');return}
+ if(!sb||!session||!session.user){showError('OCS login session nahi mila. Back to OCS Home karke login check karein.');return}
+ const btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='Saving…';
+ try{
+   const {data,error}=await sb.rpc('complete_service_provider_registration',{p_full_name:name,p_phone:mobile,p_skill_labels:skills});
+   if(error)throw error;
+   const email=(session.user.email||'').trim();
+   const p={
+     name,mobile,email,area,radius,skills,
+     backendConnected:true,
+     backendProviderId:(data&&data.provider_id)||session.user.id,
+     mobileVerified:false,mobileVerificationPending:true,
+     kycStatus:'Pending',payoutStatus:'Not Added',
+     status:'Profile Saved • Verification Pending'
+   };
+   localStorage.setItem('ocsProviderProfile',JSON.stringify(p));
+   showSummary(p);
+ }catch(e){
+   showError('Profile online save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
+ }finally{
+   btn.disabled=false;btn.textContent='Save Service Provider Profile';
+ }
+}
+
+async function initSupabase(){
+ try{
+   sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+   const {data}=await sb.auth.getSession();
+   session=data&&data.session?data.session:null;
+ }catch(e){}
+ const p=readProfile();
+ if(p){showSummary(p);return}
+ if(!session||!session.user){
+   document.getElementById('loading').innerHTML='OCS login session nahi mila.<br><button class="btn light" onclick="goHome()">Back to OCS Home</button>';
+   return;
+ }
+ showSetup();
+}
+
+renderSkillsGrid();
+const p0=readProfile();
+if(p0)showSummary(p0);
+
+const s=document.createElement('script');
+s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js';
+s.async=true;
+s.onload=initSupabase;
+s.onerror=()=>{if(!readProfile())document.getElementById('loading').textContent='Online login service load nahi hua. Internet check karke reopen karein.'};
+document.head.appendChild(s);
+</script>
+</body>
+</html>
