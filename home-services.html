@@ -109,6 +109,7 @@ button.provider-metric{width:100%;font:inherit;cursor:pointer}
 .provider-payout-status{display:inline-block;padding:5px 8px;border-radius:999px;background:#fff3d9;color:#956117;font-size:10px;font-weight:850}
 .provider-payout-status.approved{background:#e8f7f1;color:#15745c}
 .provider-payout-status.rejected{background:#feecec;color:#b63333}
+.provider-wallet-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}.provider-wallet-grid .box{padding:10px 8px;border:1px solid #e3ece9;border-radius:13px;background:#f8fbfa;text-align:center}.provider-wallet-grid small{display:block;color:#7b8e91;font-size:10px}.provider-wallet-grid b{display:block;margin-top:4px;color:#173f46;font-size:14px}.provider-wallet-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.provider-wallet-actions .btn{margin:0}.provider-tx{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid #edf2f1}.provider-tx:first-child{border-top:0}.provider-tx .meta{min-width:0}.provider-tx .meta b{font-size:12px}.provider-tx .meta small{display:block;color:#7b8e91;font-size:10px;margin-top:3px}.provider-tx .amt{font-weight:900;font-size:12px;white-space:nowrap}
 .provider-mini-details{border-top:1px solid #e8efed;padding:10px 0;margin:0}
 .provider-mini-details summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;font-weight:800;color:#284c52;list-style:none}
 .provider-mini-details summary::-webkit-details-marker{display:none}
@@ -341,7 +342,7 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 
   <div class="provider-quick-tools" id="providerQuickTools">
     <button type="button" onclick="openProviderWalletQuick()"><span>₹</span><b>Wallet</b><small id="providerWalletQuick">₹0</small></button>
-    <button type="button" onclick="openProviderPayoutPanel()"><span>🏦</span><b>Bank / Payout</b><small id="providerPayoutStatus">Add ›</small></button>
+    <button type="button" onclick="openProviderPayoutPanel()"><span>🏦</span><b>Bank & Payout</b><small id="providerPayoutStatus">Add ›</small></button>
     <button type="button" onclick="openProviderHistoryQuick()"><span>↻</span><b>Work History</b><small>Jobs & earnings</small></button>
     <button type="button" onclick="openSupport('provider')"><span>💬</span><b>Support</b><small>OCS Help</small></button>
     <button type="button" class="provider-quick-wide" onclick="askExpert()"><span>?</span><b>Ask Expert</b><small>Rate / work help</small></button>
@@ -413,7 +414,7 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 <div id="providerPayoutPanel" class="ocs-profile-panel hide" aria-hidden="true">
   <div class="ocs-profile-card">
     <div class="ocs-profile-top">
-      <div><small>SERVICE PROVIDER</small><h3>Bank / Payout Details</h3></div>
+      <div><small>SERVICE PROVIDER</small><h3>Bank & Payout</h3></div>
       <button type="button" class="ocs-profile-close" onclick="closeProviderPayoutPanel()">×</button>
     </div>
     <div id="providerPayoutPanelBody"></div>
@@ -1730,14 +1731,67 @@ async function saveProviderSkillEditor(){
   }
 }
 
-function openProviderWalletQuick(){
-  const bal=Number(S.wallet||0);
-  const text=bal<0?"−₹"+Math.abs(bal).toFixed(2):"₹"+bal.toFixed(2);
-  const withdrawable=Math.max(0,Math.round((bal-200)*100)/100);
-  const eligible=!S.adminPaused;
-  const note=S.adminPaused?"Admin Hold active hai. Recharge se Admin Hold remove nahi hoga.":(bal<200?"Wallet ₹200 se niche hai. Reminder rahega; new jobs Admin control me active reh sakti hain.":"₹200 reserve ke upar ka amount withdraw kiya ja sakta hai.");
-  const topup=confirm("OCS Wallet\nWallet Balance: "+text+"\nReserve: ₹200\nWithdrawable: ₹"+withdrawable.toFixed(2)+"\nWork Status: "+(eligible?"ACTIVE":"ADMIN HOLD")+"\n\n"+note+"\n\nWallet recharge karna hai?");
-  if(topup)rechargeWallet();
+async function openProviderWalletQuick(){
+  try{
+    const {data,error}=await ocsSupabase.rpc("provider_wallet_statement_v1",{p_limit:50});
+    if(error)throw error;
+    const d=data||{};
+    const bal=Number(d.wallet_balance||0);
+    const reserve=Number(d.reserve_amount||200);
+    const withdrawable=Number(d.withdrawable_amount||0);
+    const todayCredit=Number(d.today_credit||0);
+    const todayDebit=Number(d.today_debit||0);
+    const tx=Array.isArray(d.transactions)?d.transactions:[];
+    const panel=document.getElementById("providerPayoutPanel");
+    const body=document.getElementById("providerPayoutPanelBody");
+    if(!panel||!body)return;
+    panel.classList.remove("hide");panel.setAttribute("aria-hidden","false");
+    const moneyText=n=>n<0?"−₹"+Math.abs(n).toFixed(2):"₹"+n.toFixed(2);
+    const txLabel=k=>{
+      const x=String(k||"").toLowerCase();
+      if(x==="topup")return "Add Money";
+      if(x==="commission")return "Job Settlement";
+      if(x==="online_settlement")return "Online Job Settlement";
+      if(x==="online_reserve_replenish")return "Online Reserve Adjustment";
+      if(x==="withdrawal")return "Withdrawal";
+      if(x==="withdrawal_reversal")return "Withdrawal Reversal";
+      if(x==="welcome_bonus")return "Wallet Credit";
+      return "Wallet Transaction";
+    };
+    const txHtml=tx.length?tx.map(x=>{
+      const a=Number(x.amount||0);
+      const dt=x.created_at?new Date(x.created_at).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"";
+      return '<div class="provider-tx"><div class="meta"><b>'+providerProfileEsc(txLabel(x.kind))+'</b><small>'+providerProfileEsc(x.service_name||"OCS Wallet")+' • '+providerProfileEsc(dt)+'</small></div><div class="amt">'+(a>=0?"+":"")+moneyText(a)+'</div></div>';
+    }).join(""):'<div class="ocs-profile-note">Abhi koi wallet transaction nahi hai.</div>';
+    body.innerHTML=
+      '<div class="provider-wallet-grid">'+
+        '<div class="box"><small>Wallet Balance</small><b>'+moneyText(bal)+'</b></div>'+
+        '<div class="box"><small>Reserve</small><b>₹'+reserve.toFixed(2)+'</b></div>'+
+        '<div class="box"><small>Withdrawable</small><b>₹'+withdrawable.toFixed(2)+'</b></div>'+
+      '</div>'+
+      (d.wallet_warning?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Reserve ₹200 se niche hai. Add Money karein. Work ON/OFF OCS Admin control me rahega.</div>':'')+
+      (d.admin_paused?'<div class="notice bad"><b>Admin Hold</b><br>New jobs OCS Admin ne pause ki hain.</div>':'')+
+      '<div class="provider-wallet-actions"><button class="btn" onclick="rechargeWallet()">Add Money</button><button class="btn alt" onclick="openProviderWithdraw()">Withdraw</button></div>'+
+      '<div class="provider-payout-summary"><div class="rowline"><span>Today Credit</span><b>₹'+todayCredit.toFixed(2)+'</b></div><div class="rowline"><span>Today Debit</span><b>₹'+todayDebit.toFixed(2)+'</b></div></div>'+
+      '<div style="margin-top:8px"><b>Transaction History</b>'+txHtml+'</div>'+
+      '<div class="ocs-profile-actions"><button class="btn gray" onclick="closeProviderPayoutPanel()">Close</button></div>';
+  }catch(e){alert("Wallet details load nahi hui: "+(e&&e.message?e.message:"Unknown error"))}
+}
+async function openProviderWithdraw(){
+  try{
+    const {data,error}=await ocsSupabase.rpc("provider_withdrawal_preview_v1");
+    if(error)throw error;
+    const d=data||{};
+    if(!d.has_details&&String(d.bank_status||"")==="not_added"){openProviderPayoutPanel();return}
+    if(String(d.bank_status||"")!=="approved"){
+      alert("Bank verification required.\n\nPehle Bank & Payout me verified bank account complete karein.");
+      openProviderPayoutPanel();return;
+    }
+    if(Number(d.withdrawable_amount||0)<=0){
+      alert("Withdrawable amount ₹0 hai.\n₹200 reserve wallet me rehna zaruri hai.");return;
+    }
+    alert("Withdrawable: ₹"+Number(d.withdrawable_amount||0).toFixed(2)+"\nReserve: ₹200\n\nAuto payout integration RazorpayX/API Payouts activation milte hi live hogi. Abhi real transfer start nahi hoga.");
+  }catch(e){alert("Withdraw details load nahi hui: "+(e&&e.message?e.message:"Unknown error"))}
 }
 function openProviderHistoryQuick(){
   const logs=Array.isArray(S.logs)?S.logs:[];
@@ -1793,7 +1847,7 @@ function renderProviderPayoutSummary(d){
       '<div class="rowline"><span>Bank</span><b>'+providerProfileEsc(d.bank_name||"—")+'</b></div>'+
       '<div class="rowline"><span>Account</span><b>'+providerProfileEsc(d.masked_account_number||"—")+'</b></div>'+
       '<div class="rowline"><span>IFSC</span><b>'+providerProfileEsc(d.ifsc||"—")+'</b></div>'+
-      '<div class="rowline"><span>UPI</span><b>'+providerProfileEsc(d.upi_id||"—")+'</b></div>'+
+      '<div class="rowline"><span>Account Type</span><b>'+providerProfileEsc((d.account_type||"savings").toUpperCase())+'</b></div>'+ '<div class="rowline"><span>UPI</span><b>'+providerProfileEsc(d.upi_id||"—")+'</b></div>'+ '<div class="rowline"><span>Wallet Balance</span><b>₹'+Number(d.wallet_balance||0).toFixed(2)+'</b></div>'+ '<div class="rowline"><span>Withdrawable</span><b>₹'+Number(d.withdrawable_amount||0).toFixed(2)+'</b></div>'+
       '<div class="ocs-profile-note">Bank detail change karoge to verification status dobara Pending ho jayega.</div>'+
       '<div class="ocs-profile-actions">'+
         '<button class="btn" onclick="renderProviderPayoutForm(window.__ocsPayoutSnapshot||{})">Update Bank Details</button>'+
@@ -1810,6 +1864,8 @@ function renderProviderPayoutForm(d){
       '<label>Account Holder Name *</label><input id="payoutHolder" autocomplete="name" value="'+providerProfileEsc(d.account_holder_name||S.registeredProviderName||"")+'">'+
       '<label>Bank Name</label><input id="payoutBank" value="'+providerProfileEsc(d.bank_name||"")+'">'+
       '<label>Account Number *</label><input id="payoutAccount" inputmode="numeric" placeholder="'+(d.has_details?"Re-enter full account number":"Enter bank account number")+'">'+
+      '<label>Confirm Account Number *</label><input id="payoutAccountConfirm" inputmode="numeric" placeholder="Confirm bank account number">'+
+      '<label>Account Type *</label><select id="payoutAccountType"><option value="savings" '+((d.account_type||"savings")==="savings"?"selected":"")+'>Savings</option><option value="current" '+((d.account_type||"")==="current"?"selected":"")+'>Current</option></select>'+ 
       '<label>IFSC *</label><input id="payoutIfsc" autocapitalize="characters" value="'+providerProfileEsc(d.ifsc||"")+'" placeholder="e.g. HDFC0001234">'+
       '<label>UPI ID (optional)</label><input id="payoutUpi" value="'+providerProfileEsc(d.upi_id||"")+'" placeholder="name@bank">'+
       '<div class="ocs-profile-note">Bank details payout/settlement ke liye hain. Save ke baad Admin verification Pending rahega.</div>'+
@@ -1824,16 +1880,20 @@ async function saveProviderPayoutDetails(){
   const holder=(document.getElementById("payoutHolder")?.value||"").trim();
   const bank=(document.getElementById("payoutBank")?.value||"").trim();
   const account=(document.getElementById("payoutAccount")?.value||"").trim();
+  const accountConfirm=(document.getElementById("payoutAccountConfirm")?.value||"").trim();
+  const accountType=(document.getElementById("payoutAccountType")?.value||"savings").trim();
   const ifsc=(document.getElementById("payoutIfsc")?.value||"").trim().toUpperCase();
   const upi=(document.getElementById("payoutUpi")?.value||"").trim();
-  if(!holder||!account||!ifsc){alert("Account Holder, Account Number aur IFSC required hai.");return}
+  if(!holder||!bank||!account||!accountConfirm||!ifsc){alert("Account Holder, Bank Name, Account Number, Confirm Account Number aur IFSC required hai.");return}
+  if(account!==accountConfirm){alert("Account Number aur Confirm Account Number match nahi karte.");return}
   try{
     if(body)body.innerHTML='<div class="ocs-profile-summary"><div class="muted">Saving bank details...</div></div>';
-    const {data,error}=await ocsSupabase.rpc("save_provider_payout_v1",{
+    const {data,error}=await ocsSupabase.rpc("save_provider_payout_v2",{
       p_account_holder_name:holder,
       p_bank_name:bank,
       p_account_number:account,
       p_ifsc:ifsc,
+      p_account_type:accountType,
       p_upi_id:upi||null
     });
     if(error)throw error;
@@ -2053,7 +2113,7 @@ function applyCommission(amount,method){
  S.platformCharge=9;
  const isCash=String(method||S.payment||S.paymentChoice||"").toUpperCase().includes("CASH");
  if(!isCash){
-   hist("Online job settlement • ₹"+charge.toFixed(2)+" adjusted in settlement • Wallet reserve unchanged");
+   hist("Online job settlement recorded • Provider net amount credited to Wallet");
    return charge;
  }
  S.wallet=Math.round((Number(S.wallet||0)-charge)*100)/100;
@@ -3376,7 +3436,7 @@ return h;
 function sendWalletReminder(channel){
  const ch=String(channel||"SMS").toUpperCase();
  const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
- const msg="OCS Wallet balance "+bal+". Please recharge your wallet to continue receiving new jobs.";
+ const msg="OCS Wallet balance "+bal+". Please add money to maintain the ₹200 reserve. Work status remains under OCS Admin control.";
  S.walletReminderHistory=S.walletReminderHistory||[];
  S.walletReminderHistory.unshift({channel:ch,message:msg,at:new Date().toISOString()});
  hist("Wallet "+ch+" reminder sent to "+S.provider+" • "+msg);
@@ -3552,7 +3612,7 @@ function adminHTMLState(){
  '<div class="muted">No assigned Service Provider record.</div>';
 
  let provider=hasSnap&&snap.provider_id?`<div><b>${ocsSafe(snap.provider_name||"Service Provider")}</b> • Available: ${snap.available_for_work?"ON":"OFF"} • New Jobs: ${snap.admin_paused?"PAUSED":"ACTIVE"}</div>
- <div class="muted">Wallet Balance: ${walletText} • Wallet reserve ₹200 • Work status Admin controlled</div>`:
+ <div class="muted">Wallet Balance: ${walletText} • Reserve ₹200 • Work status Admin controlled</div>`:
  `<div><b>${ocsSafe(S.provider||"Service Provider")}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div><div class="muted">Wallet Balance: ${walletText} • Wallet reserve ₹200 • Work status Admin controlled</div>`;
 
  let visit=`<div class="muted">GPS one-way: ${Number(S.oneWayDistanceKm||0).toFixed(1)} km • Suggested: ${S.suggestedVisitCharge?money(S.suggestedVisitCharge):"—"} • Final: ${S.visitCharge?money(S.visitCharge):"—"}</div>`;
