@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20260926-adminclean1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-adminclean1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20260926-dashboard1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-dashboard1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -19,9 +19,9 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 try{
   const q=new URLSearchParams(location.search||"");
   if(q.get("admin")==="1"){
-    location.replace("home-services.html?tab=admin&v=20260926-adminclean1");
+    location.replace("home-services.html?tab=admin&v=20260926-dashboard1");
   }else if(q.get("sp")==="1"){
-    location.replace("home-services.html?tab=provider&sp=1&v=20260926-adminclean1");
+    location.replace("home-services.html?tab=provider&sp=1&v=20260926-dashboard1");
   }
 }catch(e){}
 </script><script>
@@ -41,6 +41,11 @@ setTimeout(function(){
   </header>
   <main class="ocs-super-main">
     <div class="ocs-super-search"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="globalSearch" placeholder="Search services, property, shops, vehicles..." onkeydown="if(event.key==='Enter')runGlobalSearch()"></div>
+
+    <section class="ocs-home-dashboards" id="ocsHomeDashboards" hidden>
+      <div class="ocs-home-dash-head"><b>My Dashboards</b><small>Direct access</small></div>
+      <div class="ocs-home-dash-grid" id="ocsHomeDashboardGrid"></div>
+    </section>
 
     <section class="ocs-super-hero">
       <div class="ocs-super-slide on" style="background-image:url('assets/home-services-poster.jpg?v=20260921')">
@@ -921,7 +926,7 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('home-services.html?tab=provider&sp=1&v=20260926-adminclean1');
+      location.replace('home-services.html?tab=provider&sp=1&v=20260926-dashboard1');
       return;
     }
     await openAccount('provider',true);
@@ -946,6 +951,7 @@ async function routeAfterOcsLogin(){
     return;
   }
   bottomHome();
+  await renderHomeDashboardShortcuts();
 }
 async function openLogin(){
   const session=await getOcsSession();
@@ -975,9 +981,10 @@ function ocsStartSupabaseHooks(){
   ocsSupabaseHooksStarted=true;
   ocsSupabase.auth.onAuthStateChange((event)=>{
     setTimeout(refreshOcsEmailStatus,0);
+  setTimeout(()=>renderHomeDashboardShortcuts(),120);
     if(event==='PASSWORD_RECOVERY')setTimeout(openResetPassword,0);
-    if(event==='SIGNED_IN')setTimeout(()=>routeAfterOcsLogin(),0);
-    if(event==='SIGNED_OUT')setTimeout(()=>updateSettingsLoginState(),0);
+    if(event==='SIGNED_IN'){setTimeout(()=>routeAfterOcsLogin(),0);setTimeout(()=>renderHomeDashboardShortcuts(),100)}
+    if(event==='SIGNED_OUT'){setTimeout(()=>updateSettingsLoginState(),0);setTimeout(()=>renderHomeDashboardShortcuts(),100)}
   });
   setTimeout(refreshOcsEmailStatus,0);
   setTimeout(()=>{try{if(new URLSearchParams(location.search||'').get('login')==='1')openLogin()}catch(e){}},150);
@@ -990,7 +997,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('home-services.html?tab=provider&sp=1&v=20260926-adminclean1');
+          location.replace('home-services.html?tab=provider&sp=1&v=20260926-dashboard1');
           return;
         }
         await openAccount('provider',true);
@@ -1006,9 +1013,54 @@ function ocsStartSupabaseHooks(){
 }
 if(ocsSupabase)ocsStartSupabaseHooks();
 
+async function openHomeCustomerDashboard(){
+  const session=await getOcsSession();
+  if(!session||!session.user){openLogin();return}
+  closeAllBottomHubs();
+  openCustomerDashboard();
+}
+async function openHomeProviderDashboard(){
+  const session=await getOcsSession();
+  if(!session||!session.user){ocsProviderProfileMenuIntent=true;openLogin();return}
+  const hasSp=await ocsUserHasRole('service_provider');
+  if(!hasSp){await openAccount('provider',true);return}
+  location.href='home-services.html?tab=provider&sp=1&v=20260926-dashboard1';
+}
+async function openHomeAdminDashboard(){
+  const session=await getOcsSession();
+  if(!session||!session.user){openLogin();return}
+  const hasAdmin=await ocsUserHasRole('admin');
+  if(!hasAdmin){alert('Admin access allowed nahi hai.');return}
+  location.href='home-services.html?tab=admin&v=20260926-dashboard1';
+}
+async function renderHomeDashboardShortcuts(){
+  const wrap=document.getElementById('ocsHomeDashboards');
+  const grid=document.getElementById('ocsHomeDashboardGrid');
+  if(!wrap||!grid)return;
+  const session=await getOcsSession();
+  if(!session||!session.user){
+    wrap.hidden=false;
+    grid.innerHTML=
+      '<button class="ocs-home-dash-btn" onclick="openHomeCustomerDashboard()"><span class="ico">C</span><b>Customer Dashboard</b><small>Login • bookings • rewards</small></button>'+
+      '<button class="ocs-home-dash-btn" onclick="openHomeProviderDashboard()"><span class="ico">SP</span><b>Service Provider</b><small>Login / join • jobs</small></button>';
+    return;
+  }
+  const [hasSp,hasAdmin]=await Promise.all([ocsUserHasRole('service_provider'),ocsUserHasRole('admin')]);
+  let html=
+    '<button class="ocs-home-dash-btn" onclick="openHomeCustomerDashboard()"><span class="ico">C</span><b>Customer Dashboard</b><small>Bookings • rewards • support</small></button>';
+  if(hasSp||hasAdmin){
+    html+='<button class="ocs-home-dash-btn" onclick="openHomeProviderDashboard()"><span class="ico">SP</span><b>SP Dashboard</b><small>Jobs • wallet • earnings</small></button>';
+  }
+  if(hasAdmin){
+    html+='<button class="ocs-home-dash-btn admin" onclick="openHomeAdminDashboard()"><span class="ico">A</span><b>Admin Dashboard</b><small>Live booking • control</small></button>';
+  }
+  grid.innerHTML=html;
+  wrap.hidden=false;
+}
+
 function openProviderDashboardFromMenu(){
   closeAllBottomHubs();
-  location.href='home-services.html?tab=provider&sp=1&v=20260926-adminclean1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260926-dashboard1';
 }
 
 function openProviderProfileFromMenu(){
@@ -1319,7 +1371,7 @@ async function saveProviderAccount(){
    }));
    alert('Changes saved. Approved skills active rahengi; nayi skill verification ke baad active hogi.');
    if(ocsRequestedSpDashboard()){
-     location.replace('home-services.html?tab=provider&sp=1&v=20260926-adminclean1');
+     location.replace('home-services.html?tab=provider&sp=1&v=20260926-dashboard1');
      return;
    }
    await showProviderProfileSummary();
@@ -2275,7 +2327,7 @@ async function openModule(n,role,serviceCat){
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20260926-adminclean1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260926-dashboard1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -2295,7 +2347,7 @@ async function openModule(n,role,serviceCat){
    frame.src='property.html?v=20260921-3';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260926-adminclean1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260926-dashboard1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
