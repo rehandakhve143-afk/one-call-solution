@@ -1357,7 +1357,7 @@ body:has(.modal.show) .ocs-lock-bottom{display:none!important}
 .ocs-home-dash-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
 .ocs-home-dash-head b{font-size:13px;color:#173f46}
 .ocs-home-dash-head small{font-size:9.5px;color:#7b8d91}
-.ocs-home-dash-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.ocs-home-dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:7px}
 .ocs-home-dash-btn{min-width:0;border:1px solid #dbe9e5;border-radius:14px;background:#fff;padding:10px 7px;text-align:left;color:#1f454c;box-shadow:0 4px 12px rgba(17,65,70,.045)}
 .ocs-home-dash-btn .ico{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:#e8f6f1;color:#087a70;font-size:14px;font-weight:950;margin-bottom:7px}
 .ocs-home-dash-btn b{display:block;font-size:10.5px;line-height:1.2}
