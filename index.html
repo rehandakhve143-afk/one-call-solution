@@ -324,7 +324,7 @@ setTimeout(function(){
     <label>Other Skill / Service Name *</label>
     <input id="paOtherSkill" placeholder="e.g. Glass work / Door repair / Custom service">
   </div>
-  <div class="help" style="margin-top:12px">Approved skills locked rahengi. Nayi skill save karne par sirf nayi skill Admin approval me jayegi. KYC / payout production onboarding me separately complete hoga.</div>
+  <div class="help" style="margin-top:12px">Approved skills locked rahengi. Nayi skill save karne par sirf nayi skill Admin approval me jayegi. Bank details basic profile banate waqt required nahi hain; payout/settlement release se pehle verified Bank &amp; Payout details mandatory hongi.</div>
   <button class="primary account-submit" onclick="saveProviderAccount()">Save Changes / Add New Skills</button>
   </div>
 </div>
@@ -1474,7 +1474,7 @@ async function renderWalletHub(){
  const paint=()=>{
    body.innerHTML=
    '<div class="bottom-hub-card"><b>OCS Rewards</b><small>Referral reward balance</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.customer).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Share & Earn reward qualifying booking ke baad credit hoga. Available balance booking payment me poora use kar sakte hain; cash withdrawal nahi.</div></div>'+
-   '<div class="bottom-hub-card"><b>Service Provider Wallet</b><small>'+(sp?(sp.name||'Service Provider'):'SP profile not created')+'</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.sp).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Reserve: ₹200 • ₹200 ke niche reminder rahega. New jobs ka ON/OFF OCS Admin control me rahega. ₹200 ke upar ka balance withdraw kiya ja sakta hai.</div>'+(w.spPaused?'<div class="notice" style="margin-top:8px">New jobs temporarily paused by Admin.</div>':'')+'</div>'+
+   '<div class="bottom-hub-card"><b>Service Provider Wallet</b><small>'+(sp?(sp.name||'Service Provider'):'SP profile not created')+'</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.sp).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">No fixed minimum wallet balance. Cash jobs ka 9% OCS commission wallet se debit hoga; wallet ₹0 ya negative ho sakta hai. Warning/email rahega, aur new jobs pause karna OCS Admin ke control me hoga.</div>'+(w.spPaused?'<div class="notice" style="margin-top:8px">New jobs temporarily paused by Admin.</div>':'')+'</div>'+
    '<div class="bottom-hub-card"><b>Wallet Safety</b><small>Wallet balance, transactions and reward history final backend records se sync honge. Customer payment history Bookings / Work History me alag rahegi.</small></div>';
  };
  paint();
