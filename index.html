@@ -331,23 +331,17 @@ setTimeout(function(){
 </div></div>
 
 <div class="modal" id="customerDashModal"><div class="sheet customer-dash-sheet"><button class="x" onclick="closeCustomerDashboard()">×</button>
-<div class="dash-head"><div class="dash-welcome"><h2 id="dashHello">Customer Dashboard</h2><small>Account, support and OCS quick access</small></div></div>
-<div class="dash-quick-title">Explore One Call Solution</div>
+<div class="dash-head"><div class="dash-welcome"><h2 id="dashHello">Customer Dashboard</h2><small>Your bookings, rewards and account</small></div></div>
+<div class="dash-quick-title">Customer</div>
 <div class="dash-quick">
-<button onclick="dashOpen('Home Services','customer')"><b>Home Services</b><small>Book & track home service</small></button>
-<button onclick="dashOpen('Property')"><b>Property</b><small>Rent • Buy • Builder</small></button>
-<button onclick="dashOpen('Local Shop')"><b>Local Shop</b><small>Electrical & Hardware</small></button>
-<button onclick="dashOpen('Sliding / Aluminium')"><b>Sliding / Aluminium</b><small>Windows • Doors • Glass</small></button>
-<button onclick="dashOpen('Welding / Fabrication')"><b>Welding / Fabrication</b><small>Gate • Grill • Metal work</small></button>
-<button onclick="dashOpen('Beauty / Make-up')"><b>Beauty / Make-up</b><small>Beauty & bridal services</small></button>
-<button onclick="dashOpen('Used Vehicle')"><b>Used Vehicle</b><small>Second-hand bikes & cars</small></button>
-<button onclick="dashOpen('New Vehicle')"><b>New Vehicle</b><small>New bikes & cars</small></button>
-<button onclick="dashOpen('Medical Store')"><b>Medical Store</b><small>Nearby medicine enquiry</small></button>
-<button onclick="dashOpen('Diagnostic Lab')"><b>Diagnostic Lab</b><small>Tests • Packages</small></button>
-<button onclick="dashOpen('Modular Kitchen')"><b>Modular Kitchen</b><small>Design • Measurement • Quote</small></button>
-<button onclick="dashOpen('Hotel / Restaurant / Lodging')"><b>Hotel / Restaurant / Lodging</b><small>Rooms • Food • Stay</small></button>
+<button onclick="closeCustomerDashboard();openBottomBookings()"><b>Current Booking</b><small>Track active Home Service booking</small></button>
+<button onclick="closeCustomerDashboard();openWorkHistory('CUSTOMER')"><b>Work History & Rating</b><small>Completed work, payment and ratings</small></button>
+<button onclick="closeCustomerDashboard();openWalletHub()"><b>Wallet / Rewards</b><small>Share & Earn and reward balance</small></button>
+<button onclick="closeCustomerDashboard();openAccount('customer')"><b>Customer Profile</b><small>Name, mobile and account details</small></button>
+<button onclick="closeCustomerDashboard();openBottomSupport()"><b>Customer Support</b><small>Booking, payment or account help</small></button>
+<button onclick="closeCustomerDashboard();openModule('Home Services','customer')"><b>Book Home Service</b><small>Start a new service request</small></button>
 </div>
-<div class="dash-actions" style="margin-top:12px"><button onclick="openAccount('customer')">Profile</button><button onclick="dashOpen('Home Services','customer')">Support</button><button onclick="closeCustomerDashboard()">Close</button></div>
+<div class="dash-actions" style="margin-top:12px"><button onclick="closeCustomerDashboard()">Close</button></div>
 </div></div>
 
 <div class="modal" id="myOcsModal"><div class="sheet">
@@ -1007,6 +1001,11 @@ function ocsStartSupabaseHooks(){
 }
 if(ocsSupabase)ocsStartSupabaseHooks();
 
+function openProviderDashboardFromMenu(){
+  closeAllBottomHubs();
+  location.href='home-services.html?tab=provider&sp=1&v=20260926-roleclean1';
+}
+
 function openProviderProfileFromMenu(){
   try{
     localStorage.removeItem('ocsLoginIntentRole');
@@ -1426,17 +1425,23 @@ function openBottomProfile(){
 
  body.innerHTML=
  '<div class="ocs-account-list">'+
-   '<button class="ocs-account-row ocs-account-role" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">'+
+   '<button class="ocs-account-row ocs-account-role" onclick="closeBottomHub(\'bottomProfileModal\');openCustomerDashboard()">'+
+     '<span class="ar-ico">⌂</span><span class="ar-copy"><b>Customer Dashboard</b><small>Bookings • History • Rewards • Support</small></span><span class="ar-go">›</span>'+
+   '</button>'+
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">'+
      '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span><span class="ar-copy"><b>Customer Profile</b><small>'+customerText+'</small></span><span class="ar-go">›</span>'+
    '</button>'+
-   '<button class="ocs-account-row ocs-account-role" onclick="openProviderProfileFromMenu()">'+
+   '<button class="ocs-account-row ocs-account-role" onclick="openProviderDashboardFromMenu()">'+
+     '<span class="ar-ico">🧰</span><span class="ar-copy"><b>Service Provider Dashboard</b><small>Jobs • Wallet • Earnings • Support</small></span><span class="ar-go">›</span>'+
+   '</button>'+
+   '<button class="ocs-account-row" onclick="openProviderProfileFromMenu()">'+
      '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5-5l2.1 2.1-2.4 2.4-2.1-2.1a4 4 0 0 0 5 5L20 16.4 16.4 20l-7.7-7.7a4 4 0 0 0-5-5l2.1 2.1-2.4 2.4-2.1-2.1a4 4 0 0 0 5 5l8-8Z"></path></svg></span><span class="ar-copy"><b>Service Provider Profile</b><small>'+providerText+'</small></span><span class="ar-go">›</span>'+
    '</button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">'+
      '<span class="ar-ico">⚙️</span><span class="ar-copy"><b>Settings</b><small>Login, location, notifications & logout</small></span><span class="ar-go">›</span>'+
    '</button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()">'+
-     '<span class="ar-ico">💬</span><span class="ar-copy"><b>Help & Support</b><small>Booking or account help</small></span><span class="ar-go">›</span>'+
+     '<span class="ar-ico">💬</span><span class="ar-copy"><b>Help & Support</b><small>General OCS help</small></span><span class="ar-go">›</span>'+
    '</button>'+
  '</div>';
  document.getElementById('bottomProfileModal').classList.add('show');
