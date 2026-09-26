@@ -1474,8 +1474,8 @@ async function renderWalletHub(){
  const paint=()=>{
    body.innerHTML=
    '<div class="bottom-hub-card"><b>Customer Wallet</b><small>Referral / reward balance</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.customer).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Share & Earn reward qualifying booking ke baad credit hoga.</div></div>'+
-   '<div class="bottom-hub-card"><b>Service Provider Wallet</b><small>'+(sp?(sp.name||'Service Provider'):'SP profile not created')+'</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.sp).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Reserve: ₹200 • Welcome Bonus: ₹'+Number(w.welcome).toLocaleString('en-IN')+' • Cash job ka OCS platform charges wallet se deduct hoga.</div>'+(w.spPaused?'<div class="notice" style="margin-top:8px">New jobs temporarily paused by Admin.</div>':'')+'</div>'+
-   '<div class="bottom-hub-card"><b>Wallet Safety</b><small>Wallet balance, commission and reward history final backend records se sync honge. Customer payment history Bookings / Work History me alag rahegi.</small></div>';
+   '<div class="bottom-hub-card"><b>Service Provider Wallet</b><small>'+(sp?(sp.name||'Service Provider'):'SP profile not created')+'</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.sp).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Reserve: ₹200 • New jobs ke liye wallet ₹200 ya usse zyada hona chahiye. ₹200 ke upar ka eligible balance withdraw kiya ja sakta hai.</div>'+(w.spPaused?'<div class="notice" style="margin-top:8px">New jobs temporarily paused by Admin.</div>':'')+'</div>'+
+   '<div class="bottom-hub-card"><b>Wallet Safety</b><small>Wallet balance, transactions and reward history final backend records se sync honge. Customer payment history Bookings / Work History me alag rahegi.</small></div>';
  };
  paint();
  try{
@@ -1610,7 +1610,7 @@ async function renderWorkHistory(){
      const d=r.closedAt?new Date(r.closedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
      const status=workHistoryStatusLabel(r.status);
      if(workHistoryRole==='PROVIDER'){
-       return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customerName||'Customer')+'<br>Earning: ₹'+Number(r.providerEarning||0).toFixed(2)+' • OCS Platform Charges: ₹'+Number(r.commission||0).toFixed(2)+'<br>Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
+       return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customerName||'Customer')+'<br>Earning: ₹'+Number(r.providerEarning||0).toFixed(2)+'+'<br>Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
      }
      const paid=Number(r.status==='DONE'?r.amount:r.visitCharge||0);
      return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Service Provider: '+ocsSavedText(r.provider||'Service Provider')+'<br>Amount: ₹'+paid.toFixed(2)+' • Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Your Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
@@ -1627,7 +1627,7 @@ async function renderWorkHistory(){
    const amount=Number(r.status==='completed'||r.status==='done'?r.booking_amount||0:r.visit_charge||0);
    if(workHistoryRole==='PROVIDER'){
      const commission=Number(r.commission||0), earning=Math.max(0,amount-commission);
-     return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service_name||'Home Service')+'</b><small>'+ocsSavedText(r.id)+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customer_name||'Customer')+'<br>Earning: ₹'+earning.toFixed(2)+' • OCS Platform Charges: ₹'+commission.toFixed(2)+'<br>Payment: '+ocsSavedText(r.payment_status||r.payment_method||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.rating_comment?' • '+ocsSavedText(r.rating_comment):''):'')+'</small></div>';
+     return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service_name||'Home Service')+'</b><small>'+ocsSavedText(r.id)+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customer_name||'Customer')+'<br>Earning: ₹'+earning.toFixed(2)+'+'<br>Payment: '+ocsSavedText(r.payment_status||r.payment_method||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.rating_comment?' • '+ocsSavedText(r.rating_comment):''):'')+'</small></div>';
    }
    const rating=Number(r.rating||0);
    const canRate=['COMPLETED','DONE'].includes(String(r.status||'').toUpperCase())&&rating<=0;
