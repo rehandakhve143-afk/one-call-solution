@@ -147,6 +147,25 @@ setTimeout(function(){
   <div id="workHistoryBody"></div>
 </div></div>
 
+<div class="modal" id="serviceRatingModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>Rate Service Provider</h2><div class="muted">Tap stars • comment optional</div></div><button class="x" onclick="closeServiceRating()">×</button></div>
+  <div class="bottom-hub-card" style="text-align:center">
+    <b id="serviceRatingService">Completed Service</b>
+    <small style="margin-top:5px">1 star = Poor • 5 stars = Excellent</small>
+    <div id="serviceRatingStars" style="display:flex;justify-content:center;gap:8px;margin:18px 0 10px">
+      <button type="button" data-rating-star="1" onclick="selectServiceRating(1)" aria-label="1 star" style="border:0;background:transparent;font-size:40px;line-height:1;padding:3px;color:#7d8b8e;filter:grayscale(1);opacity:.38">★</button>
+      <button type="button" data-rating-star="2" onclick="selectServiceRating(2)" aria-label="2 stars" style="border:0;background:transparent;font-size:40px;line-height:1;padding:3px;color:#7d8b8e;filter:grayscale(1);opacity:.38">★</button>
+      <button type="button" data-rating-star="3" onclick="selectServiceRating(3)" aria-label="3 stars" style="border:0;background:transparent;font-size:40px;line-height:1;padding:3px;color:#7d8b8e;filter:grayscale(1);opacity:.38">★</button>
+      <button type="button" data-rating-star="4" onclick="selectServiceRating(4)" aria-label="4 stars" style="border:0;background:transparent;font-size:40px;line-height:1;padding:3px;color:#7d8b8e;filter:grayscale(1);opacity:.38">★</button>
+      <button type="button" data-rating-star="5" onclick="selectServiceRating(5)" aria-label="5 stars" style="border:0;background:transparent;font-size:40px;line-height:1;padding:3px;color:#7d8b8e;filter:grayscale(1);opacity:.38">★</button>
+    </div>
+    <div id="serviceRatingText" style="font-size:17px;font-weight:900;margin-bottom:12px">Tap a star</div>
+    <textarea id="serviceRatingComment" rows="3" maxlength="300" placeholder="Comment (optional)" style="width:100%;box-sizing:border-box"></textarea>
+    <div id="serviceRatingError" class="muted" style="margin-top:8px"></div>
+  </div>
+  <div class="bottom-hub-actions"><button class="main" onclick="submitServiceRating()">Submit Rating</button><button onclick="closeServiceRating()">Cancel</button></div>
+</div></div>
+
 <div class="modal" id="locationModal"><div class="sheet ocs-location-sheet">
   <div class="bottom-hub-head"><div><h2>Select your location</h2><div class="muted">Search your area or use your current location</div></div><button class="x" onclick="closeLocationPicker()">×</button></div>
 
@@ -1329,7 +1348,7 @@ function setBottomActive(id){
  const x=document.getElementById(id);if(x)x.classList.add('active');
 }
 function closeBottomHub(id){const m=document.getElementById(id);if(m)m.classList.remove('show')}
-function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','workHistoryModal','settingsModal','walletModal','locationModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
+function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','workHistoryModal','serviceRatingModal','settingsModal','walletModal','locationModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
 function bottomHome(){
  closeAllBottomHubs();
  if(document.getElementById('viewer')?.classList.contains('show'))closeModule();
@@ -1504,18 +1523,65 @@ function workHistoryStatusLabel(s){
  return s||'Closed';
 }
 
-async function rateCompletedBooking(bookingId){
- const starText=prompt('Service Provider ko 1 se 5 star dein');
- if(starText===null)return;
- const stars=Number(starText);
- if(!Number.isInteger(stars)||stars<1||stars>5){alert('1 se 5 ke beech star enter karein.');return}
- const comment=prompt('Comment / feedback (optional)')||'';
+let serviceRatingBookingId='';
+let serviceRatingStars=0;
+
+function rateCompletedBooking(bookingId){
+ serviceRatingBookingId=String(bookingId||'');
+ serviceRatingStars=0;
+ const modal=document.getElementById('serviceRatingModal');
+ const comment=document.getElementById('serviceRatingComment');
+ const error=document.getElementById('serviceRatingError');
+ const service=document.getElementById('serviceRatingService');
+ if(comment)comment.value='';
+ if(error)error.textContent='';
+ if(service){
+   const row=(window.OCS_LAST_HISTORY_ROWS||[]).find(x=>String(x.id)===serviceRatingBookingId);
+   service.textContent=(row&&row.service_name)||'Completed Service';
+ }
+ selectServiceRating(0);
+ if(modal)modal.classList.add('show');
+}
+
+function closeServiceRating(){
+ const modal=document.getElementById('serviceRatingModal');
+ if(modal)modal.classList.remove('show');
+ serviceRatingBookingId='';
+ serviceRatingStars=0;
+}
+
+function selectServiceRating(stars){
+ serviceRatingStars=Math.max(0,Math.min(5,Number(stars)||0));
+ document.querySelectorAll('[data-rating-star]').forEach(btn=>{
+   const n=Number(btn.getAttribute('data-rating-star')||0);
+   const on=n<=serviceRatingStars&&serviceRatingStars>0;
+   btn.style.filter=on?'none':'grayscale(1)';
+   btn.style.opacity=on?'1':'.38';
+   btn.style.color=on?'#f5b800':'#7d8b8e';
+ });
+ const label=document.getElementById('serviceRatingText');
+ const labels=['Tap a star','Poor','Fair','Good','Very Good','Excellent'];
+ if(label)label.textContent=labels[serviceRatingStars]||'Tap a star';
+}
+
+async function submitServiceRating(){
+ const error=document.getElementById('serviceRatingError');
+ if(!serviceRatingBookingId){if(error)error.textContent='Booking record missing.';return}
+ if(serviceRatingStars<1){if(error)error.textContent='Please select 1 to 5 stars.';return}
+ const comment=(document.getElementById('serviceRatingComment')?.value||'').trim();
  try{
-   const {error}=await ocsSupabase.rpc('submit_provider_rating_v1',{p_booking_id:bookingId,p_stars:stars,p_comment:comment.trim()});
-   if(error)throw error;
-   alert('Rating save ho gayi.');
+   if(error)error.textContent='Saving rating...';
+   const {error:saveError}=await ocsSupabase.rpc('submit_provider_rating_v1',{
+     p_booking_id:serviceRatingBookingId,
+     p_stars:serviceRatingStars,
+     p_comment:comment
+   });
+   if(saveError)throw saveError;
+   closeServiceRating();
    await renderWorkHistory();
- }catch(e){alert('Rating save nahi hui: '+(e&&e.message?e.message:'Unknown error'))}
+ }catch(e){
+   if(error)error.textContent='Rating save nahi hui: '+(e&&e.message?e.message:'Unknown error');
+ }
 }
 async function renderWorkHistory(){
  const body=document.getElementById('workHistoryBody');if(!body)return;
@@ -1528,6 +1594,7 @@ async function renderWorkHistory(){
      const {data,error}=await ocsSupabase.rpc('booking_history_v2',{p_role:workHistoryRole==='PROVIDER'?'service_provider':'customer'});
      if(error)throw error;
      rows=Array.isArray(data)?data:[];
+     window.OCS_LAST_HISTORY_ROWS=rows.slice();
      backendResolved=true;
    }catch(e){console.error('Backend history load failed',e)}
  }
