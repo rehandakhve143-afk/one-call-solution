@@ -1,6 +1,6 @@
 # One Call Solution — FINAL RULES (Authoritative)
 
-Last audited: 26 Sep 2026
+Last audited: 27 Sep 2026
 
 This file is the source of truth for business rules. If any HTML/demo file conflicts with this file, update the HTML/demo file — do not change these rules from an older build.
 
@@ -98,6 +98,18 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Keep posting easy: details → location → price → media → contact → preview → payment → post.
 - Latest property flow: successful payment + required verification → listing live for the plan validity.
 - Single Property stays basic; Builder gets premium profile/project/chat/enquiry features.
+
+## 10A) GST — paid ads / business listings
+- This GST rule applies to **paid OCS advertising and business/window listings**, including Slider/Banner Ads, Post Your Ad, Local Shop, Property/Builder and other paid business listings.
+- Current listed plan prices are the **base price before GST**.
+- Add **18% GST** to the base price at payment. Example: Local Shop ₹99 + ₹17.82 GST = **₹116.82 payable**.
+- Successful paid ad/listing payment should store: base price, GST rate, GST amount, final payable amount, payment reference and GST invoice record.
+- GST invoice should show the configured OCS legal business name, GSTIN, registered address, invoice number/date, taxable value, GST rate/amount and total.
+- **Admin FREE override = ₹0 payment and ₹0 GST.**
+- This rule does **not** add 18% to normal Customer Home Service booking prices.
+- This rule does **not** change the launch Home Service Provider commission rule: OCS commission remains **9% total** under the current launch pricing decision.
+- Service Provider activation/verification remains separate from paid business advertising/listing plans.
+- Production GST tax invoice/collection must use the correct active OCS GST registration details.
 
 ## 11) Customer fee
 - Customer registration is **free at launch**.
