@@ -1290,19 +1290,25 @@ body{background:#eef2f1!important}
 .ocs-account-row .ar-copy b{display:block;font-size:13px;line-height:1.2;color:#19363a;margin:0 0 3px}
 .ocs-account-row .ar-copy small{display:block;font-size:10px;line-height:1.25;color:#74858a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ocs-account-row .ar-go{font-size:24px;color:#9aa8aa;text-align:center}
-#locationModal .sheet{background:#fff!important}
-#locationModal .bottom-hub-head{margin-bottom:14px!important}
-#locationModal .bottom-hub-head .muted{font-size:11px!important;line-height:1.35!important}
-#locationModal .ocs-location-current{width:100%!important;min-height:52px!important;margin:2px 0 10px!important;border:0!important;border-radius:15px!important;background:linear-gradient(135deg,#0a8a7d,#087166)!important;color:#fff!important;font-size:14px!important;font-weight:850!important;box-shadow:0 7px 16px rgba(8,122,112,.18)!important}
-#locationModal .ocs-location-manual-toggle{width:100%!important;min-height:50px!important;margin:0!important;border:1.5px solid #cfe4df!important;border-radius:15px!important;background:#fff!important;color:#176d64!important;font-size:13px!important;font-weight:850!important;box-shadow:none!important}
-#locationModal .ocs-location-manual-toggle:active{background:#f1f8f6!important}
-#locationModal .ocs-location-manual-card{margin:11px 0 0!important;padding:14px!important;border:1px solid #e2eeeb!important;border-radius:18px!important;background:#f6faf9!important;box-shadow:none!important}
-#locationModal .ocs-location-manual-head{margin-bottom:10px!important}
-#locationModal .ocs-location-manual-head b{display:block!important;font-size:15px!important;color:#173f46!important;margin:0 0 3px!important}
-#locationModal .ocs-location-manual-head small{display:block!important;font-size:10.5px!important;color:#71878b!important}
-#locationModal .ocs-location-input{width:100%!important;height:50px!important;margin:0!important;padding:0 14px!important;border:1px solid #d7e5e1!important;border-radius:14px!important;background:#fff!important;color:#18383e!important;font-size:14px!important;outline:none!important;box-shadow:none!important;appearance:none!important}
-#locationModal .ocs-location-input:focus{border-color:#0a8a7d!important;box-shadow:0 0 0 3px rgba(10,138,125,.10)!important}
-#locationModal .ocs-location-save{width:100%!important;min-height:48px!important;margin:10px 0 0!important;border:0!important;border-radius:14px!important;background:#163f48!important;color:#fff!important;font-size:13px!important;font-weight:850!important;box-shadow:none!important}
+#locationModal .ocs-location-sheet{background:#fff!important;padding:18px 18px 24px!important}
+#locationModal .bottom-hub-head{margin-bottom:16px!important}
+#locationModal .bottom-hub-head h2{font-size:22px!important;letter-spacing:-.45px!important}
+#locationModal .bottom-hub-head .muted{font-size:11px!important;line-height:1.35!important;color:#75878a!important}
+#locationModal .ocs-location-search-card{margin:0!important;padding:0!important}
+#locationModal .ocs-location-search-row{height:54px!important;display:grid!important;grid-template-columns:42px minmax(0,1fr) auto!important;align-items:center!important;border:1.5px solid #d7e4e1!important;border-radius:16px!important;background:#fff!important;overflow:hidden!important;box-shadow:0 5px 14px rgba(18,50,71,.05)!important}
+#locationModal .ocs-location-search-icon{display:grid!important;place-items:center!important;color:#08786e!important}
+#locationModal .ocs-location-search-icon svg{width:21px!important;height:21px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+#locationModal .ocs-location-input{width:100%!important;height:52px!important;margin:0!important;padding:0 8px 0 0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#17383e!important;font-size:13px!important;outline:none!important;box-shadow:none!important;appearance:none!important}
+#locationModal .ocs-location-input::placeholder{color:#93a0a3!important}
+#locationModal .ocs-location-apply{min-width:66px!important;height:38px!important;min-height:38px!important;margin:0 8px 0 4px!important;padding:0 13px!important;border:0!important;border-radius:11px!important;background:#0a8074!important;color:#fff!important;font-size:11px!important;font-weight:850!important;box-shadow:none!important}
+#locationModal .ocs-location-divider{display:flex!important;align-items:center!important;gap:10px!important;margin:14px 0 12px!important;color:#9ba8aa!important;font-size:9px!important;font-weight:800!important}
+#locationModal .ocs-location-divider:before,#locationModal .ocs-location-divider:after{content:""!important;flex:1!important;height:1px!important;background:#edf1f0!important}
+#locationModal .ocs-location-current-row{width:100%!important;min-height:64px!important;display:grid!important;grid-template-columns:42px minmax(0,1fr) 18px!important;align-items:center!important;gap:8px!important;margin:0!important;padding:9px 10px!important;border:1px solid #e3ebe9!important;border-radius:16px!important;background:#f8fbfa!important;color:#17383e!important;text-align:left!important;box-shadow:none!important}
+#locationModal .ocs-location-current-icon{width:38px!important;height:38px!important;border-radius:12px!important;background:#e8f6f2!important;color:#08786e!important;display:grid!important;place-items:center!important;font-size:19px!important;font-weight:900!important}
+#locationModal .ocs-location-current-copy b{display:block!important;font-size:13px!important;color:#17383e!important;margin-bottom:2px!important}
+#locationModal .ocs-location-current-copy small{display:block!important;font-size:10px!important;color:#78898c!important}
+#locationModal .ocs-location-current-go{font-size:24px!important;color:#94a3a5!important;text-align:center!important}
+#locationModal .ocs-location-note{margin-top:12px!important;text-align:center!important;font-size:9.5px!important;line-height:1.35!important;color:#8a989b!important}
 body:has(.modal.show) .bottom-nav{display:none!important}
 body:has(.modal.show) .ocs-lock-bottom{display:none!important}
 .modal.show{z-index:90!important}
