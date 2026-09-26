@@ -3883,7 +3883,7 @@ function renderAdminPlatformRecords(data){
    '<div class="admin-records-kpi"><span>Customers</span><b>'+Number(s.customers||0)+'</b><small>Joined accounts</small></div>'+
    '<div class="admin-records-kpi"><span>Service Providers</span><b>'+Number(s.providers||0)+'</b><small>Joined SP roles</small></div>'+
    '<div class="admin-records-kpi"><span>Paid / Free Posts</span><b>'+Number(s.paid_posts||0)+' / '+Number(s.free_posts||0)+'</b><small>Total posts '+Number(s.posts||0)+'</small></div>'+
-   '<div class="admin-records-kpi"><span>Total Collection</span><b>'+adminMoney(s.collection_total||0)+'</b><small>Base '+adminMoney(s.base_total||0)+' • GST '+adminMoney(s.gst_total||0)+'</small></div>'+
+   '<div class="admin-records-kpi"><span>Total Collection</span><b>'+adminMoney(s.collection_total||0)+'</b><small>Ads base '+adminMoney(s.base_total||0)+' • GST '+adminMoney(s.gst_total||0)+' • Home Service commission '+adminMoney(s.home_service_commission||0)+'</small></div>'+
   '</div>';
  const chtml=cols.length?cols.map(x=>
   '<div class="admin-collection-row"><div class="admin-collection-top"><b>'+ocsSafe(x.category||"Other")+'</b><strong>'+adminMoney(x.collection_total||0)+'</strong></div>'+
