@@ -435,6 +435,8 @@ setTimeout(function(){
 <div><label>CTA Button *</label><select id="bannerCta" onchange="syncBannerCta();renderBannerPreview()"><option value="CALL">📞 Call Now</option><option value="WHATSAPP">🟢 WhatsApp</option><option value="WEBSITE">🌐 Visit Website</option><option value="OCS_PROFILE">🔗 View OCS Profile</option></select></div>
 </div>
 <label id="bannerActionLabel">Mobile Number *</label><input id="bannerActionValue" oninput="renderBannerPreview()" placeholder="10-digit mobile number">
+<label>Billing / Invoice Email *</label><input id="bannerBillingEmail" type="email" placeholder="invoice@email.com">
+<div class="muted" style="margin-top:-4px;margin-bottom:8px">Payment successful hone ke baad GST invoice isi email par jayega.</div>
 <label>Banner Photo / Creative *</label><input id="bannerImage" type="file" accept="image/*" onchange="handleBannerImage(event)">
 <div class="banner-file-help">Landscape photo/creative best rahega. Preview niche live dikhega.</div>
 
@@ -456,7 +458,7 @@ setTimeout(function(){
 <div id="bizCurrentPrice" class="price-now">Current 28-day plan: —</div>
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
-<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Photos / Videos</label><input type="file" accept="image/*,video/*" multiple></div>
+<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input type="file" accept="image/*,video/*" multiple></div>
 <div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button class="primary" onclick="continueBiz()">Save & Continue →</button></div><div class="muted" style="margin-top:8px">Back/Forward karne par saved details category draft me rahengi; baad me edit/update bhi kar sakte hain.</div></div></div>
 <script>
 let homeSlide=0,homeSlideTimer=null,homeTouchStartX=0;
@@ -2106,12 +2108,30 @@ function gstPriceHTML(base){
  if(!x.enabled||x.rate<=0)return '<b>'+moneyINRPay(x.base)+'</b>';
  return 'Base <b>'+moneyINRPay(x.base)+'</b> + GST '+x.rate+'% <b>'+moneyINRPay(x.gst)+'</b> = Pay <b>'+moneyINRPay(x.total)+'</b>';
 }
-function buildOcsGstInvoice(service,base,paymentRef,recipient){
- const x=getGstBreakup(base),cfg=x.config,now=new Date();
+function addDaysIso(startIso,days){const d=new Date(startIso||Date.now());d.setDate(d.getDate()+Number(days||0));return d.toISOString()}
+function invoiceDurationDays(planLabel){
+ const s=String(planLabel||'').toLowerCase();
+ if(s.includes('6 month'))return 180;
+ const m=s.match(/(\d+)\s*day/);return m?Number(m[1]):28;
+}
+function getInvoiceEmailQueue(){try{return JSON.parse(localStorage.getItem('ocsInvoiceEmailQueue')||'[]')}catch(e){return []}}
+function setInvoiceEmailQueue(v){localStorage.setItem('ocsInvoiceEmailQueue',JSON.stringify(v))}
+function queueOcsInvoiceEmail(invoice){
+ if(!invoice||!invoice.recipientEmail)return false;
+ const q=getInvoiceEmailQueue();
+ q.unshift({id:'MAIL'+Date.now(),kind:'GST_INVOICE',to:invoice.recipientEmail,subject:'One Call Solution • GST Invoice • '+invoice.planLabel,status:'QUEUED',invoice,createdAt:new Date().toISOString()});
+ setInvoiceEmailQueue(q.slice(0,100));
+ return true;
+}
+function buildOcsGstInvoice(service,base,paymentRef,recipient,opts){
+ const x=getGstBreakup(base),cfg=x.config,now=new Date(),o=opts||{};
+ const durationDays=Number(o.durationDays||invoiceDurationDays(o.planLabel||'28 Days'));
+ const validFrom=o.validFrom||now.toISOString(),validUntil=o.validUntil||addDaysIso(validFrom,durationDays);
  return {
    invoiceNo:'OCS-'+now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+Date.now().toString().slice(-8),
    invoiceDate:now.toISOString(),service:String(service||'OCS Paid Listing'),recipient:String(recipient||''),
-   taxableValue:x.base,gstRate:x.rate,gstAmount:x.gst,total:x.total,paymentRef:paymentRef||'',
+   recipientEmail:String(o.recipientEmail||''),planLabel:String(o.planLabel||durationDays+' Days'),durationDays,
+   validFrom,validUntil,taxableValue:x.base,gstRate:x.rate,gstAmount:x.gst,total:x.total,paymentRef:paymentRef||'',
    supplier:{legalName:cfg.legalName||'One Call Solution',gstin:cfg.gstin||'',address:cfg.businessAddress||''}
  };
 }
@@ -2204,7 +2224,7 @@ function renderBannerPendingState(){
 }
 function clearBannerForm(){
  editingBannerId='';bannerImageData='';
- ['bannerBusiness','bannerTitle','bannerDesc','bannerArea','bannerActionValue'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+ ['bannerBusiness','bannerTitle','bannerDesc','bannerArea','bannerActionValue','bannerBillingEmail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
  const cta=document.getElementById('bannerCta');if(cta)cta.value='CALL';
  const plan=document.getElementById('bannerPlan');if(plan)plan.value='banner28';
  const img=document.getElementById('bannerImage');if(img)img.value='';
@@ -2217,7 +2237,7 @@ function editPendingBannerAd(id){
  if(!bannerEditableStatus(p.status))return alert('Payment complete hone ke baad ad locked hai. Is ad ko edit nahi kar sakte.');
  editingBannerId=id;
  bannerBusiness.value=p.name||'';bannerTitle.value=p.title||'';bannerDesc.value=p.description||'';bannerArea.value=p.area||'';
- bannerCta.value=p.cta||'CALL';bannerActionValue.value=p.actionValue||'';bannerPlan.value=p.plan==='6 Months'?'banner6m':'banner28';
+ bannerCta.value=p.cta||'CALL';bannerActionValue.value=p.actionValue||'';if(document.getElementById('bannerBillingEmail'))document.getElementById('bannerBillingEmail').value=p.billingEmail||'';bannerPlan.value=p.plan==='6 Months'?'banner6m':'banner28';
  bannerImageData=p.image||'';
  const btn=document.querySelector('#bannerModal button[onclick="submitBannerAd()"]');if(btn)btn.textContent='Save Changes / Continue to Payment';
  syncBannerCta();updateBannerPrice();renderBannerPreview();
@@ -2252,14 +2272,15 @@ function handleBannerImage(ev){
  };reader.readAsDataURL(file);
 }
 function submitBannerAd(){
- const n=bannerBusiness.value.trim(),t=bannerTitle.value.trim(),d=bannerDesc.value.trim(),a=bannerArea.value.trim(),cta=bannerCta.value,av=bannerActionValue.value.trim(),key=bannerPlan.value;
+ const n=bannerBusiness.value.trim(),t=bannerTitle.value.trim(),d=bannerDesc.value.trim(),a=bannerArea.value.trim(),cta=bannerCta.value,av=bannerActionValue.value.trim(),key=bannerPlan.value,billingEmail=(document.getElementById('bannerBillingEmail')?.value||'').trim();
  if(!n||!t||!a||!av){alert('Business name, headline, area aur CTA contact/link required.');return}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
  if((cta==='CALL'||cta==='WHATSAPP')&&av.replace(/\D/g,'').length<10){alert('Valid mobile / WhatsApp number enter karein.');return}
  if(cta==='WEBSITE'&&!/^https?:\/\//i.test(av)){alert('Website link http:// ya https:// se start karein.');return}
  const price=pricingValue(key,n,'BANNER'),plan=key==='banner6m'?'6 Months':'28 Days';
  const pending=getBannerRequests();
  const tax=getGstBreakup(price);
- const payload={name:n,title:t,description:d,area:a,cta,actionValue:av,plan,price,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,image:bannerImageData||''};
+ const payload={name:n,title:t,description:d,area:a,cta,actionValue:av,billingEmail,plan,planDays:key==='banner6m'?180:28,price,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,image:bannerImageData||''};
  if(editingBannerId){
    const i=pending.findIndex(x=>x.id===editingBannerId);
    if(i<0)return alert('Pending ad nahi mila.');
@@ -2280,8 +2301,9 @@ function submitBannerAd(){
 function lockBannerAfterPayment(id,paymentRef){
  const a=getBannerRequests(),i=a.findIndex(x=>x.id===id);if(i<0)return false;
  a[i].status='PAID_LOCKED';a[i].locked=true;a[i].paidAt=new Date().toISOString();if(paymentRef)a[i].paymentRef=paymentRef;
- const base=Number(a[i].basePrice??a[i].price??0);
- a[i].invoice=buildOcsGstInvoice('OCS Slider / Banner Advertisement',base,paymentRef,a[i].name||'');
+ const base=Number(a[i].basePrice??a[i].price??0),days=Number(a[i].planDays||invoiceDurationDays(a[i].plan||'28 Days')),start=a[i].paidAt;
+ a[i].invoice=buildOcsGstInvoice('OCS Slider / Banner Advertisement',base,paymentRef,a[i].name||'',{recipientEmail:a[i].billingEmail||'',planLabel:a[i].plan||days+' Days',durationDays:days,validFrom:start,validUntil:addDaysIso(start,days)});
+ a[i].invoiceEmailStatus=queueOcsInvoiceEmail(a[i].invoice)?'QUEUED':'EMAIL_REQUIRED';
  setBannerRequests(a);return true;
 }
 const BIZ_PRICE_KEY={'Property':'propertyOwner','Local Shop':'localShop','Sliding / Aluminium':'sliding','Welding / Fabrication':'welding','Beauty / Make-up':'beauty','Used Vehicle':'used2w','New Vehicle':'new2w','Medical Store':'medical','Diagnostic Lab':'lab','Modular Kitchen':'kitchen','Hotel / Restaurant / Lodging':'hotel','Other Business':'localShop'};
@@ -2658,7 +2680,7 @@ function injectBusinessContactBar(cat){
 }
 function loadBizDraft(cat){
  const d=readBizDrafts()[cat]||{};
- obName.value=d.name||'';obType.value=d.type||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';updateBizLikeSummary(cat);
+ obName.value=d.name||'';obType.value=d.type||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';updateBizLikeSummary(cat);
 }
 function openBiz(category){
  const modal=document.getElementById('bizModal'),sel=document.getElementById('bizCat');
@@ -2676,11 +2698,12 @@ document.getElementById('bizCat').onchange=function(){document.getElementById('o
 document.getElementById('obName').addEventListener('input',()=>{updateBizPrice();updateBizLikeSummary()});updateBizPrice();updateBizLikeSummary();
 function continueBiz(){
  const cat=document.getElementById('bizCat').value;
- const name=obName.value.trim(),type=obType.value.trim(),area=obArea.value.trim(),about=obAbout.value.trim(),phone=obPhone.value.trim();
+ const name=obName.value.trim(),type=obType.value.trim(),area=obArea.value.trim(),about=obAbout.value.trim(),phone=obPhone.value.trim(),billingEmail=(document.getElementById('obEmail')?.value||'').trim();
  if(!name||!area||phone.replace(/\D/g,'').length<10){alert('Business/Profile name, City/Area aur valid Mobile/WhatsApp required.');return}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
  const drafts=readBizDrafts(),previous=drafts[cat]||{},oldLikeKey=getBizLikeKey(cat),listingId=previous.listingId||('biz_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8));
  const key=BIZ_PRICE_KEY[cat]||'localShop',base=pricingValue(key,name,'LISTING'),tax=getGstBreakup(base);
- drafts[cat]={name,type,area,about,phone,listingId,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
+ drafts[cat]={name,type,area,about,phone,billingEmail,listingId,planLabel:'28 Days',planDays:28,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
  closeBiz();
  if(base>0)alert('Listing payment: Base '+moneyINRPay(tax.base)+' + GST '+tax.rate+'% '+moneyINRPay(tax.gst)+' = '+moneyINRPay(tax.total)+'. Successful payment ke baad GST invoice aur listing activation.');
