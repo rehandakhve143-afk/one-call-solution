@@ -1610,7 +1610,7 @@ async function renderWorkHistory(){
      const d=r.closedAt?new Date(r.closedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
      const status=workHistoryStatusLabel(r.status);
      if(workHistoryRole==='PROVIDER'){
-       return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customerName||'Customer')+'<br>Earning: ₹'+Number(r.providerEarning||0).toFixed(2)+'+'<br>Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
+       return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customerName||'Customer')+'<br>Earning: ₹'+Number(r.providerEarning||0).toFixed(2)+'<br>Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
      }
      const paid=Number(r.status==='DONE'?r.amount:r.visitCharge||0);
      return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service||'Home Service')+'</b><small>'+ocsSavedText(r.id||'OCS Job')+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Service Provider: '+ocsSavedText(r.provider||'Service Provider')+'<br>Amount: ₹'+paid.toFixed(2)+' • Payment: '+ocsSavedText(r.payment||'—')+(Number(r.rating||0)>0?'<br>Your Rating: '+Number(r.rating)+'/5 ⭐'+(r.ratingComment?' • '+ocsSavedText(r.ratingComment):''):'')+'</small></div>';
@@ -1627,7 +1627,7 @@ async function renderWorkHistory(){
    const amount=Number(r.status==='completed'||r.status==='done'?r.booking_amount||0:r.visit_charge||0);
    if(workHistoryRole==='PROVIDER'){
      const commission=Number(r.commission||0), earning=Math.max(0,amount-commission);
-     return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service_name||'Home Service')+'</b><small>'+ocsSavedText(r.id)+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customer_name||'Customer')+'<br>Earning: ₹'+earning.toFixed(2)+'+'<br>Payment: '+ocsSavedText(r.payment_status||r.payment_method||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.rating_comment?' • '+ocsSavedText(r.rating_comment):''):'')+'</small></div>';
+     return '<div class="bottom-hub-card"><b>'+ocsSavedText(r.service_name||'Home Service')+'</b><small>'+ocsSavedText(r.id)+' • '+d+'<br>Status: '+ocsSavedText(status)+'<br>Customer: '+ocsSavedText(r.customer_name||'Customer')+'<br>Earning: ₹'+earning.toFixed(2)+'<br>Payment: '+ocsSavedText(r.payment_status||r.payment_method||'—')+(Number(r.rating||0)>0?'<br>Rating: '+Number(r.rating)+'/5 ⭐'+(r.rating_comment?' • '+ocsSavedText(r.rating_comment):''):'')+'</small></div>';
    }
    const rating=Number(r.rating||0);
    const canRate=['COMPLETED','DONE'].includes(String(r.status||'').toUpperCase())&&rating<=0;
