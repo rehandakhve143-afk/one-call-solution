@@ -104,6 +104,7 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Current listed plan prices are the **base price before GST**.
 - Add **18% GST** to the base price at payment. Example: Local Shop ₹99 + ₹17.82 GST = **₹116.82 payable**.
 - Successful paid ad/listing payment should store: base price, GST rate, GST amount, final payable amount, payment reference and GST invoice record.
+- **No routine Admin approval after payment.** Successful verified payment makes the paid Slider Ad / business listing / property post LIVE automatically for its purchased validity. Admin retains moderation controls such as Pause / Block / Remove.
 - GST invoice should show the configured OCS legal business name, GSTIN, registered address, invoice number/date, taxable value, GST rate/amount and total.
 - Every paid ad/listing must collect a valid **billing/invoice email**. After successful verified payment, the GST invoice is queued/sent to that email.
 - The invoice/email must clearly show the purchased **plan duration** (for example 28 Days or 6 Months), validity start date and expiry/end date.
