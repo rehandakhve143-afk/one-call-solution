@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20260926-profileclean1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-profileclean1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20260926-locationpolish1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-locationpolish1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -149,13 +149,12 @@ setTimeout(function(){
 
 <div class="modal" id="locationModal"><div class="sheet">
   <div class="bottom-hub-head"><div><h2>Choose service location</h2><div class="muted">Fast GPS location ya manual area — dono available hain</div></div><button class="x" onclick="closeLocationPicker()">×</button></div>
-  <button class="primary" style="width:100%;margin:4px 0 10px" onclick="useCurrentOcsLocation()">⌖ Use Current Location</button>
-  <button style="width:100%;margin:0 0 10px" onclick="toggleManualOcsLocation()">Select Area Manually</button>
-  <div id="ocsManualLocationWrap" class="bottom-hub-card" style="display:none">
-    <b>Select Area Manually</b>
-    <small>Area / City / Pincode</small>
-    <input id="ocsManualLocation" placeholder="e.g. Khopoli / Panvel / 410203">
-    <button style="width:100%;margin-top:10px" onclick="saveManualOcsLocation()">Use This Area</button>
+  <button class="primary ocs-location-current" onclick="useCurrentOcsLocation()">⌖ Use Current Location</button>
+  <button class="ocs-location-manual-toggle" onclick="toggleManualOcsLocation()">Enter Area Manually</button>
+  <div id="ocsManualLocationWrap" class="bottom-hub-card ocs-location-manual-card" style="display:none">
+    <div class="ocs-location-manual-head"><b>Manual Location</b><small>Area, city or pincode enter karein</small></div>
+    <input class="ocs-location-input" id="ocsManualLocation" placeholder="e.g. Khopoli / Panvel / 410203">
+    <button class="ocs-location-save" onclick="saveManualOcsLocation()">Use This Area</button>
   </div>
 </div></div>
 
