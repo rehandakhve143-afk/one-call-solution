@@ -278,6 +278,33 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 .admin-route-only .ocs-page-nav button:last-child{display:none!important}
 .admin-route-only .top{padding-bottom:12px!important}
 </style>
+
+<style id="ocs-customer-final-design">
+.ocs-payment-policy{display:flex;align-items:flex-start;gap:10px;margin:11px 0;padding:12px 13px;border:1px solid #d8ebe5;border-radius:15px;background:linear-gradient(145deg,#f0faf6,#fff);color:#365b61}
+.ocs-payment-policy .pp-icon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:10px;background:#dff4ed;color:#087a70;font-size:15px;font-weight:950}
+.ocs-payment-policy b{display:block;color:#173f46;font-size:12px;margin:1px 0 3px}
+.ocs-payment-policy small{display:block;color:#6a7f84;font-size:10.5px;line-height:1.45}
+.ocs-otp-card{margin:12px;border:1px solid #cfe8df;border-radius:22px;background:linear-gradient(145deg,#f1faf6 0,#fff 58%,#edf8f4 100%);padding:16px;box-shadow:0 10px 28px rgba(8,91,81,.08)}
+.ocs-otp-top{display:flex;align-items:center;gap:10px}
+.ocs-otp-check{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:#087a70;color:#fff;font-size:17px;font-weight:950;box-shadow:0 5px 12px rgba(8,122,112,.16)}
+.ocs-otp-top small{display:block;color:#16816f;font-size:9px;font-weight:900;letter-spacing:.85px;margin-bottom:2px}
+.ocs-otp-top b{display:block;color:#173f46;font-size:14px}
+.ocs-otp-label{margin-top:15px;color:#72868a;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.7px}
+.ocs-otp-code{margin-top:5px;color:#0d635c;font-size:34px;font-weight:950;letter-spacing:8px;line-height:1.1}
+.ocs-otp-help{margin-top:9px;padding-top:9px;border-top:1px solid #dcebe6;color:#637b80;font-size:10.5px;line-height:1.45}
+.ocs-otp-provider{margin:12px;padding:15px;border:1px solid #d7e9e4;border-radius:20px;background:#fff;box-shadow:0 8px 22px rgba(16,60,64,.06)}
+.ocs-otp-provider .provider-otp-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ocs-otp-provider .provider-otp-icon{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:#e4f5ef;color:#087a70;font-weight:950}
+.ocs-otp-provider small{display:block;color:#6c8085;font-size:10.5px;line-height:1.45}
+.ocs-otp-provider .btn{margin-top:11px!important}
+.ocs-payment-card{background:linear-gradient(150deg,#fff,#f6fbf9)!important;border-color:#d7e9e4!important}
+.ocs-payment-card .money{font-size:30px!important;letter-spacing:-1px}
+.ocs-payment-card .btn{margin-top:8px}
+@media(max-width:380px){
+ .ocs-otp-code{font-size:30px;letter-spacing:6px}
+ .ocs-otp-card,.ocs-otp-provider{margin:10px}
+}
+</style>
 </head>
 <body>
 
@@ -3083,7 +3110,7 @@ if(S.status==="BOOKING_DETAILS"){
  let itemLines=fixed&&selected.length
    ? '<div class="card" style="margin:10px 0;padding:10px">'+selected.map(x=>'<div class="row" style="align-items:flex-start"><div><b>'+ocsSafe(x.name)+'</b><div class="muted">'+money(Number(x.price||0))+' × '+Number(x.qty||1)+'</div></div><b>'+money(Number(x.price||0)*Number(x.qty||1))+'</b></div>').join('')+'</div>'
    : '';
- h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${S.paymentHeld?secureHoldHTML():""}<label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment preferred/default hai. Network ya payment issue me Cash allowed hai.</div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
+ h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${S.paymentHeld?secureHoldHTML():""}<label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
 }
 
 if(S.status==="READY")h=`
@@ -3096,7 +3123,7 @@ if(S.status==="READY")h=`
     <button class="btn ${S.paymentChoice==="ONLINE"?"ok":"gray"}" onclick="choosePayment('ONLINE')">Online</button>
     <button class="btn ${S.paymentChoice==="CASH"?"ok":"gray"}" onclick="choosePayment('CASH')">Cash</button>
   </div>
-  <div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment preferred/default hai. Network ya payment issue me Cash allowed hai.</div>
+  <div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div>
 </div>
 <button class="btn" onclick="booking()">Find Service Provider</button>
 </div>`;
@@ -3116,15 +3143,18 @@ ${S.status==="ON_WAY"?`<div class="ocs-route"><div class="ocs-route-head"><b>Ser
 <div class="card"><h3>Need to Cancel?</h3><div class="muted">${S.status==="ASSIGNED"?"Provider ne travel start nahi kiya: cancellation par visit charge ₹0.":"Provider travel start kar chuka hai: applicable ₹199 / ₹249 travel-visit charge lag sakta hai."}</div><button class="btn red" onclick="customerCancelBeforeStart()">Cancel Booking</button></div>`;
 
 if(S.status==="REACHED")h=`
-<div class="notice good"><b>GPS Reached Verified • ${S.provider}</b><br>
-Start Service OTP: <b style="font-size:26px">${S.startOtp}</b><br>
-<span class="muted">OTP only after GPS Reached verification.</span></div>
-<div class="card"><h3>Cancel Before Work Starts</h3><div class="muted">Start Service OTP abhi verify nahi hua. Cancel karne par applicable ₹199 / ₹249 visit charge lagega.</div><button class="btn red" onclick="customerCancelBeforeStart()">Cancel Booking</button></div>`;
+<div class="ocs-otp-card">
+  <div class="ocs-otp-top"><span class="ocs-otp-check">✓</span><div><small>GPS ARRIVAL VERIFIED</small><b>${S.provider} has reached</b></div></div>
+  <div class="ocs-otp-label">Start Service OTP</div>
+  <div class="ocs-otp-code">${S.startOtp}</div>
+  <div class="ocs-otp-help">Ye OTP sirf Service Provider ke location par pahunchne ke baad share karein. Isse work/inspection start confirm hota hai, completion nahi.</div>
+</div>
+<div class="card"><h3>Before Work Starts</h3><div class="muted">Start Service OTP verify hone se pehle booking cancel karne par applicable ₹199 / ₹249 visit charge lag sakta hai.</div><button class="btn red" onclick="customerCancelBeforeStart()">Cancel Booking</button></div>`;
 
 if(S.status==="WORKING"){
 h=`<div class="notice good"><b>Customer • Work In Progress</b><br>Service Provider: ${S.provider}<br>Current Booking Total: ₹${S.total}</div>
 <div class="card"><h3>Customer Actions</h3>
-<div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment preferred/default hai. Network ya payment issue me Cash allowed hai.</div>
+<div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div>
 <div class="muted" style="margin-bottom:10px">Extra work add karein, same provider ke saath reschedule karein, ya problem ho to resolve karein.</div>
 <button class="btn" onclick="customerOpenAddMoreWork()">+ Add More Work</button>
 <button class="btn alt" onclick="openReschedule('customer')">Work Pending / Reschedule</button>`;
@@ -3172,10 +3202,11 @@ if(S.status==="COMPLETION_CONFIRM")h=`
 </div></div>`;
 
 if(S.status==="PAYMENT")h=`
-<div class="card"><h3>Payment</h3>${S.paymentHeld?secureHoldHTML():""}<div class="muted">Remaining to pay</div><div class="money">${money(paymentDueAmount())}</div>${Number(S.customerRewardUsed||0)>0?`<div class="notice good"><b>OCS Rewards Used: ${money(Number(S.customerRewardUsed||0))}</b></div>`:""}
+<div class="card ocs-payment-card"><h3>Complete Payment</h3>${S.paymentHeld?secureHoldHTML():""}<div class="muted">Remaining to pay</div><div class="money">${money(paymentDueAmount())}</div>${Number(S.customerRewardUsed||0)>0?`<div class="notice good"><b>OCS Rewards Used: ${money(Number(S.customerRewardUsed||0))}</b></div>`:""}
+${policy}
 <button class="btn alt" onclick="useCustomerRewards('JOB')">Use OCS Rewards</button>
 <button class="btn" onclick="openOnline('JOB')">Pay Remaining Online</button>
-<button class="btn gray" onclick="payCash('JOB')">Cash</button></div>`;
+<button class="btn gray" onclick="payCash('JOB')">Cash • If Needed</button></div>`;
 
 if(S.status==="ONLINE_PAY"){
 let amt=S.payPurpose==="VISIT"?S.visitCharge:paymentDueAmount();
@@ -3362,16 +3393,19 @@ if(S.status==="ON_WAY")h=`<div class="ocs-route"><div class="ocs-route-head"><b>
 
 if(S.status==="REACHED")h=`
 <div class="ocs-route"><div class="ocs-route-head"><b>Customer Service Address</b><span class="ocs-pill">Reached ✓</span></div><div class="ocs-address"><small>Booking Address</small><b>${ocsAddress()}</b></div><button class="btn gray" onclick="ocsDirections()">Map / Directions</button></div>
-<div class="notice"><b>GPS Reached Verified</b><br>Customer se Start Service OTP lo.</div>
+<div class="ocs-otp-provider">
+  <div class="provider-otp-head"><span class="provider-otp-icon">OTP</span><div><b>Start Service OTP Required</b><small>Customer se OTP lein only after reaching the service location.</small></div></div>
+  <small>OTP verify hote hi work/inspection officially start hoga. Ye completion proof nahi hai.</small>
+  <button class="btn" onclick="startWork()">Enter Start Service OTP</button>
+</div>
 ${S.isQuoteBooking?'<div class="notice"><b>Get Quote History Active</b><br>Accepted quote, chat/call discussion aur payment/booking record dono sides ke history me rahega. Extra work-proof upload required nahi hai.</div>':""}
-<button class="btn" onclick="startWork()">Enter Start Service OTP</button>
 <button class="btn red" onclick="customerUnavailableBeforeOtp()">Customer Not Available / OTP Not Provided / Entry Not Provided</button>`;
 
 if(S.status==="WORKING"){
 h=`<div class="notice good"><b>Service Provider • Work In Progress</b><br>Current Booking Total: ₹${S.total}</div>
 ${providerNextJobQueueHTML()}
 <div class="card"><h3>Service Provider Actions</h3>
-<div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment preferred/default hai. Network ya payment issue me Cash allowed hai.</div>
+<div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div>
 <div class="muted" style="margin-bottom:10px">Customer ke booking par kaam chal raha hai. Extra work ke liye OCS Rate Card use karein.</div>
 ${S.isQuoteBooking?'<div class="notice"><b>Get Quote • Simple Flow</b><br>No mandatory before/after photo-video. Finish Job ke baad Customer confirmation hoga; full OCS history retained rahegi.</div>':""}
 <button class="btn" onclick="openAddWork()">+ Add Work • OCS Rate Card</button>
