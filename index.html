@@ -2123,6 +2123,68 @@ function queueOcsInvoiceEmail(invoice){
  setInvoiceEmailQueue(q.slice(0,100));
  return true;
 }
+let ocsRazorpayLoadPromise=null;
+function ensureOcsRazorpay(){
+ if(window.Razorpay)return Promise.resolve(true);
+ if(ocsRazorpayLoadPromise)return ocsRazorpayLoadPromise;
+ ocsRazorpayLoadPromise=new Promise((resolve,reject)=>{
+   const s=document.createElement('script');s.src='https://checkout.razorpay.com/v1/checkout.js';s.async=true;
+   s.onload=()=>resolve(true);s.onerror=()=>{ocsRazorpayLoadPromise=null;reject(new Error('Razorpay Checkout load nahi hua'))};document.head.appendChild(s);
+ });
+ return ocsRazorpayLoadPromise;
+}
+async function ocsPayPaidPost(opts){
+ const o=opts||{},session=await getOcsSession();
+ if(!session||!session.user){alert('Payment ke liye pehle OCS login karein.');openAccount('customer');return null}
+ if(!ocsSupabase)throw new Error('OCS online payment service load nahi hui');
+ const base=Number(o.baseAmount||0),days=Number(o.durationDays||28),email=String(o.email||'').trim();
+ if(base<=0)return {free:true};
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error('Valid invoice email required');
+ const {data:intent,error:ie}=await ocsSupabase.rpc('create_paid_post_payment_intent_v1',{
+   p_source_kind:String(o.sourceKind||'other_paid_post'),
+   p_source_ref:String(o.sourceRef||''),
+   p_title:String(o.title||'OCS Paid Post'),
+   p_recipient_email:email,
+   p_plan_label:String(o.planLabel||days+' Days'),
+   p_duration_days:days,
+   p_base_amount:base,
+   p_metadata:o.metadata||{}
+ });
+ if(ie)throw ie;
+ await ensureOcsRazorpay();
+ const {data:orderPack,error:oe}=await ocsSupabase.functions.invoke('ocs-create-razorpay-order',{body:{kind:'paid_post',id:intent.id}});
+ if(oe)throw oe;
+ if(orderPack&&orderPack.error)throw new Error(orderPack.error);
+ const key=orderPack&&orderPack.key_id,order=orderPack&&orderPack.order;
+ if(!key||!order||!order.id)throw new Error('Razorpay order create nahi hua');
+ return await new Promise((resolve,reject)=>{
+   const rz=new Razorpay({
+     key,amount:order.amount,currency:order.currency||'INR',name:'One Call Solution',
+     description:String(o.title||'OCS Paid Post')+' • '+String(o.planLabel||days+' Days'),
+     order_id:order.id,
+     prefill:{email},
+     notes:{ocs_paid_post_id:intent.id},
+     theme:{},
+     handler:async(resp)=>{
+       try{
+         const {data:vr,error:ve}=await ocsSupabase.functions.invoke('ocs-verify-razorpay-payment',{body:{
+           kind:'paid_post',id:intent.id,
+           razorpay_order_id:resp.razorpay_order_id,
+           razorpay_payment_id:resp.razorpay_payment_id,
+           razorpay_signature:resp.razorpay_signature
+         }});
+         if(ve)throw ve;if(vr&&vr.error)throw new Error(vr.error);
+         resolve({ok:true,paymentId:intent.id,razorpayPaymentId:resp.razorpay_payment_id,result:vr&&vr.result});
+       }catch(e){reject(e)}
+     },
+     modal:{ondismiss:()=>resolve(null)}
+   });
+   rz.on('payment.failed',r=>reject(new Error(r&&r.error&&r.error.description?r.error.description:'Payment failed')));
+   rz.open();
+ });
+}
+window.ocsPayPaidPost=ocsPayPaidPost;
+
 function buildOcsGstInvoice(service,base,paymentRef,recipient,opts){
  const x=getGstBreakup(base),cfg=x.config,now=new Date(),o=opts||{};
  const durationDays=Number(o.durationDays||invoiceDurationDays(o.planLabel||'28 Days'));
@@ -2271,7 +2333,7 @@ function handleBannerImage(ev){
    };img.src=e.target.result;
  };reader.readAsDataURL(file);
 }
-function submitBannerAd(){
+async function submitBannerAd(){
  const n=bannerBusiness.value.trim(),t=bannerTitle.value.trim(),d=bannerDesc.value.trim(),a=bannerArea.value.trim(),cta=bannerCta.value,av=bannerActionValue.value.trim(),key=bannerPlan.value,billingEmail=(document.getElementById('bannerBillingEmail')?.value||'').trim();
  if(!n||!t||!a||!av){alert('Business name, headline, area aur CTA contact/link required.');return}
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
@@ -2294,9 +2356,24 @@ function submitBannerAd(){
    if(i>=0)pending[i].image='';
    setBannerRequests(pending);
  }
- const wasEdit=!!editingBannerId;editingBannerId='';
- closeBannerAd();
- alert(price===0?'FREE banner request submitted and locked for Admin approval.':(wasEdit?'Ad changes saved. Payment hone tak aap ise edit kar sakte hain.':'Banner ready • Base '+moneyINRPay(price)+' + GST '+tax.rate+'% '+moneyINRPay(tax.gst)+' • Final payable '+moneyINRPay(tax.total)+' • Payment ke baad GST invoice aur Admin approval.'));
+ const wasEdit=!!editingBannerId;
+ const currentId=editingBannerId||pending[pending.length-1]?.id||'';
+ editingBannerId='';
+ if(price===0){closeBannerAd();alert('FREE banner request submitted and locked for Admin approval.');return}
+ try{
+   const paid=await ocsPayPaidPost({
+     sourceKind:'banner',sourceRef:currentId,title:'OCS Slider / Banner Advertisement',
+     email:billingEmail,planLabel:plan,durationDays:key==='banner6m'?180:28,baseAmount:price,
+     metadata:{business:n,headline:t,area:a}
+   });
+   if(!paid){renderBannerPendingState();return}
+   lockBannerAfterPayment(currentId,paid.razorpayPaymentId||'');
+   closeBannerAd();
+   alert('Payment verified ✅\nFinal paid: '+moneyINRPay(tax.total)+'\nGST invoice '+billingEmail+' ke liye generated/queued hai.\nAd ab Admin approval me hai.');
+ }catch(e){
+   alert('Payment complete nahi hua: '+(e&&e.message?e.message:'Unknown error'));
+   renderBannerPendingState();
+ }
 }
 function lockBannerAfterPayment(id,paymentRef){
  const a=getBannerRequests(),i=a.findIndex(x=>x.id===id);if(i<0)return false;
@@ -2696,7 +2773,7 @@ function manageCurrentWindow(){
 }
 document.getElementById('bizCat').onchange=function(){document.getElementById('otherFields').style.display='block';loadBizDraft(this.value);updateBizPrice();updateBizLikeSummary(this.value)};
 document.getElementById('obName').addEventListener('input',()=>{updateBizPrice();updateBizLikeSummary()});updateBizPrice();updateBizLikeSummary();
-function continueBiz(){
+async function continueBiz(){
  const cat=document.getElementById('bizCat').value;
  const name=obName.value.trim(),type=obType.value.trim(),area=obArea.value.trim(),about=obAbout.value.trim(),phone=obPhone.value.trim(),billingEmail=(document.getElementById('obEmail')?.value||'').trim();
  if(!name||!area||phone.replace(/\D/g,'').length<10){alert('Business/Profile name, City/Area aur valid Mobile/WhatsApp required.');return}
@@ -2705,9 +2782,25 @@ function continueBiz(){
  const key=BIZ_PRICE_KEY[cat]||'localShop',base=pricingValue(key,name,'LISTING'),tax=getGstBreakup(base);
  drafts[cat]={name,type,area,about,phone,billingEmail,listingId,planLabel:'28 Days',planDays:28,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
+ if(base>0){
+   try{
+     const paid=await ocsPayPaidPost({
+       sourceKind:'business_listing',sourceRef:listingId,title:'OCS Business Listing • '+name,
+       email:billingEmail,planLabel:'28 Days',durationDays:28,baseAmount:base,
+       metadata:{category:cat,business:name,area}
+     });
+     if(!paid)return;
+     const latest=readBizDrafts();if(latest[cat]){
+       latest[cat].paymentStatus='VERIFIED';latest[cat].paymentRef=paid.razorpayPaymentId||'';
+       latest[cat].invoiceEmailStatus='QUEUED';latest[cat].activatedAt=new Date().toISOString();
+       latest[cat].expiresAt=addDaysIso(latest[cat].activatedAt,28);
+       localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(latest));
+     }
+     alert('Payment verified ✅\nTotal: '+moneyINRPay(tax.total)+'\nGST invoice '+billingEmail+' ke liye generated/queued hai.\nPlan: 28 Days.');
+   }catch(e){alert('Payment complete nahi hua: '+(e&&e.message?e.message:'Unknown error'));return}
+ }
  closeBiz();
- if(base>0)alert('Listing payment: Base '+moneyINRPay(tax.base)+' + GST '+tax.rate+'% '+moneyINRPay(tax.gst)+' = '+moneyINRPay(tax.total)+'. Successful payment ke baad GST invoice aur listing activation.');
- if(cat==='Other Business'){alert('Business details saved. Approval + payment ke baad listing live hogi.');return}
+ if(cat==='Other Business'){alert('Business details saved. Admin approval ke baad listing live hogi.');return}
  openModule(cat);
 }
 
