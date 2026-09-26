@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20260926-locationfinal1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-locationfinal1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20260926-customerdesign1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-customerdesign1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -1377,10 +1377,10 @@ async function renderBottomBookings(){
   const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'];
   const s=String(b?.status||b?.state||'').toUpperCase();
   if(!b||inactive.includes(s)){
-   body.innerHTML='<div class="bottom-hub-card"><b>No active booking</b><small>Abhi koi running Home Service booking nahi hai.</small><div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button></div></div>';
+   body.innerHTML='<div class="bottom-hub-card"><span class="ocs-booking-state">ACTIVE</span><b>No active booking</b><small>Abhi koi running Home Service booking nahi hai.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button></div></div>';
   }else{
    const service=b.service||b.category||b.task||'Home Service',label=dashStatusLabel(s),id=b.id||b.bookingId||'OCS Booking';
-   body.innerHTML='<div class="bottom-hub-card"><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+'<br>Status: <b style="display:inline">'+ocsSavedText(label)+'</b></small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Track Booking</button></div></div>';
+   body.innerHTML='<div class="bottom-hub-card"><span class="ocs-booking-state">ACTIVE</span><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+'<br>Status: <b style="display:inline">'+ocsSavedText(label)+'</b></small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Track Booking</button></div></div>';
   }
   return;
  }
@@ -1414,7 +1414,7 @@ async function renderBottomBookings(){
   const dateValue=r.closed_at||r.closedAt||r.updated_at||r.created_at||'';
   const d=dateValue?new Date(dateValue).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
   const amount=Number((rawStatus==='COMPLETED'||rawStatus==='DONE')?(r.booking_amount??r.amount??0):(r.visit_charge??r.visitCharge??0));
-  return '<div class="bottom-hub-card"><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+' • '+ocsSavedText(d)+'<br>Status: '+ocsSavedText(status)+'<br>Amount: ₹'+amount.toFixed(2)+'</small>'+(bottomBookingsTab==='COMPLETED'?'<div class="bottom-hub-actions"><button onclick="closeBottomHub(\'bottomBookingsModal\');openWorkHistory(\'CUSTOMER\')">View Rating / Details</button></div>':'')+'</div>';
+  return '<div class="bottom-hub-card"><span class="ocs-booking-state '+(bottomBookingsTab==='COMPLETED'?'completed':'cancelled')+'">'+(bottomBookingsTab==='COMPLETED'?'COMPLETED':'CANCELLED')+'</span><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+' • '+ocsSavedText(d)+'<br>'+ocsSavedText(status)+'<br>Amount: ₹'+amount.toFixed(2)+'</small>'+(bottomBookingsTab==='COMPLETED'?'<div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openWorkHistory(\'CUSTOMER\')">Rating / Details</button></div>':'')+'</div>';
  }).join('');
 }
 function openBottomBookings(tab){
