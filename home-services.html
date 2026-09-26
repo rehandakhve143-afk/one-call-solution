@@ -326,14 +326,18 @@ body.customer-locked-ui #customer>details.card{display:none!important}
     <div id="providerReviews" class="provider-mini-body"></div>
   </details>
 
+  <div class="provider-quick-tools" id="providerQuickTools">
+    <button type="button" onclick="openProviderWalletQuick()"><span>₹</span><b>Wallet</b><small id="providerWalletQuick">₹0</small></button>
+    <button type="button" onclick="openProviderPayoutPanel()"><span>🏦</span><b>Bank / Payout</b><small id="providerPayoutStatus">Add ›</small></button>
+    <button type="button" onclick="openProviderHistoryQuick()"><span>↻</span><b>Work History</b><small>Jobs & earnings</small></button>
+    <button type="button" onclick="openSupport('provider')"><span>💬</span><b>Support</b><small>OCS Help</small></button>
+    <button type="button" onclick="askExpert()"><span>?</span><b>Ask Expert</b><small>Rate / work help</small></button>
+  </div>
+
   <div id="pBody"></div>
 </div>
 <div id="providerCustomerExtraMount"></div>
-<div class="dashboard-tools" id="providerTools">
-  <button class="btn alt" onclick="openSupport('provider')">Support</button>
-  <button class="btn gray" id="providerAskExpertBtn" onclick="askExpert()">Ask to Expert</button>
-</div>
-<details class="card provider-history-card"><summary><b>Provider History</b> <span class="muted">Tap to view</span></summary><div id="pLog" class="log" style="margin-top:10px"></div></details>
+<details class="card provider-history-card" id="providerHistoryCard"><summary><b>Provider History</b> <span class="muted">Tap to view</span></summary><div id="pLog" class="log" style="margin-top:10px"></div></details>
 </section>
 
 <!-- Admin is internal only; no public tab. -->
@@ -1709,6 +1713,18 @@ async function saveProviderSkillEditor(){
   }
 }
 
+function openProviderWalletQuick(){
+  const bal=Number(S.wallet||0);
+  const text=bal<0?"−₹"+Math.abs(bal).toFixed(2):"₹"+bal.toFixed(2);
+  const topup=confirm("OCS Wallet\nCurrent balance: "+text+"\nOCS Commission: 9%\n\nWallet top-up karna hai?");
+  if(topup)rechargeWallet();
+}
+function openProviderHistoryQuick(){
+  const d=document.getElementById("providerHistoryCard");
+  if(!d)return;
+  d.open=true;
+  d.scrollIntoView({behavior:"smooth",block:"start"});
+}
 async function providerPayoutSnapshot(){
   if(!ocsSupabase)throw new Error("Online service not connected");
   const session=await ocsSession();
@@ -3122,7 +3138,7 @@ if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQ
  }else if(!hasSkills){
    h=`<div class="card"><h3>Skills Required</h3><div class="notice"><b>Abhi koi skill saved nahi hai.</b><br>Electrical ya jo kaam aata hai woh select karke profile save karein. Skill approve hone ke baad matching jobs milenge.</div><button class="btn" onclick="openProviderProfileSafe()">Add / Edit Skills</button></div>`;
  }else if(verification.includes("pending")||verification===""){
-   h=`<div class="card"><h3>Verification Pending</h3><div class="notice">Profile saved hai. Selected skills ko OCS Admin approve karega. Approval ke baad hi matching jobs yahan aayenge.</div><button class="btn gray" onclick="openProviderProfileSafe()">View SP Profile / Skills</button></div>`;
+   h=`<div class="card"><h3>Verification Pending</h3><div class="notice">Profile saved hai. Selected skills ko OCS Admin approve karega. Approval ke baad hi matching jobs yahan aayenge.</div><div class="muted" style="margin-top:8px">Profile & Skills upar se kabhi bhi open kar sakte hain.</div></div>`;
  }else{
    h="";
  }
@@ -3620,6 +3636,8 @@ const prv=$("providerReviews");if(prv)prv.innerHTML=providerRatingCommentsHTML()
 $("availabilityBtn").textContent="Available: "+(S.available?"ON":"OFF");
 $("availabilityBtn").style.background=S.available?"#16a34a":"#64748b";
 if($("walletBalance"))$("walletBalance").textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
+const walletQuick=$("providerWalletQuick");if(walletQuick)walletQuick.textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
+refreshProviderPayoutStatus();
 $("currentJob").textContent=S.currentJob||((["WORKING","ON_WAY","REACHED","ASSIGNED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?"Current Booking":"None");
 $("nextJob").textContent=S.nextJob?(S.nextJob.service||"Accepted Next Job"):(S.pendingNextRequest?"NEW REQUEST":"None");
 const walletLow=Number(S.wallet)<Number(S.walletWarningLevel||200);
