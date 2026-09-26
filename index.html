@@ -1444,13 +1444,32 @@ function getOcsWalletSnapshot(){
  }
  return {customer,sp,spPaused,commission,welcome};
 }
-function renderWalletHub(){
+async function renderWalletHub(){
  const body=document.getElementById('walletHubBody');if(!body)return;
  const w=getOcsWalletSnapshot(),cp=getCustomerProfile(),sp=getProviderProfile();
- body.innerHTML=
- '<div class="bottom-hub-card"><b>Customer Wallet</b><small>Referral / reward balance</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.customer).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Share & Earn reward qualifying booking ke baad credit hoga.</div></div>'+
- '<div class="bottom-hub-card"><b>Service Provider Wallet</b><small>'+(sp?(sp.name||'Service Provider'):'SP profile not created')+'</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.sp).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Reserve target: ₹200 • OCS commission: '+Number(w.commission)+'% • Welcome Bonus: ₹'+Number(w.welcome).toLocaleString('en-IN')+' • Cash payment commission wallet se deduct hoga. ₹200 se niche warning rahegi; ₹0/negative par SMS/Email/Call reminder queue hoga. Job automatically block nahi hogi; Pause/Resume Admin control me rahega.</div>'+(w.spPaused?'<div class="notice" style="margin-top:8px">New jobs temporarily paused by Admin.</div>':'')+'</div>'+
- '<div class="bottom-hub-card"><b>Wallet Safety</b><small>Wallet balance, commission and reward history final backend records se sync honge. Customer payment history Bookings / Work History me alag rahegi.</small></div>';
+ const paint=()=>{
+   body.innerHTML=
+   '<div class="bottom-hub-card"><b>Customer Wallet</b><small>Referral / reward balance</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.customer).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Share & Earn reward qualifying booking ke baad credit hoga.</div></div>'+
+   '<div class="bottom-hub-card"><b>Service Provider Wallet</b><small>'+(sp?(sp.name||'Service Provider'):'SP profile not created')+'</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.sp).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Reserve target: ₹200 • OCS commission: '+Number(w.commission)+'% • Welcome Bonus: ₹'+Number(w.welcome).toLocaleString('en-IN')+' • Cash payment commission wallet se deduct hoga. ₹200 se niche warning rahegi; ₹0/negative par SMS/Email/Call reminder queue hoga. Job automatically block nahi hogi; Pause/Resume Admin control me rahega.</div>'+(w.spPaused?'<div class="notice" style="margin-top:8px">New jobs temporarily paused by Admin.</div>':'')+'</div>'+
+   '<div class="bottom-hub-card"><b>Wallet Safety</b><small>Wallet balance, commission and reward history final backend records se sync honge. Customer payment history Bookings / Work History me alag rahegi.</small></div>';
+ };
+ paint();
+ try{
+   if(ocsSupabase){
+     const session=await getOcsSession();
+     if(session&&session.user){
+       const {data,error}=await ocsSupabase.rpc('customer_wallet_summary_v1');
+       if(!error&&data){
+         const row=Array.isArray(data)?data[0]:data;
+         if(row&&Number.isFinite(Number(row.balance))){
+           w.customer=Number(row.balance);
+           try{localStorage.setItem('ocsCustomerWalletBalance',String(w.customer))}catch(e){}
+           paint();
+         }
+       }
+     }
+   }
+ }catch(e){console.error('Customer wallet sync failed',e)}
 }
 function openWalletHub(){
  closeAllBottomHubs();
