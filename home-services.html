@@ -1510,7 +1510,7 @@ async function customerCancelBeforeStart(){
  if(!ocsGuardAction("customer-cancel-prestart",1400))return;
  const allowed=["BOOKING_DETAILS","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","REQUESTED","ASSIGNED","ON_WAY","REACHED"];
  const effectiveStatus=(S.quoteRevision&&S.quoteRevision.returnStatus)||S.status;
- if(!allowed.includes(S.status)||effectiveStatus==="WORKING"){alert("Start OTP ke baad normal Cancel available nahi hai. Work Not Completed / Resolve Here use karein.");return}
+ if(!allowed.includes(S.status)||effectiveStatus==="WORKING"){alert("Start Service OTP ke baad normal Cancel available nahi hai. Work Not Completed / Resolve Here use karein.");return}
  const reason=(prompt("Cancel reason *")||"").trim();if(!reason)return;
  if(!confirm("Booking cancel karna hai?"))return;
 
@@ -1565,8 +1565,8 @@ async function customerCancelBeforeStart(){
    }
    S.visitCharge=charge;
    S.currentJob=null;
-   hist("Customer cancelled before Start OTP • "+(providerWasAssigned?S.provider+" notified • ":"")+(travelStarted?"Travel/visit settlement applies":"No visit charge"));
-   settleHeldNoWork(charge,travelStarted?"Customer cancelled before Start OTP after Service Provider started travelling":"Customer cancelled before Service Provider started travelling");
+   hist("Customer cancelled before Start Service OTP • "+(providerWasAssigned?S.provider+" notified • ":"")+(travelStarted?"Travel/visit settlement applies":"No visit charge"));
+   settleHeldNoWork(charge,travelStarted?"Customer cancelled before Start Service OTP after Service Provider started travelling":"Customer cancelled before Service Provider started travelling");
    return;
  }
 
@@ -1575,7 +1575,7 @@ async function customerCancelBeforeStart(){
    let charge=km>0?calculateNoWorkVisitCharge(km):199;if(!charge)charge=199;
    S.visitCharge=charge;S.distanceSlab=charge===249?">6–12 km":"1–6 km";
    S.currentJob=null;S.status="VISIT_PAYMENT";
-   hist("Customer cancelled before Start OTP • "+S.provider+" notified • Applicable travel/visit charge "+money(charge)+" • Provider should stop travel");
+   hist("Customer cancelled before Start Service OTP • "+S.provider+" notified • Applicable travel/visit charge "+money(charge)+" • Provider should stop travel");
    return;
  }
 
@@ -2284,13 +2284,13 @@ async function onWay(){
 async function reached(){
  if(!ocsRequireStage("ON_WAY","Reached"))return;
  if(!ocsGuardAction("reached",1000))return;
- try{await ocsProviderActionLive("reached");S.reachedAt=Date.now();hist(S.provider+" reached customer • Start OTP generated from backend");ocsStartLive("provider")}
+ try{await ocsProviderActionLive("reached");S.reachedAt=Date.now();hist(S.provider+" reached customer • Start Service OTP generated from backend");ocsStartLive("provider")}
  catch(e){alert("Reached update failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
 async function customerUnavailableBeforeOtp(){
  ensureBookingAmount();
- if(S.status!=="REACHED"){alert("Ye option sirf GPS Reached ke baad aur Start OTP se pehle hai.");return}
+ if(S.status!=="REACHED"){alert("Ye option sirf GPS Reached ke baad aur Start Service OTP se pehle hai.");return}
  try{
    const {data,error}=await ocsSupabase.rpc("provider_report_no_show_v1",{p_booking_id:S.activeBookingId,p_distance_km:Number(S.oneWayDistanceKm||0)||null});
    if(error)throw error;
@@ -2312,11 +2312,11 @@ function workPendingSameProvider(){
   S.rescheduleTime = when;
   S.visitCharge = 0;
   S.status = "RESCHEDULED";
-  hist("Work Pending • Same Provider "+S.provider+" • Rescheduled "+when+" • Visit charge ₹0 now • Fresh Reached + Start OTP on next visit");
+  hist("Work Pending • Same Provider "+S.provider+" • Rescheduled "+when+" • Visit charge ₹0 now • Fresh Reached + Start Service OTP on next visit");
 }
 
 async function providerReleaseJob(){
- if(!["ASSIGNED","ON_WAY"].includes(S.status)){alert("Ye option Start OTP se pehle hi use hoga.");return}
+ if(!["ASSIGNED","ON_WAY"].includes(S.status)){alert("Ye option Start Service OTP se pehle hi use hoga.");return}
  let reason=prompt("Reason: Emergency / Vehicle problem / Personal issue / Other");if(!reason)return;
  if(!confirm("Release Job confirm? Customer par ₹0 charge rahega aur next eligible Service Provider ko request jayegi."))return;
  try{
@@ -2330,14 +2330,14 @@ async function providerReleaseJob(){
 
 async function startWork(){
  if(!ocsRequireStage("REACHED","Start Work"))return;
- if(!S.startOtp){alert("Start OTP abhi generate nahi hua.");return}
+ if(!S.startOtp){alert("Start Service OTP abhi generate nahi hua.");return}
  if(!ocsGuardAction("start-work",1000))return;
- let x=prompt("Customer Start OTP enter kare");
+ let x=prompt("Customer Start Service OTP enter kare");
  if(!x)return;
  try{
    await ocsProviderActionLive("start",x);
    S.startOtpVerifiedAt=Date.now();S.startOtpUsed=true;
-   hist("Start OTP verified from backend • Work started");
+   hist("Start Service OTP verified from backend • Work started");
    ocsStartLive("provider");
  }catch(e){alert("Wrong OTP / Start failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
@@ -2544,7 +2544,7 @@ async function changeProvider(){
 
 function cancelJob(by){
  if(S.status!=="WORKING"){
-   alert("Work Not Completed sirf Start OTP ke baad WORKING stage me available hai.");
+   alert("Work Not Completed sirf Start Service OTP ke baad WORKING stage me available hai.");
    return;
  }
  S.cancelBy=by;S.cancelReason="";S.wncFault="";
@@ -3002,7 +3002,7 @@ function providerCustomerContactHTML(){
 async function ocsReached(){
  if(!ocsRequireStage("ON_WAY","GPS Reached"))return;
  if(!ocsGuardAction("gps-reached",1000))return;
- try{await ocsProviderActionLive("reached");hist(S.provider+" • GPS Reached Verified • Start OTP unlocked");ocsStartLive("provider")}
+ try{await ocsProviderActionLive("reached");hist(S.provider+" • GPS Reached Verified • Start Service OTP unlocked");ocsStartLive("provider")}
  catch(e){alert("Reached update failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 function ocsDate(v){if(!v)return "—";let d=new Date(v+"T00:00:00");return d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}
@@ -3083,7 +3083,7 @@ if(S.status==="BOOKING_DETAILS"){
  let itemLines=fixed&&selected.length
    ? '<div class="card" style="margin:10px 0;padding:10px">'+selected.map(x=>'<div class="row" style="align-items:flex-start"><div><b>'+ocsSafe(x.name)+'</b><div class="muted">'+money(Number(x.price||0))+' × '+Number(x.qty||1)+'</div></div><b>'+money(Number(x.price||0)*Number(x.qty||1))+'</b></div>').join('')+'</div>'
    : '';
- h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${S.paymentHeld?secureHoldHTML():""}<label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
+ h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${S.paymentHeld?secureHoldHTML():""}<label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment preferred/default hai. Network ya payment issue me Cash allowed hai.</div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
 }
 
 if(S.status==="READY")h=`
@@ -3096,7 +3096,7 @@ if(S.status==="READY")h=`
     <button class="btn ${S.paymentChoice==="ONLINE"?"ok":"gray"}" onclick="choosePayment('ONLINE')">Online</button>
     <button class="btn ${S.paymentChoice==="CASH"?"ok":"gray"}" onclick="choosePayment('CASH')">Cash</button>
   </div>
-  <div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div>
+  <div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment preferred/default hai. Network ya payment issue me Cash allowed hai.</div>
 </div>
 <button class="btn" onclick="booking()">Find Service Provider</button>
 </div>`;
@@ -3117,14 +3117,14 @@ ${S.status==="ON_WAY"?`<div class="ocs-route"><div class="ocs-route-head"><b>Ser
 
 if(S.status==="REACHED")h=`
 <div class="notice good"><b>GPS Reached Verified • ${S.provider}</b><br>
-Start OTP: <b style="font-size:26px">${S.startOtp}</b><br>
+Start Service OTP: <b style="font-size:26px">${S.startOtp}</b><br>
 <span class="muted">OTP only after GPS Reached verification.</span></div>
-<div class="card"><h3>Cancel Before Work Starts</h3><div class="muted">Start OTP abhi verify nahi hua. Cancel karne par applicable ₹199 / ₹249 visit charge lagega.</div><button class="btn red" onclick="customerCancelBeforeStart()">Cancel Booking</button></div>`;
+<div class="card"><h3>Cancel Before Work Starts</h3><div class="muted">Start Service OTP abhi verify nahi hua. Cancel karne par applicable ₹199 / ₹249 visit charge lagega.</div><button class="btn red" onclick="customerCancelBeforeStart()">Cancel Booking</button></div>`;
 
 if(S.status==="WORKING"){
 h=`<div class="notice good"><b>Customer • Work In Progress</b><br>Service Provider: ${S.provider}<br>Current Booking Total: ₹${S.total}</div>
 <div class="card"><h3>Customer Actions</h3>
-<div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div>
+<div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment preferred/default hai. Network ya payment issue me Cash allowed hai.</div>
 <div class="muted" style="margin-bottom:10px">Extra work add karein, same provider ke saath reschedule karein, ya problem ho to resolve karein.</div>
 <button class="btn" onclick="customerOpenAddMoreWork()">+ Add More Work</button>
 <button class="btn alt" onclick="openReschedule('customer')">Work Pending / Reschedule</button>`;
@@ -3164,7 +3164,7 @@ if(S.status==="RESCHEDULED")h=`
 
 if(S.status==="COMPLETION_CONFIRM")h=`
 <div class="card"><h3>Work Completed?</h3>
-<div class="notice">Service Provider ne work complete mark kiya hai.<br><b>Start OTP sirf work start proof hai.</b> Completion Customer confirm karega.</div>
+<div class="notice">Service Provider ne work complete mark kiya hai.<br><b>Start Service OTP sirf work start proof hai.</b> Completion Customer confirm karega.</div>
 <div class="muted" style="margin:8px 0">Get Quote job me extra photo/video proof mandatory nahi hai. Quote, Chat, Call/Video activity, payment aur booking history OCS record me rahegi.</div>
 <div class="row">
 <button class="btn ok" onclick="confirmCompletion(true)">Confirm Work Completed</button>
@@ -3190,7 +3190,7 @@ if(S.status==="CASH_WAIT")h=`<div class="notice">Cash Paid marked.<br>Waiting fo
 
 if(S.status==="NO_SHOW_VISIT")h=`
 <div class="card"><h3>Provider Reached • Customer Unavailable</h3>
-<div class="notice">Start OTP verify nahi hua. Provider ne <b>Customer Not Available / Entry Not Provided</b> select kiya hai.</div>
+<div class="notice">Start Service OTP verify nahi hua. Provider ne <b>Customer Not Available / Entry Not Provided</b> select kiya hai.</div>
 <div class="muted">Applicable visit charge: 1–6 km ₹199 • above 6–12 km ₹249. Customer ko polite notification/payment reminder milega. Resolve na ho to OCS Admin booking record dekhkar dono side se baat karega.</div>
 </div>`;
 
@@ -3199,7 +3199,7 @@ if(S.status==="WNC_CUSTOMER_REASON" || (S.status==="WNC_PROVIDER_REASON" && S.ca
 <div class="notice good"><b>If same Service Provider will continue later:</b><br>Use Work Pending / Reschedule instead of closing the job.</div>
 <button class="btn alt" onclick="workPendingSameProvider()">Work Pending / Reschedule Same Provider</button>
 <p><b>Why was the work not completed?</b></p>
-<button class="btn alt" onclick="chooseWncReason('CUSTOMER','Customer stopped / cancelled work after Start OTP')">I want to stop / cancel this work</button>
+<button class="btn alt" onclick="chooseWncReason('CUSTOMER','Customer stopped / cancelled work after Start Service OTP')">I want to stop / cancel this work</button>
 <button class="btn alt" onclick="chooseWncReason('CUSTOMER','Customer did not allow work to continue')">I did not allow work to continue</button>
 <button class="btn red" onclick="chooseWncReason('PROVIDER','Service Provider unable / unprepared / refused work')">Service Provider unable / unprepared / refused work</button>
 <button class="btn red" onclick="chooseWncReason('PROVIDER','Service Provider behaviour issue')">Service Provider behaviour issue</button>
@@ -3362,16 +3362,16 @@ if(S.status==="ON_WAY")h=`<div class="ocs-route"><div class="ocs-route-head"><b>
 
 if(S.status==="REACHED")h=`
 <div class="ocs-route"><div class="ocs-route-head"><b>Customer Service Address</b><span class="ocs-pill">Reached ✓</span></div><div class="ocs-address"><small>Booking Address</small><b>${ocsAddress()}</b></div><button class="btn gray" onclick="ocsDirections()">Map / Directions</button></div>
-<div class="notice"><b>GPS Reached Verified</b><br>Customer se Start OTP lo.</div>
+<div class="notice"><b>GPS Reached Verified</b><br>Customer se Start Service OTP lo.</div>
 ${S.isQuoteBooking?'<div class="notice"><b>Get Quote History Active</b><br>Accepted quote, chat/call discussion aur payment/booking record dono sides ke history me rahega. Extra work-proof upload required nahi hai.</div>':""}
-<button class="btn" onclick="startWork()">Enter Start OTP</button>
+<button class="btn" onclick="startWork()">Enter Start Service OTP</button>
 <button class="btn red" onclick="customerUnavailableBeforeOtp()">Customer Not Available / OTP Not Provided / Entry Not Provided</button>`;
 
 if(S.status==="WORKING"){
 h=`<div class="notice good"><b>Service Provider • Work In Progress</b><br>Current Booking Total: ₹${S.total}</div>
 ${providerNextJobQueueHTML()}
 <div class="card"><h3>Service Provider Actions</h3>
-<div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment Compulsory hai. Sirf network issue me Cash allowed hai.</div>
+<div class="notice" style="margin:10px 0;background:#eefcf7;border-left-color:#0f9f7f"><b>OCS Record & Safety</b><br>Online Payment preferred/default hai. Network ya payment issue me Cash allowed hai.</div>
 <div class="muted" style="margin-bottom:10px">Customer ke booking par kaam chal raha hai. Extra work ke liye OCS Rate Card use karein.</div>
 ${S.isQuoteBooking?'<div class="notice"><b>Get Quote • Simple Flow</b><br>No mandatory before/after photo-video. Finish Job ke baad Customer confirmation hoga; full OCS history retained rahegi.</div>':""}
 <button class="btn" onclick="openAddWork()">+ Add Work • OCS Rate Card</button>
@@ -3382,7 +3382,7 @@ ${S.isQuoteBooking?'<div class="notice"><b>Get Quote • Simple Flow</b><br>No m
 }
 
 if(S.status==="NO_SHOW_VISIT")h=`
-<div class="notice good"><b>Provider visit record saved.</b><br>Customer Not Available / OTP Not Provided / Entry Not Provided<br>Start OTP not verified.</div>
+<div class="notice good"><b>Provider visit record saved.</b><br>Customer Not Available / OTP Not Provided / Entry Not Provided<br>Start Service OTP not verified.</div>
 <div class="muted">Applicable visit charge will follow distance rule. If payment is not resolved, OCS Admin handles it from booking records.</div>`;
 
 if(S.status==="RESCHEDULE_PENDING"){
@@ -3409,7 +3409,7 @@ if(S.status==="WNC_PROVIDER_REASON" && S.cancelBy!=="customer")h=`
 <div class="notice good"><b>If same provider will continue later:</b><br>Use Work Pending / Reschedule instead of closing the job.</div>
 <button class="btn alt" onclick="workPendingSameProvider()">Work Pending / Reschedule Same Provider</button>
 <p><b>Why was the work not completed?</b></p>
-<button class="btn alt" onclick="chooseWncReason('CUSTOMER','Customer stopped / cancelled work after Start OTP')">Customer stopped / cancelled work</button>
+<button class="btn alt" onclick="chooseWncReason('CUSTOMER','Customer stopped / cancelled work after Start Service OTP')">Customer stopped / cancelled work</button>
 <button class="btn alt" onclick="chooseWncReason('CUSTOMER','Customer did not allow work to continue')">Customer did not allow work to continue</button>
 <button class="btn red" onclick="chooseWncReason('PROVIDER','Service Provider unable / unprepared / refused work')">Provider unable / unprepared / refused work</button>
 <button class="btn red" onclick="chooseWncReason('PROVIDER','Service Provider behaviour issue')">Provider behaviour issue</button>
@@ -3438,10 +3438,10 @@ if(S.status==="WNC_CUSTOMER_CONFIRM")h=`<div class="notice">Reason sent to Custo
 if(S.status==="VISIT_REVIEW")h=`<div class="notice">Work Not Completed request opened.<br>Waiting for Customer visit-charge resolution.</div>`;
 
 if(S.status==="VISIT_PAYMENT"||S.status==="SUPPORT_REVIEW")h=S.customerCancelledBeforeStart
- ?`<div class="notice bad"><b>Customer Cancelled Before Start OTP</b><br>${ocsSafe(S.cancelReason||"Customer cancelled booking")}<br>Do not continue travel / do not start work.</div><div class="notice">Applicable visit/travel charge: <b>${money(S.visitCharge||0)}</b> • Waiting for Customer / OCS settlement.</div>`
+ ?`<div class="notice bad"><b>Customer Cancelled Before Start Service OTP</b><br>${ocsSafe(S.cancelReason||"Customer cancelled booking")}<br>Do not continue travel / do not start work.</div><div class="notice">Applicable visit/travel charge: <b>${money(S.visitCharge||0)}</b> • Waiting for Customer / OCS settlement.</div>`
  :`<div class="notice">Waiting for Customer / OCS Support.</div>`;
 if(S.status==="HELD_WNC_SETTLEMENT")h=S.customerCancelledBeforeStart
- ?`<div class="notice bad"><b>Customer Cancelled Before Start OTP</b><br>${ocsSafe(S.cancelReason||"Customer cancelled booking")}<br>Do not continue travel / do not start work.</div><div class="notice"><b>OCS Secure Payment is on hold.</b><br>Visit charge/refund settlement pending.</div>`
+ ?`<div class="notice bad"><b>Customer Cancelled Before Start Service OTP</b><br>${ocsSafe(S.cancelReason||"Customer cancelled booking")}<br>Do not continue travel / do not start work.</div><div class="notice"><b>OCS Secure Payment is on hold.</b><br>Visit charge/refund settlement pending.</div>`
  :`<div class="notice"><b>OCS Secure Payment is on hold.</b><br>Work Not Completed settlement: visit charge/refund Customer confirmation pending.</div>`;
 
 if(S.status==="VISIT_CASH_WAIT")h=`
