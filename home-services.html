@@ -401,8 +401,8 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 </div>
 <div class="card">
 <h3>Internal Accounting</h3>
-<div class="muted">OCS commission for completed Home Service jobs.</div>
-<div><b>OCS Commission: 9%</b></div>
+<div class="muted">OCS charge for completed Home Service jobs.</div>
+<div><b>OCS Charge</b></div>
 <div id="adminAccounting" class="muted"></div>
 </div>
 <div class="card"><h3>Admin History</h3><div id="aLog" class="log"></div></div>
@@ -1733,7 +1733,7 @@ async function saveProviderSkillEditor(){
 function openProviderWalletQuick(){
   const bal=Number(S.wallet||0);
   const text=bal<0?"−₹"+Math.abs(bal).toFixed(2):"₹"+bal.toFixed(2);
-  const topup=confirm("OCS Wallet\nCurrent balance: "+text+"\nReserve target: ₹200\nOCS Commission: 9%\n\n₹200 hard block nahi hai. New jobs sirf Admin pause kar sakta hai.\n\nWallet top-up karna hai?");
+  const topup=confirm("OCS Wallet\nCurrent balance: "+text+"\nReserve target: ₹200\nOCS Charge: calculated automatically\n\n₹200 hard block nahi hai. New jobs sirf Admin pause kar sakta hai.\n\nWallet top-up karna hai?");
   if(topup)rechargeWallet();
 }
 function openProviderHistoryQuick(){
@@ -2050,12 +2050,12 @@ function applyCommission(amount,method){
  S.platformCharge=9;
  const isCash=String(method||S.payment||S.paymentChoice||"").toUpperCase().includes("CASH");
  if(!isCash){
-   hist("OCS platform commission 9% • ₹"+charge.toFixed(2)+" retained from online settlement • Wallet reserve unchanged");
+   hist("OCS charge • ₹"+charge.toFixed(2)+" retained from online settlement • Wallet reserve unchanged");
    return charge;
  }
  S.wallet=Math.round((Number(S.wallet||0)-charge)*100)/100;
  S.jobAccess=!S.adminPaused;
- hist("Cash payment • OCS platform commission 9% • ₹"+charge.toFixed(2)+" deducted from Wallet");
+ hist("Cash payment • OCS charge • ₹"+charge.toFixed(2)+" deducted from Wallet");
  if(S.wallet<Number(S.walletWarningLevel||200)){
    hist("Wallet "+(S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2))+" • Below ₹200 reserve target • Warning only • Jobs remain active unless OCS Admin pauses them");
    queueWalletMaintenanceEmail();
@@ -3545,18 +3545,18 @@ function adminHTMLState(){
  <div class="row"><span>Available for Work</span><b>${snap.available_for_work?"ON":"OFF"}</b></div>
  <div class="row"><span>Wallet Balance</span><b>${walletText}</b></div>
  <div class="row"><span>Reserve Target</span><b>₹200 • Warning only • No auto-block</b></div>
- <div class="row"><span>OCS Commission</span><b>9% • Cash: wallet debit • Online: settlement deduction</b></div>`:
+ <div class="row"><span>OCS Charge</span><b>Cash: wallet debit • Online: settlement deduction</b></div>`:
  '<div class="muted">No assigned Service Provider record.</div>';
 
  let provider=hasSnap&&snap.provider_id?`<div><b>${ocsSafe(snap.provider_name||"Service Provider")}</b> • Available: ${snap.available_for_work?"ON":"OFF"} • New Jobs: ${snap.admin_paused?"PAUSED":"ACTIVE"}</div>
- <div class="muted">Wallet Balance: ${walletText} • OCS Commission: 9%</div>`:
- `<div><b>${ocsSafe(S.provider||"Service Provider")}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div><div class="muted">Wallet Balance: ${walletText} • OCS Commission: 9%</div>`;
+ <div class="muted">Wallet Balance: ${walletText} • OCS charge calculated per completed job</div>`:
+ `<div><b>${ocsSafe(S.provider||"Service Provider")}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div><div class="muted">Wallet Balance: ${walletText} • OCS charge calculated per completed job</div>`;
 
  let visit=`<div class="muted">GPS one-way: ${Number(S.oneWayDistanceKm||0).toFixed(1)} km • Suggested: ${S.suggestedVisitCharge?money(S.suggestedVisitCharge):"—"} • Final: ${S.visitCharge?money(S.visitCharge):"—"}</div>`;
  let support=S.supportTicket?`<b>${S.supportTicket}</b> • ${S.cancelReason||S.providerChangeReason||"Review required"}`:`<span class="muted">No open support ticket.</span>`;
  let accounting=hasSnap
-   ?`Booking Amount: ${money(amount)} • OCS 9% Commission: ${money(charge)} • SP Wallet: ${walletText}`
-   :`Booking Amount: ₹0 • OCS 9% Commission: ₹0 • SP Wallet: ${walletText}`;
+   ?`Booking Amount: ${money(amount)} • OCS Charge: ${money(charge)} • SP Wallet: ${walletText}`
+   :`Booking Amount: ₹0 • OCS Charge: ₹0 • SP Wallet: ${walletText}`;
 
  return {booking,customer,providerDetails,provider,visit,support,accounting};
 }
