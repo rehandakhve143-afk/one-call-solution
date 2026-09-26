@@ -385,7 +385,11 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 <section id="admin" class="screen hide">
 <div class="head"><div><h2>OCS Admin Control</h2><div class="muted">Admin Panel Active</div><div class="muted">Same live booking state • internal control</div></div><span class="status" id="aStatus">READY</span></div>
 <div class="card">
-<h3>Live Booking</h3>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+  <h3 style="margin:0">Live Booking</h3>
+  <button type="button" class="btn gray" style="width:auto;min-height:34px;margin:0;padding:7px 11px;font-size:11px" onclick="refreshAdminLiveSnapshot()">↻ Refresh Live</button>
+</div>
+<div class="muted" id="adminLiveRefreshNote" style="margin:7px 0 10px">Auto refresh every 5 seconds</div>
 <div id="adminBooking"></div>
 </div>
 <div class="card">
@@ -1650,7 +1654,13 @@ async function showTab(x){
     refreshProviderPayoutStatus();
     if(S.status==="REQUESTED"){S.providerRequestSeen=true;saveHomeState();}
   }
-  if(x==="admin"){await Promise.all([adminLoadSkillQueue(),adminLoadLatestBookingSnapshot()]);render()}
+  if(x==="admin"){
+    await Promise.all([adminLoadSkillQueue(),adminLoadLatestBookingSnapshot()]);
+    render();
+    startAdminLiveRefresh();
+  }else{
+    stopAdminLiveRefresh();
+  }
   window.scrollTo(0,0);
 }
 function syncHomeState(){
@@ -3618,6 +3628,55 @@ async function adminRemovePendingCategory(providerId,category){
    await adminLoadSkillQueue();
  }catch(e){alert("Bulk remove failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
+
+let adminLiveRefreshTimer=null;
+function stopAdminLiveRefresh(){
+  if(adminLiveRefreshTimer){clearInterval(adminLiveRefreshTimer);adminLiveRefreshTimer=null}
+}
+function paintAdminSnapshotOnly(){
+  const admin=document.getElementById("admin");
+  if(!admin||admin.classList.contains("hide"))return;
+  const A=adminHTMLState();
+  const booking=document.getElementById("adminBooking");
+  const customer=document.getElementById("adminCustomer");
+  const providerDetails=document.getElementById("adminProviderDetails");
+  const provider=document.getElementById("adminProvider");
+  const visit=document.getElementById("adminVisit");
+  const support=document.getElementById("adminSupport");
+  const accounting=document.getElementById("adminAccounting");
+  if(booking)booking.innerHTML=A.booking;
+  if(customer)customer.innerHTML=A.customer;
+  if(providerDetails)providerDetails.innerHTML=A.providerDetails;
+  if(provider)provider.innerHTML=A.provider;
+  if(visit)visit.innerHTML=A.visit;
+  if(support)support.innerHTML=A.support;
+  if(accounting)accounting.textContent=A.accounting;
+  const note=document.getElementById("adminLiveRefreshNote");
+  if(note)note.textContent="Live updated • "+new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+}
+async function refreshAdminLiveSnapshot(){
+  try{
+    await adminLoadLatestBookingSnapshot();
+    paintAdminSnapshotOnly();
+  }catch(e){
+    console.error("Admin live refresh failed",e);
+    const note=document.getElementById("adminLiveRefreshNote");
+    if(note)note.textContent="Live refresh failed • tap Refresh Live";
+  }
+}
+function startAdminLiveRefresh(){
+  stopAdminLiveRefresh();
+  adminLiveRefreshTimer=setInterval(()=>{
+    const admin=document.getElementById("admin");
+    if(admin&&!admin.classList.contains("hide"))refreshAdminLiveSnapshot();
+  },5000);
+}
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"){
+    const admin=document.getElementById("admin");
+    if(admin&&!admin.classList.contains("hide"))refreshAdminLiveSnapshot();
+  }
+});
 
 async function adminLoadLatestBookingSnapshot(){
   if(!ocsSupabase)return null;
