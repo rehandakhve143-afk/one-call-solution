@@ -159,7 +159,7 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <label>I am posting as</label><select class="field" id="poster" onchange="posterChange()"><option>Property Owner</option><option>Builder / Developer</option></select>
 <div class="property-plan-box" id="propertyPlanBox">
   <b id="propertyPlanTitle">Owner Single Post</b>
-  <span id="propertyPlanPrice">₹199 / 28 days</span>
+  <span id="propertyPlanPrice">₹199 + GST / 28 days</span>
   <small id="propertyPlanHelp">Single property listing with photos and direct customer contact.</small>
 </div>
 <div id="builderIdentity" class="builder-block hidden">
@@ -296,7 +296,7 @@ function posterChange(){
    if(help)help.textContent='Single property listing with photos and direct customer contact.';
  }
  const pp=propertyPlanPrice(propertyPlanDays),lab=propertyPlanDays===180?'6 Months':'28 Days';
- if(price)price.textContent=(pp===null?'Rate not set':'₹'+Number(pp).toLocaleString('en-IN'))+' / '+lab;
+ if(price)price.textContent=propertyPlanPayText(propertyPlanDays)+' / '+lab;
  if(notice)propertyPlanDurationChange();
 }
 function typeChange(){$('bhkWrap').classList.toggle('hidden',$('ptype').value==='Land')}
@@ -307,11 +307,27 @@ function propertyPlanPrice(days){
  try{if(window.parent&&typeof window.parent.getPricing==='function')raw=window.parent.getPricing()[key]}catch(e){}
  raw=Number(raw);return Number.isFinite(raw)?raw:null;
 }
+function propertyPlanTax(days){
+ const base=propertyPlanPrice(days);
+ if(base===null)return null;
+ try{if(window.parent&&typeof window.parent.getGstBreakup==='function')return window.parent.getGstBreakup(base)}catch(e){}
+ const gst=Number((Number(base)*18/100).toFixed(2));
+ return {base:Number(base),rate:18,gst,total:Number((Number(base)+gst).toFixed(2)),enabled:true};
+}
+function propertyMoney(n){return '₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:Number(n)%1?2:0,maximumFractionDigits:2})}
+function propertyPlanPayText(days){
+ const x=propertyPlanTax(days);
+ if(!x)return 'Rate not set';
+ if(Number(x.base)===0)return 'FREE';
+ if(!x.enabled||Number(x.rate)<=0)return propertyMoney(x.base);
+ return 'Base '+propertyMoney(x.base)+' + GST '+x.rate+'% '+propertyMoney(x.gst)+' = '+propertyMoney(x.total);
+}
 function propertyPlanDurationChange(){
  const sel=$('propertyPlanSelect');propertyPlanDays=sel?Number(sel.value)||28:28;
  const notice=$('propertyPaymentNotice');if(!notice)return;
  const b=$('poster').value.includes('Builder'),label=propertyPlanDays===180?'6 Months':'28 Days',p=propertyPlanPrice(propertyPlanDays);
- notice.innerHTML='<b>Final step:</b> '+(b?'Builder Advertisement':'Owner Single Post')+' • '+label+' • '+(p===null?'Rate not set':'₹'+Number(p).toLocaleString('en-IN'))+'. Payment successful hone ke baad listing live hogi.';
+ const tax=propertyPlanTax(propertyPlanDays);
+ notice.innerHTML='<b>Final step:</b> '+(b?'Builder Advertisement':'Owner Single Post')+' • '+label+'<br>'+(tax?propertyPlanPayText(propertyPlanDays):'Rate not set')+'<br>Successful payment ke baad GST invoice aur listing activation.';
 }
 function validEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim())}
 function validPhone(v){return String(v||'').replace(/\D/g,'').length>=10}
@@ -347,7 +363,7 @@ function makePreview(){
  '<div class="price">₹'+Number($('price').value||0).toLocaleString('en-IN')+(purpose==='Rent'?' / month':'')+'</div>'+
  '<div>'+esc(type)+(type!=='Land'?' • '+esc($('bhk').value):'')+($('sqft').value?' • '+esc($('sqft').value)+' sq ft':'')+(b&&$('projectStatus').value?' • '+esc($('projectStatus').value):'')+'</div>'+
  '<p>'+esc($('desc').value||'No description added')+'</p>'+
- '<div class="property-preview-plan"><b>'+(b?'Builder Advertisement':'Owner Single Post')+'</b><span>'+(p===null?'Rate not set':'₹'+Number(p).toLocaleString('en-IN'))+' / '+planLabel+'</span></div>'+
+ '<div class="property-preview-plan"><b>'+(b?'Builder Advertisement':'Owner Single Post')+'</b><span>'+(p===null?'Rate not set':propertyPlanPayText(propertyPlanDays))+' / '+planLabel+'</span></div>'+
  (b?'<div class="ownerbox"><b>Builder Profile Features</b><br>'+esc(featureBits.join(' • ')||'Project Gallery')+'</div>':'<div class="ownerbox"><b>Owner Single Post</b><br>One property listing • Photos • Direct contact</div>')+
  '<div class="preview-actions"><span>📞 Call</span><span>💬 Chat</span><span>🟢 WhatsApp</span><span>✉ Email</span>'+(b&&$('mapLink').value?'<span>📍 Directions</span>':'')+'</div>';
 }
@@ -515,7 +531,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    const card=$("liveArea").firstElementChild;
    addManage(card);
    saveState();
-   if(!wasEdit){try{const state=JSON.parse(localStorage.getItem(KEY)||"{}");state.planDays=propertyPlanDays;state.planPrice=propertyPlanPrice(propertyPlanDays);state.expiresAt=ocsPropertyNewExpiry(propertyPlanDays);state.renewalEmail=($("renewalEmail")?.value||"").trim();state.reminder7At=ocsPropertyReminder7(state.expiresAt);state.reminder1At=ocsPropertyReminder1(state.expiresAt);state.reminder7Status="SCHEDULED";state.reminder1Status="SCHEDULED";localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+   if(!wasEdit){try{const state=JSON.parse(localStorage.getItem(KEY)||"{}");const tax=propertyPlanTax(propertyPlanDays);state.planDays=propertyPlanDays;state.planPrice=propertyPlanPrice(propertyPlanDays);state.basePrice=tax?tax.base:state.planPrice;state.gstRate=tax?tax.rate:0;state.gstAmount=tax?tax.gst:0;state.payable=tax?tax.total:state.planPrice;state.paymentStatus=Number(state.planPrice||0)===0?"ADMIN_FREE":"PAYMENT_PENDING";state.expiresAt=ocsPropertyNewExpiry(propertyPlanDays);state.renewalEmail=($("renewalEmail")?.value||"").trim();state.reminder7At=ocsPropertyReminder7(state.expiresAt);state.reminder1At=ocsPropertyReminder1(state.expiresAt);state.reminder7Status="SCHEDULED";state.reminder1Status="SCHEDULED";localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
    updateProfileButton();
    if(editMode){
      const done=document.querySelector("#done .notice");
