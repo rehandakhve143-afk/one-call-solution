@@ -547,6 +547,17 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
        if(!adminFree){alert("Admin FREE access allowed nahi hai.");return}
      }
      tax=adminFree?{base:0,rate:0,gst:0,total:0,enabled:false}:propertyPlanTax(propertyPlanDays);planLabel=ocsPropertyPlanLabel(propertyPlanDays);
+     if(adminFree&&window.parent&&typeof window.parent.recordAdminFreePostBackend==='function'){
+       await window.parent.recordAdminFreePostBackend({
+         sourceKind:"property_listing",
+         category:$("poster")?.value.includes("Builder")?"Property Builder":"Property Owner",
+         title:"OCS Property Listing • "+($("project")?.value||$("propertyTitle")?.value||$("poster")?.value||"Property"),
+         email:invoiceEmail,
+         planLabel,
+         durationDays:propertyPlanDays,
+         metadata:{propertyType:$("ptype")?.value||"",city:$("city")?.value||"",area:$("area")?.value||"",poster:$("poster")?.value||""}
+       });
+     }
      if(Number(pp)>0&&!adminFree){
        try{
          if(!window.parent||typeof window.parent.ocsPayPaidPost!=="function")throw new Error("OCS payment service ready nahi hai");
