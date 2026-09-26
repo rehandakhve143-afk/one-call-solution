@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20260926-locationsearch1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-locationsearch1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20260926-locationfinal1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260926-locationfinal1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -149,6 +149,8 @@ setTimeout(function(){
 
 <div class="modal" id="locationModal"><div class="sheet ocs-location-sheet">
   <div class="bottom-hub-head"><div><h2>Select your location</h2><div class="muted">Search your area or use your current location</div></div><button class="x" onclick="closeLocationPicker()">×</button></div>
+
+  <div id="ocsLocationSelected" class="ocs-location-selected" style="display:none"></div>
 
   <div class="ocs-location-search-card">
     <div class="ocs-location-search-row">
@@ -1530,17 +1532,18 @@ function renderOcsHomeLocation(){
   sub.textContent=loc.source==='gps'?'Current location':'Service location';
 }
 function openLocationPicker(){
-  const loc=getOcsLocation(),input=document.getElementById('ocsManualLocation');
+  const loc=getOcsLocation(),input=document.getElementById('ocsManualLocation'),selected=document.getElementById('ocsLocationSelected');
   if(input)input.value=(loc&&loc.source==='manual')?(loc.label||''):'';
+  if(selected){
+    if(loc){
+      selected.style.display='flex';
+      selected.innerHTML='<span class="ocs-location-selected-pin">⌖</span><span><b>Selected location</b><small>'+ocsSavedText(loc.label||'Current location')+'</small></span>';
+    }else{
+      selected.style.display='none';
+      selected.innerHTML='';
+    }
+  }
   document.getElementById('locationModal').classList.add('show');
-  setTimeout(()=>input?.focus(),120);
-}
-function toggleManualOcsLocation(){
-  const wrap=document.getElementById('ocsManualLocationWrap');
-  if(!wrap)return;
-  const opening=wrap.style.display==='none'||!wrap.style.display;
-  wrap.style.display=opening?'block':'none';
-  if(opening)setTimeout(()=>document.getElementById('ocsManualLocation')?.focus(),50);
 }
 function closeLocationPicker(){document.getElementById('locationModal').classList.remove('show')}
 function saveManualOcsLocation(){
@@ -1613,8 +1616,8 @@ async function openSettings(){
  document.getElementById('setNotifications').checked=x.notifications!==false;
  document.getElementById('setPayment').value=x.payment||'ONLINE';
  document.getElementById('setLanguage').value=x.language||'EN';
- const loc=document.getElementById('setLocationState');
- if(loc)loc.textContent=x.locationAllowed?'Allowed':'Not allowed';
+ const loc=document.getElementById('setLocationState'),savedLoc=getOcsLocation();
+ if(loc)loc.textContent=savedLoc?(savedLoc.source==='gps'?'Current location':(savedLoc.label||'Area selected')):(x.locationAllowed?'Allowed':'Not set');
  const cp=getCustomerProfile(),sp=getProviderProfile(),w=getOcsWalletSnapshot();
  const cs=document.getElementById('settingsCustomerProfileState'),ps=document.getElementById('settingsProviderProfileState');
  const cpComplete=!!(cp&&cp.name&&cp.mobile&&cp.email);
