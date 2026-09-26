@@ -831,7 +831,7 @@ function loadSavedHomeState(){
    if(!raw)return;
    const saved=JSON.parse(raw);
    if(saved&&typeof saved==="object"&&saved.status){
-     if(Number(saved.rulesVersion||0)<9){
+     if(Number(saved.rulesVersion||0)<10){
        S.provider=saved.provider||"SP1";
        S.available=saved.available!==false;
        S.wallet=Number.isFinite(Number(saved.wallet))?Number(saved.wallet):100;
@@ -839,7 +839,7 @@ function loadSavedHomeState(){
        S.jobAccess=!S.adminPaused;
        S.providerRatings=Array.isArray(saved.providerRatings)?saved.providerRatings:[];
        S.supportTickets=Array.isArray(saved.supportTickets)?saved.supportTickets:[];
-       S.rulesVersion=9;
+       S.rulesVersion=10;
        S.flowVersion=11;
        try{localStorage.removeItem(OCS_HOME_STATE_KEY)}catch(e){}
        try{if(window.parent&&window.parent.localStorage){window.parent.localStorage.removeItem(OCS_HOME_STATE_KEY);window.parent.localStorage.removeItem("ocsCurrentBooking")}}catch(e){}
@@ -863,7 +863,7 @@ function loadSavedHomeState(){
      S.pendingRatingStars=Number(S.pendingRatingStars||0);
      S.pendingRatingComment=S.pendingRatingComment||"";
      S.customerRatingComment=S.customerRatingComment||"";
-     S.rulesVersion=9;
+     S.rulesVersion=10;
      S.flowVersion=11;
      S.adminPaused=!!saved.adminPaused;
      S.jobAccess=!S.adminPaused;
@@ -1794,7 +1794,7 @@ async function openProviderWalletQuick(){
       if(x==="topup")return "Add Money";
       if(x==="commission")return "Job Settlement";
       if(x==="online_settlement")return "Online Job Settlement";
-      if(x==="online_reserve_replenish")return "Online Reserve Adjustment";
+      if(x==="online_reserve_replenish")return "Online Settlement Adjustment";
       if(x==="withdrawal")return "Withdrawal";
       if(x==="withdrawal_reversal")return "Withdrawal Reversal";
       if(x==="welcome_bonus")return "Wallet Credit";
@@ -2128,7 +2128,7 @@ function queueWalletMaintenanceEmail(){
 }
 function queueWalletZeroReminders(){
  const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
- const msg="OCS Wallet is "+bal+". Please recharge your wallet reserve. Work status remains under OCS Admin control.";
+ const msg="OCS Wallet is "+bal+". Please recharge your wallet. Work status remains under OCS Admin control.";
  S.walletReminderHistory=S.walletReminderHistory||[];
  ["SMS","EMAIL","CALL"].forEach(ch=>S.walletReminderHistory.unshift({channel:ch,message:msg,status:"QUEUED",at:new Date().toISOString()}));
  hist("Wallet ₹0/negative • SMS + Email + Call reminder queued • Work status remains under Admin control");
@@ -2927,7 +2927,7 @@ function resetAll(){
    providerRatings:providerState.providerRatings,customerRating:null,pendingRatingStars:0,customerRatingComment:"",
    wallet:providerState.wallet,welcomeBonus:providerState.welcomeBonus,walletWarningLevel:providerState.walletWarningLevel,
    platformCharge:providerState.platformCharge,commissionDue:0,
-   adminPaused:providerState.adminPaused,jobAccess:!providerState.adminPaused,rulesVersion:9,flowVersion:11,
+   adminPaused:providerState.adminPaused,jobAccess:!providerState.adminPaused,rulesVersion:10,flowVersion:11,
    currentJob:null,nextJob:providerState.nextJob||null,pendingNextRequest:null,completionRequested:false,
    providerChangeReason:null,providerChangeTicket:null,previousProvider:null,
    customerProfileAvailable:false,customerVerified:false,providerProfileAvailable:false,registeredProviderName:"",registeredProviderSkills:[],providerArea:"",providerRadius:0,providerVerificationStatus:"Not registered",providerBackendConnected:false,providerRequestForThisProfile:false,
