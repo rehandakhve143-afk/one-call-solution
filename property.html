@@ -203,7 +203,8 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <span class="step-kicker">Contact & Links</span>
 <div class="contact-grid"><div><label>Call Number *</label><input class="field" id="contactPhone" inputmode="tel" placeholder="Mobile number"></div><div><label>WhatsApp Number *</label><input class="field" id="contactWhatsapp" inputmode="tel" placeholder="WhatsApp number"></div></div>
 <label>Contact Email *</label><input class="field" id="contactEmail" type="email" placeholder="name@email.com">
-<label>Registered Email for Renewal Reminder *</label><input class="field" id="renewalEmail" type="email" placeholder="name@email.com">
+<label>Registered Email for GST Invoice & Renewal *</label><input class="field" id="renewalEmail" type="email" placeholder="name@email.com">
+<div class="muted" style="margin-top:5px">Successful payment ke baad GST invoice isi email par jayega; renewal reminders bhi isi email par aayenge.</div>
 <div class="muted">Expiry se 7 days aur 1 day pehle renewal reminder is email par jayega.</div>
 <div id="builderLinks" class="builder-block hidden">
   <h3>Builder Advertisement Links</h3>
@@ -327,7 +328,8 @@ function propertyPlanDurationChange(){
  const notice=$('propertyPaymentNotice');if(!notice)return;
  const b=$('poster').value.includes('Builder'),label=propertyPlanDays===180?'6 Months':'28 Days',p=propertyPlanPrice(propertyPlanDays);
  const tax=propertyPlanTax(propertyPlanDays);
- notice.innerHTML='<b>Final step:</b> '+(b?'Builder Advertisement':'Owner Single Post')+' • '+label+'<br>'+(tax?propertyPlanPayText(propertyPlanDays):'Rate not set')+'<br>Successful payment ke baad GST invoice aur listing activation.';
+ const invoiceEmail=($('renewalEmail')?.value||'').trim();
+ notice.innerHTML='<b>Final step:</b> '+(b?'Builder Advertisement':'Owner Single Post')+' • '+label+'<br>'+(tax?propertyPlanPayText(propertyPlanDays):'Rate not set')+'<br>Validity: '+propertyPlanDays+' days • GST invoice: '+(invoiceEmail||'registered email')+'.';
 }
 function validEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim())}
 function validPhone(v){return String(v||'').replace(/\D/g,'').length>=10}
@@ -531,7 +533,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    const card=$("liveArea").firstElementChild;
    addManage(card);
    saveState();
-   if(!wasEdit){try{const state=JSON.parse(localStorage.getItem(KEY)||"{}");const tax=propertyPlanTax(propertyPlanDays);state.planDays=propertyPlanDays;state.planPrice=propertyPlanPrice(propertyPlanDays);state.basePrice=tax?tax.base:state.planPrice;state.gstRate=tax?tax.rate:0;state.gstAmount=tax?tax.gst:0;state.payable=tax?tax.total:state.planPrice;state.paymentStatus=Number(state.planPrice||0)===0?"ADMIN_FREE":"PAYMENT_PENDING";state.expiresAt=ocsPropertyNewExpiry(propertyPlanDays);state.renewalEmail=($("renewalEmail")?.value||"").trim();state.reminder7At=ocsPropertyReminder7(state.expiresAt);state.reminder1At=ocsPropertyReminder1(state.expiresAt);state.reminder7Status="SCHEDULED";state.reminder1Status="SCHEDULED";localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+   if(!wasEdit){try{const state=JSON.parse(localStorage.getItem(KEY)||"{}");const tax=propertyPlanTax(propertyPlanDays);state.planDays=propertyPlanDays;state.planPrice=propertyPlanPrice(propertyPlanDays);state.basePrice=tax?tax.base:state.planPrice;state.gstRate=tax?tax.rate:0;state.gstAmount=tax?tax.gst:0;state.payable=tax?tax.total:state.planPrice;state.paymentStatus=Number(state.planPrice||0)===0?"ADMIN_FREE":"PAYMENT_PENDING";state.invoiceEmailStatus=Number(state.planPrice||0)===0?"NOT_REQUIRED":"PENDING_PAYMENT";state.invoiceEmail=($("renewalEmail")?.value||"").trim();state.planLabel=ocsPropertyPlanLabel(propertyPlanDays);state.validFrom=null;state.validUntil=null;state.expiresAt=ocsPropertyNewExpiry(propertyPlanDays);state.renewalEmail=state.invoiceEmail;state.reminder7At=ocsPropertyReminder7(state.expiresAt);state.reminder1At=ocsPropertyReminder1(state.expiresAt);state.reminder7Status="SCHEDULED";state.reminder1Status="SCHEDULED";localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
    updateProfileButton();
    if(editMode){
      const done=document.querySelector("#done .notice");
