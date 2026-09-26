@@ -2210,6 +2210,23 @@ async function ocsAdminFreeAllowed(){
  const session=await getOcsSession();if(!session||!session.user)return false;
  return await ocsUserHasRole('admin');
 }
+async function recordAdminFreePostBackend(opts){
+ try{
+   if(!ocsSupabase)return null;
+   const o=opts||{};
+   const {data,error}=await ocsSupabase.rpc('admin_create_free_post_record_v1',{
+     p_source_kind:String(o.sourceKind||'other_paid_post'),
+     p_category:String(o.category||'Other'),
+     p_title:String(o.title||'OCS Free Post'),
+     p_contact_email:String(o.email||''),
+     p_plan_label:String(o.planLabel||'28 Days'),
+     p_duration_days:Number(o.durationDays||28),
+     p_metadata:o.metadata||{}
+   });
+   if(error)throw error;
+   return data||null;
+ }catch(e){console.error('Admin free post record failed',e);return null}
+}
 async function syncAdminFreePostControls(){
  const ok=await ocsAdminFreeAllowed();
  const bw=document.getElementById('bannerAdminFreeWrap'),zw=document.getElementById('bizAdminFreeWrap');
@@ -2421,6 +2438,7 @@ async function submitBannerAd(){
  if(price===0){
    const a=getBannerRequests(),i=a.findIndex(x=>x.id===currentId);
    if(i>=0){const start=new Date().toISOString();a[i].status='LIVE';a[i].startsAt=start;a[i].expiresAt=addDaysIso(start,Number(a[i].planDays||28));a[i].locked=true;setBannerRequests(a)}
+   if(adminFree)await recordAdminFreePostBackend({sourceKind:'banner',category:'Slider Ad',title:'OCS Slider Ad • '+n,email:billingEmail,planLabel:plan,durationDays:key==='banner6m'?180:28,metadata:{business:n,headline:t,area:a}});
    renderLivePaidBanners();closeBannerAd();alert('FREE banner is LIVE ✅');return
  }
  try{
@@ -2850,6 +2868,9 @@ async function continueBiz(){
  const base=adminFree?0:normalBase,tax=getGstBreakup(base);
  drafts[cat]={name,type,area,about,phone,billingEmail,listingId,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'LIVE':'PAYMENT_PENDING',paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:base===0?new Date().toISOString():null,expiresAt:base===0?addDaysIso(new Date().toISOString(),28):null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
+ if(base===0&&adminFree){
+   await recordAdminFreePostBackend({sourceKind:'business_listing',category:cat,title:'OCS Business Listing • '+name,email:billingEmail,planLabel:'28 Days',durationDays:28,metadata:{category:cat,business:name,area}});
+ }
  if(base>0){
    try{
      const paid=await ocsPayPaidPost({
