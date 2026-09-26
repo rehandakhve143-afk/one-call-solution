@@ -313,6 +313,27 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 .ocs-history-empty b{display:block;color:#34575d;font-size:13px;margin-bottom:4px}
 @media(min-width:600px){.ocs-action-modal{align-items:center}.ocs-action-card{border-radius:24px}}
 </style>
+<style id="ocs-admin-records-design">
+.admin-records-card{margin:0 0 12px;padding:13px;border:1px solid #dfe9e6;border-radius:18px;background:#fff;box-shadow:0 7px 20px rgba(12,64,70,.05)}
+.admin-records-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.admin-records-head span{display:block;color:#118276;font-size:9px;font-weight:950;letter-spacing:.8px}
+.admin-records-head h3{margin:2px 0 0;font-size:16px;color:#173f46}
+.admin-records-head button{border:1px solid #d9e7e3;background:#f7fbfa;color:#24636a;border-radius:10px;padding:8px 10px;font-size:10px;font-weight:900}
+.admin-records-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:10px}
+.admin-records-kpi{padding:10px;border:1px solid #e2ece9;border-radius:13px;background:#f9fbfa}
+.admin-records-kpi span{display:block;color:#718488;font-size:8.5px;font-weight:900;text-transform:uppercase}
+.admin-records-kpi b{display:block;margin-top:3px;color:#173f46;font-size:18px}
+.admin-records-kpi small{display:block;margin-top:2px;color:#7a8c8f;font-size:8.5px}
+.admin-collection-list,.admin-recent-list{display:grid;gap:7px}
+.admin-collection-row,.admin-recent-row{padding:10px;border:1px solid #e3ecea;border-radius:13px;background:#fff}
+.admin-collection-top,.admin-recent-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.admin-collection-top b,.admin-recent-top b{font-size:11px;color:#244a51}
+.admin-collection-top strong{font-size:12px;color:#087a70}
+.admin-collection-row small,.admin-recent-row small{display:block;margin-top:4px;color:#728589;font-size:9px;line-height:1.45}
+.admin-records-section-title{margin:12px 0 7px;font-size:10px;color:#49666c;font-weight:950}
+.admin-records-empty{padding:14px;text-align:center;border:1px dashed #d9e5e2;border-radius:13px;color:#74878a;font-size:10px;background:#fafcfc}
+.admin-records-note{margin-top:8px;color:#718488;font-size:8.5px}
+</style>
 <style id="ocs-admin-dashboard-design">
 .admin-dashboard{padding:14px 12px 34px!important;background:linear-gradient(180deg,#f5f9f8,#f8faf9)}
 .admin-dashboard .card{margin-left:0!important;margin-right:0!important}
@@ -484,6 +505,14 @@ body.customer-locked-ui #customer>details.card{display:none!important}
   </div>
 
   <div class="admin-overview" id="adminOverview"></div>
+
+  <section class="admin-records-card">
+    <div class="admin-records-head">
+      <div><span>RECORDS & MONEY</span><h3>Joins & Category Collection</h3></div>
+      <button type="button" onclick="loadAdminPlatformRecords()">↻ Refresh</button>
+    </div>
+    <div id="adminPlatformRecords"><div class="admin-records-empty">Loading records…</div></div>
+  </section>
 
   <section class="admin-panel-card admin-live-card" id="adminLiveCard">
     <div class="admin-panel-head">
@@ -3844,6 +3873,48 @@ async function adminRemovePendingCategory(providerId,category){
  }catch(e){alert("Bulk remove failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
+let adminPlatformRecordsCache=null;
+function adminMoney(v){return "₹"+Number(v||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function renderAdminPlatformRecords(data){
+ const box=document.getElementById("adminPlatformRecords");if(!box)return;
+ const d=data||{},s=d.summary||{},cols=Array.isArray(d.collections)?d.collections:[],recent=Array.isArray(d.recent)?d.recent:[];
+ const kpis=
+  '<div class="admin-records-kpis">'+
+   '<div class="admin-records-kpi"><span>Customers</span><b>'+Number(s.customers||0)+'</b><small>Joined accounts</small></div>'+
+   '<div class="admin-records-kpi"><span>Service Providers</span><b>'+Number(s.providers||0)+'</b><small>Joined SP roles</small></div>'+
+   '<div class="admin-records-kpi"><span>Paid / Free Posts</span><b>'+Number(s.paid_posts||0)+' / '+Number(s.free_posts||0)+'</b><small>Total posts '+Number(s.posts||0)+'</small></div>'+
+   '<div class="admin-records-kpi"><span>Total Collection</span><b>'+adminMoney(s.collection_total||0)+'</b><small>Base '+adminMoney(s.base_total||0)+' • GST '+adminMoney(s.gst_total||0)+'</small></div>'+
+  '</div>';
+ const chtml=cols.length?cols.map(x=>
+  '<div class="admin-collection-row"><div class="admin-collection-top"><b>'+ocsSafe(x.category||"Other")+'</b><strong>'+adminMoney(x.collection_total||0)+'</strong></div>'+
+  '<small>Records '+Number(x.record_count||0)+' • Paid '+Number(x.paid_count||0)+' • FREE '+Number(x.free_count||0)+'<br>Base '+adminMoney(x.base_total||0)+' • GST '+adminMoney(x.gst_total||0)+'</small></div>'
+ ).join(""):'<div class="admin-records-empty">Abhi koi paid/free ad-listing record nahi hai.</div>';
+ const rhtml=recent.length?recent.slice(0,40).map(x=>
+  '<div class="admin-recent-row"><div class="admin-recent-top"><b>'+ocsSafe(x.name||"OCS Record")+'</b><span class="admin-history-status">'+ocsSafe(x.status||"")+'</span></div>'+
+  '<small>'+ocsSafe(x.category||x.record_type||"")+(x.plan_label?' • '+ocsSafe(x.plan_label):'')+(Number(x.amount||0)>0?' • '+adminMoney(x.amount):'')+
+  (x.email?'<br>'+ocsSafe(x.email):'')+(x.phone?'<br>'+ocsSafe(x.phone):'')+'</small></div>'
+ ).join(""):'<div class="admin-records-empty">No recent records.</div>';
+ box.innerHTML=kpis+'<div class="admin-records-section-title">CATEGORY-WISE COLLECTION</div><div class="admin-collection-list">'+chtml+'</div>'+
+ '<div class="admin-records-section-title">RECENT JOIN / POST RECORDS</div><div class="admin-recent-list">'+rhtml+'</div>'+
+ '<div class="admin-records-note">Paid collection = verified paid posts/listings only. Admin FREE records are shown separately and add ₹0 to collection.</div>';
+}
+async function loadAdminPlatformRecords(){
+ const box=document.getElementById("adminPlatformRecords");
+ if(box&&!adminPlatformRecordsCache)box.innerHTML='<div class="admin-records-empty">Loading records…</div>';
+ if(!ocsSupabase){if(box)box.innerHTML='<div class="admin-records-empty">Online database not connected.</div>';return null}
+ try{
+   const {data,error}=await ocsSupabase.rpc("admin_platform_records_v1",{p_limit:100});
+   if(error)throw error;
+   adminPlatformRecordsCache=data||{};
+   renderAdminPlatformRecords(adminPlatformRecordsCache);
+   return data||{};
+ }catch(e){
+   console.error("Admin platform records failed",e);
+   if(box)box.innerHTML='<div class="admin-records-empty">Records load nahi huwe. Refresh try karein.</div>';
+   return null;
+ }
+}
+
 let adminLiveRefreshTimer=null;
 function stopAdminLiveRefresh(){
   if(adminLiveRefreshTimer){clearInterval(adminLiveRefreshTimer);adminLiveRefreshTimer=null}
@@ -3882,7 +3953,7 @@ function paintAdminSnapshotOnly(){
 }
 async function refreshAdminLiveSnapshot(){
   try{
-    await adminLoadLatestBookingSnapshot();
+    await Promise.all([adminLoadLatestBookingSnapshot(),loadAdminPlatformRecords()]);
     paintAdminSnapshotOnly();
   }catch(e){
     console.error("Admin live refresh failed",e);
@@ -4239,6 +4310,7 @@ if($("providerCustomerExtraMount")) $("providerCustomerExtraMount").innerHTML=pr
 try{renderProviderAddWorkSheet();}catch(e){console.error(e)}
 if($("admin")){
  let A=adminHTMLState();
+ if(!$("admin").classList.contains("hide")&&!adminPlatformRecordsCache)loadAdminPlatformRecords();
  const ast=$("aStatus");
  if(ast){ast.style.display=A.liveActive?"inline-block":"none";ast.textContent=A.activeStatus||""}
  if($("adminOverview"))$("adminOverview").innerHTML=A.overview;
