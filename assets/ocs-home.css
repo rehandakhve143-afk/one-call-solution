@@ -1290,9 +1290,19 @@ body{background:#eef2f1!important}
 .ocs-account-row .ar-copy b{display:block;font-size:13px;line-height:1.2;color:#19363a;margin:0 0 3px}
 .ocs-account-row .ar-copy small{display:block;font-size:10px;line-height:1.25;color:#74858a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ocs-account-row .ar-go{font-size:24px;color:#9aa8aa;text-align:center}
-#locationModal .primary{background:linear-gradient(135deg,#0a7d73,#0b665f)!important;color:#fff!important}
-#locationModal .bottom-hub-card{border:0!important;background:#f7f9f8!important}
-#locationModal input{background:#fff!important;border:1px solid #e1e8e6!important;border-radius:13px!important}
+#locationModal .sheet{background:#fff!important}
+#locationModal .bottom-hub-head{margin-bottom:14px!important}
+#locationModal .bottom-hub-head .muted{font-size:11px!important;line-height:1.35!important}
+#locationModal .ocs-location-current{width:100%!important;min-height:52px!important;margin:2px 0 10px!important;border:0!important;border-radius:15px!important;background:linear-gradient(135deg,#0a8a7d,#087166)!important;color:#fff!important;font-size:14px!important;font-weight:850!important;box-shadow:0 7px 16px rgba(8,122,112,.18)!important}
+#locationModal .ocs-location-manual-toggle{width:100%!important;min-height:50px!important;margin:0!important;border:1.5px solid #cfe4df!important;border-radius:15px!important;background:#fff!important;color:#176d64!important;font-size:13px!important;font-weight:850!important;box-shadow:none!important}
+#locationModal .ocs-location-manual-toggle:active{background:#f1f8f6!important}
+#locationModal .ocs-location-manual-card{margin:11px 0 0!important;padding:14px!important;border:1px solid #e2eeeb!important;border-radius:18px!important;background:#f6faf9!important;box-shadow:none!important}
+#locationModal .ocs-location-manual-head{margin-bottom:10px!important}
+#locationModal .ocs-location-manual-head b{display:block!important;font-size:15px!important;color:#173f46!important;margin:0 0 3px!important}
+#locationModal .ocs-location-manual-head small{display:block!important;font-size:10.5px!important;color:#71878b!important}
+#locationModal .ocs-location-input{width:100%!important;height:50px!important;margin:0!important;padding:0 14px!important;border:1px solid #d7e5e1!important;border-radius:14px!important;background:#fff!important;color:#18383e!important;font-size:14px!important;outline:none!important;box-shadow:none!important;appearance:none!important}
+#locationModal .ocs-location-input:focus{border-color:#0a8a7d!important;box-shadow:0 0 0 3px rgba(10,138,125,.10)!important}
+#locationModal .ocs-location-save{width:100%!important;min-height:48px!important;margin:10px 0 0!important;border:0!important;border-radius:14px!important;background:#163f48!important;color:#fff!important;font-size:13px!important;font-weight:850!important;box-shadow:none!important}
 body:has(.modal.show) .bottom-nav{display:none!important}
 body:has(.modal.show) .ocs-lock-bottom{display:none!important}
 .modal.show{z-index:90!important}
