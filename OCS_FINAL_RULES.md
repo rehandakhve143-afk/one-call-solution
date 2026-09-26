@@ -23,15 +23,23 @@ This file is the source of truth for business rules. If any HTML/demo file confl
 - Cash job: customer pays the Service Provider directly; applicable **9% OCS commission** is deducted from the Service Provider OCS Wallet. Wallet may reach ₹0 or go negative; Admin warning/email and manual hold rules apply.
 - Customer may switch from Cash to OCS Online / Company QR / Payment Link.
 
-## 3) Visit charge / Start OTP / Work Not Completed
-- Start OTP proves **arrival + work/inspection start only**. It is **not completion proof**.
+## 2A) Customer Referral Rewards / OCS Wallet
+- **Share & Earn ₹50** has **no fixed referral-count limit** for genuine referrals.
+- Merely sharing the link, installing the app, or creating an account does **not** earn ₹50.
+- Reward is credited only after the referred **new user completes their first successful paid Home Service booking** through OCS.
+- Each qualifying referral credits **₹50 to the referring Customer's OCS Wallet**.
+- Customer may use the **full available OCS Wallet balance** toward an eligible OCS service payment, limited only by the payable amount. There is **no per-booking redemption cap**.
+- Customer reward balance is **not cash-withdrawable**; it is for eligible OCS payments inside the platform.
+
+## 3) Visit charge / Start Service OTP / Work Not Completed
+- Start Service OTP proves **arrival + work/inspection start only**. It is **not completion proof**.
 - Visit charge slabs:
   - **1–6 km: ₹199**
   - **>6–12 km: ₹249**
 - Work Not Completed must store a reason and follow the correct reason/fault flow.
 - Do not apply an automatic customer visit charge for provider-side fault.
 - Technical/material/price issues can be resolved mutually (reschedule with same provider, agreed visit charge, or no-charge close).
-- Customer no-show / entry not provided is handled at Reached stage before Start OTP, with verified visit/distance logic.
+- Customer no-show / entry not provided is handled at Reached stage before Start Service OTP, with verified visit/distance logic.
 
 ## 4) Provider change / reschedule
 - Customer **Change Service Provider** requires reason + confirmation.
