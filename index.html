@@ -883,12 +883,10 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('home-services.html?tab=provider&sp=1&v=20260926-sproutefix1');
+      location.replace('home-services.html?tab=provider&sp=1&v=20260926-spsameaccount1');
       return;
     }
-    let intent='';
-    try{intent=localStorage.getItem('ocsLoginIntentRole')||''}catch(e){}
-    await openAccount('provider',intent==='provider');
+    await openAccount('provider',true);
     return;
   }
 
@@ -914,7 +912,7 @@ async function routeAfterOcsLogin(){
 async function openLogin(){
   const session=await getOcsSession();
   if(session&&session.user){
-    if(ocsRequestedSpProfile()){await openAccount('provider');return}
+    if(ocsRequestedSpProfile()){await openAccount('provider',true);return}
     bottomHome();return
   }
   const pill=document.getElementById('accountRolePill');
@@ -950,15 +948,15 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('home-services.html?tab=provider&sp=1&v=20260926-sproutefix1');
+          location.replace('home-services.html?tab=provider&sp=1&v=20260926-spsameaccount1');
           return;
         }
-        await openAccount('provider',false);
+        await openAccount('provider',true);
         return;
       }
       if(ocsRequestedSpProfile()){
         const s=await getOcsSession();
-        if(s&&s.user)await openAccount('provider');
+        if(s&&s.user)await openAccount('provider',true);
         else await openLogin();
       }
     }catch(e){console.error('SP route failed',e)}
@@ -1266,7 +1264,7 @@ async function saveProviderAccount(){
    }));
    alert('Changes saved. Approved skills active rahengi; nayi skill verification ke baad active hogi.');
    if(ocsRequestedSpDashboard()){
-     location.replace('home-services.html?tab=provider&sp=1&v=20260926-sproutefix1');
+     location.replace('home-services.html?tab=provider&sp=1&v=20260926-spsameaccount1');
      return;
    }
    await showProviderProfileSummary();
@@ -1380,7 +1378,7 @@ function openBottomProfile(){
    '<button class="ocs-account-row ocs-account-role" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">'+
      '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span><span class="ar-copy"><b>Customer Profile</b><small>'+customerText+'</small></span><span class="ar-go">›</span>'+
    '</button>'+
-   '<button class="ocs-account-row ocs-account-role" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')">'+
+   '<button class="ocs-account-row ocs-account-role" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\',true)">'+
      '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5-5l2.1 2.1-2.4 2.4-2.1-2.1a4 4 0 0 0 5 5L20 16.4 16.4 20l-7.7-7.7a4 4 0 0 0-5-5l2.1 2.1-2.4 2.4-2.1-2.1a4 4 0 0 0 5 5l8-8Z"></path></svg></span><span class="ar-copy"><b>Service Provider Profile</b><small>'+providerText+'</small></span><span class="ar-go">›</span>'+
    '</button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">'+
