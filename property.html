@@ -518,13 +518,31 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
      }
    }
  };
- publish=function(){
+ publish=async function(){
    const wasEdit=editMode;
+   let paid=null,tax=null,invoiceEmail="",planLabel=ocsPropertyPlanLabel(propertyPlanDays);
    if(!wasEdit){
-     const em=($("renewalEmail")?.value||"").trim();
-     if(!ocsPropertyValidEmail(em)){alert("Renewal reminder ke liye valid registered email required.");go(4);return}
+     invoiceEmail=($("renewalEmail")?.value||"").trim();
+     if(!ocsPropertyValidEmail(invoiceEmail)){alert("GST invoice / renewal ke liye valid registered email required.");go(4);return}
      const ps=$("propertyPlanSelect");if(ps)propertyPlanDays=Number(ps.value)||OCS_PROPERTY_PLAN_DAYS;
      const pp=propertyPlanPrice(propertyPlanDays);if(pp===null){alert((propertyPlanDays===180?"6 Months":"28 Days")+" rate Admin me set hona baki hai.");return}
+     tax=propertyPlanTax(propertyPlanDays);planLabel=ocsPropertyPlanLabel(propertyPlanDays);
+     if(Number(pp)>0){
+       try{
+         if(!window.parent||typeof window.parent.ocsPayPaidPost!=="function")throw new Error("OCS payment service ready nahi hai");
+         paid=await window.parent.ocsPayPaidPost({
+           sourceKind:"property_listing",
+           sourceRef:"",
+           title:"OCS Property Listing • "+($("project")?.value||$("propertyTitle")?.value||$("poster")?.value||"Property"),
+           email:invoiceEmail,
+           planLabel,
+           durationDays:propertyPlanDays,
+           baseAmount:Number(pp),
+           metadata:{propertyType:$("ptype")?.value||"",city:$("city")?.value||"",area:$("area")?.value||"",poster:$("poster")?.value||""}
+         });
+         if(!paid)return;
+       }catch(e){alert("Payment complete nahi hua: "+(e&&e.message?e.message:"Unknown error"));return}
+     }
    }
    if(editMode){
      const old=ownedCard();if(old)old.remove();
@@ -533,11 +551,28 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    const card=$("liveArea").firstElementChild;
    addManage(card);
    saveState();
-   if(!wasEdit){try{const state=JSON.parse(localStorage.getItem(KEY)||"{}");const tax=propertyPlanTax(propertyPlanDays);state.planDays=propertyPlanDays;state.planPrice=propertyPlanPrice(propertyPlanDays);state.basePrice=tax?tax.base:state.planPrice;state.gstRate=tax?tax.rate:0;state.gstAmount=tax?tax.gst:0;state.payable=tax?tax.total:state.planPrice;state.paymentStatus=Number(state.planPrice||0)===0?"ADMIN_FREE":"PAYMENT_PENDING";state.invoiceEmailStatus=Number(state.planPrice||0)===0?"NOT_REQUIRED":"PENDING_PAYMENT";state.invoiceEmail=($("renewalEmail")?.value||"").trim();state.planLabel=ocsPropertyPlanLabel(propertyPlanDays);state.validFrom=null;state.validUntil=null;state.expiresAt=ocsPropertyNewExpiry(propertyPlanDays);state.renewalEmail=state.invoiceEmail;state.reminder7At=ocsPropertyReminder7(state.expiresAt);state.reminder1At=ocsPropertyReminder1(state.expiresAt);state.reminder7Status="SCHEDULED";state.reminder1Status="SCHEDULED";localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+   if(!wasEdit){try{
+     const state=JSON.parse(localStorage.getItem(KEY)||"{}");
+     tax=tax||propertyPlanTax(propertyPlanDays);
+     state.planDays=propertyPlanDays;state.planPrice=propertyPlanPrice(propertyPlanDays);
+     state.basePrice=tax?tax.base:state.planPrice;state.gstRate=tax?tax.rate:0;state.gstAmount=tax?tax.gst:0;state.payable=tax?tax.total:state.planPrice;
+     state.paymentStatus=Number(state.planPrice||0)===0?"ADMIN_FREE":"VERIFIED";
+     state.paymentRef=paid&&paid.razorpayPaymentId?paid.razorpayPaymentId:"";
+     state.invoiceEmailStatus=Number(state.planPrice||0)===0?"NOT_REQUIRED":"QUEUED";
+     state.invoiceEmail=invoiceEmail;state.planLabel=planLabel;
+     state.validFrom=new Date().toISOString();state.validUntil=new Date(Date.now()+propertyPlanDays*24*60*60*1000).toISOString();
+     state.expiresAt=state.validUntil;state.renewalEmail=state.invoiceEmail;
+     state.reminder7At=ocsPropertyReminder7(new Date(state.expiresAt).getTime());state.reminder1At=ocsPropertyReminder1(new Date(state.expiresAt).getTime());
+     state.reminder7Status="SCHEDULED";state.reminder1Status="SCHEDULED";
+     localStorage.setItem(KEY,JSON.stringify(state));
+   }catch(e){}}
    updateProfileButton();
    if(editMode){
      const done=document.querySelector("#done .notice");
      if(done)done.innerHTML="<b>✓ Changes saved</b><br>Your property listing is updated and remains live. No new payment charged for editing.";
+   }else{
+     const done=document.querySelector("#done .notice");
+     if(done)done.innerHTML="<b>✓ Payment verified & Property listing live</b><br>Plan: "+planLabel+" • GST invoice "+invoiceEmail+" ke liye generated/queued hai.";
    }
    editMode=false;
  };
