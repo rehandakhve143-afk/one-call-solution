@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><style id="ocsCriticalBoot">
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20260927-pwa1"><style id="ocsCriticalBoot">
 html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7faf9;color:#173247}
 #ocsBootSplash{position:fixed;inset:0;z-index:99999;background:#f7faf9;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .2s ease}
 #ocsBootSplash .b{display:flex;align-items:center;gap:12px}
@@ -215,7 +215,7 @@ setTimeout(function(){
     <div class="ocs-setting-row"><div><b>Notifications</b><small>Booking, payment and support updates</small></div><input id="setNotifications" type="checkbox"></div>
     <div class="ocs-setting-row"><div><b>Location</b><small>Service area • <span id="setLocationState">Not allowed</span></small></div><button onclick="requestOcsLocation()">Set</button></div>
     <div class="ocs-setting-row"><div><b>Language</b><small>App language</small></div><select id="setLanguage" style="width:120px;margin:0"><option value="EN">English</option><option value="HI">Hindi</option><option value="MR">Marathi</option></select></div>
-    <div class="ocs-setting-row"><div><b>Privacy & Security</b><small>Contact and location are used only when required.</small></div><span>🔒</span></div>
+    <div class="ocs-setting-row"><div><b>Privacy & Security</b><small>Contact and location are used only when required.</small></div><span>🔒</span></div><div class="ocs-setting-row"><div><b>Install OCS App</b><small id="ocsInstallState">Add OCS to your phone Home Screen</small></div><button id="ocsInstallBtn" onclick="installOcsApp()">Install</button></div>
   </div>
   <select id="setPayment" style="display:none"><option value="ONLINE">Online</option><option value="CASH">Cash</option></select>
   <button class="primary" style="margin-top:12px;width:100%" onclick="saveSettings()">Save Settings</button>
@@ -470,7 +470,7 @@ setTimeout(function(){
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
 <div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><div id="obPostPriceWrap" style="display:none"><label id="obPostPriceLabel">Post Price / Rate (₹)</label><input id="obPostPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter price"></div><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
-<div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button class="primary" onclick="continueBiz()">Continue to Payment →</button></div><div class="muted" style="margin-top:8px">Back/Forward karne par saved details category draft me rahengi; baad me edit/update bhi kar sakte hain.</div></div></div>
+<div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button class="primary" onclick="continueBiz()">Continue to Payment →</button></div><div class="muted" style="margin-top:8px"><b>Auto-save ON.</b> Details isi device par draft me save hoti rahengi. Payment se pehle edit kar sakte hain.</div></div></div>
 <script>
 let homeSlide=0,homeSlideTimer=null,homeTouchStartX=0;
 function showSlide(index){
@@ -2606,16 +2606,54 @@ function validateOcsMediaFiles(files){
  }
  return list;
 }
+async function compressOcsImageFile(file){
+ try{
+   if(!file)return file;
+   const type=String(file.type||'').toLowerCase(),name=String(file.name||'');
+   if(!(type.startsWith('image/')||/\.(jpe?g|png|webp|heic|heif)$/i.test(name)))return file;
+   if(/\.gif$/i.test(name)||type==='image/gif')return file;
+
+   let source=null,cleanup=()=>{};
+   if(typeof createImageBitmap==='function'){
+     try{source=await createImageBitmap(file)}catch(e){}
+   }
+   if(!source){
+     source=await new Promise((resolve,reject)=>{
+       const url=URL.createObjectURL(file),img=new Image();
+       cleanup=()=>URL.revokeObjectURL(url);
+       img.onload=()=>resolve(img);img.onerror=reject;img.src=url;
+     });
+   }
+   const w=Number(source.width||source.naturalWidth||0),h=Number(source.height||source.naturalHeight||0);
+   if(!w||!h){cleanup();return file}
+   const maxSide=1600,scale=Math.min(1,maxSide/Math.max(w,h));
+   if(scale===1&&file.size<650000){cleanup();if(source.close)source.close();return file}
+   const canvas=document.createElement('canvas');
+   canvas.width=Math.max(1,Math.round(w*scale));canvas.height=Math.max(1,Math.round(h*scale));
+   const ctx=canvas.getContext('2d',{alpha:false});if(!ctx){cleanup();if(source.close)source.close();return file}
+   ctx.drawImage(source,0,0,canvas.width,canvas.height);
+   cleanup();if(source.close)source.close();
+   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',0.82));
+   if(!blob||blob.size>=file.size)return file;
+   const base=name.replace(/\.[^.]+$/,'')||'photo';
+   return new File([blob],base+'.webp',{type:'image/webp',lastModified:file.lastModified||Date.now()});
+ }catch(e){
+   console.warn('OCS photo optimization skipped',e);
+   return file;
+ }
+}
 async function uploadOcsPublicMedia(files,prefix){
  const list=validateOcsMediaFiles(files);if(!list.length)return [];
  const session=await getOcsSession();if(!session||!session.user||!ocsSupabase)throw new Error('Media upload ke liye OCS login required');
  const out=[];
- for(const f of list){
-   const type=String(f.type||'').toLowerCase(),name=String(f.name||'');
-   const isVideo=type.startsWith('video/')||/\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(name);
+ for(const original of list){
+   const originalType=String(original.type||'').toLowerCase(),originalName=String(original.name||'');
+   const isVideo=originalType.startsWith('video/')||/\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(originalName);
+   const f=isVideo?original:await compressOcsImageFile(original);
+   const name=String(f.name||originalName||'media'),type=String(f.type||originalType||'');
    const ext=(name.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase();
    const key=session.user.id+'/'+String(prefix||'post').replace(/[^a-z0-9_-]/gi,'-')+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;
-   const {error}=await ocsSupabase.storage.from('ocs-public-media').upload(key,f,{cacheControl:'3600',upsert:false,contentType:f.type||undefined});
+   const {error}=await ocsSupabase.storage.from('ocs-public-media').upload(key,f,{cacheControl:'3600',upsert:false,contentType:type||undefined});
    if(error)throw error;
    const {data}=ocsSupabase.storage.from('ocs-public-media').getPublicUrl(key);
    if(data&&data.publicUrl)out.push({url:data.publicUrl,type:isVideo?'video':'image',name});
@@ -3372,6 +3410,32 @@ function loadBizDraft(cat){
  const d=readBizDrafts()[cat]||{};
  obName.value=d.name||'';obType.value=d.type||'';if(document.getElementById('obPostPrice'))document.getElementById('obPostPrice').value=d.itemPrice||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';updateBizLikeSummary(cat);
 }
+let ocsBizAutoSaveTimer=null;
+function autoSaveCurrentBizDraft(){
+ try{
+   const modal=document.getElementById('bizModal'),cat=document.getElementById('bizCat')?.value||'';
+   if(!modal||!modal.classList.contains('show')||!cat||cat==='Property')return;
+   const drafts=readBizDrafts(),old=drafts[cat]||{};
+   if(old.status==='LIVE'||old.paymentStatus==='VERIFIED')return;
+   const priceRaw=(document.getElementById('obPostPrice')?.value||'').trim();
+   drafts[cat]=Object.assign({},old,{
+     name:(document.getElementById('obName')?.value||'').trim(),
+     type:(document.getElementById('obType')?.value||'').trim(),
+     area:(document.getElementById('obArea')?.value||'').trim(),
+     about:(document.getElementById('obAbout')?.value||'').trim(),
+     phone:(document.getElementById('obPhone')?.value||'').trim(),
+     billingEmail:(document.getElementById('obEmail')?.value||'').trim(),
+     itemPrice:priceRaw===''?null:Number(priceRaw),
+     draftSavedAt:new Date().toISOString()
+   });
+   localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
+ }catch(e){console.warn('OCS business draft autosave',e)}
+}
+function queueBizDraftAutoSave(){
+ clearTimeout(ocsBizAutoSaveTimer);
+ ocsBizAutoSaveTimer=setTimeout(autoSaveCurrentBizDraft,450);
+}
+
 const OCS_BIZ_FORM_CONFIG={
  'Local Shop':{type:'Shop Type',typePh:'Electrical Shop / Hardware Shop',about:'Products / Offers / About',aboutPh:'Popular products, brands, offers…',priceLabel:'Product / Offer Price (₹)',pricePh:'e.g. 499'},
  'Sliding / Aluminium':{type:'Work Type',typePh:'Sliding / Aluminium / Glass',about:'Services',aboutPh:'Windows, doors, glass, partitions…'},
@@ -3431,6 +3495,9 @@ document.getElementById('bizCat').onchange=function(){
  updateBizLikeSummary(this.value);
 };
 document.getElementById('obName').addEventListener('input',()=>{updateBizPrice();updateBizLikeSummary()});updateBizPrice();updateBizLikeSummary();
+document.getElementById('otherFields')?.addEventListener('input',queueBizDraftAutoSave);
+document.getElementById('otherFields')?.addEventListener('change',queueBizDraftAutoSave);
+
 async function continueBiz(){
  const cat=document.getElementById('bizCat').value;
  if(cat==='Property'){
@@ -3547,4 +3614,48 @@ function cancelEmergencyHold(){
 updateExploreToggle();
 renderOcsPublicFeedback();
 
-</script><script>setTimeout(()=>document.documentElement.classList.add('ocs-css-ready'),12000)</script></body></html>
+</script>
+<script>
+let ocsDeferredInstallPrompt=null;
+function syncOcsInstallUi(){
+ const btn=document.getElementById('ocsInstallBtn'),state=document.getElementById('ocsInstallState');
+ const installed=window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches;
+ if(installed){if(btn){btn.textContent='Installed';btn.disabled=true}if(state)state.textContent='OCS is installed on this device';return}
+ if(btn){btn.textContent=ocsDeferredInstallPrompt?'Install':'How to install';btn.disabled=false}
+ if(state)state.textContent=ocsDeferredInstallPrompt?'Install OCS like a normal app':'Chrome menu → Add to Home screen / Install app';
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();ocsDeferredInstallPrompt=e;syncOcsInstallUi()});
+window.addEventListener('appinstalled',()=>{ocsDeferredInstallPrompt=null;syncOcsInstallUi()});
+async function installOcsApp(){
+ if(ocsDeferredInstallPrompt){
+   ocsDeferredInstallPrompt.prompt();
+   try{await ocsDeferredInstallPrompt.userChoice}catch(e){}
+   ocsDeferredInstallPrompt=null;syncOcsInstallUi();return;
+ }
+ alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
+}
+if('serviceWorker' in navigator){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260927-pwa1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+}
+(function ocsNetworkStatus(){
+ const bar=document.createElement('div');bar.id='ocsNetworkBar';
+ bar.style.cssText='position:fixed;left:10px;right:10px;top:10px;z-index:2147483646;display:none;align-items:center;gap:9px;padding:11px 12px;border-radius:14px;background:#263238;color:#fff;box-shadow:0 8px 26px rgba(0,0,0,.22);font:700 12px system-ui,Arial';
+ bar.innerHTML='<span style="flex:1" id="ocsNetworkText">No internet connection</span><button type="button" style="border:0;border-radius:9px;padding:7px 11px;background:#fff;color:#173f46;font-weight:900" onclick="location.reload()">Retry</button>';
+ document.body.appendChild(bar);
+ const show=()=>{
+   const online=navigator.onLine;
+   const t=document.getElementById('ocsNetworkText');
+   if(online){
+     if(t)t.textContent='Back online ✓';
+     bar.style.display='flex';setTimeout(()=>{if(navigator.onLine)bar.style.display='none'},1400);
+   }else{
+     if(t)t.textContent='Internet nahi hai • Draft safe hai';
+     bar.style.display='flex';
+   }
+ };
+ window.addEventListener('offline',show);window.addEventListener('online',show);
+ if(!navigator.onLine)show();
+})();
+setTimeout(syncOcsInstallUi,300);
+</script>
+<script>setTimeout(()=>document.documentElement.classList.add('ocs-css-ready'),12000)</script></body></html>
