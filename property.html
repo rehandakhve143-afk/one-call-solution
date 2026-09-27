@@ -303,6 +303,16 @@ function openPost(){
  if(!hasLive)restorePropertyDraft();
  ocsPropertyNotifyNav();
 }
+function openPostWithType(type){
+ openPost();
+ const allowed=['Single Property – Sale / Rent','Builder Property','Builder Project Profile'];
+ const chosen=allowed.includes(type)?type:'Single Property – Sale / Rent';
+ const poster=$('poster');if(poster)poster.value=chosen;
+ posterChange();
+ go(1,true);
+ try{savePropertyDraft(true)}catch(e){}
+}
+window.openPostWithType=openPostWithType;
 function closePost(){$('overlay').style.display='none';ocsPropertyNotifyNav()}
 function ocsPropertyHandleBack(){
  try{
@@ -759,7 +769,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
  addEventListener('unhandledrejection',e=>log('PROPERTY_PROMISE',e.reason&&e.reason.message?e.reason.message:String(e.reason||'Promise error'),'promise',0));
 
  if(window.parent===window){
-   const build='20260927-galleryall1';
+   const build='20260927-propertytypes1';
    const checkBuild=async()=>{
      try{
        const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
