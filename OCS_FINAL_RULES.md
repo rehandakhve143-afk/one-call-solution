@@ -108,9 +108,9 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Property types can include Flat, Bungalow, Row House and Land/Plot.
 - Keep posting easy: details → location → price → media → contact → preview → payment → post.
 - Latest property flow: successful payment + required verification → listing live for the plan validity.
-- Single Property stays basic: one property, photos and direct customer contact.
-- Builder Property: one builder property advertisement with photos, project details and direct customer contact.
-- Builder Project Profile: full showcase with multiple photos/gallery, builder/company details, RERA/registration when applicable, brochure, catalogue, video/YouTube, website, virtual tour, chat/enquiry and direct contact.
+- Single Property stays basic: Sale/Rent details, location, price, a few photos and **Call only** for customer contact. No Builder-style gallery, brochure, catalogue, video links, website, virtual tour, public email or extra profile options.
+- Builder Property: one builder property advertisement with builder/company details, project details, photos and **Call + Chat + WhatsApp**.
+- Builder Project Profile: full showcase with multiple photos/gallery, builder/company details, RERA/registration when applicable, brochure, catalogue, video/YouTube, website, virtual tour and **Call + Chat + WhatsApp + Email**.
 
 ## 10A) GST — paid ads / business listings
 - This GST rule applies to **paid OCS advertising and business/window listings**, including Slider/Banner Ads, Post Your Ad, Local Shop, Property/Builder and other paid business listings.
