@@ -4425,25 +4425,30 @@ function updateOcsPageNav(){
 function ocsNavHome(){
  try{location.href="index.html?v=20260926-navfix1"}catch(e){}
 }
-function ocsNavBack(){
+function ocsHandleInternalBack(){
  try{
    const am=document.getElementById("providerActionModal");
-   if(am&&!am.classList.contains("hide")){closeProviderActionModal();return}
+   if(am&&!am.classList.contains("hide")){closeProviderActionModal();return true}
    const pp=document.getElementById("providerProfilePanel");
-   if(pp&&!pp.classList.contains("hide")){closeProviderProfilePanel();return}
+   if(pp&&!pp.classList.contains("hide")){closeProviderProfilePanel();return true}
    const po=document.getElementById("providerPayoutPanel");
-   if(po&&!po.classList.contains("hide")){closeProviderPayoutPanel();return}
+   if(po&&!po.classList.contains("hide")){closeProviderPayoutPanel();return true}
    const aw=document.getElementById("addWorkSheet");
-   if(aw&&!aw.classList.contains("hide")){customerCancelAddMoreWork();return}
+   if(aw&&!aw.classList.contains("hide")){customerCancelAddMoreWork();return true}
    const paw=document.getElementById("providerAddWorkSheet");
-   if(paw&&!paw.classList.contains("hide")){providerCancelAddWork();return}
+   if(paw&&!paw.classList.contains("hide")){providerCancelAddWork();return true}
 
    if(typeof OCS_ROUTE_TAB!=="undefined"&&OCS_ROUTE_TAB==="customer"){
-     if(S.status==="BOOKING_DETAILS"){S.status="SELECT_ITEM";render();window.scrollTo(0,0);return}
-     if(S.status==="CUSTOM_REQUEST"){S.status="SELECT_ITEM";render();window.scrollTo(0,0);return}
-     if(S.status==="SELECT_ITEM"){backToCategories();window.scrollTo(0,0);return}
+     if(S.status==="BOOKING_DETAILS"){S.status="SELECT_ITEM";render();window.scrollTo(0,0);return true}
+     if(S.status==="CUSTOM_REQUEST"){S.status="SELECT_ITEM";render();window.scrollTo(0,0);return true}
+     if(S.status==="SELECT_ITEM"){backToCategories();window.scrollTo(0,0);return true}
    }
-
+ }catch(e){}
+ return false
+}
+function ocsNavBack(){
+ if(ocsHandleInternalBack())return;
+ try{
    const ref=document.referrer||"";
    if(ref&&new URL(ref,location.href).origin===location.origin&&history.length>1){
      history.back();return
@@ -4476,8 +4481,12 @@ function ocsNavNext(){
    history.replaceState({ocsBase:true},"",location.href);
    history.pushState({ocsGuard:true},"",location.href);
    window.addEventListener("popstate",function(){
-     location.replace("index.html?v=20260925-safenav1");
-   },{once:true});
+     if(ocsHandleInternalBack()){
+       setTimeout(()=>history.pushState({ocsGuard:true},"",location.href),0);
+       return;
+     }
+     location.replace("index.html?v=20260927-backflow2");
+   });
  }catch(e){}
 })();
 
