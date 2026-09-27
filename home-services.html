@@ -4695,7 +4695,7 @@ bootHomeServices();
  addEventListener('error',e=>log('HOME_SERVICES',e.message,e.filename,e.lineno));
  addEventListener('unhandledrejection',e=>log('HOME_SERVICES_PROMISE',e.reason&&e.reason.message?e.reason.message:String(e.reason||'Promise error'),'promise',0));
 
- const build='20260927-sliderfix1';
+ const build='20260927-galleryall1';
  async function checkBuild(){
    try{
      const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
