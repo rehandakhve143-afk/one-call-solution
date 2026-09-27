@@ -484,7 +484,7 @@ setTimeout(function(){
 <div id="bizCurrentPrice" class="price-now">Current 28-day plan: —</div>
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
-<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><div id="obPostPriceWrap" style="display:none"><label id="obPostPriceLabel">Post Price / Rate (₹)</label><input id="obPostPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter price"></div><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
+<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><div id="obPostPriceWrap" style="display:none"><label id="obPostPriceLabel">Post Price / Rate (₹)</label><input id="obPostPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter price"></div><div id="obVariantWrap" style="display:none"><label>Product / Variant / Model</label><input id="obVariant" placeholder="e.g. 750W • Red • Model X1"></div><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
 <div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button id="bizContinueBtn" class="primary" onclick="continueBiz()">Continue to Payment →</button></div><div class="muted" style="margin-top:8px"><b>Auto-save ON.</b> Details isi device par draft me save hoti rahengi. Payment se pehle edit kar sakte hain.</div></div></div>
 <script>
 let homeSlide=0,homeSlideTimer=null,homeTouchStartX=0;
@@ -2842,8 +2842,9 @@ async function injectLiveCategoryAds(cat){
  const slider=(arr,extra)=>arr.length?'<div class="lfBigSlider '+(extra||'')+'">'+arr.map((p,pi)=>'<img data-live-index="'+i+'" src="'+String(p.url||'')+'" loading="lazy" alt="'+ocsSavedText(name)+' photo '+(pi+1)+'">').join('')+'</div>':'';
  const videoHtml=videos.length?'<div class="lfVideoRail">'+videos.map(v=>'<video controls preload="metadata" src="'+String(v.url||'')+'"></video>').join('')+'</div>':'';
  const priceHtml=(m.itemPrice!==null&&m.itemPrice!==undefined&&Number(m.itemPrice)>0)?'<div class="lfPrice">₹'+Number(m.itemPrice).toLocaleString('en-IN')+'</div>':'';
+ const variantHtml=m.variant?'<div style="font-size:10px;font-weight:850;color:#516a70;margin:2px 0 7px">Variant: '+ocsSavedText(m.variant)+'</div>':'';
  const itemWa=(cat==='Local Shop')?'<button class="lfItemWa" onclick="parent.livePostWhatsAppItem(parent.__ocsLiveFeed['+i+'])">🟢 WhatsApp this Product</button>':'';
- return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px">LIVE</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p><div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>'+itemWa+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
+ return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px">LIVE</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p><div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>'+itemWa+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
  window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat}));
  const target=doc.querySelector('main,.wrap,.container,.app')||doc.body;
  if(target===doc.body)doc.body.insertBefore(feed,doc.body.firstChild);else target.insertBefore(feed,target.firstChild);
@@ -2852,18 +2853,19 @@ async function injectLiveCategoryAds(cat){
  let liveLb=doc.getElementById('ocsLivePhotoLightbox');
  if(!liveLb){
    liveLb=doc.createElement('div');liveLb.id='ocsLivePhotoLightbox';
-   liveLb.innerHTML='<button class="lfLbClose" type="button" aria-label="Close">×</button><button class="lfLbNav lfLbPrev" type="button" aria-label="Previous photo">‹</button><img alt="OCS listing photo"><button class="lfLbNav lfLbNext" type="button" aria-label="Next photo">›</button><div class="lfLbCount">1 / 1</div><div class="lfLbInfo"><div class="lfLbInfoTop"><div class="lfLbTitle">OCS Listing</div><div class="lfLbPrice">Price on enquiry</div></div><div class="lfLbActions"><button class="lfLbLike" type="button">♡ Like</button><button class="lfLbShare" type="button">↗ Share</button><button class="lfLbCall" type="button">📞 Contact</button><button class="lfLbEnquiry" type="button">WhatsApp Enquiry</button></div></div>';
+   liveLb.innerHTML='<button class="lfLbClose" type="button" aria-label="Close">×</button><button class="lfLbNav lfLbPrev" type="button" aria-label="Previous photo">‹</button><img alt="OCS listing photo"><button class="lfLbNav lfLbNext" type="button" aria-label="Next photo">›</button><div class="lfLbCount">1 / 1</div><div class="lfLbInfo"><div class="lfLbInfoTop"><div><div class="lfLbTitle">OCS Listing</div><div class="lfLbVariant"></div></div><div class="lfLbPrice">Price on enquiry</div></div><div class="lfLbActions"><button class="lfLbLike" type="button">♡ Like</button><button class="lfLbShare" type="button">↗ Share</button><button class="lfLbCall" type="button">📞 Contact</button><button class="lfLbEnquiry" type="button">WhatsApp Enquiry</button></div></div>';
    doc.body.appendChild(liveLb);
  }
  let liveGalleryImages=[],liveLbIndex=0,liveLbTouchX=0,liveLbMeta=null,liveLbCat=cat;
  const syncLiveLbInfo=()=>{
    if(!liveLbMeta)return;
-   const title=liveLb.querySelector('.lfLbTitle'),price=liveLb.querySelector('.lfLbPrice'),like=liveLb.querySelector('.lfLbLike'),share=liveLb.querySelector('.lfLbShare'),call=liveLb.querySelector('.lfLbCall'),enquiry=liveLb.querySelector('.lfLbEnquiry');
+   const title=liveLb.querySelector('.lfLbTitle'),variantEl=liveLb.querySelector('.lfLbVariant'),price=liveLb.querySelector('.lfLbPrice'),like=liveLb.querySelector('.lfLbLike'),share=liveLb.querySelector('.lfLbShare'),call=liveLb.querySelector('.lfLbCall'),enquiry=liveLb.querySelector('.lfLbEnquiry');
    const isShop=liveLbCat==='Local Shop',isUsed=liveLbCat==='Used Vehicle',isNew=liveLbCat==='New Vehicle',isVehicle=isUsed||isNew;
    if(title)title.textContent=String(liveLbMeta.business||liveLbMeta.name||liveLbMeta.title||liveLbCat||'OCS Listing');
+   if(variantEl){variantEl.textContent=liveLbMeta.variant?('Variant: '+liveLbMeta.variant):'';variantEl.style.cssText='font-size:10px;color:#647b80;margin-top:2px;font-weight:750'}
    if(price)price.textContent=(liveLbMeta.itemPrice!==null&&liveLbMeta.itemPrice!==undefined&&Number(liveLbMeta.itemPrice)>0)?('₹'+Number(liveLbMeta.itemPrice).toLocaleString('en-IN')):'Price on enquiry';
    if(like){const liked=livePostIsLiked(liveLbMeta,liveLbCat);like.classList.toggle('liked',liked);like.textContent=liked?'♥ Liked':'♡ Like'}
-   if(share)share.textContent=isShop?'WhatsApp Share':(isVehicle?'WhatsApp Share':'↗ Share');
+   if(share)share.textContent=isShop?'💬 Enquiry':(isVehicle?'WhatsApp Share':'↗ Share');
    if(call)call.textContent=isShop?'📞 Call Shop':(isNew?'📞 Call Dealer':(isUsed?'📞 Call Seller':'📞 Contact'));
    if(enquiry)enquiry.textContent=isShop?'WhatsApp Product':(isVehicle?'WhatsApp Enquiry':'WhatsApp Enquiry');
  };
@@ -2889,7 +2891,7 @@ async function injectLiveCategoryAds(cat){
  liveLb.querySelector('.lfLbPrev').onclick=e=>{e.stopPropagation();stepLiveLb(-1)};
  liveLb.querySelector('.lfLbNext').onclick=e=>{e.stopPropagation();stepLiveLb(1)};
  liveLb.querySelector('.lfLbLike').onclick=e=>{e.stopPropagation();if(liveLbMeta){livePostToggleLike(liveLbMeta,liveLbCat);syncLiveLbInfo()}};
- liveLb.querySelector('.lfLbShare').onclick=e=>{e.stopPropagation();const img=liveGalleryImages[liveLbIndex];if(liveLbMeta)livePostShare(liveLbMeta,liveLbCat,img&&img.src)};
+ liveLb.querySelector('.lfLbShare').onclick=e=>{e.stopPropagation();const img=liveGalleryImages[liveLbIndex];if(!liveLbMeta)return;if(liveLbCat==='Local Shop'){const q=(prompt('Product enquiry likhiye')||'').trim();if(!q)return;const chats=readBizChats();chats.unshift({id:'OCSCHAT'+Date.now(),listingId:liveLbMeta.listingId||liveLbMeta.__sourceRef||'',category:'Local Shop',business:liveLbMeta.business||'Shop',from:'Customer',text:q+(liveLbMeta.variant?' | Variant: '+liveLbMeta.variant:'')+(img&&img.src?' | Photo: '+img.src:''),status:'SENT',createdAt:new Date().toISOString()});writeBizChats(chats.slice(0,200));alert('Enquiry OCS Chat me save ho gayi ✅')}else livePostShare(liveLbMeta,liveLbCat,img&&img.src)};
  liveLb.querySelector('.lfLbCall').onclick=e=>{e.stopPropagation();if(liveLbMeta)livePostCall(liveLbMeta)};
  liveLb.querySelector('.lfLbEnquiry').onclick=e=>{e.stopPropagation();const img=liveGalleryImages[liveLbIndex];if(liveLbMeta)livePostEnquiry(liveLbMeta,liveLbCat,img&&img.src)};
  liveLb.onclick=e=>{if(e.target===liveLb)closeLiveLb()};
@@ -2932,7 +2934,7 @@ const OCS_XYZ_DEMO={
   common:["XYZ","Demo","Test Listing","OCS Demo"],
   listings:{
     "Property":{name:"XYZ Builder Property",subtitle:"XYZ Residency • Demo Property",image:"https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=82"],detail:"Flat Sale • 2 BHK • Demo Price ₹45 Lakh onwards"},
-    "Local Shop":{name:"XYZ Electrical & Hardware",subtitle:"Electrical • Hardware • Demo Shop",price:"₹499 • Demo Product Price",image:"https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1581783898377-1c85bf937427?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=1200&q=82"],detail:"Switches • Wire • Tools • Hardware"},
+    "Local Shop":{name:"XYZ Electrical & Hardware",subtitle:"Electrical • Hardware • Demo Shop",price:"₹499 • Demo Product Price",variant:"M18 Drill • 18V • Red",image:"https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1581783898377-1c85bf937427?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=1200&q=82"],detail:"Switches • Wire • Tools • Hardware"},
     "Sliding / Aluminium":{name:"XYZ Sliding & Aluminium",subtitle:"Windows • Doors • Glass",image:"https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=82"],detail:"Sliding windows • Aluminium sections • Glass work"},
     "Welding / Fabrication":{name:"XYZ Welding & Fabrication",subtitle:"Gate • Grill • Metal Work",image:"https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?auto=format&fit=crop&w=1200&q=82"],detail:"Gate • Grill • Railing • Fabrication"},
     "Beauty / Make-up":{name:"XYZ Beauty & Make-up",subtitle:"Beauty • Bridal • Make-up",image:"https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1487412912498-0447578fcca8?auto=format&fit=crop&w=1200&q=82"],detail:"Bridal • Party Make-up • Beauty Services"},
@@ -3021,18 +3023,19 @@ function injectXyzDemoListing(cat){
  let lb=doc.getElementById("ocsXyzPhotoLightbox");
  if(!lb){
    lb=doc.createElement("div");lb.id="ocsXyzPhotoLightbox";
-   lb.innerHTML='<button class="xyzLbClose" type="button" aria-label="Close">×</button><button class="xyzLbNav xyzLbPrev" type="button" aria-label="Previous photo">‹</button><img alt="XYZ photo preview"><button class="xyzLbNav xyzLbNext" type="button" aria-label="Next photo">›</button><div class="xyzLbCount">1 / 1</div><div class="xyzLbInfo"><div class="xyzLbInfoTop"><div class="xyzLbTitle">XYZ Demo</div><div class="xyzLbPrice">Price on enquiry</div></div><div class="xyzLbActions"><button class="xyzLbLike" type="button">♡ Like</button><button class="xyzLbShare" type="button">↗ Share</button><button class="xyzLbCall" type="button">📞 Contact</button><button class="xyzLbEnquiry" type="button">WhatsApp Enquiry</button></div></div>';
+   lb.innerHTML='<button class="xyzLbClose" type="button" aria-label="Close">×</button><button class="xyzLbNav xyzLbPrev" type="button" aria-label="Previous photo">‹</button><img alt="XYZ photo preview"><button class="xyzLbNav xyzLbNext" type="button" aria-label="Next photo">›</button><div class="xyzLbCount">1 / 1</div><div class="xyzLbInfo"><div class="xyzLbInfoTop"><div><div class="xyzLbTitle">XYZ Demo</div><div class="xyzLbVariant"></div></div><div class="xyzLbPrice">Price on enquiry</div></div><div class="xyzLbActions"><button class="xyzLbLike" type="button">♡ Like</button><button class="xyzLbShare" type="button">↗ Share</button><button class="xyzLbCall" type="button">📞 Contact</button><button class="xyzLbEnquiry" type="button">WhatsApp Enquiry</button></div></div>';
    doc.body.appendChild(lb);
  }
  const allGalleryImgs=[...card.querySelectorAll(".xyzBigSlider img")];
  let lbIndex=0,lbTouchX=0;
  const syncXyzLbInfo=()=>{
-   const title=lb.querySelector(".xyzLbTitle"),price=lb.querySelector(".xyzLbPrice"),like=lb.querySelector(".xyzLbLike"),share=lb.querySelector(".xyzLbShare"),call=lb.querySelector(".xyzLbCall"),enquiry=lb.querySelector(".xyzLbEnquiry");
+   const title=lb.querySelector(".xyzLbTitle"),variantEl=lb.querySelector(".xyzLbVariant"),price=lb.querySelector(".xyzLbPrice"),like=lb.querySelector(".xyzLbLike"),share=lb.querySelector(".xyzLbShare"),call=lb.querySelector(".xyzLbCall"),enquiry=lb.querySelector(".xyzLbEnquiry");
    const isShop=cat==="Local Shop",isUsed=cat==="Used Vehicle",isNew=cat==="New Vehicle",isVehicle=isUsed||isNew;
    if(title)title.textContent=d.name;
+   if(variantEl){variantEl.textContent=d.variant?("Variant: "+d.variant):"";variantEl.style.cssText="font-size:10px;color:#647b80;margin-top:2px;font-weight:750"}
    if(price)price.textContent=d.price||"Price on enquiry";
    if(like){const liked=isBusinessLiked(cat);like.classList.toggle("liked",liked);like.textContent=liked?"♥ Liked":"♡ Like"}
-   if(share)share.textContent=isShop?"WhatsApp Share":(isVehicle?"WhatsApp Share":"↗ Share");
+   if(share)share.textContent=isShop?"💬 Enquiry":(isVehicle?"WhatsApp Share":"↗ Share");
    if(call)call.textContent=isShop?"📞 Call Shop":(isNew?"📞 Call Dealer":(isUsed?"📞 Call Seller":"📞 Contact"));
    if(enquiry)enquiry.textContent=isShop?"WhatsApp Product":(isVehicle?"WhatsApp Enquiry":"WhatsApp Enquiry");
  };
@@ -3051,7 +3054,7 @@ function injectXyzDemoListing(cat){
  lb.querySelector(".xyzLbPrev").onclick=(ev)=>{ev.stopPropagation();stepLb(-1)};
  lb.querySelector(".xyzLbNext").onclick=(ev)=>{ev.stopPropagation();stepLb(1)};
  lb.querySelector(".xyzLbLike").onclick=(ev)=>{ev.stopPropagation();toggleBusinessLike(cat);syncXyzLbInfo()};
- lb.querySelector(".xyzLbShare").onclick=(ev)=>{ev.stopPropagation();ocsXyzDemoShare(cat,allGalleryImgs[lbIndex]&&allGalleryImgs[lbIndex].src)};
+ lb.querySelector(".xyzLbShare").onclick=(ev)=>{ev.stopPropagation();if(cat==="Local Shop"){const q=(prompt("Product enquiry likhiye")||"").trim();if(!q)return;const chats=readBizChats();chats.unshift({id:"XYZDEMO"+Date.now(),listingId:"xyz-demo-local-shop",category:"Local Shop",business:d.name,from:"Customer",text:q+(d.variant?" | Variant: "+d.variant:""),status:"DEMO",createdAt:new Date().toISOString(),demo:true});writeBizChats(chats.slice(0,200));alert("Demo enquiry saved ✅")}else ocsXyzDemoShare(cat,allGalleryImgs[lbIndex]&&allGalleryImgs[lbIndex].src)};
  lb.querySelector(".xyzLbCall").onclick=(ev)=>{ev.stopPropagation();ocsXyzDemoCall()};
  lb.querySelector(".xyzLbEnquiry").onclick=(ev)=>{ev.stopPropagation();if(cat==="Local Shop"){const msg=["Hello XYZ, mujhe OCS par ye product pasand aaya:",d.name,"Price: "+(d.price||"Price on enquiry"),allGalleryImgs[lbIndex]?("Photo: "+allGalleryImgs[lbIndex].src):"","Ye product available hai? Final price / offer bataiye."].filter(Boolean).join("\n");window.open("https://wa.me/"+OCS_XYZ_DEMO.phone+"?text="+encodeURIComponent(msg),"_blank","noopener")}else ocsXyzDemoWhatsApp()};
  lb.onclick=(ev)=>{if(ev.target===lb)closeLb()};
@@ -3612,7 +3615,7 @@ function injectBusinessContactBar(cat){
 }
 function loadBizDraft(cat){
  const d=readBizDrafts()[cat]||{};
- obName.value=d.name||'';obType.value=d.type||'';if(document.getElementById('obPostPrice'))document.getElementById('obPostPrice').value=d.itemPrice||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';updateBizLikeSummary(cat);
+ obName.value=d.name||'';obType.value=d.type||'';if(document.getElementById('obPostPrice'))document.getElementById('obPostPrice').value=d.itemPrice||'';if(document.getElementById('obVariant'))document.getElementById('obVariant').value=d.variant||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';updateBizLikeSummary(cat);
 }
 let ocsBizAutoSaveTimer=null;
 function autoSaveCurrentBizDraft(){
@@ -3630,6 +3633,7 @@ function autoSaveCurrentBizDraft(){
      phone:(document.getElementById('obPhone')?.value||'').trim(),
      billingEmail:(document.getElementById('obEmail')?.value||'').trim(),
      itemPrice:priceRaw===''?null:Number(priceRaw),
+     variant:(document.getElementById('obVariant')?.value||'').trim(),
      draftSavedAt:new Date().toISOString()
    });
    localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
@@ -3667,6 +3671,10 @@ function syncBizReadyForm(cat){
  if(pw)pw.style.display=cfg.priceLabel?'block':'none';
  if(pl&&cfg.priceLabel)pl.textContent=cfg.priceLabel;
  if(pi){pi.placeholder=cfg.pricePh||'Enter price';if(!cfg.priceLabel)pi.value=''}
+ const vw=document.getElementById('obVariantWrap'),vi=document.getElementById('obVariant');
+ const showVariant=(cat==='Local Shop'||cat==='Used Vehicle'||cat==='New Vehicle');
+ if(vw)vw.style.display=showVariant?'block':'none';
+ if(vi&&!showVariant)vi.value='';
 }
 function syncPropertyEntryUi(){
  const cat=document.getElementById('bizCat')?.value||'';
@@ -3720,7 +3728,7 @@ async function continueBiz(){
    pendingPropertyPost=chosen?chosen.value:'Single Property – Sale / Rent';
    closeBiz();openModule('Property');return;
  }
- const name=obName.value.trim(),type=obType.value.trim(),area=obArea.value.trim(),about=obAbout.value.trim(),phone=obPhone.value.trim(),billingEmail=(document.getElementById('obEmail')?.value||'').trim(),priceRaw=(document.getElementById('obPostPrice')?.value||'').trim(),itemPrice=priceRaw===''?null:Number(priceRaw);
+ const name=obName.value.trim(),type=obType.value.trim(),area=obArea.value.trim(),about=obAbout.value.trim(),phone=obPhone.value.trim(),billingEmail=(document.getElementById('obEmail')?.value||'').trim(),priceRaw=(document.getElementById('obPostPrice')?.value||'').trim(),itemPrice=priceRaw===''?null:Number(priceRaw),variant=(document.getElementById('obVariant')?.value||'').trim();
  if(!name||!area||phone.replace(/\D/g,'').length<10){alert('Business/Profile name, City/Area aur valid Mobile/WhatsApp required.');return}
  if(cat==='Other Business'&&!type){alert('Apna Business Category likhiye — e.g. Chinese Food Stall / Mobile Repair / Tailor.');return}
  if(itemPrice!==null&&(!Number.isFinite(itemPrice)||itemPrice<0)){alert('Valid post price / rate enter karein.');return}
@@ -3736,8 +3744,8 @@ async function continueBiz(){
  const adminFree=requestedAdminFree?await ocsAdminFreeAllowed():false;
  if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
  const base=adminFree?0:normalBase,tax=getGstBreakup(base);
- const postMeta={category:cat,business:name,area,type,about,phone,itemPrice,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
- drafts[cat]={name,type,area,about,phone,itemPrice,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'LIVE':'PAYMENT_PENDING',paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:base===0?new Date().toISOString():null,expiresAt:base===0?addDaysIso(new Date().toISOString(),28):null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
+ const postMeta={category:cat,business:name,area,type,about,phone,itemPrice,variant,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
+ drafts[cat]={name,type,area,about,phone,itemPrice,variant,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'LIVE':'PAYMENT_PENDING',paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:base===0?new Date().toISOString():null,expiresAt:base===0?addDaysIso(new Date().toISOString(),28):null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
  if(base===0&&adminFree){
    await recordAdminFreePostBackend({sourceKind:'business_listing',category:cat,title:'OCS Business Listing • '+name,email:billingEmail,planLabel:'28 Days',durationDays:28,metadata:postMeta});
@@ -3903,7 +3911,7 @@ window.addEventListener('unhandledrejection',e=>ocsLogTechnicalError('PROMISE',e
 window.ocsLogTechnicalError=ocsLogTechnicalError;
 
 // New-build alert. app-version.json is updated with releases.
-const OCS_APP_BUILD='20260927-washare1';
+const OCS_APP_BUILD='20260927-shopvariant1';
 async function ocsCheckForNewBuild(){
  try{
    const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
