@@ -92,12 +92,15 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Full inventory is not mandatory.
 
 ## 10) Property
-- Owner Single Post: **₹199 / 28 days**.
-- Builder: **₹499 / 28 days**.
-- Posting types include Flat, Bungalow, Row House, Land/Plot and Builder Project.
+- **Single Property – Sale / Rent: ₹199 / 28 days**.
+- **Builder Property: ₹499 / 28 days**.
+- **Builder Project Profile: ₹499 / 28 days**.
+- Property types can include Flat, Bungalow, Row House and Land/Plot.
 - Keep posting easy: details → location → price → media → contact → preview → payment → post.
 - Latest property flow: successful payment + required verification → listing live for the plan validity.
-- Single Property stays basic; Builder gets premium profile/project/chat/enquiry features.
+- Single Property stays basic: one property, photos and direct customer contact.
+- Builder Property: one builder property advertisement with photos, project details and direct customer contact.
+- Builder Project Profile: full showcase with multiple photos/gallery, builder/company details, RERA/registration when applicable, brochure, catalogue, video/YouTube, website, virtual tour, chat/enquiry and direct contact.
 
 ## 10A) GST — paid ads / business listings
 - This GST rule applies to **paid OCS advertising and business/window listings**, including Slider/Banner Ads, Post Your Ad, Local Shop, Property/Builder and other paid business listings.
