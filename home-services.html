@@ -4427,6 +4427,8 @@ function ocsNavHome(){
 }
 function ocsHandleInternalBack(){
  try{
+   const rs=document.getElementById("rsOverlay");
+   if(rs){closeRS();return true}
    const am=document.getElementById("providerActionModal");
    if(am&&!am.classList.contains("hide")){closeProviderActionModal();return true}
    const pp=document.getElementById("providerProfilePanel");
