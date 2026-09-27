@@ -2642,10 +2642,26 @@ async function compressOcsImageFile(file){
    return file;
  }
 }
+function ocsUploadProgress(done,total,label){
+ let box=document.getElementById('ocsUploadProgressBox');
+ if(!box){
+   box=document.createElement('div');box.id='ocsUploadProgressBox';
+   box.style.cssText='position:fixed;left:12px;right:12px;bottom:88px;z-index:2147483646;display:none;background:#fff;border:1px solid #d8e7e3;border-radius:15px;padding:11px 12px;box-shadow:0 10px 30px rgba(15,50,60,.22);font:700 12px system-ui,Arial;color:#173f46';
+   box.innerHTML='<div style="display:flex;justify-content:space-between;gap:10px"><span id="ocsUploadProgressText">Uploading...</span><b id="ocsUploadProgressPct">0%</b></div><div style="height:7px;background:#e8f0ee;border-radius:999px;margin-top:8px;overflow:hidden"><div id="ocsUploadProgressBar" style="height:100%;width:0;background:#0f766e;border-radius:999px;transition:width .2s"></div></div>';
+   document.body.appendChild(box);
+ }
+ const safeTotal=Math.max(1,Number(total||1)),safeDone=Math.max(0,Math.min(Number(done||0),safeTotal)),pct=Math.round((safeDone/safeTotal)*100);
+ const txt=document.getElementById('ocsUploadProgressText'),pe=document.getElementById('ocsUploadProgressPct'),bar=document.getElementById('ocsUploadProgressBar');
+ if(txt)txt.textContent=(label||'Photos / videos')+' • '+safeDone+'/'+safeTotal;
+ if(pe)pe.textContent=pct+'%';if(bar)bar.style.width=pct+'%';
+ box.style.display='block';
+ if(safeDone>=safeTotal)setTimeout(()=>{box.style.display='none'},900);
+}
 async function uploadOcsPublicMedia(files,prefix){
  const list=validateOcsMediaFiles(files);if(!list.length)return [];
  const session=await getOcsSession();if(!session||!session.user||!ocsSupabase)throw new Error('Media upload ke liye OCS login required');
- const out=[];
+ const out=[];let completed=0;
+ ocsUploadProgress(0,list.length,'Uploading media');
  for(const original of list){
    const originalType=String(original.type||'').toLowerCase(),originalName=String(original.name||'');
    const isVideo=originalType.startsWith('video/')||/\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(originalName);
@@ -2657,6 +2673,7 @@ async function uploadOcsPublicMedia(files,prefix){
    if(error)throw error;
    const {data}=ocsSupabase.storage.from('ocs-public-media').getPublicUrl(key);
    if(data&&data.publicUrl)out.push({url:data.publicUrl,type:isVideo?'video':'image',name});
+   completed++;ocsUploadProgress(completed,list.length,'Uploading media');
  }
  return out;
 }
@@ -3657,5 +3674,47 @@ if('serviceWorker' in navigator){
  if(!navigator.onLine)show();
 })();
 setTimeout(syncOcsInstallUi,300);
+
+// Prevent accidental duplicate Pay/Post/Book/Send taps.
+(function ocsInstallActionGuard(){
+ document.addEventListener('click',function(e){
+   const b=e.target&&e.target.closest?e.target.closest('button,[role="button"]'):null;if(!b)return;
+   const t=String(b.innerText||b.textContent||'').trim();
+   if(!/\b(pay|payment|post|publish|book|send|submit|continue to payment|find provider|confirm)\b/i.test(t))return;
+   if(b.dataset.ocsTapGuard==='1'){e.preventDefault();e.stopImmediatePropagation();return}
+   b.dataset.ocsTapGuard='1';const old=b.style.opacity;b.style.opacity='.72';
+   setTimeout(()=>{delete b.dataset.ocsTapGuard;b.style.opacity=old},1800);
+ },true);
+})();
+
+// Local technical diagnostics. Keeps only recent non-sensitive error summaries.
+const OCS_ERROR_LOG_KEY='ocsTechnicalErrorsV1';
+function ocsLogTechnicalError(kind,message,source,line){
+ try{
+   const old=JSON.parse(localStorage.getItem(OCS_ERROR_LOG_KEY)||'[]');
+   const a=Array.isArray(old)?old:[];
+   a.unshift({at:new Date().toISOString(),kind:String(kind||'ERROR').slice(0,30),message:String(message||'Unknown error').slice(0,500),source:String(source||'').split('/').pop().slice(0,120),line:Number(line||0)});
+   localStorage.setItem(OCS_ERROR_LOG_KEY,JSON.stringify(a.slice(0,40)));
+ }catch(e){}
+}
+window.addEventListener('error',e=>ocsLogTechnicalError('JS',e.message,e.filename,e.lineno));
+window.addEventListener('unhandledrejection',e=>ocsLogTechnicalError('PROMISE',e.reason&&e.reason.message?e.reason.message:String(e.reason||'Promise error'),'promise',0));
+window.ocsLogTechnicalError=ocsLogTechnicalError;
+
+// New-build alert. app-version.json is updated with releases.
+const OCS_APP_BUILD='20260927-techsafe1';
+async function ocsCheckForNewBuild(){
+ try{
+   const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
+   const v=await r.json();if(!v||!v.build||String(v.build)===OCS_APP_BUILD)return;
+   if(document.getElementById('ocsUpdateBar'))return;
+   const bar=document.createElement('div');bar.id='ocsUpdateBar';
+   bar.style.cssText='position:fixed;left:10px;right:10px;bottom:82px;z-index:2147483646;display:flex;align-items:center;gap:9px;padding:11px 12px;border-radius:14px;background:#0f766e;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.24);font:800 12px system-ui,Arial';
+   bar.innerHTML='<span style="flex:1">OCS ka naya version available hai.</span><button type="button" style="border:0;border-radius:9px;padding:8px 12px;background:#fff;color:#0f766e;font-weight:900" onclick="location.reload()">Refresh</button>';
+   document.body.appendChild(bar);
+ }catch(e){}
+}
+setTimeout(ocsCheckForNewBuild,3500);
+setInterval(ocsCheckForNewBuild,10*60*1000);
 </script>
 <script>setTimeout(()=>document.documentElement.classList.add('ocs-css-ready'),12000)</script></body></html>
