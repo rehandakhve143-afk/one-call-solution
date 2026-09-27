@@ -1,5 +1,5 @@
 {
-  "build": "20260927-shopvariant1",
+  "build": "20260927-refreshkeep1",
   "updated_at": "2026-09-27",
-  "message": "Local Shop variant, price and enquiry gallery actions"
+  "message": "Keep current OCS screen and scroll position after version refresh"
 }
