@@ -101,6 +101,13 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Property is a special category: choosing Property from Post Your Ad opens its dedicated 3-type form directly, avoiding duplicate generic forms or duplicate payment.
 - Public ad media is stored in the OCS public media bucket; billing/payment records remain separate from public listing display data.
 
+## 9B) Ad owner & Admin controls
+- Profile includes **My Ads & Listings** for the posting owner.
+- Owner controls: **Edit, Pause, Resume, Renew, Remove**. Pause/Remove must update the backend record so the ad disappears from public LIVE feeds across devices.
+- Admin controls on platform post records: **Pause, Resume, Block, Remove**.
+- Generic Post Your Ad forms adapt labels/placeholders by category (Shop, Lab, Beauty, Vehicle, Medical, Welding, Sliding, Modular Kitchen, Hotel/Restaurant etc.) while keeping one common gateway.
+- Property continues to use its dedicated 3-type ready-made form.
+
 ## 10) Property
 - **Single Property – Sale / Rent: ₹199 / 28 days**.
 - **Builder Property: ₹499 / 28 days**.
