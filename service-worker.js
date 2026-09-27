@@ -40,7 +40,7 @@ self.addEventListener('fetch',event=>{
           return res;
         })
         .catch(async()=>{
-          return (await caches.match(req)) || (await caches.match('./index.html')) || Response.error();
+          return (await caches.match(req,{ignoreSearch:true})) || (await caches.match('./index.html',{ignoreSearch:true})) || Response.error();
         })
     );
     return;
@@ -48,7 +48,7 @@ self.addEventListener('fetch',event=>{
 
   if(url.origin===location.origin){
     event.respondWith(
-      caches.match(req).then(cached=>{
+      caches.match(req,{ignoreSearch:true}).then(cached=>{
         const fresh=fetch(req).then(res=>{
           if(res&&res.ok){
             const copy=res.clone();
