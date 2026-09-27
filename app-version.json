@@ -1,5 +1,5 @@
 {
-  "build": "20260927-refreshkeep1",
+  "build": "20260927-searchall1",
   "updated_at": "2026-09-27",
-  "message": "Keep current OCS screen and scroll position after version refresh"
+  "message": "Always-visible search across OCS windows and Home Services"
 }
