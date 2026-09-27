@@ -3367,11 +3367,13 @@ const OCS_BIZ_FORM_CONFIG={
 function syncBizReadyForm(cat){
  const cfg=OCS_BIZ_FORM_CONFIG[cat]||OCS_BIZ_FORM_CONFIG['Other Business'];
  const fields=document.getElementById('otherFields');if(!fields)return;
- const labels=fields.querySelectorAll('label'),inputs=fields.querySelectorAll('input,textarea');
- if(labels[1])labels[1].textContent=cfg.type;
- if(inputs[1])inputs[1].placeholder=cfg.typePh;
- if(labels[3])labels[3].textContent=cfg.about;
- const ta=fields.querySelector('textarea');if(ta)ta.placeholder=cfg.aboutPh;
+ const obType=document.getElementById('obType'),ta=document.getElementById('obAbout');
+ const typeLabel=obType&&obType.previousElementSibling&&obType.previousElementSibling.tagName==='LABEL'?obType.previousElementSibling:null;
+ const aboutLabel=ta&&ta.previousElementSibling&&ta.previousElementSibling.tagName==='LABEL'?ta.previousElementSibling:null;
+ if(typeLabel)typeLabel.textContent=cfg.type;
+ if(obType)obType.placeholder=cfg.typePh;
+ if(aboutLabel)aboutLabel.textContent=cfg.about;
+ if(ta)ta.placeholder=cfg.aboutPh;
  const pw=document.getElementById('obPostPriceWrap'),pl=document.getElementById('obPostPriceLabel'),pi=document.getElementById('obPostPrice');
  if(pw)pw.style.display=cfg.priceLabel?'block':'none';
  if(pl&&cfg.priceLabel)pl.textContent=cfg.priceLabel;
