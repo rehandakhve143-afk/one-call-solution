@@ -4449,6 +4449,10 @@ function ocsHandleInternalBack(){
  return false
 }
 function ocsNavBack(){
+ // When OCS screen history exists, use the real browser stack so Forward can restore it.
+ try{
+   if(history.state&&history.state.ocsHs&&history.length>1){history.back();return}
+ }catch(e){}
  if(ocsHandleInternalBack())return;
  try{
    const ref=document.referrer||"";
@@ -4477,19 +4481,91 @@ function ocsNavNext(){
  }catch(e){}
  updateOcsPageNav();
 }
-(function ocsInstallSafeBrowserBack(){
+let ocsHsHistoryApplying=false,ocsHsHistoryReady=false,ocsHsHistoryTimer=null,ocsHsHistoryLast="",ocsHsHistorySeq=0;
+
+function ocsHsActiveTab(){
+ if(document.getElementById("provider")&&!document.getElementById("provider").classList.contains("hide"))return "provider";
+ if(document.getElementById("admin")&&!document.getElementById("admin").classList.contains("hide"))return "admin";
+ return "customer";
+}
+function ocsHsCapture(){
+ return {
+   tab:ocsHsActiveTab(),
+   status:String(S.status||"SELECT_SERVICE"),
+   category:String(S.category||""),
+   service:String(S.service||""),
+   serviceName:String(S.serviceName||""),
+   selectedItems:Array.isArray(S.selectedItems)?JSON.parse(JSON.stringify(S.selectedItems)):[],
+   requestType:String(S.requestType||""),
+   customDescription:String(S.customDescription||""),
+   customSchedule:String(S.customSchedule||""),
+   paymentChoice:String(S.paymentChoice||"ONLINE"),
+   customerAddOpen:!!(document.getElementById("addWorkSheet")&&!document.getElementById("addWorkSheet").classList.contains("hide")),
+   providerAddOpen:!!(document.getElementById("providerAddWorkSheet")&&!document.getElementById("providerAddWorkSheet").classList.contains("hide"))
+ };
+}
+function ocsHsKey(s){try{return JSON.stringify(s||{})}catch(e){return ""}}
+function ocsHsQueue(){
+ if(!ocsHsHistoryReady||ocsHsHistoryApplying)return;
+ clearTimeout(ocsHsHistoryTimer);
+ ocsHsHistoryTimer=setTimeout(()=>{
+   const s=ocsHsCapture(),key=ocsHsKey(s);if(!key||key===ocsHsHistoryLast)return;
+   ocsHsHistorySeq++;
+   try{history.pushState({ocsHs:true,seq:ocsHsHistorySeq,state:s},"",location.href);ocsHsHistoryLast=key}catch(e){}
+ },80);
+}
+window.ocsHsQueueHistory=ocsHsQueue;
+
+function ocsHsApplyTab(tab){
+ const c=document.getElementById("customer"),p=document.getElementById("provider"),a=document.getElementById("admin");
+ if(c)c.classList.toggle("hide",tab!=="customer");
+ if(p)p.classList.toggle("hide",tab!=="provider");
+ if(a)a.classList.toggle("hide",tab!=="admin");
+ const ct=document.getElementById("ctab"),pt=document.getElementById("ptab"),at=document.getElementById("atab");
+ if(ct)ct.classList.toggle("active",tab==="customer");
+ if(pt)pt.classList.toggle("active",tab==="provider");
+ if(at)at.classList.toggle("active",tab==="admin");
+ document.body.classList.toggle("customer-locked-ui",tab==="customer");
+}
+function ocsHsRestore(s){
+ if(!s)return;
+ ocsHsHistoryApplying=true;
+ try{
+   S.status=s.status||"SELECT_SERVICE";
+   S.category=s.category||"";
+   S.service=s.service||"";
+   S.serviceName=s.serviceName||"";
+   S.selectedItems=Array.isArray(s.selectedItems)?JSON.parse(JSON.stringify(s.selectedItems)):[];
+   S.requestType=s.requestType||S.requestType||"fixed";
+   S.customDescription=s.customDescription||"";
+   S.customSchedule=s.customSchedule||"";
+   S.paymentChoice=s.paymentChoice||"ONLINE";
+   ocsHsApplyTab(s.tab||"customer");
+   renderCore();updateSelectionTray();updateOcsPageNav();
+   const ca=document.getElementById("addWorkSheet");if(ca)ca.classList.toggle("hide",!s.customerAddOpen);
+   const pa=document.getElementById("providerAddWorkSheet");if(pa)pa.classList.toggle("hide",!s.providerAddOpen);
+   window.scrollTo(0,0);
+ }catch(e){console.warn("OCS Home Services history restore",e)}
+ setTimeout(()=>{ocsHsHistoryApplying=false;ocsHsHistoryLast=ocsHsKey(ocsHsCapture())},180);
+}
+(function ocsInstallHomeServiceHistory(){
  try{
    if(!/home-services\.html$/i.test(location.pathname))return;
-   history.replaceState({ocsBase:true},"",location.href);
-   history.pushState({ocsGuard:true},"",location.href);
-   window.addEventListener("popstate",function(){
-     if(ocsHandleInternalBack()){
-       setTimeout(()=>history.pushState({ocsGuard:true},"",location.href),0);
-       return;
+   const observer=new MutationObserver(()=>ocsHsQueue());
+   observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style"]});
+   setTimeout(()=>{
+     const initial=ocsHsCapture();
+     history.replaceState({ocsHs:true,seq:0,state:initial},"",location.href);
+     ocsHsHistorySeq=0;ocsHsHistoryLast=ocsHsKey(initial);ocsHsHistoryReady=true;
+   },900);
+   window.addEventListener("popstate",ev=>{
+     if(ev.state&&ev.state.ocsHs){
+       ocsHsHistorySeq=Number(ev.state.seq||0);
+       ocsHsHistoryLast=ocsHsKey(ev.state.state);
+       ocsHsRestore(ev.state.state);
      }
-     location.replace("index.html?v=20260927-backflow2");
    });
- }catch(e){}
+ }catch(e){console.warn("OCS Home Services history install",e)}
 })();
 
 async function bootHomeServices(){
