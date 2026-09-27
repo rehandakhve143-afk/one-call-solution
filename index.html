@@ -2455,6 +2455,99 @@ function updateBizPrice(){
  if(note)note.textContent=price===0?'Admin FREE override • No payment / GST':(x.enabled?('Final payment '+moneyINRPay(x.total)+' • GST invoice after successful payment'):'GST currently disabled by Admin');
 }
 const OCS_MODULE_NAMES=["Home Services","Property","Local Shop","Sliding / Aluminium","Welding / Fabrication","Beauty / Make-up","Used Vehicle","New Vehicle","Medical Store","Diagnostic Lab","Modular Kitchen","Hotel / Restaurant / Lodging"];
+
+const OCS_XYZ_DEMO_ENABLED=true;
+const OCS_XYZ_DEMO={
+  marker:"OCS_XYZ_DEMO_V1",
+  phone:"972310877",
+  email:"rehandakhve143@gmail.com",
+  address:"XYZ Address, Khopoli, Maharashtra",
+  website:"https://example.com/xyz-demo",
+  video:"https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+  common:["XYZ","Demo","Test Listing","OCS Demo"],
+  listings:{
+    "Property":{name:"XYZ Builder Property",subtitle:"XYZ Residency • Demo Property",image:"https://img.squareyards.com/secondaryPortal/optImages/IN_639108210862157805-0304260151265126.jpg?aio=w-900%3Bh-600%3Bfill%3B",detail:"Flat Sale • 2 BHK • Demo Price ₹45 Lakh onwards"},
+    "Local Shop":{name:"XYZ Electrical & Hardware",subtitle:"Electrical • Hardware • Demo Shop",image:"https://www.dolarlc.com/_next/image?q=75&url=%2Fimages%2Fassets%2Felectricidad-3.webp&w=1200",detail:"Switches • Wire • Tools • Hardware"},
+    "Sliding / Aluminium":{name:"XYZ Sliding & Aluminium",subtitle:"Windows • Doors • Glass",image:"https://alukhome.com/getmedia/91e760ec-478f-4946-95ad-9d816394422c/Aluk-home-showroom-Lucknow-7.jpg",detail:"Sliding windows • Aluminium sections • Glass work"},
+    "Welding / Fabrication":{name:"XYZ Welding & Fabrication",subtitle:"Gate • Grill • Metal Work",image:"https://www.whatjobs.com/news/wj-material/uploads/2023/09/dreamstime_m_36857075-scaled-1.jpg",detail:"Gate • Grill • Railing • Fabrication"},
+    "Beauty / Make-up":{name:"XYZ Beauty & Make-up",subtitle:"Beauty • Bridal • Make-up",image:"https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1000&q=82",detail:"Bridal • Party Make-up • Beauty Services"},
+    "Used Vehicle":{name:"XYZ Used Vehicle",subtitle:"Second-hand Bikes & Cars",image:"https://hellomangaluru.online/media/2023/08/WhatsApp-Image-2024-01-09-at-14.53.31.jpeg",detail:"Demo used bike/car listing • Call for details"},
+    "New Vehicle":{name:"XYZ New Vehicle",subtitle:"New Bikes & Cars",image:"https://eauto.co.in/cdn/shop/articles/11-02-2026image_1770782525336_1024x.jpg?v=1770782595",detail:"Demo showroom listing • New vehicle enquiry"},
+    "Medical Store":{name:"XYZ Medical Store",subtitle:"Medicine Enquiry • Demo Store",image:"https://lscdn.azureedge.net/biz-live/img/11350114-11350114-a7e2598b.jpeg",detail:"Medicine enquiry • Call / WhatsApp"},
+    "Diagnostic Lab":{name:"XYZ Diagnostic Lab",subtitle:"Tests • Packages • Demo Lab",image:"https://aswasdiagnostics.com/images/franchiees.jpg",detail:"Blood Test • Health Packages • Home Collection Demo"},
+    "Modular Kitchen":{name:"XYZ Modular Kitchen",subtitle:"Design • Measurement • Quote",image:"https://indiframe-cms-media.s3.ap-south-1.amazonaws.com/blog122_26d5a6b6f3.jpg",detail:"Kitchen design • Site visit • Demo quote"},
+    "Hotel / Restaurant / Lodging":{name:"XYZ Hotel & Restaurant",subtitle:"Stay • Food • Lodging",image:"https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1000&q=82",detail:"Demo rooms • Restaurant • Call / WhatsApp"}
+  }
+};
+function xyzDemoFor(cat){return OCS_XYZ_DEMO_ENABLED?(OCS_XYZ_DEMO.listings[cat]||null):null}
+function xyzDemoSearchText(cat){
+ const d=xyzDemoFor(cat);return d?(" "+d.name+" "+d.subtitle+" "+d.detail+" "+OCS_XYZ_DEMO.address+" "+OCS_XYZ_DEMO.email+" "+OCS_XYZ_DEMO.phone):"";
+}
+function ocsXyzDemoCall(){location.href="tel:"+OCS_XYZ_DEMO.phone}
+function ocsXyzDemoWhatsApp(){
+ const msg="Hello XYZ, mujhe OCS demo listing ke bare me enquiry chahiye.";
+ window.open("https://wa.me/"+OCS_XYZ_DEMO.phone+"?text="+encodeURIComponent(msg),"_blank","noopener");
+}
+function ocsXyzDemoEmail(){location.href="mailto:"+OCS_XYZ_DEMO.email+"?subject="+encodeURIComponent("OCS XYZ Demo Enquiry")}
+function ocsXyzDemoChat(cat){
+ const q=(prompt("XYZ "+cat+" ke liye demo chat message likhiye")||"").trim();if(!q)return;
+ const chats=readBizChats();chats.unshift({id:"XYZDEMO"+Date.now(),listingId:"xyz-demo-"+ocsBizSlug(cat),category:cat,business:"XYZ "+cat,from:"Customer",text:q,status:"DEMO",createdAt:new Date().toISOString(),demo:true});
+ writeBizChats(chats.slice(0,200));alert("Demo chat saved ✅");
+}
+function closeXyzDemoSearch(){
+ const x=document.getElementById("xyzDemoSearchOverlay");if(x)x.remove();
+}
+function openXyzDemoWindow(cat){
+ closeXyzDemoSearch();pendingWindowSearch="xyz";openModule(cat);
+}
+function showXyzDemoSearchResults(){
+ closeXyzDemoSearch();
+ const cats=Object.keys(OCS_XYZ_DEMO.listings);
+ const ov=document.createElement("div");ov.id="xyzDemoSearchOverlay";
+ ov.style.cssText="position:fixed;inset:0;z-index:30000;background:rgba(5,35,40,.48);backdrop-filter:blur(6px);padding:18px 10px;overflow:auto";
+ ov.innerHTML='<div style="max-width:540px;margin:24px auto;background:#fff;border-radius:22px;padding:15px;box-shadow:0 20px 60px rgba(0,0,0,.28);font-family:system-ui,Arial">'+
+ '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><small style="color:#087a70;font-weight:900">DEMO SEARCH</small><h2 style="margin:3px 0 0;font-size:20px;color:#173f46">XYZ Demo Listings</h2></div><button onclick="closeXyzDemoSearch()" style="border:0;background:#eef3f2;border-radius:12px;width:40px;height:40px;font-size:22px">×</button></div>'+
+ '<p style="font-size:11px;color:#718488">Temporary test data • collection report me count nahi hoga.</p>'+
+ '<div style="display:grid;gap:8px">'+cats.map(cat=>{const d=OCS_XYZ_DEMO.listings[cat];return '<button onclick="openXyzDemoWindow(\''+cat.replace(/'/g,"\\'")+'\')" style="text-align:left;border:1px solid #e0eae8;background:#fff;border-radius:14px;padding:11px 12px"><b style="display:block;color:#244a51;font-size:12px">'+d.name+'</b><small style="color:#718488">'+cat+' • '+OCS_XYZ_DEMO.address+'</small></button>'}).join("")+'</div></div>';
+ document.body.appendChild(ov);
+}
+function injectXyzDemoListing(cat){
+ const d=xyzDemoFor(cat);if(!d)return;
+ const frame=document.getElementById("frame"),doc=frame&&frame.contentDocument;if(!doc||!doc.body||doc.getElementById("ocsXyzDemoCard"))return;
+ const style=doc.createElement("style");style.id="ocsXyzDemoStyle";style.textContent=
+ '#ocsXyzDemoCard{margin:14px auto 18px;max-width:760px;border:1px solid #d8e7e3;border-radius:20px;background:#fff;box-shadow:0 10px 30px rgba(16,70,74,.10);overflow:hidden;font-family:system-ui,Arial,sans-serif}'+
+ '#ocsXyzDemoCard *{box-sizing:border-box}#ocsXyzDemoCard .xyzHero{position:relative;height:210px;background:#eaf3f1 center/cover no-repeat}'+
+ '#ocsXyzDemoCard .xyzBadge{position:absolute;left:12px;top:12px;background:#fff8dc;border:1px solid #efd987;border-radius:999px;padding:5px 9px;font-size:9px;font-weight:950;color:#725800}'+
+ '#ocsXyzDemoCard .xyzBody{padding:14px}#ocsXyzDemoCard h2{margin:0;color:#173f46;font-size:20px}#ocsXyzDemoCard .xyzSub{margin:4px 0 8px;color:#5c7479;font-size:11px;font-weight:700}'+
+ '#ocsXyzDemoCard .xyzDetail{padding:10px 11px;background:#f6faf9;border-radius:12px;color:#3f5d62;font-size:11px;line-height:1.5}'+
+ '#ocsXyzDemoCard .xyzMeta{display:grid;gap:5px;margin:10px 0;color:#587075;font-size:10px}'+
+ '#ocsXyzDemoCard .xyzActions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}#ocsXyzDemoCard .xyzActions button,#ocsXyzDemoCard .xyzLinks a{border:0;border-radius:11px;min-height:40px;font-weight:900;font-size:10px;text-decoration:none;display:flex;align-items:center;justify-content:center}'+
+ '#ocsXyzDemoCard .xyzActions button:nth-child(1){background:#eef5f4;color:#134b48}#ocsXyzDemoCard .xyzActions button:nth-child(2){background:#087a70;color:#fff}#ocsXyzDemoCard .xyzActions button:nth-child(3){background:#dcf8e7;color:#13743b}'+
+ '#ocsXyzDemoCard .xyzLinks{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}#ocsXyzDemoCard .xyzLinks a{background:#f2f5ff;color:#3d4f90}'+
+ '#ocsXyzDemoCard video{width:100%;max-height:220px;border-radius:14px;margin-top:10px;background:#111}';
+ (doc.head||doc.documentElement).appendChild(style);
+ const card=doc.createElement("section");card.id="ocsXyzDemoCard";card.innerHTML=
+ '<div class="xyzHero" style="background-image:url('+JSON.stringify(d.image)+')"><span class="xyzBadge">XYZ • DEMO / TEST</span></div>'+
+ '<div class="xyzBody"><h2>'+d.name+'</h2><div class="xyzSub">'+d.subtitle+'</div>'+
+ '<div class="xyzDetail">'+d.detail+'</div>'+
+ '<div class="xyzMeta"><div>📍 '+OCS_XYZ_DEMO.address+'</div><div>📞 '+OCS_XYZ_DEMO.phone+'</div><div>✉ '+OCS_XYZ_DEMO.email+'</div></div>'+
+ '<div class="xyzActions"><button onclick="parent.ocsXyzDemoCall()">Call</button><button onclick="parent.ocsXyzDemoChat(\''+cat.replace(/'/g,"\\'")+'\')">Chat</button><button onclick="parent.ocsXyzDemoWhatsApp()">WhatsApp</button></div>'+
+ '<div class="xyzLinks"><a href="'+OCS_XYZ_DEMO.website+'" target="_blank" rel="noopener">Website / Link</a><a href="mailto:'+OCS_XYZ_DEMO.email+'">Email</a></div>'+
+ '<video controls preload="metadata" poster="'+d.image+'"><source src="'+OCS_XYZ_DEMO.video+'" type="video/mp4">Video preview</video>'+
+ '<div style="margin-top:7px;color:#829295;font-size:8.5px">Temporary XYZ demo • later one-step remove.</div></div>';
+ const target=doc.querySelector("main,.wrap,.container,.app")||doc.body;
+ if(target===doc.body)doc.body.insertBefore(card,doc.body.firstChild);else target.insertBefore(card,target.firstChild);
+}
+function renderXyzDemoBanner(){
+ if(!OCS_XYZ_DEMO_ENABLED||document.querySelector(".ocs-xyz-demo-banner"))return;
+ const hero=document.querySelector(".ocs-super-hero"),dots=document.querySelector(".ocs-super-dots");if(!hero||!dots)return;
+ const d=OCS_XYZ_DEMO.listings["Local Shop"];
+ const slide=document.createElement("div");slide.className="ocs-super-slide ocs-xyz-demo-banner";
+ slide.style.backgroundImage="url("+JSON.stringify(d.image)+")";
+ slide.innerHTML='<div class="ocs-super-hero-copy"><div class="k">Sponsored • XYZ Demo</div><h1>XYZ Demo Advertisement</h1><p>'+OCS_XYZ_DEMO.address+' • '+OCS_XYZ_DEMO.phone+'</p><button type="button" onclick="ocsXyzDemoCall()">Call Now</button></div>';
+ hero.insertBefore(slide,dots);
+ const dot=document.createElement("button");dot.type="button";dot.className="ocs-xyz-demo-dot";dot.onclick=()=>setSuperSlide([...document.querySelectorAll(".ocs-super-slide")].indexOf(slide));dots.appendChild(dot);
+}
 let modulesB64=Object.fromEntries(OCS_MODULE_NAMES.map(n=>[n,null]));
 let ocsModulesPromise=null;
 function ensureOcsModules(){
@@ -2487,7 +2580,7 @@ const OCS_SEARCH_ALIASES={
  "Hotel / Restaurant / Lodging":"hotel restaurant lodging room rooms stay food dining hospitality",
 };
 function ocsNorm(v){return String(v||"").toLowerCase().replace(/[^a-z0-9₹\s/-]/g," ").replace(/\s+/g," ").trim()}
-function moduleText(n){let base=n+" "+(OCS_SEARCH_ALIASES[n]||"");try{if(modulesB64[n])base+=" "+decode64(modulesB64[n]).replace(/<[^>]+>/g," ")}catch(e){}return ocsNorm(base)}
+function moduleText(n){let base=n+" "+(OCS_SEARCH_ALIASES[n]||"")+xyzDemoSearchText(n);try{if(modulesB64[n])base+=" "+decode64(modulesB64[n]).replace(/<[^>]+>/g," ")}catch(e){}return ocsNorm(base)}
 function resetHomeSearch(){document.querySelectorAll("#moduleGrid .ocs-window-card").forEach(x=>x.removeAttribute("data-search-hidden"));const h=document.getElementById("globalSearchHint");if(h)h.textContent="Common search • OCS ke kisi bhi window/service ko search karein"}
 function runGlobalSearch(){
  const input=document.getElementById("globalSearch"),q=ocsNorm(input?.value);
@@ -2497,6 +2590,7 @@ function runGlobalSearch(){
    return;
  }
  if(!q){resetHomeSearch();return}
+ if(OCS_XYZ_DEMO_ENABLED&&(q==="xyz"||q.startsWith("xyz ")||q.includes(" xyz"))){showXyzDemoSearchResults();return}
  const cards=[...document.querySelectorAll("#moduleGrid .ocs-window-card")];
  const names=OCS_MODULE_NAMES;
  let matches=names.filter(n=>moduleText(n).includes(q));
@@ -2540,7 +2634,7 @@ function setSuperSlide(n){
  clearInterval(ocsSuperSlideTimer);
  ocsSuperSlideTimer=setInterval(()=>setSuperSlide(ocsSuperSlideIndex+1),5000);
 }
-setTimeout(()=>{renderLivePaidBanners();setSuperSlide(0)},100);
+setTimeout(()=>{renderLivePaidBanners();renderXyzDemoBanner();setSuperSlide(0)},100);
 async function openModule(n,role,serviceCat){
  if(n==='Home Services'){
    if(role==='provider'){
@@ -2560,6 +2654,7 @@ async function openModule(n,role,serviceCat){
  const viewer=document.getElementById('viewer');if(viewer){viewer.classList.toggle('home-service-view',n==='Home Services');viewer.classList.add('show');}
  frame.onload=function(){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role);if(role==='customer'&&serviceCat)frame.contentWindow.selectCategory(serviceCat)}catch(e){}}
+   if(n!=='Home Services'){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS XYZ Demo',e)}}
    if(n!=='Home Services'){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
    if(n!=='Home Services'&&n!=='Property'){try{injectBusinessContactBar(n)}catch(e){console.warn('OCS Business Contact UI',e)}}
    if(n!=='Home Services'){try{injectUniversalWindowNav(n)}catch(e){console.warn('OCS Window Navigation',e)}}
