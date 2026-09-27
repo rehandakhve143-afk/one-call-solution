@@ -2776,6 +2776,11 @@ async function livePostShare(meta,cat,imageUrl){
  const price=(meta.itemPrice!==null&&meta.itemPrice!==undefined&&Number(meta.itemPrice)>0)?('₹'+Number(meta.itemPrice).toLocaleString('en-IN')):'Price on enquiry';
  const area=String(meta.area||meta.city||'').trim();
  const text=[name,'Price: '+price,area?('Area: '+area):'',imageUrl?('Photo: '+imageUrl):'','One Call Solution'].filter(Boolean).join('\n');
+ const directWhatsApp=(cat==='Local Shop'||cat==='Used Vehicle'||cat==='New Vehicle');
+ if(directWhatsApp){
+   window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank','noopener');
+   return;
+ }
  try{
    if(navigator.share){await navigator.share({title:name,text});return}
  }catch(e){if(e&&e.name==='AbortError')return}
@@ -2858,7 +2863,7 @@ async function injectLiveCategoryAds(cat){
    if(title)title.textContent=String(liveLbMeta.business||liveLbMeta.name||liveLbMeta.title||liveLbCat||'OCS Listing');
    if(price)price.textContent=(liveLbMeta.itemPrice!==null&&liveLbMeta.itemPrice!==undefined&&Number(liveLbMeta.itemPrice)>0)?('₹'+Number(liveLbMeta.itemPrice).toLocaleString('en-IN')):'Price on enquiry';
    if(like){const liked=livePostIsLiked(liveLbMeta,liveLbCat);like.classList.toggle('liked',liked);like.textContent=liked?'♥ Liked':'♡ Like'}
-   if(share)share.textContent=isShop?'↗ Share Product':(isVehicle?'↗ Share Vehicle':'↗ Share');
+   if(share)share.textContent=isShop?'WhatsApp Share':(isVehicle?'WhatsApp Share':'↗ Share');
    if(call)call.textContent=isShop?'📞 Call Shop':(isNew?'📞 Call Dealer':(isUsed?'📞 Call Seller':'📞 Contact'));
    if(enquiry)enquiry.textContent=isShop?'WhatsApp Product':(isVehicle?'WhatsApp Enquiry':'WhatsApp Enquiry');
  };
@@ -2951,6 +2956,8 @@ function ocsXyzDemoWhatsApp(){
 async function ocsXyzDemoShare(cat,imageUrl){
  const d=xyzDemoFor(cat);if(!d)return;
  const text=[d.name,d.price||'Price on enquiry',d.subtitle,imageUrl?('Photo: '+imageUrl):'','One Call Solution'].filter(Boolean).join('\n');
+ const directWhatsApp=(cat==='Local Shop'||cat==='Used Vehicle'||cat==='New Vehicle');
+ if(directWhatsApp){window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank','noopener');return}
  try{if(navigator.share){await navigator.share({title:d.name,text});return}}catch(e){if(e&&e.name==='AbortError')return}
  window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank','noopener');
 }
@@ -3025,7 +3032,7 @@ function injectXyzDemoListing(cat){
    if(title)title.textContent=d.name;
    if(price)price.textContent=d.price||"Price on enquiry";
    if(like){const liked=isBusinessLiked(cat);like.classList.toggle("liked",liked);like.textContent=liked?"♥ Liked":"♡ Like"}
-   if(share)share.textContent=isShop?"↗ Share Product":(isVehicle?"↗ Share Vehicle":"↗ Share");
+   if(share)share.textContent=isShop?"WhatsApp Share":(isVehicle?"WhatsApp Share":"↗ Share");
    if(call)call.textContent=isShop?"📞 Call Shop":(isNew?"📞 Call Dealer":(isUsed?"📞 Call Seller":"📞 Contact"));
    if(enquiry)enquiry.textContent=isShop?"WhatsApp Product":(isVehicle?"WhatsApp Enquiry":"WhatsApp Enquiry");
  };
@@ -3896,7 +3903,7 @@ window.addEventListener('unhandledrejection',e=>ocsLogTechnicalError('PROMISE',e
 window.ocsLogTechnicalError=ocsLogTechnicalError;
 
 // New-build alert. app-version.json is updated with releases.
-const OCS_APP_BUILD='20260927-shopgallery1';
+const OCS_APP_BUILD='20260927-washare1';
 async function ocsCheckForNewBuild(){
  try{
    const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
