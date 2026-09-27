@@ -547,6 +547,42 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
      }
    }
  };
+ let propertyPublicMedia=[];
+ async function collectPropertyPublicMedia(){
+   const files=[];
+   const photoInput=$('photos');if(photoInput&&photoInput.files)files.push(...photoInput.files);
+   const videoInput=$('projectVideos');if(videoInput&&videoInput.files)files.push(...videoInput.files);
+   if(!files.length)return propertyPublicMedia;
+   if(!window.parent||typeof window.parent.uploadOcsPublicMedia!=='function')throw new Error('OCS media service ready nahi hai');
+   propertyPublicMedia=await window.parent.uploadOcsPublicMedia(files,'property-'+String(propertyPostingCategory()||'post').replace(/[^a-z0-9_-]/gi,'-'));
+   return propertyPublicMedia;
+ }
+ function propertyPublicMeta(media){
+   const m=Array.isArray(media)?media:[];
+   return {
+     propertyType:$("ptype")?.value||"",
+     city:$("city")?.value||"",
+     area:$("area")?.value||"",
+     address:$("address")?.value||"",
+     poster:$("poster")?.value||"",
+     propertyCategory:propertyPostingCategory(),
+     business:isBuilderPost()?($("builderCompany")?.value||""):($("poster")?.value||"Property Owner"),
+     name:isBuilderPost()?($("project")?.value||"Builder Property"):(($("bhk")?.value||"")+" "+($("ptype")?.value||"Property")+" "+($("purpose")?.value||"")).trim(),
+     about:$("desc")?.value||"",
+     phone:$("contactPhone")?.value||"",
+     whatsapp:$("contactWhatsapp")?.value||"",
+     email:$("contactEmail")?.value||"",
+     media:m,
+     image:(m.find(x=>x.type==='image')||{}).url||"",
+     videoFile:(m.find(x=>x.type==='video')||{}).url||"",
+     brochure:isBuilderProjectProfile()?($("brochure")?.value||""):"",
+     catalogue:isBuilderProjectProfile()?($("catalogue")?.value||""):"",
+     video:isBuilderProjectProfile()?($("video")?.value||""):"",
+     website:isBuilderProjectProfile()?($("website")?.value||""):"",
+     virtualTour:isBuilderProjectProfile()?($("virtualTour")?.value||""):"",
+     mapLink:$("mapLink")?.value||""
+   };
+ }
  publish=async function(){
    const wasEdit=editMode;
    let paid=null,tax=null,invoiceEmail="",planLabel=ocsPropertyPlanLabel(propertyPlanDays),adminFree=false;
@@ -561,6 +597,8 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
        if(!adminFree){alert("Admin FREE access allowed nahi hai.");return}
      }
      tax=adminFree?{base:0,rate:0,gst:0,total:0,enabled:false}:propertyPlanTax(propertyPlanDays);planLabel=ocsPropertyPlanLabel(propertyPlanDays);
+     try{await collectPropertyPublicMedia()}catch(e){alert("Property photo/video upload nahi hua: "+(e&&e.message?e.message:"Upload error"));return}
+     const publicMeta=propertyPublicMeta(propertyPublicMedia);
      if(adminFree&&window.parent&&typeof window.parent.recordAdminFreePostBackend==='function'){
        await window.parent.recordAdminFreePostBackend({
          sourceKind:"property_listing",
@@ -569,7 +607,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
          email:invoiceEmail,
          planLabel,
          durationDays:propertyPlanDays,
-         metadata:{propertyType:$("ptype")?.value||"",city:$("city")?.value||"",area:$("area")?.value||"",poster:$("poster")?.value||"",propertyCategory:propertyPostingCategory()}
+         metadata:publicMeta
        });
      }
      if(Number(pp)>0&&!adminFree){
@@ -583,7 +621,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
            planLabel,
            durationDays:propertyPlanDays,
            baseAmount:Number(pp),
-           metadata:{propertyType:$("ptype")?.value||"",city:$("city")?.value||"",area:$("area")?.value||"",poster:$("poster")?.value||"",propertyCategory:propertyPostingCategory()}
+           metadata:publicMeta
          });
          if(!paid)return;
        }catch(e){alert("Payment complete nahi hua: "+(e&&e.message?e.message:"Unknown error"));return}
