@@ -2517,7 +2517,7 @@ function showLiveSearchResults(rows,q){
  closeLiveSearch();const ov=document.createElement('div');ov.id='ocsLiveSearchOverlay';
  ov.style.cssText='position:fixed;inset:0;z-index:30000;background:rgba(5,35,40,.48);backdrop-filter:blur(6px);padding:18px 10px;overflow:auto';
  const cards=rows.map(x=>{const m=livePostMeta(x),cat=x.source_kind==='property_listing'?'Property':x.category,name=livePostDisplayName(x),media=livePostMedia(m),img=(media.find(z=>z.type==='image')||{}).url||m.image||'';
- return '<button onclick="openLiveSearchResult('+JSON.stringify(cat)+','+JSON.stringify(q)+')" style="width:100%;display:grid;grid-template-columns:72px 1fr;gap:10px;text-align:left;border:1px solid #e0eae8;background:#fff;border-radius:14px;padding:9px;align-items:center">'+
+ return '<button onclick="openLiveSearchResult(decodeURIComponent(\''+encodeURIComponent(cat)+'\'),decodeURIComponent(\''+encodeURIComponent(q)+'\'))" style="width:100%;display:grid;grid-template-columns:72px 1fr;gap:10px;text-align:left;border:1px solid #e0eae8;background:#fff;border-radius:14px;padding:9px;align-items:center">'+
  '<span style="height:58px;border-radius:10px;background:#edf3f2 center/cover no-repeat;'+(img?'background-image:url('+JSON.stringify(img)+')':'')+'"></span>'+
  '<span><b style="display:block;color:#244a51;font-size:12px">'+ocsSavedText(name)+'</b><small style="display:block;color:#718488;margin-top:3px">'+ocsSavedText(cat)+' • '+ocsSavedText(m.area||m.city||'LIVE')+'</small></span></button>'}).join('');
  ov.innerHTML='<div style="max-width:540px;margin:24px auto;background:#fff;border-radius:22px;padding:15px;box-shadow:0 20px 60px rgba(0,0,0,.28);font-family:system-ui,Arial">'+
@@ -2677,7 +2677,7 @@ function ensureOcsModules(){
   return ocsModulesPromise;
 }
 function decode64(s){const bin=atob(s);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new TextDecoder().decode(u)}
-let currentModuleName="",pendingWindowSearch="";
+let currentModuleName="",pendingWindowSearch="",pendingPropertyPost=false;
 const OCS_SEARCH_ALIASES={
  "Home Services":"electrician electrical fan switch socket plumber plumbing ac cleaning carpenter appliance pest maid painter cctv gas stove wifi tv packers movers tiles stone waterproofing false ceiling pop gypsum pvc home repair service provider",
  "Property":"property flat rent buy sale builder bungalow row house land plot xyz builder xyz residency sample builder project",
@@ -2770,6 +2770,7 @@ async function openModule(n,role,serviceCat){
  const viewer=document.getElementById('viewer');if(viewer){viewer.classList.toggle('home-service-view',n==='Home Services');viewer.classList.add('show');}
  frame.onload=function(){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role);if(role==='customer'&&serviceCat)frame.contentWindow.selectCategory(serviceCat)}catch(e){}}
+   if(n==='Property'&&pendingPropertyPost){pendingPropertyPost=false;setTimeout(()=>{try{frame.contentWindow.openPost()}catch(e){console.warn('Property post open',e)}},120)}
    if(n!=='Home Services'){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS XYZ Demo',e)}}
    if(n!=='Home Services'){injectLiveCategoryAds(n).then(()=>{if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch='';setTimeout(()=>runWindowSearch(q),120)}}).catch(e=>console.warn('OCS live feed',e))}
    if(n!=='Home Services'){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
@@ -3037,7 +3038,13 @@ function loadBizDraft(cat){
 function openBiz(category){
  const modal=document.getElementById('bizModal'),sel=document.getElementById('bizCat');
  if(category&&[...sel.options].some(o=>o.value===category||o.text===category))sel.value=category;
- document.getElementById('otherFields').style.display='block';const af=document.getElementById('bizAdminFree');if(af)af.checked=false;loadBizDraft(sel.value);updateBizPrice();updateBizLikeSummary(sel.value);modal.classList.add('show');syncAdminFreePostControls().then(()=>updateBizPrice())
+ const isProperty=sel.value==='Property';document.getElementById('otherFields').style.display=isProperty?'none':'block';const af=document.getElementById('bizAdminFree');if(af)af.checked=false;
+ if(isProperty){
+   const price=document.getElementById('bizCurrentPrice'),gst=document.getElementById('bizGstNote');
+   if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹499';
+   if(gst)gst.textContent='Continue karke Single Property / Builder Property / Builder Project Profile choose karein.';
+ }else{loadBizDraft(sel.value);updateBizPrice()}
+ updateBizLikeSummary(sel.value);modal.classList.add('show');syncAdminFreePostControls().then(()=>{if(!isProperty)updateBizPrice()})
 }
 function closeBiz(){document.getElementById('bizModal').classList.remove('show')}
 function manageCurrentWindow(){
@@ -3046,10 +3053,22 @@ function manageCurrentWindow(){
  if(!n){openBiz();return}
  closeModule();openBiz(n);
 }
-document.getElementById('bizCat').onchange=function(){document.getElementById('otherFields').style.display='block';loadBizDraft(this.value);updateBizPrice();updateBizLikeSummary(this.value)};
+document.getElementById('bizCat').onchange=function(){
+ const isProperty=this.value==='Property';
+ document.getElementById('otherFields').style.display=isProperty?'none':'block';
+ const price=document.getElementById('bizCurrentPrice'),gst=document.getElementById('bizGstNote');
+ if(isProperty){
+   if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹499';
+   if(gst)gst.textContent='Continue karke Single Property / Builder Property / Builder Project Profile choose karein.';
+ }else{loadBizDraft(this.value);updateBizPrice()}
+ updateBizLikeSummary(this.value);
+};
 document.getElementById('obName').addEventListener('input',()=>{updateBizPrice();updateBizLikeSummary()});updateBizPrice();updateBizLikeSummary();
 async function continueBiz(){
  const cat=document.getElementById('bizCat').value;
+ if(cat==='Property'){
+   closeBiz();pendingPropertyPost=true;openModule('Property');return;
+ }
  const name=obName.value.trim(),type=obType.value.trim(),area=obArea.value.trim(),about=obAbout.value.trim(),phone=obPhone.value.trim(),billingEmail=(document.getElementById('obEmail')?.value||'').trim();
  if(!name||!area||phone.replace(/\D/g,'').length<10){alert('Business/Profile name, City/Area aur valid Mobile/WhatsApp required.');return}
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
