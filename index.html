@@ -2683,7 +2683,7 @@ const OCS_MODULE_NAMES=["Home Services","Property","Local Shop","Sliding / Alumi
 
 const OCS_XYZ_DEMO_ENABLED=true;
 const OCS_XYZ_DEMO={
-  marker:"OCS_XYZ_DEMO_V3",
+  marker:"OCS_XYZ_DEMO_V4",
   phone:"9881181016",
   email:"rehandakhve143@gmail.com",
   address:"XYZ Address, Khopoli, Maharashtra",
@@ -2749,7 +2749,8 @@ function injectXyzDemoListing(cat){
  '#ocsXyzDemoCard .xyzActions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}#ocsXyzDemoCard .xyzActions button,#ocsXyzDemoCard .xyzLinks a{border:0;border-radius:11px;min-height:40px;font-weight:900;font-size:10px;text-decoration:none;display:flex;align-items:center;justify-content:center}'+
  '#ocsXyzDemoCard .xyzActions button:nth-child(1){background:#eef5f4;color:#134b48}#ocsXyzDemoCard .xyzActions button:nth-child(2){background:#087a70;color:#fff}#ocsXyzDemoCard .xyzActions button:nth-child(3){background:#dcf8e7;color:#13743b}'+
  '#ocsXyzDemoCard .xyzLinks{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}#ocsXyzDemoCard .xyzLinks a{background:#f2f5ff;color:#3d4f90}'+
- '#ocsXyzDemoCard .xyzGallery{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}#ocsXyzDemoCard .xyzGallery img{width:100%;height:92px;object-fit:cover;border-radius:12px;background:#eef4f3;border:1px solid #e1ebe9}'+
+ '#ocsXyzDemoCard .xyzGallery{display:flex;gap:7px;margin-top:10px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none}#ocsXyzDemoCard .xyzGallery::-webkit-scrollbar{display:none}#ocsXyzDemoCard .xyzGallery img{flex:0 0 calc((100% - 14px)/3);width:calc((100% - 14px)/3);height:92px;object-fit:cover;border-radius:12px;background:#eef4f3;border:1px solid #e1ebe9;scroll-snap-align:start;cursor:pointer}'+
+ '#ocsXyzPhotoLightbox{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;padding:18px}#ocsXyzPhotoLightbox.show{display:flex}#ocsXyzPhotoLightbox img{max-width:100%;max-height:86vh;border-radius:16px;object-fit:contain}#ocsXyzPhotoLightbox button{position:absolute;right:18px;top:18px;width:42px;height:42px;border:0;border-radius:50%;background:#fff;font-size:24px;font-weight:900}'+
  '#ocsXyzDemoCard video{width:100%;max-height:220px;border-radius:14px;margin-top:10px;background:#111}';
  (doc.head||doc.documentElement).appendChild(style);
  const card=doc.createElement("section");card.id="ocsXyzDemoCard";card.innerHTML=
@@ -2759,11 +2760,42 @@ function injectXyzDemoListing(cat){
  '<div class="xyzMeta"><div>📍 '+OCS_XYZ_DEMO.address+'</div><div>📞 '+OCS_XYZ_DEMO.phone+'</div><div>✉ '+OCS_XYZ_DEMO.email+'</div></div>'+
  '<div class="xyzActions"><button onclick="parent.ocsXyzDemoCall()">Call</button><button onclick="parent.ocsXyzDemoChat(\''+cat.replace(/'/g,"\\'")+'\')">Chat</button><button onclick="parent.ocsXyzDemoWhatsApp()">WhatsApp</button></div>'+
  '<div class="xyzLinks"><a href="'+OCS_XYZ_DEMO.website+'" target="_blank" rel="noopener">Website / Link</a><a href="mailto:'+OCS_XYZ_DEMO.email+'">Email</a></div>'+
- '<div class="xyzGallery">'+(d.photos||[d.image]).map((p,i)=>'<img src="'+p+'" loading="lazy" alt="'+d.name+' photo '+(i+1)+'">').join("")+'</div>'+
+ '<div class="xyzGallery">'+(()=>{const a=(d.photos||[d.image]).filter(Boolean),g=a.length<6?a.concat(a):a;return g.map((p,i)=>'<img src="'+p+'" loading="lazy" alt="'+d.name+' photo '+((i%Math.max(1,a.length))+1)+'">').join("")})()+'</div>'+
  '<video controls preload="metadata" poster="'+d.image+'"><source src="'+OCS_XYZ_DEMO.video+'" type="video/mp4">Video preview</video>'+
  '<div style="margin-top:7px;color:#829295;font-size:8.5px">Temporary XYZ demo • later one-step remove.</div></div>';
  const target=doc.querySelector("main,.wrap,.container,.app")||doc.body;
  if(target===doc.body)doc.body.insertBefore(card,doc.body.firstChild);else target.insertBefore(card,target.firstChild);
+
+ const gallery=card.querySelector(".xyzGallery");
+ if(gallery){
+   let xyzGalleryTimer=null;
+   const startGallery=()=>{
+     clearInterval(xyzGalleryTimer);
+     xyzGalleryTimer=setInterval(()=>{
+       const first=gallery.querySelector("img");if(!first)return;
+       const step=first.getBoundingClientRect().width+7;
+       const atEnd=gallery.scrollLeft>=gallery.scrollWidth-gallery.clientWidth-step/2;
+       if(atEnd)gallery.scrollTo({left:0,behavior:"smooth"});
+       else gallery.scrollBy({left:step,behavior:"smooth"});
+     },2600);
+   };
+   gallery.addEventListener("pointerdown",()=>clearInterval(xyzGalleryTimer),{passive:true});
+   gallery.addEventListener("pointerup",startGallery,{passive:true});
+   gallery.addEventListener("pointercancel",startGallery,{passive:true});
+   startGallery();
+
+   let lb=doc.getElementById("ocsXyzPhotoLightbox");
+   if(!lb){
+     lb=doc.createElement("div");lb.id="ocsXyzPhotoLightbox";
+     lb.innerHTML='<button type="button" aria-label="Close">×</button><img alt="XYZ photo preview">';
+     doc.body.appendChild(lb);
+     lb.querySelector("button").onclick=()=>lb.classList.remove("show");
+     lb.onclick=(ev)=>{if(ev.target===lb)lb.classList.remove("show")};
+   }
+   gallery.querySelectorAll("img").forEach(img=>img.addEventListener("click",()=>{
+     const big=lb.querySelector("img");if(big)big.src=img.src;lb.classList.add("show");
+   }));
+ }
 }
 function renderXyzDemoBanner(){
  if(!OCS_XYZ_DEMO_ENABLED||document.querySelector(".ocs-xyz-demo-banner"))return;
