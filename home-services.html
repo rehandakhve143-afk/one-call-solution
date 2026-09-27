@@ -6,7 +6,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>One Call Solution</title>
+<title>One Call Solution</title><meta name="theme-color" content="#0f766e"><link rel="manifest" href="manifest.json?v=20260927-pwa1">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
@@ -4650,6 +4650,32 @@ async function bootHomeServices(){
  }
 }
 bootHomeServices();
+</script>
+<script>
+(function ocsHomeServicesReliability(){
+ if('serviceWorker' in navigator){
+   window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260927-pwa1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ }
+ const bar=document.createElement('div');bar.id='ocsHsNetworkBar';
+ bar.style.cssText='position:fixed;left:10px;right:10px;top:10px;z-index:2147483646;display:none;align-items:center;gap:9px;padding:11px 12px;border-radius:14px;background:#263238;color:#fff;box-shadow:0 8px 26px rgba(0,0,0,.22);font:700 12px system-ui,Arial';
+ bar.innerHTML='<span id="ocsHsNetworkText" style="flex:1">Internet nahi hai • Current details safe hain</span><button type="button" style="border:0;border-radius:9px;padding:7px 11px;background:#fff;color:#173f46;font-weight:900" onclick="location.reload()">Retry</button>';
+ document.body.appendChild(bar);
+ let hideTimer=null;
+ const sync=()=>{
+   clearTimeout(hideTimer);
+   const txt=document.getElementById('ocsHsNetworkText');
+   if(navigator.onLine){
+     if(txt)txt.textContent='Back online ✓';
+     bar.style.display='flex';
+     hideTimer=setTimeout(()=>{if(navigator.onLine)bar.style.display='none'},1400);
+   }else{
+     if(txt)txt.textContent='Internet nahi hai • Current details safe hain';
+     bar.style.display='flex';
+   }
+ };
+ addEventListener('online',sync);addEventListener('offline',sync);
+ if(!navigator.onLine)sync();
+})();
 </script>
 </body>
 </html>
