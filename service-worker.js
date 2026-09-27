@@ -1,10 +1,11 @@
-const OCS_CACHE='ocs-shell-v1';
+const OCS_CACHE='ocs-shell-v2';
 const OCS_SHELL=[
   './',
   './index.html',
   './property.html',
   './home-services.html',
   './service-provider.html',
+  './app-version.json',
   './assets/ocs-home.css',
   './assets/ocs-logo-mark.svg',
   './assets/home-services-poster.jpg'
