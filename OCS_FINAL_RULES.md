@@ -91,6 +91,16 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Storefront: banner/logo/name/category/area/open status, Call, WhatsApp, Directions, Share, product search, gallery/popular products, offers, Ask for a Product.
 - Full inventory is not mandatory.
 
+## 9A) Single Post Gateway
+- Home keeps one common **Post Your Ad** entry for paid business/window posts.
+- Flow: **Post Your Ad → Category → category-ready form → Preview → Payment / Admin FREE → LIVE**.
+- After a post becomes LIVE, its public photo/poster appears automatically inside the matching category window.
+- Home category window posters use current LIVE ad photos and can rotate as active ads change.
+- Global search checks current LIVE post data as well as category/service aliases.
+- Paused, removed or expired records must not appear in the public LIVE feed.
+- Property is a special category: choosing Property from Post Your Ad opens its dedicated 3-type form directly, avoiding duplicate generic forms or duplicate payment.
+- Public ad media is stored in the OCS public media bucket; billing/payment records remain separate from public listing display data.
+
 ## 10) Property
 - **Single Property – Sale / Rent: ₹199 / 28 days**.
 - **Builder Property: ₹499 / 28 days**.
