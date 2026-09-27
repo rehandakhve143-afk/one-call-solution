@@ -464,7 +464,7 @@ setTimeout(function(){
 <div id="bizCurrentPrice" class="price-now">Current 28-day plan: —</div>
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
-<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input type="file" accept="image/*,video/*" multiple></div>
+<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px">LIVE post ke photos/videos category window me show honge.</div></div>
 <div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button class="primary" onclick="continueBiz()">Save & Continue →</button></div><div class="muted" style="margin-top:8px">Back/Forward karne par saved details category draft me rahengi; baad me edit/update bhi kar sakte hain.</div></div></div>
 <script>
 let homeSlide=0,homeSlideTimer=null,homeTouchStartX=0;
@@ -2459,6 +2459,78 @@ function updateBizPrice(){
  const note=document.getElementById('bizGstNote'),x=getGstBreakup(price);
  if(note)note.textContent=price===0?'Admin FREE override • No payment / GST':(x.enabled?('Final payment '+moneyINRPay(x.total)+' • GST invoice after successful payment'):'GST currently disabled by Admin');
 }
+async function uploadOcsPublicMedia(files,prefix){
+ const list=[...(files||[])].slice(0,8);if(!list.length)return [];
+ const session=await getOcsSession();if(!session||!session.user||!ocsSupabase)throw new Error('Media upload ke liye OCS login required');
+ const out=[];
+ for(const f of list){
+   const ext=(String(f.name||'file').split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase();
+   const key=session.user.id+'/'+String(prefix||'post').replace(/[^a-z0-9_-]/gi,'-')+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;
+   const {error}=await ocsSupabase.storage.from('ocs-public-media').upload(key,f,{cacheControl:'3600',upsert:false,contentType:f.type||undefined});
+   if(error)throw error;
+   const {data}=ocsSupabase.storage.from('ocs-public-media').getPublicUrl(key);
+   if(data&&data.publicUrl)out.push({url:data.publicUrl,type:String(f.type||'').startsWith('video/')?'video':'image',name:String(f.name||'')});
+ }
+ return out;
+}
+async function fetchPublicLivePosts(category,limit){
+ if(!ocsSupabase)return [];
+ try{
+   const {data,error}=await ocsSupabase.rpc('public_live_post_records_v1',{p_category:category||null,p_limit:Number(limit||80)});
+   if(error)throw error;return Array.isArray(data)?data:[];
+ }catch(e){console.warn('Live posts load failed',e);return []}
+}
+function livePostMeta(x){return x&&x.metadata&&typeof x.metadata==='object'?x.metadata:{}}
+function livePostMedia(meta){
+ const a=Array.isArray(meta.media)?meta.media:[];
+ return a.filter(x=>x&&x.url).slice(0,8);
+}
+function livePostDisplayName(x){const m=livePostMeta(x);return String(m.business||m.name||x.title||x.category||'OCS Listing')}
+function livePostSearchText(x){
+ const m=livePostMeta(x);
+ return ocsNorm([x.category,x.title,m.business,m.name,m.area,m.type,m.about,m.propertyType,m.city,m.propertyCategory,m.address].filter(Boolean).join(' '));
+}
+function closeLiveSearch(){const x=document.getElementById('ocsLiveSearchOverlay');if(x)x.remove()}
+function openLiveSearchResult(category,q){closeLiveSearch();pendingWindowSearch=q||'';openModule(category==='Single Property'||category==='Builder Property'||category==='Builder Project Profile'?'Property':category)}
+function showLiveSearchResults(rows,q){
+ closeLiveSearch();const ov=document.createElement('div');ov.id='ocsLiveSearchOverlay';
+ ov.style.cssText='position:fixed;inset:0;z-index:30000;background:rgba(5,35,40,.48);backdrop-filter:blur(6px);padding:18px 10px;overflow:auto';
+ const cards=rows.map(x=>{const m=livePostMeta(x),cat=x.source_kind==='property_listing'?'Property':x.category,name=livePostDisplayName(x),media=livePostMedia(m),img=(media.find(z=>z.type==='image')||{}).url||m.image||'';
+ return '<button onclick="openLiveSearchResult('+JSON.stringify(cat)+','+JSON.stringify(q)+')" style="width:100%;display:grid;grid-template-columns:72px 1fr;gap:10px;text-align:left;border:1px solid #e0eae8;background:#fff;border-radius:14px;padding:9px;align-items:center">'+
+ '<span style="height:58px;border-radius:10px;background:#edf3f2 center/cover no-repeat;'+(img?'background-image:url('+JSON.stringify(img)+')':'')+'"></span>'+
+ '<span><b style="display:block;color:#244a51;font-size:12px">'+ocsSavedText(name)+'</b><small style="display:block;color:#718488;margin-top:3px">'+ocsSavedText(cat)+' • '+ocsSavedText(m.area||m.city||'LIVE')+'</small></span></button>'}).join('');
+ ov.innerHTML='<div style="max-width:540px;margin:24px auto;background:#fff;border-radius:22px;padding:15px;box-shadow:0 20px 60px rgba(0,0,0,.28);font-family:system-ui,Arial">'+
+ '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><small style="color:#087a70;font-weight:900">LIVE SEARCH</small><h2 style="margin:3px 0 0;font-size:20px;color:#173f46">'+rows.length+' result'+(rows.length===1?'':'s')+'</h2></div><button onclick="closeLiveSearch()" style="border:0;background:#eef3f2;border-radius:12px;width:40px;height:40px;font-size:22px">×</button></div>'+
+ '<p style="font-size:11px;color:#718488">Search: '+ocsSavedText(q)+'</p><div style="display:grid;gap:8px">'+cards+'</div></div>';
+ document.body.appendChild(ov);
+}
+function livePostCall(meta){
+ const n=String(meta.phone||meta.contactPhone||'').replace(/[^0-9+]/g,'');if(n)location.href='tel:'+n;else alert('Call number available nahi hai.');
+}
+function livePostWhatsApp(meta){
+ const n=String(meta.phone||meta.whatsapp||meta.contactWhatsapp||'').replace(/D/g,'');if(!n)return alert('WhatsApp number available nahi hai.');
+ window.open('https://wa.me/'+n+'?text='+encodeURIComponent('Hello, mujhe aapki OCS listing ke bare me enquiry chahiye.'),'_blank','noopener');
+}
+async function injectLiveCategoryAds(cat){
+ const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;if(!doc||!doc.body)return;
+ const rows=await fetchPublicLivePosts(cat==='Property'?'Property':cat,30);
+ const old=doc.getElementById('ocsLiveCategoryFeed');if(old)old.remove();
+ if(!rows.length)return;
+ let style=doc.getElementById('ocsLiveCategoryStyle');
+ if(!style){style=doc.createElement('style');style.id='ocsLiveCategoryStyle';style.textContent=
+ '#ocsLiveCategoryFeed{margin:12px auto 18px;max-width:760px;font-family:system-ui,Arial,sans-serif}#ocsLiveCategoryFeed .lfHead{display:flex;justify-content:space-between;align-items:end;margin:0 2px 9px}#ocsLiveCategoryFeed .lfHead b{font-size:15px;color:#173f46}#ocsLiveCategoryFeed .lfHead small{font-size:9px;color:#789}'+
+ '#ocsLiveCategoryFeed .lfRail{display:flex;gap:10px;overflow:auto;scroll-snap-type:x mandatory;padding:2px 2px 6px}#ocsLiveCategoryFeed .lfCard{min-width:min(86vw,330px);scroll-snap-align:start;border:1px solid #dce8e5;border-radius:18px;background:#fff;overflow:hidden;box-shadow:0 8px 24px rgba(20,45,55,.10)}'+
+ '#ocsLiveCategoryFeed .lfMedia{height:170px;background:#edf3f2 center/cover no-repeat;position:relative}#ocsLiveCategoryFeed .lfBadge{position:absolute;left:9px;top:9px;background:#e9fff6;color:#087a70;border-radius:999px;padding:5px 8px;font-size:8px;font-weight:950}'+
+ '#ocsLiveCategoryFeed .lfBody{padding:11px}#ocsLiveCategoryFeed h3{margin:0;font-size:16px;color:#173f46}#ocsLiveCategoryFeed p{margin:4px 0 8px;font-size:10px;color:#677d82;line-height:1.4}#ocsLiveCategoryFeed .lfActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}#ocsLiveCategoryFeed .lfActions button{border:0;border-radius:10px;min-height:38px;font-size:10px;font-weight:900}#ocsLiveCategoryFeed .lfCall{background:#eef5f4;color:#134b48}#ocsLiveCategoryFeed .lfWa{background:#dcf8e7;color:#13743b}';
+ (doc.head||doc.documentElement).appendChild(style)}
+ const feed=doc.createElement('section');feed.id='ocsLiveCategoryFeed';
+ feed.innerHTML='<div class="lfHead"><b>LIVE '+ocsSavedText(cat)+' Ads</b><small>'+rows.length+' active</small></div><div class="lfRail">'+rows.map((x,i)=>{const m=livePostMeta(x),media=livePostMedia(m),img=(media.find(z=>z.type==='image')||{}).url||m.image||'',name=livePostDisplayName(x);
+ return '<article class="lfCard"><div class="lfMedia" style="'+(img?'background-image:url('+JSON.stringify(img)+')':'')+'"><span class="lfBadge">LIVE</span></div><div class="lfBody"><h3>'+ocsSavedText(name)+'</h3><p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p><div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div></div></article>'}).join('')+'</div>';
+ window.__ocsLiveFeed=rows.map(x=>livePostMeta(x));
+ const target=doc.querySelector('main,.wrap,.container,.app')||doc.body;
+ if(target===doc.body)doc.body.insertBefore(feed,doc.body.firstChild);else target.insertBefore(feed,target.firstChild);
+}
+
 const OCS_MODULE_NAMES=["Home Services","Property","Local Shop","Sliding / Aluminium","Welding / Fabrication","Beauty / Make-up","Used Vehicle","New Vehicle","Medical Store","Diagnostic Lab","Modular Kitchen","Hotel / Restaurant / Lodging"];
 
 const OCS_XYZ_DEMO_ENABLED=true;
@@ -2587,7 +2659,7 @@ const OCS_SEARCH_ALIASES={
 function ocsNorm(v){return String(v||"").toLowerCase().replace(/[^a-z0-9₹\s/-]/g," ").replace(/\s+/g," ").trim()}
 function moduleText(n){let base=n+" "+(OCS_SEARCH_ALIASES[n]||"")+xyzDemoSearchText(n);try{if(modulesB64[n])base+=" "+decode64(modulesB64[n]).replace(/<[^>]+>/g," ")}catch(e){}return ocsNorm(base)}
 function resetHomeSearch(){document.querySelectorAll("#moduleGrid .ocs-window-card").forEach(x=>x.removeAttribute("data-search-hidden"));const h=document.getElementById("globalSearchHint");if(h)h.textContent="Common search • OCS ke kisi bhi window/service ko search karein"}
-function runGlobalSearch(){
+async function runGlobalSearch(){
  const input=document.getElementById("globalSearch"),q=ocsNorm(input?.value);
  if(currentModuleName){
    if(!q)return;
@@ -2596,6 +2668,8 @@ function runGlobalSearch(){
  }
  if(!q){resetHomeSearch();return}
  if(OCS_XYZ_DEMO_ENABLED&&(q==="xyz"||q.startsWith("xyz ")||q.includes(" xyz"))){showXyzDemoSearchResults();return}
+ const liveRows=(await fetchPublicLivePosts(null,120)).filter(x=>livePostSearchText(x).includes(q));
+ if(liveRows.length){showLiveSearchResults(liveRows.slice(0,40),q);return}
  const cards=[...document.querySelectorAll("#moduleGrid .ocs-window-card")];
  const names=OCS_MODULE_NAMES;
  let matches=names.filter(n=>moduleText(n).includes(q));
@@ -2660,10 +2734,11 @@ async function openModule(n,role,serviceCat){
  frame.onload=function(){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role);if(role==='customer'&&serviceCat)frame.contentWindow.selectCategory(serviceCat)}catch(e){}}
    if(n!=='Home Services'){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS XYZ Demo',e)}}
+   if(n!=='Home Services'){injectLiveCategoryAds(n).then(()=>{if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch='';setTimeout(()=>runWindowSearch(q),120)}}).catch(e=>console.warn('OCS live feed',e))}
    if(n!=='Home Services'){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
    if(n!=='Home Services'&&n!=='Property'){try{injectBusinessContactBar(n)}catch(e){console.warn('OCS Business Contact UI',e)}}
    if(n!=='Home Services'){try{injectUniversalWindowNav(n)}catch(e){console.warn('OCS Window Navigation',e)}}
-   if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch="";setTimeout(()=>runWindowSearch(q),180)}
+   if(n==='Home Services'&&pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch="";setTimeout(()=>runWindowSearch(q),180)}
  };
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
@@ -2942,21 +3017,27 @@ async function continueBiz(){
  if(!name||!area||phone.replace(/\D/g,'').length<10){alert('Business/Profile name, City/Area aur valid Mobile/WhatsApp required.');return}
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
  const drafts=readBizDrafts(),previous=drafts[cat]||{},oldLikeKey=getBizLikeKey(cat),listingId=previous.listingId||('biz_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8));
+ let media=Array.isArray(previous.media)?previous.media:[];
+ const mediaInput=document.getElementById('obMedia');
+ if(mediaInput&&mediaInput.files&&mediaInput.files.length){
+   try{media=await uploadOcsPublicMedia(mediaInput.files,'business-'+ocsBizSlug(cat))}catch(e){alert('Photo/Video upload nahi hua: '+(e&&e.message?e.message:'Upload error'));return}
+ }
  const key=BIZ_PRICE_KEY[cat]||'localShop',normalBase=pricingValue(key,name,'LISTING'),requestedAdminFree=!!document.getElementById('bizAdminFree')?.checked;
  const adminFree=requestedAdminFree?await ocsAdminFreeAllowed():false;
  if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
  const base=adminFree?0:normalBase,tax=getGstBreakup(base);
- drafts[cat]={name,type,area,about,phone,billingEmail,listingId,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'LIVE':'PAYMENT_PENDING',paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:base===0?new Date().toISOString():null,expiresAt:base===0?addDaysIso(new Date().toISOString(),28):null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
+ const postMeta={category:cat,business:name,area,type,about,phone,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
+ drafts[cat]={name,type,area,about,phone,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'LIVE':'PAYMENT_PENDING',paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:base===0?new Date().toISOString():null,expiresAt:base===0?addDaysIso(new Date().toISOString(),28):null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
  if(base===0&&adminFree){
-   await recordAdminFreePostBackend({sourceKind:'business_listing',category:cat,title:'OCS Business Listing • '+name,email:billingEmail,planLabel:'28 Days',durationDays:28,metadata:{category:cat,business:name,area}});
+   await recordAdminFreePostBackend({sourceKind:'business_listing',category:cat,title:'OCS Business Listing • '+name,email:billingEmail,planLabel:'28 Days',durationDays:28,metadata:postMeta});
  }
  if(base>0){
    try{
      const paid=await ocsPayPaidPost({
        sourceKind:'business_listing',sourceRef:listingId,title:'OCS Business Listing • '+name,
        email:billingEmail,planLabel:'28 Days',durationDays:28,baseAmount:base,
-       metadata:{category:cat,business:name,area}
+       metadata:postMeta
      });
      if(!paid)return;
      const latest=readBizDrafts();if(latest[cat]){
