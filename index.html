@@ -469,7 +469,7 @@ setTimeout(function(){
 <div id="bizCurrentPrice" class="price-now">Current 28-day plan: —</div>
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
-<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
+<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><div id="obPostPriceWrap" style="display:none"><label id="obPostPriceLabel">Post Price / Rate (₹)</label><input id="obPostPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter price"></div><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
 <div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button class="primary" onclick="continueBiz()">Continue to Payment →</button></div><div class="muted" style="margin-top:8px">Back/Forward karne par saved details category draft me rahengi; baad me edit/update bhi kar sakte hain.</div></div></div>
 <script>
 let homeSlide=0,homeSlideTimer=null,homeTouchStartX=0;
@@ -2637,7 +2637,7 @@ function livePostMedia(meta){
 function livePostDisplayName(x){const m=livePostMeta(x);return String(m.business||m.name||x.title||x.category||'OCS Listing')}
 function livePostSearchText(x){
  const m=livePostMeta(x);
- return ocsNorm([x.category,x.title,m.business,m.name,m.area,m.type,m.about,m.propertyType,m.city,m.propertyCategory,m.address].filter(Boolean).join(' '));
+ return ocsNorm([x.category,x.title,m.business,m.name,m.area,m.type,m.about,m.propertyType,m.city,m.propertyCategory,m.address,m.itemPrice].filter(Boolean).join(' '));
 }
 function closeLiveSearch(){const x=document.getElementById('ocsLiveSearchOverlay');if(x)x.remove()}
 function openLiveSearchResult(category,q){closeLiveSearch();pendingWindowSearch=q||'';openModule(category==='Single Property'||category==='Builder Property'||category==='Builder Project Profile'?'Property':category)}
@@ -2687,7 +2687,7 @@ async function injectLiveCategoryAds(cat){
  '#ocsLiveCategoryFeed .lfMedia{width:100%;aspect-ratio:16/9;min-height:170px;background-color:#edf3f2;background-repeat:no-repeat;background-position:center center;background-size:cover;position:relative;overflow:hidden}#ocsLiveCategoryFeed .lfBadge{position:absolute;left:9px;top:9px;background:#e9fff6;color:#087a70;border-radius:999px;padding:5px 8px;font-size:8px;font-weight:950}'+
  '#ocsLiveCategoryFeed .lfBigSlider{display:flex;width:100%;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:#edf3f2}#ocsLiveCategoryFeed .lfBigSlider::-webkit-scrollbar{display:none}#ocsLiveCategoryFeed .lfBigSlider img{flex:0 0 100%;width:100%;aspect-ratio:16/9;object-fit:cover;scroll-snap-align:start;background:#edf3f2}#ocsLiveCategoryFeed .lfBigSlider.lower{margin-top:8px;border-top:1px solid #edf2f1}'+
  '#ocsLiveCategoryFeed .lfVideoRail{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 10px 0;scrollbar-width:none}#ocsLiveCategoryFeed .lfVideoRail::-webkit-scrollbar{display:none}#ocsLiveCategoryFeed .lfVideoRail video{flex:0 0 100%;width:100%;aspect-ratio:16/9;border-radius:12px;background:#111;scroll-snap-align:start}'+
- '#ocsLiveCategoryFeed .lfBody{padding:11px}#ocsLiveCategoryFeed h3{margin:0;font-size:16px;color:#173f46}#ocsLiveCategoryFeed p{margin:4px 0 8px;font-size:10px;color:#677d82;line-height:1.4}#ocsLiveCategoryFeed .lfActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}#ocsLiveCategoryFeed .lfActions button{border:0;border-radius:10px;min-height:38px;font-size:10px;font-weight:900}#ocsLiveCategoryFeed .lfCall{background:#eef5f4;color:#134b48}#ocsLiveCategoryFeed .lfWa{background:#dcf8e7;color:#13743b}';
+ '#ocsLiveCategoryFeed .lfBody{padding:11px}#ocsLiveCategoryFeed h3{margin:0;font-size:16px;color:#173f46}#ocsLiveCategoryFeed .lfPrice{font-size:19px;font-weight:950;color:#0a6f66;margin:5px 0 4px}#ocsLiveCategoryFeed p{margin:4px 0 8px;font-size:10px;color:#677d82;line-height:1.4}#ocsLiveCategoryFeed .lfActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}#ocsLiveCategoryFeed .lfActions button{border:0;border-radius:10px;min-height:38px;font-size:10px;font-weight:900}#ocsLiveCategoryFeed .lfCall{background:#eef5f4;color:#134b48}#ocsLiveCategoryFeed .lfWa{background:#dcf8e7;color:#13743b}';
  (doc.head||doc.documentElement).appendChild(style)}
  const feed=doc.createElement('section');feed.id='ocsLiveCategoryFeed';
  feed.innerHTML='<div class="lfHead"><b>LIVE '+ocsSavedText(cat)+' Ads</b><small>'+rows.length+' active</small></div><div class="lfRail">'+rows.map((x,i)=>{const m=livePostMeta(x),media=livePostMedia(m),photos=media.filter(z=>z.type==='image').slice(0,20),videos=media.filter(z=>z.type==='video').slice(0,3),name=livePostDisplayName(x);
@@ -2695,7 +2695,8 @@ async function injectLiveCategoryAds(cat){
  const allPhotos=photos.length?photos:fallback,upper=allPhotos.slice(0,10),lower=allPhotos.slice(10,20);
  const slider=(arr,extra)=>arr.length?'<div class="lfBigSlider '+(extra||'')+'">'+arr.map((p,pi)=>'<img src="'+String(p.url||'')+'" loading="lazy" alt="'+ocsSavedText(name)+' photo '+(pi+1)+'">').join('')+'</div>':'';
  const videoHtml=videos.length?'<div class="lfVideoRail">'+videos.map(v=>'<video controls preload="metadata" src="'+String(v.url||'')+'"></video>').join('')+'</div>':'';
- return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px">LIVE</span><h3>'+ocsSavedText(name)+'</h3><p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p><div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div></div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
+ const priceHtml=(m.itemPrice!==null&&m.itemPrice!==undefined&&Number(m.itemPrice)>0)?'<div class="lfPrice">₹'+Number(m.itemPrice).toLocaleString('en-IN')+'</div>':'';
+ return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px">LIVE</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p><div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div></div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
  window.__ocsLiveFeed=rows.map(x=>livePostMeta(x));
  const target=doc.querySelector('main,.wrap,.container,.app')||doc.body;
  if(target===doc.body)doc.body.insertBefore(feed,doc.body.firstChild);else target.insertBefore(feed,target.firstChild);
@@ -3348,15 +3349,15 @@ function injectBusinessContactBar(cat){
 }
 function loadBizDraft(cat){
  const d=readBizDrafts()[cat]||{};
- obName.value=d.name||'';obType.value=d.type||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';updateBizLikeSummary(cat);
+ obName.value=d.name||'';obType.value=d.type||'';if(document.getElementById('obPostPrice'))document.getElementById('obPostPrice').value=d.itemPrice||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';updateBizLikeSummary(cat);
 }
 const OCS_BIZ_FORM_CONFIG={
- 'Local Shop':{type:'Shop Type',typePh:'Electrical Shop / Hardware Shop',about:'Products / Offers / About',aboutPh:'Popular products, brands, offers…'},
+ 'Local Shop':{type:'Shop Type',typePh:'Electrical Shop / Hardware Shop',about:'Products / Offers / About',aboutPh:'Popular products, brands, offers…',priceLabel:'Product / Offer Price (₹)',pricePh:'e.g. 499'},
  'Sliding / Aluminium':{type:'Work Type',typePh:'Sliding / Aluminium / Glass',about:'Services',aboutPh:'Windows, doors, glass, partitions…'},
  'Welding / Fabrication':{type:'Work Type',typePh:'Gate / Grill / Fabrication',about:'Services',aboutPh:'Gate, grill, railing, fabrication…'},
  'Beauty / Make-up':{type:'Profile Type',typePh:'Salon / Make-up Artist',about:'Services / Packages',aboutPh:'Bridal, party make-up, beauty services…'},
- 'Used Vehicle':{type:'Vehicle Type',typePh:'2-Wheeler / 4-Wheeler',about:'Vehicle / Stock Details',aboutPh:'Models, condition, price range…'},
- 'New Vehicle':{type:'Dealer / Vehicle Type',typePh:'Bike Dealer / Car Dealer',about:'Models / Offers',aboutPh:'Available models, offers, finance…'},
+ 'Used Vehicle':{type:'Vehicle Type',typePh:'2-Wheeler / 4-Wheeler',about:'Vehicle / Stock Details',aboutPh:'Models, condition, price range…',priceLabel:'Asking Price (₹)',pricePh:'e.g. 450000'},
+ 'New Vehicle':{type:'Dealer / Vehicle Type',typePh:'Bike Dealer / Car Dealer',about:'Models / Offers',aboutPh:'Available models, offers, finance…',priceLabel:'Starting / Ex-showroom Price (₹)',pricePh:'e.g. 799000'},
  'Medical Store':{type:'Store Type',typePh:'Medical / Pharmacy',about:'Store Details',aboutPh:'Medicine enquiry, delivery, timings…'},
  'Diagnostic Lab':{type:'Lab Type',typePh:'Diagnostic / Pathology Lab',about:'Tests / Packages',aboutPh:'Blood tests, packages, home collection…'},
  'Modular Kitchen':{type:'Profile Type',typePh:'Designer / Manufacturer',about:'Services',aboutPh:'Design, measurement, material, site visit…'},
@@ -3371,6 +3372,10 @@ function syncBizReadyForm(cat){
  if(inputs[1])inputs[1].placeholder=cfg.typePh;
  if(labels[3])labels[3].textContent=cfg.about;
  const ta=fields.querySelector('textarea');if(ta)ta.placeholder=cfg.aboutPh;
+ const pw=document.getElementById('obPostPriceWrap'),pl=document.getElementById('obPostPriceLabel'),pi=document.getElementById('obPostPrice');
+ if(pw)pw.style.display=cfg.priceLabel?'block':'none';
+ if(pl&&cfg.priceLabel)pl.textContent=cfg.priceLabel;
+ if(pi){pi.placeholder=cfg.pricePh||'Enter price';if(!cfg.priceLabel)pi.value=''}
 }
 function openBiz(category){
  const modal=document.getElementById('bizModal'),sel=document.getElementById('bizCat');
@@ -3408,8 +3413,10 @@ async function continueBiz(){
  if(cat==='Property'){
    closeBiz();pendingPropertyPost=true;openModule('Property');return;
  }
- const name=obName.value.trim(),type=obType.value.trim(),area=obArea.value.trim(),about=obAbout.value.trim(),phone=obPhone.value.trim(),billingEmail=(document.getElementById('obEmail')?.value||'').trim();
+ const name=obName.value.trim(),type=obType.value.trim(),area=obArea.value.trim(),about=obAbout.value.trim(),phone=obPhone.value.trim(),billingEmail=(document.getElementById('obEmail')?.value||'').trim(),priceRaw=(document.getElementById('obPostPrice')?.value||'').trim(),itemPrice=priceRaw===''?null:Number(priceRaw);
  if(!name||!area||phone.replace(/\D/g,'').length<10){alert('Business/Profile name, City/Area aur valid Mobile/WhatsApp required.');return}
+ if(itemPrice!==null&&(!Number.isFinite(itemPrice)||itemPrice<0)){alert('Valid post price / rate enter karein.');return}
+ if((cat==='Used Vehicle'||cat==='New Vehicle')&&(itemPrice===null||itemPrice<=0)){alert(cat==='Used Vehicle'?'Used Vehicle ka Asking Price required.':'New Vehicle ka Starting / Ex-showroom Price required.');return}
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
  const drafts=readBizDrafts(),previous=drafts[cat]||{},oldLikeKey=getBizLikeKey(cat),listingId=previous.listingId||('biz_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8));
  let media=Array.isArray(previous.media)?previous.media:[];
@@ -3421,8 +3428,8 @@ async function continueBiz(){
  const adminFree=requestedAdminFree?await ocsAdminFreeAllowed():false;
  if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
  const base=adminFree?0:normalBase,tax=getGstBreakup(base);
- const postMeta={category:cat,business:name,area,type,about,phone,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
- drafts[cat]={name,type,area,about,phone,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'LIVE':'PAYMENT_PENDING',paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:base===0?new Date().toISOString():null,expiresAt:base===0?addDaysIso(new Date().toISOString(),28):null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
+ const postMeta={category:cat,business:name,area,type,about,phone,itemPrice,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
+ drafts[cat]={name,type,area,about,phone,itemPrice,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'LIVE':'PAYMENT_PENDING',paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:base===0?new Date().toISOString():null,expiresAt:base===0?addDaysIso(new Date().toISOString(),28):null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
  if(base===0&&adminFree){
    await recordAdminFreePostBackend({sourceKind:'business_listing',category:cat,title:'OCS Business Listing • '+name,email:billingEmail,planLabel:'28 Days',durationDays:28,metadata:postMeta});
