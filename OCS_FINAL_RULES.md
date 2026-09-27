@@ -127,7 +127,7 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 ## Temporary XYZ demo data
 - Temporary test/demo content is enabled with marker `OCS_XYZ_DEMO_V1`.
 - Demo appears in Slider Ad and every non-Home-Service business window for visual/search testing.
-- Demo contact: mobile **972310877**, email **rehandakhve143@gmail.com**, address **XYZ Address, Khopoli, Maharashtra**.
+- Demo contact: mobile **9881181016**, email **rehandakhve143@gmail.com**, address **XYZ Address, Khopoli, Maharashtra**.
 - Demo includes sample image, website/link, video, Call, Chat, WhatsApp and Email actions.
 - Searching **XYZ** from Home opens all XYZ demo listings; searching XYZ inside a window highlights that demo card.
 - Demo/test data must **not** count in real paid collections or GST collection totals.
