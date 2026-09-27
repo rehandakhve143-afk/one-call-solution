@@ -371,7 +371,8 @@ setTimeout(function(){
 <h3 style="margin-top:16px">Business Listing • 28 Days</h3><div class="price-grid">
 <div class="price-box"><label>Local Shop ₹</label><input id="pLocalShop" type="number" min="0"></div>
 <div class="price-box"><label>Property Owner ₹</label><input id="pPropertyOwner" type="number" min="0"></div>
-<div class="price-box"><label>Property Builder ₹</label><input id="pPropertyBuilder" type="number" min="0"></div>
+<div class="price-box"><label>Builder Property ₹</label><input id="pPropertyBuilder" type="number" min="0"></div>
+<div class="price-box"><label>Builder Project Profile ₹</label><input id="pPropertyBuilderProfile" type="number" min="0"></div>
 <div class="price-box"><label>Sliding / Aluminium ₹</label><input id="pSliding" type="number" min="0"></div>
 <div class="price-box"><label>Welding / Fabrication ₹</label><input id="pWelding" type="number" min="0"></div>
 <div class="price-box"><label>Beauty / Make-up ₹</label><input id="pBeauty" type="number" min="0"></div>
@@ -387,7 +388,8 @@ setTimeout(function(){
 <h3 style="margin-top:16px">Business Listing • 6 Months</h3><div class="price-grid">
 <div class="price-box"><label>Local Shop ₹</label><input id="pLocalShop6m" type="number" min="0"></div>
 <div class="price-box"><label>Property Owner ₹</label><input id="pPropertyOwner6m" type="number" min="0"></div>
-<div class="price-box"><label>Property Builder ₹</label><input id="pPropertyBuilder6m" type="number" min="0"></div>
+<div class="price-box"><label>Builder Property ₹</label><input id="pPropertyBuilder6m" type="number" min="0"></div>
+<div class="price-box"><label>Builder Project Profile ₹</label><input id="pPropertyBuilderProfile6m" type="number" min="0"></div>
 <div class="price-box"><label>Sliding / Aluminium ₹</label><input id="pSliding6m" type="number" min="0"></div>
 <div class="price-box"><label>Welding / Fabrication ₹</label><input id="pWelding6m" type="number" min="0"></div>
 <div class="price-box"><label>Beauty / Make-up ₹</label><input id="pBeauty6m" type="number" min="0"></div>
@@ -2084,6 +2086,7 @@ const OCS_PRICING_DEFAULTS={
  localShop:99,localShop6m:499,
  propertyOwner:199,propertyOwner6m:999,
  propertyBuilder:499,propertyBuilder6m:2499,
+ propertyBuilderProfile:499,propertyBuilderProfile6m:2499,
  sliding:199,sliding6m:999,
  welding:199,welding6m:999,
  beauty:199,beauty6m:999,
@@ -2244,6 +2247,7 @@ async function openPricingAdmin(){
   pLocalShop:'localShop',pLocalShop6m:'localShop6m',
   pPropertyOwner:'propertyOwner',pPropertyOwner6m:'propertyOwner6m',
   pPropertyBuilder:'propertyBuilder',pPropertyBuilder6m:'propertyBuilder6m',
+  pPropertyBuilderProfile:'propertyBuilderProfile',pPropertyBuilderProfile6m:'propertyBuilderProfile6m',
   pSliding:'sliding',pSliding6m:'sliding6m',
   pWelding:'welding',pWelding6m:'welding6m',
   pBeauty:'beauty',pBeauty6m:'beauty6m',
@@ -2272,6 +2276,7 @@ function savePricingAdmin(){
   localShop:'pLocalShop',localShop6m:'pLocalShop6m',
   propertyOwner:'pPropertyOwner',propertyOwner6m:'pPropertyOwner6m',
   propertyBuilder:'pPropertyBuilder',propertyBuilder6m:'pPropertyBuilder6m',
+  propertyBuilderProfile:'pPropertyBuilderProfile',propertyBuilderProfile6m:'pPropertyBuilderProfile6m',
   sliding:'pSliding',sliding6m:'pSliding6m',
   welding:'pWelding',welding6m:'pWelding6m',
   beauty:'pBeauty',beauty6m:'pBeauty6m',
