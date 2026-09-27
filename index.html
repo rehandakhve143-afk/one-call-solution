@@ -3081,6 +3081,7 @@ async function ocsRestoreUiState(s){
    if(!s.module){
      if(viewer&&viewer.classList.contains('show'))closeModule();
      document.querySelectorAll('.modal.show').forEach(x=>x.classList.remove('show'));
+     ocsRestoreUiDetails(s);
    }else{
      const already=viewer&&viewer.classList.contains('show')&&currentModuleName===s.module;
      if(!already)await openModule(s.module);
