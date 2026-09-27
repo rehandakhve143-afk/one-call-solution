@@ -201,11 +201,13 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <div id="s4" class="hidden">
 <button type="button" class="form-back" onclick="go(3)">← Back</button>
 <span class="step-kicker">Contact & Links</span>
-<div class="contact-grid"><div><label>Call Number *</label><input class="field" id="contactPhone" inputmode="tel" placeholder="Mobile number"></div><div><label>WhatsApp Number *</label><input class="field" id="contactWhatsapp" inputmode="tel" placeholder="WhatsApp number"></div></div>
-<label>Contact Email *</label><input class="field" id="contactEmail" type="email" placeholder="name@email.com">
-<label>Registered Email for GST Invoice & Renewal *</label><input class="field" id="renewalEmail" type="email" placeholder="name@email.com">
-<div class="muted" style="margin-top:5px">Successful payment ke baad GST invoice isi email par jayega; renewal reminders bhi isi email par aayenge.</div>
-<div class="muted">Expiry se 7 days aur 1 day pehle renewal reminder is email par jayega.</div>
+<div class="contact-grid">
+  <div><label>Call Number *</label><input class="field" id="contactPhone" inputmode="tel" placeholder="Mobile number"></div>
+  <div id="propertyWhatsappWrap"><label>WhatsApp Number *</label><input class="field" id="contactWhatsapp" inputmode="tel" placeholder="WhatsApp number"></div>
+</div>
+<div id="propertyPublicEmailWrap"><label>Public Contact Email *</label><input class="field" id="contactEmail" type="email" placeholder="name@email.com"></div>
+<label>Billing / GST Invoice & Renewal Email *</label><input class="field" id="renewalEmail" type="email" placeholder="name@email.com">
+<div class="muted" style="margin-top:5px">Ye billing email public listing me nahi dikhaya jayega. GST invoice aur renewal reminder ke liye use hoga.</div>
 <div id="builderLinks" class="builder-block hidden">
   <h3>Builder Advertisement Links</h3>
   <label>Brochure Link (Optional)</label><input class="field" id="brochure" placeholder="Brochure PDF / URL">
@@ -215,7 +217,7 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
   <label>Virtual Tour Link (Optional)</label><input class="field" id="virtualTour" placeholder="Virtual tour URL">
   <div class="muted">Blank link ka button customer ko nahi dikhega.</div>
 </div>
-<div class="contact-note"><b>Customer buttons:</b> Call • Chat • WhatsApp • Email. Posted contact details hi use hongi.</div>
+<div class="contact-note" id="propertyContactNote"><b>Customer buttons:</b> Call only.</div>
 <button class="next primary-action" onclick="go(5)">Preview Advertisement →</button></div>
 
 <div id="s5" class="hidden">
@@ -300,18 +302,28 @@ function isBuilderProjectProfile(){return propertyPostingMode()==='Builder Proje
 function propertyPostingLabel(){return propertyPostingMode()}
 function propertyPostingCategory(){return propertyPostingMode()==='Single Property – Sale / Rent'?'Single Property':propertyPostingMode()}
 function posterChange(){
- const b=isBuilderPost(),profile=isBuilderProjectProfile();
+ const b=isBuilderPost(),profile=isBuilderProjectProfile(),single=!b;
  ['builderProject','builderIdentity','builderStatusWrap'].forEach(id=>$(id)?.classList.toggle('hidden',!b));
  ['builderMedia','builderLinks'].forEach(id=>$(id)?.classList.toggle('hidden',!profile));
+ $('propertyWhatsappWrap')?.classList.toggle('hidden',single);
+ $('propertyPublicEmailWrap')?.classList.toggle('hidden',!profile);
+ if(single){$('contactWhatsapp').value='';$('contactEmail').value=''}
+ else if(!profile){$('contactEmail').value=''}
  if(b){$('purpose').value='Sale';$('purpose').disabled=true}else $('purpose').disabled=false;
+ const note=$('propertyContactNote');
+ if(note)note.innerHTML=single
+   ?'<b>Customer buttons:</b> Call only. Simple owner listing.'
+   :profile
+     ?'<b>Customer buttons:</b> Call • Chat • WhatsApp • Email.'
+     :'<b>Customer buttons:</b> Call • Chat • WhatsApp.';
  const title=$('propertyPlanTitle'),price=$('propertyPlanPrice'),help=$('propertyPlanHelp'),notice=$('propertyPaymentNotice');
  if(title)title.textContent=propertyPostingLabel();
  if(help){
    help.textContent=profile
      ?'Full builder project showcase • multiple photos, brochure, catalogue, video / YouTube, website, virtual tour and direct contact.'
      :b
-       ?'One builder property advertisement • photos, project details and direct customer contact.'
-       :'One owner property for Sale or Rent • photos and direct customer contact.';
+       ?'One builder property advertisement • photos, project details, Call, Chat and WhatsApp.'
+       :'Simple owner listing • Sale/Rent details, location, price, photos and Call only.';
  }
  const lab=propertyPlanDays===180?'6 Months':'28 Days';
  if(price)price.textContent=propertyPlanPayText(propertyPlanDays)+' / '+lab;
@@ -366,8 +378,11 @@ function validateStep(n){
  if(n===1&&b&&(!$('builderCompany').value.trim()||!$('builderContactPerson').value.trim()||!$('project').value.trim())){alert('Builder/Company name, Contact Person aur Project/Advertisement Name required.');return false}
  if(n===2&&(!$('city').value.trim()||!$('area').value.trim()||!$('address').value.trim()||!Number($('price').value||0))){alert('City, Area, Address aur Price required.');return false}
  if(n===4){
-   if(!validPhone($('contactPhone').value)||!validPhone($('contactWhatsapp').value)){alert('Valid Call aur WhatsApp number required.');return false}
-   if(!validEmail($('contactEmail').value)||!validEmail($('renewalEmail').value)){alert('Valid Contact Email aur Renewal Email required.');return false}
+   const b=isBuilderPost(),profile=isBuilderProjectProfile();
+   if(!validPhone($('contactPhone').value)){alert('Valid Call number required.');return false}
+   if(b&&!validPhone($('contactWhatsapp').value)){alert('Valid WhatsApp number required for Builder listing.');return false}
+   if(profile&&!validEmail($('contactEmail').value)){alert('Valid Public Contact Email required for Builder Project Profile.');return false}
+   if(!validEmail($('renewalEmail').value)){alert('Valid Billing / GST Invoice & Renewal Email required.');return false}
  }
  return true;
 }
@@ -395,7 +410,7 @@ function makePreview(){
  '<p>'+esc($('desc').value||'No description added')+'</p>'+
  '<div class="property-preview-plan"><b>'+esc(propertyPostingLabel())+'</b><span>'+(p===null?'Rate not set':propertyPlanPayText(propertyPlanDays))+' / '+planLabel+'</span></div>'+
  (profile?'<div class="ownerbox"><b>Builder Project Profile Features</b><br>'+esc(featureBits.join(' • ')||'Project Gallery')+'</div>':b?'<div class="ownerbox"><b>Builder Property</b><br>One builder property • Photos • Project details • Direct contact</div>':'<div class="ownerbox"><b>Single Property – Sale / Rent</b><br>One property listing • Photos • Direct contact</div>')+
- '<div class="preview-actions"><span>📞 Call</span><span>💬 Chat</span><span>🟢 WhatsApp</span><span>✉ Email</span>'+(b&&$('mapLink').value?'<span>📍 Directions</span>':'')+'</div>';
+ '<div class="preview-actions"><span>📞 Call</span>'+(b?'<span>💬 Chat</span><span>🟢 WhatsApp</span>':'')+(profile?'<span>✉ Email</span>':'')+(b&&$('mapLink').value?'<span>📍 Directions</span>':'')+'</div>';
 }
 function listingActionAttrs(kind,value){
  if(ocsBuilderSampleMode)return '';
@@ -412,7 +427,7 @@ function publish(){
  const company=b?($('builderCompany').value||'Builder / Developer'):'';
  const linkButtons=profile?'<div class="ownerbox"><b>'+esc(company)+'</b><div class="links"><button>Gallery</button>'+($('brochure').value?'<button data-url="'+esc($('brochure').value)+'">Brochure</button>':'')+($('catalogue').value?'<button data-url="'+esc($('catalogue').value)+'">Catalogue</button>':'')+($('video').value?'<button data-url="'+esc($('video').value)+'">Video / YouTube</button>':'')+($('website').value?'<button data-url="'+esc($('website').value)+'">Website</button>':'')+($('virtualTour').value?'<button data-url="'+esc($('virtualTour').value)+'">Virtual Tour</button>':'')+'</div></div>':(b?'<div class="ownerbox"><b>'+esc(company)+'</b><br>Builder Property • Direct Contact</div>':'');
  const status=b&&$('projectStatus').value?'<span class="chip">'+esc($('projectStatus').value)+'</span>':'';
- const contact='<div class="actions"><button class="call"'+listingActionAttrs('call',$('contactPhone').value)+'>Call</button><button>Chat</button><button class="wa"'+listingActionAttrs('wa',$('contactWhatsapp').value)+'>WhatsApp</button><button'+listingActionAttrs('email',$('contactEmail').value)+'>Email</button></div>';
+ const contact='<div class="actions"><button class="call"'+listingActionAttrs('call',$('contactPhone').value)+'>Call</button>'+(b?'<button>Chat</button><button class="wa"'+listingActionAttrs('wa',$('contactWhatsapp').value)+'>WhatsApp</button>':'')+(profile?'<button'+listingActionAttrs('email',$('contactEmail').value)+'>Email</button>':'')+'</div>';
  $('liveArea').insertAdjacentHTML('afterbegin','<div class="card"><div class="photo">'+(type==='Land'?'🌳':b?'🏢':'🏠')+'<span class="badge">'+(profile?'BUILDER PROJECT PROFILE':b?'BUILDER PROPERTY':'SINGLE PROPERTY')+'</span></div><div class="body"><div class="title">'+esc(name)+'</div><div class="loc">📍 '+esc($('area').value||'Area')+' • '+esc($('city').value||'City')+'</div><div class="price">₹'+Number($('price').value||0).toLocaleString('en-IN')+(purpose==='Rent'?' / month':'')+'</div><div class="chips"><span class="chip">'+esc(type)+'</span>'+($('sqft').value?'<span class="chip">'+esc($('sqft').value)+' sq ft</span>':'')+status+'</div>'+linkButtons+contact+'</div></div>');
  $('s6').classList.add('hidden');$('done').classList.remove('hidden');$('stepHelp').textContent='Published successfully';clearPropertyDraft();
 }
