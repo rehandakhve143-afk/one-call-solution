@@ -2335,6 +2335,20 @@ function renderLivePaidBanners(){
    dot.onclick=()=>setSuperSlide([...document.querySelectorAll('.ocs-super-slide')].indexOf(slide));
    dots.appendChild(dot);
  });
+ const localIds=new Set(live.map(x=>String(x.id||'')));
+ fetchPublicLivePosts('Slider Ad',20).then(rows=>{
+   rows.forEach(x=>{
+     const m=livePostMeta(x);if(m.localId&&localIds.has(String(m.localId)))return;
+     const img=String(m.image||((livePostMedia(m).find(z=>z.type==='image')||{}).url)||'');
+     const slide=document.createElement('div');slide.className='ocs-super-slide ocs-paid-live-banner';slide.dataset.bannerId=String(x.id||'');
+     if(img)slide.style.backgroundImage='url('+JSON.stringify(img)+')';
+     slide.innerHTML='<div class="ocs-super-hero-copy"><div class="k">Sponsored • OCS</div><h1>'+ocsSavedText(m.headline||livePostDisplayName(x))+'</h1><p>'+ocsSavedText(m.description||m.area||'')+'</p><button type="button">View Ad</button></div>';
+     const btn=slide.querySelector('button');if(btn)btn.onclick=()=>{if(m.cta==='CALL')livePostCall({phone:m.actionValue});else if(m.cta==='WHATSAPP')livePostWhatsApp({phone:m.actionValue});else if(m.actionValue&&/^https?:\/\//i.test(m.actionValue))window.open(m.actionValue,'_blank','noopener')};
+     hero.insertBefore(slide,dots);
+     const dot=document.createElement('button');dot.type='button';dot.className='ocs-paid-live-dot';dot.onclick=()=>setSuperSlide([...document.querySelectorAll('.ocs-super-slide')].indexOf(slide));dots.appendChild(dot);
+   });
+   setSuperSlide(ocsSuperSlideIndex);
+ }).catch(e=>console.warn('Live slider feed failed',e));
 }
 function renderBannerPendingState(){
  const box=document.getElementById('bannerPendingBox');if(!box)return;
@@ -2397,13 +2411,19 @@ async function submitBannerAd(){
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
  if((cta==='CALL'||cta==='WHATSAPP')&&av.replace(/\D/g,'').length<10){alert('Valid mobile / WhatsApp number enter karein.');return}
  if(cta==='WEBSITE'&&!/^https?:\/\//i.test(av)){alert('Website link http:// ya https:// se start karein.');return}
+ let publicBannerImage='';
+ const bannerFile=document.getElementById('bannerImage')?.files?.[0];
+ if(bannerFile){
+   try{const uploaded=await uploadOcsPublicMedia([bannerFile],'slider-ad');publicBannerImage=(uploaded[0]&&uploaded[0].url)||''}
+   catch(e){alert('Banner photo upload nahi hua: '+(e&&e.message?e.message:'Upload error'));return}
+ }
  const normalPrice=pricingValue(key,n,'BANNER'),requestedAdminFree=!!document.getElementById('bannerAdminFree')?.checked;
  const adminFree=requestedAdminFree?await ocsAdminFreeAllowed():false;
  if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
  const price=adminFree?0:normalPrice,plan=key==='banner6m'?'6 Months':'28 Days';
  const pending=getBannerRequests();
  const tax=getGstBreakup(price);
- const payload={name:n,title:t,description:d,area:a,cta,actionValue:av,billingEmail,plan,planDays:key==='banner6m'?180:28,price,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,image:bannerImageData||''};
+ const payload={name:n,title:t,description:d,area:a,cta,actionValue:av,billingEmail,plan,planDays:key==='banner6m'?180:28,price,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,image:publicBannerImage||bannerImageData||''};
  if(editingBannerId){
    const i=pending.findIndex(x=>x.id===editingBannerId);
    if(i<0)return alert('Pending ad nahi mila.');
@@ -2419,18 +2439,19 @@ async function submitBannerAd(){
  }
  const wasEdit=!!editingBannerId;
  const currentId=editingBannerId||pending[pending.length-1]?.id||'';
+ const bannerMeta={business:n,headline:t,description:d,area:a,cta,actionValue:av,localId:currentId,image:publicBannerImage||''};
  editingBannerId='';
  if(price===0){
    const a=getBannerRequests(),i=a.findIndex(x=>x.id===currentId);
    if(i>=0){const start=new Date().toISOString();a[i].status='LIVE';a[i].startsAt=start;a[i].expiresAt=addDaysIso(start,Number(a[i].planDays||28));a[i].locked=true;setBannerRequests(a)}
-   if(adminFree)await recordAdminFreePostBackend({sourceKind:'banner',category:'Slider Ad',title:'OCS Slider Ad • '+n,email:billingEmail,planLabel:plan,durationDays:key==='banner6m'?180:28,metadata:{business:n,headline:t,area:a}});
+   if(adminFree)await recordAdminFreePostBackend({sourceKind:'banner',category:'Slider Ad',title:'OCS Slider Ad • '+n,email:billingEmail,planLabel:plan,durationDays:key==='banner6m'?180:28,metadata:bannerMeta});
    renderLivePaidBanners();closeBannerAd();alert('FREE banner is LIVE ✅');return
  }
  try{
    const paid=await ocsPayPaidPost({
      sourceKind:'banner',sourceRef:currentId,title:'OCS Slider / Banner Advertisement',
      email:billingEmail,planLabel:plan,durationDays:key==='banner6m'?180:28,baseAmount:price,
-     metadata:{business:n,headline:t,area:a}
+     metadata:bannerMeta
    });
    if(!paid){renderBannerPendingState();return}
    lockBannerAfterPayment(currentId,paid.razorpayPaymentId||'');
@@ -2510,6 +2531,21 @@ function livePostCall(meta){
 function livePostWhatsApp(meta){
  const n=String(meta.phone||meta.whatsapp||meta.contactWhatsapp||'').replace(/D/g,'');if(!n)return alert('WhatsApp number available nahi hai.');
  window.open('https://wa.me/'+n+'?text='+encodeURIComponent('Hello, mujhe aapki OCS listing ke bare me enquiry chahiye.'),'_blank','noopener');
+}
+let ocsWindowPosterTick=0;
+async function refreshHomeLiveWindowPosters(){
+ const rows=await fetchPublicLivePosts(null,160);if(!rows.length)return;
+ const groups={};
+ rows.forEach(x=>{const cat=x.source_kind==='property_listing'?'Property':x.category;(groups[cat]||(groups[cat]=[])).push(x)});
+ document.querySelectorAll('.ocs-market-card[onclick*="openModule"]').forEach(card=>{
+   const oc=String(card.getAttribute('onclick')||''),m=oc.match(/openModule\('([^']+)'/);if(!m)return;
+   const cat=m[1],arr=groups[cat]||[];if(!arr.length)return;
+   const x=arr[ocsWindowPosterTick%arr.length],meta=livePostMeta(x),media=livePostMedia(meta),img=(media.find(z=>z.type==='image')||{}).url||meta.image||'';
+   const photo=card.querySelector('.photo');if(photo&&img)photo.style.backgroundImage='url('+JSON.stringify(img)+')';
+   let badge=card.querySelector('.ocs-market-badge');if(!badge){badge=document.createElement('span');badge.className='ocs-market-badge';card.insertBefore(badge,card.querySelector('.ocs-market-copy'))}
+   badge.textContent='LIVE AD';
+ });
+ ocsWindowPosterTick++;
 }
 async function injectLiveCategoryAds(cat){
  const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;if(!doc||!doc.body)return;
@@ -2713,7 +2749,8 @@ function setSuperSlide(n){
  clearInterval(ocsSuperSlideTimer);
  ocsSuperSlideTimer=setInterval(()=>setSuperSlide(ocsSuperSlideIndex+1),5000);
 }
-setTimeout(()=>{renderLivePaidBanners();renderXyzDemoBanner();setSuperSlide(0)},100);
+setTimeout(()=>{renderLivePaidBanners();renderXyzDemoBanner();refreshHomeLiveWindowPosters();setSuperSlide(0)},100);
+setInterval(()=>{refreshHomeLiveWindowPosters().catch(()=>{})},6000);
 async function openModule(n,role,serviceCat){
  if(n==='Home Services'){
    if(role==='provider'){
