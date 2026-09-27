@@ -461,7 +461,22 @@ setTimeout(function(){
 </div></div>
 
 <div class="modal" id="bizModal"><div class="sheet"><button class="x" onclick="closeBiz()">×</button><h2>Post Your Business</h2><p class="muted">Simple 3 steps: details bharo, photos/videos add karo, payment ke baad listing LIVE ho jayegi.</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 12px"><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">1. Details</div><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">2. Photos / Videos</div><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">3. Pay & LIVE</div></div><div class="muted" style="margin:-2px 0 10px"><b>Payment se pehle Edit Draft allowed.</b> Payment successful hone ke baad listing lock ho jayegi.</div>
-<label>Business Category</label><select id="bizCat"><option>Property</option><option>Local Shop</option><option>Sliding / Aluminium</option><option>Welding / Fabrication</option><option>Beauty / Make-up</option><option>Used Vehicle</option><option>New Vehicle</option><option>Medical Store</option><option>Diagnostic Lab</option><option>Modular Kitchen</option><option>Hotel / Restaurant / Lodging</option><option>Other Business</option></select>
+<label>Business Category</label><select id="bizCat"><option>Property</option><option>Local Shop</option><option>Sliding / Aluminium</option><option>Welding / Fabrication</option><option>Beauty / Make-up</option><option>Used Vehicle</option><option>New Vehicle</option><option>Medical Store</option><option>Diagnostic Lab</option><option>Modular Kitchen</option><option>Hotel / Restaurant / Lodging</option><option value="Other Business">Other / Not Listed</option></select>
+<div id="propertyPostTypeWrap" style="display:none;margin:12px 0">
+  <div style="font-weight:900;font-size:15px;margin-bottom:8px">Choose Property Post Type</div>
+  <label style="display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #d7e5e2;border-radius:14px;margin:7px 0;background:#fff">
+    <input type="radio" name="propertyPostType" value="Single Property – Sale / Rent" checked style="width:auto;margin-top:3px">
+    <span><b>Single Property – Sale / Rent</b><small style="display:block;color:#6b7f82;margin-top:3px">Owner listing • ₹199 / 28 days</small></span>
+  </label>
+  <label style="display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #d7e5e2;border-radius:14px;margin:7px 0;background:#fff">
+    <input type="radio" name="propertyPostType" value="Builder Property" style="width:auto;margin-top:3px">
+    <span><b>Builder Property</b><small style="display:block;color:#6b7f82;margin-top:3px">Single builder property ad • ₹499 / 28 days</small></span>
+  </label>
+  <label style="display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #d7e5e2;border-radius:14px;margin:7px 0;background:#fff">
+    <input type="radio" name="propertyPostType" value="Builder Project Profile" style="width:auto;margin-top:3px">
+    <span><b>Builder Project Profile</b><small style="display:block;color:#6b7f82;margin-top:3px">Full project profile • gallery / links • ₹499 / 28 days</small></span>
+  </label>
+</div>
 <div id="bizAdminFreeWrap" class="free-box" style="display:none;margin:10px 0">
   <label style="display:flex;align-items:center;gap:9px;margin:0"><input id="bizAdminFree" type="checkbox" style="width:auto" onchange="updateBizPrice()"> <b>Admin: Make this Listing FREE</b></label>
   <div class="muted" style="margin-top:6px">₹0 payment • GST ₹0 • direct LIVE for selected plan.</div>
@@ -470,7 +485,7 @@ setTimeout(function(){
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
 <div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><div id="obPostPriceWrap" style="display:none"><label id="obPostPriceLabel">Post Price / Rate (₹)</label><input id="obPostPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter price"></div><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
-<div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button class="primary" onclick="continueBiz()">Continue to Payment →</button></div><div class="muted" style="margin-top:8px"><b>Auto-save ON.</b> Details isi device par draft me save hoti rahengi. Payment se pehle edit kar sakte hain.</div></div></div>
+<div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button id="bizContinueBtn" class="primary" onclick="continueBiz()">Continue to Payment →</button></div><div class="muted" style="margin-top:8px"><b>Auto-save ON.</b> Details isi device par draft me save hoti rahengi. Payment se pehle edit kar sakte hain.</div></div></div>
 <script>
 let homeSlide=0,homeSlideTimer=null,homeTouchStartX=0;
 function showSlide(index){
@@ -3015,7 +3030,7 @@ function ensureOcsModules(){
   return ocsModulesPromise;
 }
 function decode64(s){const bin=atob(s);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new TextDecoder().decode(u)}
-let currentModuleName="",pendingWindowSearch="",pendingPropertyPost=false;
+let currentModuleName="",pendingWindowSearch="",pendingPropertyPost="";
 const OCS_SEARCH_ALIASES={
  "Home Services":"electrician electrical fan switch socket plumber plumbing ac cleaning carpenter appliance pest maid painter cctv gas stove wifi tv packers movers tiles stone waterproofing false ceiling pop gypsum pvc home repair service provider",
  "Property":"property flat rent buy sale builder bungalow row house land plot xyz builder xyz residency sample builder project",
@@ -3108,7 +3123,7 @@ async function openModule(n,role,serviceCat){
  const viewer=document.getElementById('viewer');if(viewer){viewer.classList.toggle('home-service-view',n==='Home Services');viewer.classList.add('show');}
  frame.onload=function(){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role);if(role==='customer'&&serviceCat)frame.contentWindow.selectCategory(serviceCat)}catch(e){}}
-   if(n==='Property'&&pendingPropertyPost){pendingPropertyPost=false;setTimeout(()=>{try{frame.contentWindow.openPost()}catch(e){console.warn('Property post open',e)}},120)}
+   if(n==='Property'&&pendingPropertyPost){const postType=pendingPropertyPost;pendingPropertyPost='';setTimeout(()=>{try{if(typeof frame.contentWindow.openPostWithType==='function')frame.contentWindow.openPostWithType(postType);else frame.contentWindow.openPost()}catch(e){console.warn('Property post open',e)}},120)}
    if(n!=='Home Services'){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS XYZ Demo',e)}}
    if(n!=='Home Services'){injectLiveCategoryAds(n).then(()=>{if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch='';setTimeout(()=>runWindowSearch(q),120)}}).catch(e=>console.warn('OCS live feed',e))}
    if(n!=='Home Services'){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
@@ -3118,7 +3133,7 @@ async function openModule(n,role,serviceCat){
  };
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
-   frame.src='property.html?v=20260927-navhistory1';
+   frame.src='property.html?v=20260927-propertytypes1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
    frame.src='home-services.html?v=20260927-navhistory1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
@@ -3536,7 +3551,7 @@ const OCS_BIZ_FORM_CONFIG={
  'Diagnostic Lab':{type:'Lab Type',typePh:'Diagnostic / Pathology Lab',about:'Tests / Packages',aboutPh:'Blood tests, packages, home collection…'},
  'Modular Kitchen':{type:'Profile Type',typePh:'Designer / Manufacturer',about:'Services',aboutPh:'Design, measurement, material, site visit…'},
  'Hotel / Restaurant / Lodging':{type:'Business Type',typePh:'Hotel / Restaurant / Lodging',about:'Stay / Food Details',aboutPh:'Rooms, food, facilities, timings…'},
- 'Other Business':{type:'Business Type',typePh:'Business type',about:'About',aboutPh:'Short description…'}
+ 'Other Business':{type:'Enter Business Category *',typePh:'e.g. Chinese Food Stall / Mobile Repair / Tailor / Any Business',about:'About / Products / Services',aboutPh:'Aap kya sell ya service karte hain, short details…',priceLabel:'Product / Starting Price (₹)',pricePh:'Optional'}
 };
 function syncBizReadyForm(cat){
  const cfg=OCS_BIZ_FORM_CONFIG[cat]||OCS_BIZ_FORM_CONFIG['Other Business'];
@@ -3553,16 +3568,27 @@ function syncBizReadyForm(cat){
  if(pl&&cfg.priceLabel)pl.textContent=cfg.priceLabel;
  if(pi){pi.placeholder=cfg.pricePh||'Enter price';if(!cfg.priceLabel)pi.value=''}
 }
+function syncPropertyEntryUi(){
+ const cat=document.getElementById('bizCat')?.value||'';
+ const isProperty=cat==='Property';
+ const wrap=document.getElementById('propertyPostTypeWrap'),fields=document.getElementById('otherFields'),btn=document.getElementById('bizContinueBtn');
+ if(wrap)wrap.style.display=isProperty?'block':'none';
+ if(fields)fields.style.display=isProperty?'none':'block';
+ if(btn)btn.textContent=isProperty?'Continue to Property Details →':'Continue to Payment →';
+ if(isProperty){
+   const af=document.getElementById('bizAdminFreeWrap');if(af)af.style.display='none';
+ }
+}
 function openBiz(category){
  const modal=document.getElementById('bizModal'),sel=document.getElementById('bizCat');
  if(category&&[...sel.options].some(o=>o.value===category||o.text===category))sel.value=category;
- const isProperty=sel.value==='Property';document.getElementById('otherFields').style.display=isProperty?'none':'block';syncBizReadyForm(sel.value);const af=document.getElementById('bizAdminFree');if(af)af.checked=false;
+ const isProperty=sel.value==='Property';syncBizReadyForm(sel.value);syncPropertyEntryUi();const af=document.getElementById('bizAdminFree');if(af)af.checked=false;
  if(isProperty){
    const price=document.getElementById('bizCurrentPrice'),gst=document.getElementById('bizGstNote');
    if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹499';
    if(gst)gst.textContent='Continue karke Single Property / Builder Property / Builder Project Profile choose karein.';
  }else{loadBizDraft(sel.value);updateBizPrice()}
- updateBizLikeSummary(sel.value);modal.classList.add('show');syncAdminFreePostControls().then(()=>{if(!isProperty)updateBizPrice()})
+ updateBizLikeSummary(sel.value);modal.classList.add('show');syncAdminFreePostControls().then(()=>{syncPropertyEntryUi();if(!isProperty)updateBizPrice()})
 }
 function closeBiz(){document.getElementById('bizModal').classList.remove('show')}
 function manageCurrentWindow(){
@@ -3575,7 +3601,7 @@ function manageCurrentWindow(){
 }
 document.getElementById('bizCat').onchange=function(){
  const isProperty=this.value==='Property';
- document.getElementById('otherFields').style.display=isProperty?'none':'block';syncBizReadyForm(this.value);
+ syncBizReadyForm(this.value);syncPropertyEntryUi();
  const price=document.getElementById('bizCurrentPrice'),gst=document.getElementById('bizGstNote');
  if(isProperty){
    if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹499';
@@ -3590,10 +3616,13 @@ document.getElementById('otherFields')?.addEventListener('change',queueBizDraftA
 async function continueBiz(){
  const cat=document.getElementById('bizCat').value;
  if(cat==='Property'){
-   closeBiz();pendingPropertyPost=true;openModule('Property');return;
+   const chosen=document.querySelector('input[name="propertyPostType"]:checked');
+   pendingPropertyPost=chosen?chosen.value:'Single Property – Sale / Rent';
+   closeBiz();openModule('Property');return;
  }
  const name=obName.value.trim(),type=obType.value.trim(),area=obArea.value.trim(),about=obAbout.value.trim(),phone=obPhone.value.trim(),billingEmail=(document.getElementById('obEmail')?.value||'').trim(),priceRaw=(document.getElementById('obPostPrice')?.value||'').trim(),itemPrice=priceRaw===''?null:Number(priceRaw);
  if(!name||!area||phone.replace(/\D/g,'').length<10){alert('Business/Profile name, City/Area aur valid Mobile/WhatsApp required.');return}
+ if(cat==='Other Business'&&!type){alert('Apna Business Category likhiye — e.g. Chinese Food Stall / Mobile Repair / Tailor.');return}
  if(itemPrice!==null&&(!Number.isFinite(itemPrice)||itemPrice<0)){alert('Valid post price / rate enter karein.');return}
  if((cat==='Used Vehicle'||cat==='New Vehicle')&&(itemPrice===null||itemPrice<=0)){alert(cat==='Used Vehicle'?'Used Vehicle ka Asking Price required.':'New Vehicle ka Starting / Ex-showroom Price required.');return}
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
@@ -3774,7 +3803,7 @@ window.addEventListener('unhandledrejection',e=>ocsLogTechnicalError('PROMISE',e
 window.ocsLogTechnicalError=ocsLogTechnicalError;
 
 // New-build alert. app-version.json is updated with releases.
-const OCS_APP_BUILD='20260927-galleryall1';
+const OCS_APP_BUILD='20260927-propertytypes1';
 async function ocsCheckForNewBuild(){
  try{
    const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
