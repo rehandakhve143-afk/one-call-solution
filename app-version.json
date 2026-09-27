@@ -1,5 +1,5 @@
 {
-  "build": "20260927-sliderfix1",
+  "build": "20260927-galleryall1",
   "updated_at": "2026-09-27",
-  "message": "Manual slider swipe and full-screen gallery fix"
+  "message": "Full-screen swipe gallery on all live listing photos"
 }
