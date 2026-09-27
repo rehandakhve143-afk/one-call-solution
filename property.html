@@ -283,6 +283,17 @@ function openPost(){
  if(!hasLive)restorePropertyDraft();
 }
 function closePost(){$('overlay').style.display='none'}
+function ocsPropertyHandleBack(){
+ try{
+   const ov=$('overlay');
+   if(ov&&ov.style.display==='flex'){
+     if(Number(currentPropertyStep||1)>1){go(Number(currentPropertyStep)-1);return true}
+     closePost();return true
+   }
+ }catch(e){}
+ return false
+}
+window.ocsPropertyHandleBack=ocsPropertyHandleBack;
 function openXyzBuilderSample(){
  openPost();ocsBuilderSampleMode=true;
  const sample={
