@@ -2969,7 +2969,7 @@ async function openModule(n,role,serviceCat){
  };
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
-   frame.src='property.html?v=20260927-backflow3';
+   frame.src='property.html?v=20260927-navhistory1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
    frame.src='home-services.html?v=20260927-backflow4'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
@@ -3017,17 +3017,102 @@ function ocsIndexHandleBack(){
  }catch(e){}
  return false
 }
-(function ocsInstallIndexBrowserBack(){
+let ocsUiHistoryApplying=false,ocsUiHistoryTimer=null,ocsUiHistoryLast="",ocsUiHistoryReady=false;
+
+function ocsGetPropertyNavState(){
+ try{
+   const f=document.getElementById('frame');
+   if(currentModuleName==='Property'&&f&&f.contentWindow&&typeof f.contentWindow.ocsPropertyNavState==='function'){
+     return f.contentWindow.ocsPropertyNavState();
+   }
+ }catch(e){}
+ return null;
+}
+function ocsCaptureUiState(){
+ const viewer=document.getElementById('viewer');
+ const moduleOpen=!!(viewer&&viewer.classList.contains('show')&&currentModuleName);
+ const modals=[...document.querySelectorAll('.modal.show')].map(x=>x.id).filter(Boolean);
+ return {
+   module:moduleOpen?currentModuleName:"",
+   modals,
+   property:moduleOpen&&currentModuleName==='Property'?ocsGetPropertyNavState():null
+ };
+}
+function ocsUiStateKey(s){try{return JSON.stringify(s||{})}catch(e){return ""}}
+function ocsStoreUiState(mode){
+ if(ocsUiHistoryApplying)return;
+ const s=ocsCaptureUiState(),key=ocsUiStateKey(s);
+ if(!key||key===ocsUiHistoryLast)return;
+ const payload={ocsUi:true,state:s};
+ try{
+   if(mode==='replace')history.replaceState(payload,"",location.href);
+   else history.pushState(payload,"",location.href);
+   ocsUiHistoryLast=key;
+ }catch(e){}
+}
+function ocsQueueUiHistory(){
+ if(!ocsUiHistoryReady||ocsUiHistoryApplying)return;
+ clearTimeout(ocsUiHistoryTimer);
+ ocsUiHistoryTimer=setTimeout(()=>ocsStoreUiState('push'),40);
+}
+window.ocsNotifyFrameNavigation=ocsQueueUiHistory;
+
+function ocsRestorePropertyNavState(s){
+ if(!s)return;
+ try{
+   const f=document.getElementById('frame');
+   if(f&&f.contentWindow&&typeof f.contentWindow.ocsPropertyRestoreNavState==='function'){
+     f.contentWindow.ocsPropertyRestoreNavState(s);
+   }
+ }catch(e){}
+}
+function ocsRestoreUiDetails(s){
+ try{
+   document.querySelectorAll('.modal.show').forEach(x=>x.classList.remove('show'));
+   (s.modals||[]).forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('show')});
+   if(s.module==='Property'&&s.property)ocsRestorePropertyNavState(s.property);
+ }catch(e){}
+}
+async function ocsRestoreUiState(s){
+ s=s||{module:"",modals:[],property:null};
+ ocsUiHistoryApplying=true;
+ try{
+   const viewer=document.getElementById('viewer');
+   if(!s.module){
+     if(viewer&&viewer.classList.contains('show'))closeModule();
+     document.querySelectorAll('.modal.show').forEach(x=>x.classList.remove('show'));
+   }else{
+     const already=viewer&&viewer.classList.contains('show')&&currentModuleName===s.module;
+     if(!already)await openModule(s.module);
+     ocsRestoreUiDetails(s);
+     // iframe content may finish a moment after module shell opens.
+     if(s.module==='Property'&&s.property){
+       setTimeout(()=>{if(ocsUiHistoryApplying)ocsRestorePropertyNavState(s.property)},180);
+       setTimeout(()=>{if(ocsUiHistoryApplying)ocsRestorePropertyNavState(s.property)},520);
+     }
+   }
+ }catch(e){console.warn('OCS history restore',e)}
+ setTimeout(()=>{
+   ocsUiHistoryApplying=false;
+   ocsUiHistoryLast=ocsUiStateKey(ocsCaptureUiState());
+ },620);
+}
+
+(function ocsInstallIndexBrowserHistory(){
  try{
    if(!/\/(?:index\.html)?$/i.test(location.pathname))return;
-   history.replaceState({ocsIndexBase:true},"",location.href);
-   history.pushState({ocsIndexGuard:true},"",location.href);
-   window.addEventListener('popstate',()=>{
-     if(ocsIndexHandleBack()){
-       setTimeout(()=>history.pushState({ocsIndexGuard:true},"",location.href),0);
-     }
+   const initial=ocsCaptureUiState();
+   history.replaceState({ocsUi:true,state:initial},"",location.href);
+   ocsUiHistoryLast=ocsUiStateKey(initial);
+   const observer=new MutationObserver(()=>ocsQueueUiHistory());
+   observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
+   ocsUiHistoryReady=true;
+   window.addEventListener('popstate',ev=>{
+     const st=ev.state&&ev.state.ocsUi?ev.state.state:{module:"",modals:[],property:null};
+     ocsUiHistoryLast=ocsUiStateKey(st);
+     ocsRestoreUiState(st);
    });
- }catch(e){}
+ }catch(e){console.warn('OCS browser history install',e)}
 })();
 async function getOcsReferralCode(){
  const session=await getOcsSession();
@@ -3300,9 +3385,11 @@ function openBiz(category){
 function closeBiz(){document.getElementById('bizModal').classList.remove('show')}
 function manageCurrentWindow(){
  const n=currentModuleName;
- if(n==='Home Services')return
+ if(n==='Home Services')return;
  if(!n){openBiz();return}
- closeModule();openBiz(n);
+ // Keep the current category window underneath the post form.
+ // Back/close should return to the same window, not Home.
+ openBiz(n);
 }
 document.getElementById('bizCat').onchange=function(){
  const isProperty=this.value==='Property';
