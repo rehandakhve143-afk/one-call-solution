@@ -3299,10 +3299,17 @@ function ocsCaptureUiState(){
  const viewer=document.getElementById('viewer');
  const moduleOpen=!!(viewer&&viewer.classList.contains('show')&&currentModuleName);
  const modals=[...document.querySelectorAll('.modal.show')].map(x=>x.id).filter(Boolean);
+ let frameScrollY=0;
+ try{
+   const f=document.getElementById('frame');
+   if(moduleOpen&&f&&f.contentWindow)frameScrollY=Number(f.contentWindow.scrollY||0);
+ }catch(e){}
  return {
    module:moduleOpen?currentModuleName:"",
    modals,
-   property:moduleOpen&&currentModuleName==='Property'?ocsGetPropertyNavState():null
+   property:moduleOpen&&currentModuleName==='Property'?ocsGetPropertyNavState():null,
+   pageScrollY:Number(window.scrollY||0),
+   frameScrollY
  };
 }
 function ocsUiStateKey(s){try{return JSON.stringify(s||{})}catch(e){return ""}}
@@ -3360,10 +3367,22 @@ async function ocsRestoreUiState(s){
      }
    }
  }catch(e){console.warn('OCS history restore',e)}
+ const restoreScroll=()=>{
+   try{
+     if(Number.isFinite(Number(s.pageScrollY)))window.scrollTo(0,Number(s.pageScrollY||0));
+     if(s.module){
+       const f=document.getElementById('frame');
+       if(f&&f.contentWindow&&Number.isFinite(Number(s.frameScrollY)))f.contentWindow.scrollTo(0,Number(s.frameScrollY||0));
+     }
+   }catch(e){}
+ };
+ setTimeout(restoreScroll,220);
+ setTimeout(restoreScroll,650);
+ setTimeout(restoreScroll,1200);
  setTimeout(()=>{
    ocsUiHistoryApplying=false;
    ocsUiHistoryLast=ocsUiStateKey(ocsCaptureUiState());
- },620);
+ },1250);
 }
 
 (function ocsInstallIndexBrowserHistory(){
@@ -3911,7 +3930,31 @@ window.addEventListener('unhandledrejection',e=>ocsLogTechnicalError('PROMISE',e
 window.ocsLogTechnicalError=ocsLogTechnicalError;
 
 // New-build alert. app-version.json is updated with releases.
-const OCS_APP_BUILD='20260927-shopvariant1';
+const OCS_REFRESH_STATE_KEY='ocsRefreshRestoreStateV1';
+async function ocsReloadKeepScreen(){
+ try{
+   const state=ocsCaptureUiState();
+   sessionStorage.setItem(OCS_REFRESH_STATE_KEY,JSON.stringify(state));
+ }catch(e){}
+ try{
+   if('serviceWorker' in navigator){
+     const reg=await navigator.serviceWorker.getRegistration('./');
+     if(reg)await reg.update();
+   }
+ }catch(e){}
+ location.reload();
+}
+(function ocsRestoreAfterVersionRefresh(){
+ let raw='';
+ try{raw=sessionStorage.getItem(OCS_REFRESH_STATE_KEY)||'';if(raw)sessionStorage.removeItem(OCS_REFRESH_STATE_KEY)}catch(e){}
+ if(!raw)return;
+ try{
+   const state=JSON.parse(raw);
+   setTimeout(()=>ocsRestoreUiState(state),350);
+ }catch(e){console.warn('OCS refresh state restore',e)}
+})();
+
+const OCS_APP_BUILD='20260927-refreshkeep1';
 async function ocsCheckForNewBuild(){
  try{
    const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
@@ -3919,7 +3962,7 @@ async function ocsCheckForNewBuild(){
    if(document.getElementById('ocsUpdateBar'))return;
    const bar=document.createElement('div');bar.id='ocsUpdateBar';
    bar.style.cssText='position:fixed;left:10px;right:10px;bottom:82px;z-index:2147483646;display:flex;align-items:center;gap:9px;padding:11px 12px;border-radius:14px;background:#0f766e;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.24);font:800 12px system-ui,Arial';
-   bar.innerHTML='<span style="flex:1">OCS ka naya version available hai.</span><button type="button" style="border:0;border-radius:9px;padding:8px 12px;background:#fff;color:#0f766e;font-weight:900" onclick="location.reload()">Refresh</button>';
+   bar.innerHTML='<span style="flex:1">OCS ka naya version available hai.</span><button type="button" style="border:0;border-radius:9px;padding:8px 12px;background:#fff;color:#0f766e;font-weight:900" onclick="ocsReloadKeepScreen()">Refresh</button>';
    document.body.appendChild(bar);
  }catch(e){}
 }
