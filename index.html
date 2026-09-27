@@ -125,7 +125,7 @@ setTimeout(function(){
   <button onclick="openWalletHub()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h15a2 2 0 0 1 2 2v9H4V7Z"/><path d="M4 7V5h13M16 12h5"/></svg>Wallet</button>
   <button onclick="openAccountEntry()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>Profile</button>
 </nav>
-<div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div><button id="windowManageBtn" class="window-manage" onclick="manageCurrentWindow()">+ Add / Edit</button></div><iframe id="frame"></iframe></div>
+<div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div><button id="windowManageBtn" class="window-manage" onclick="manageCurrentWindow()">+ Post Ad</button></div><iframe id="frame"></iframe></div>
 <div class="modal" id="bottomBookingsModal"><div class="sheet">
   <div class="bottom-hub-head"><div><h2>Bookings</h2><div class="muted">Active, completed and cancelled Home Service bookings</div></div><button class="x" onclick="closeBottomHub('bottomBookingsModal')">×</button></div>
   <div class="support-role-row">
@@ -152,7 +152,7 @@ setTimeout(function(){
 </div></div>
 
 <div class="modal" id="myAdsModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>My Ads & Listings</h2><div class="muted">Edit • Pause • Resume • Renew • Remove</div></div><button class="x" onclick="closeBottomHub('myAdsModal')">×</button></div>
+  <div class="bottom-hub-head"><div><h2>My Ads & Listings</h2><div class="muted">Draft: Edit before payment • LIVE: Pause • Resume • Renew • Remove</div></div><button class="x" onclick="closeBottomHub('myAdsModal')">×</button></div>
   <div id="myAdsBody"><div class="muted">Loading…</div></div>
 </div></div>
 
@@ -460,7 +460,7 @@ setTimeout(function(){
 <div class="muted" style="margin-top:8px">Verified Razorpay payment ke baad ad automatically LIVE hoga aur GST invoice billing email par generate hoga. Admin sirf Pause / Block / Remove control use karega.</div>
 </div></div>
 
-<div class="modal" id="bizModal"><div class="sheet"><button class="x" onclick="closeBiz()">×</button><h2>Add / Edit Your Business</h2><p class="muted">Category select karein. Basic details yahin save rahengi; phir us window ka full setup khulega.</p>
+<div class="modal" id="bizModal"><div class="sheet"><button class="x" onclick="closeBiz()">×</button><h2>Post Your Business</h2><p class="muted">Simple 3 steps: details bharo, photos/videos add karo, payment ke baad listing LIVE ho jayegi.</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 12px"><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">1. Details</div><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">2. Photos / Videos</div><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">3. Pay & LIVE</div></div><div class="muted" style="margin:-2px 0 10px"><b>Payment se pehle Edit Draft allowed.</b> Payment successful hone ke baad listing lock ho jayegi.</div>
 <label>Business Category</label><select id="bizCat"><option>Property</option><option>Local Shop</option><option>Sliding / Aluminium</option><option>Welding / Fabrication</option><option>Beauty / Make-up</option><option>Used Vehicle</option><option>New Vehicle</option><option>Medical Store</option><option>Diagnostic Lab</option><option>Modular Kitchen</option><option>Hotel / Restaurant / Lodging</option><option>Other Business</option></select>
 <div id="bizAdminFreeWrap" class="free-box" style="display:none;margin:10px 0">
   <label style="display:flex;align-items:center;gap:9px;margin:0"><input id="bizAdminFree" type="checkbox" style="width:auto" onchange="updateBizPrice()"> <b>Admin: Make this Listing FREE</b></label>
@@ -469,8 +469,8 @@ setTimeout(function(){
 <div id="bizCurrentPrice" class="price-now">Current 28-day plan: —</div>
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
-<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Maximum 20 photos + 3 videos.</b> Pehli photo Cover Poster hogi; baaki photos video ke upar auto-sliding gallery me aayengi.</div></div>
-<div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button class="primary" onclick="continueBiz()">Save & Continue →</button></div><div class="muted" style="margin-top:8px">Back/Forward karne par saved details category draft me rahengi; baad me edit/update bhi kar sakte hain.</div></div></div>
+<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
+<div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button class="primary" onclick="continueBiz()">Continue to Payment →</button></div><div class="muted" style="margin-top:8px">Back/Forward karne par saved details category draft me rahengi; baad me edit/update bhi kar sakte hain.</div></div></div>
 <script>
 let homeSlide=0,homeSlideTimer=null,homeTouchStartX=0;
 function showSlide(index){
@@ -2953,7 +2953,7 @@ async function openModule(n,role,serviceCat){
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
- const manageBtn=document.getElementById('windowManageBtn');if(manageBtn)manageBtn.style.display=n==='Home Services'?'none':'block';
+ const manageBtn=document.getElementById('windowManageBtn');if(manageBtn){manageBtn.style.display=n==='Home Services'?'none':'block';manageBtn.textContent=n==='Property'?'+ Post Property':(n==='Local Shop'?'+ Post Shop':'+ Post Ad')};
  document.body.classList.add("module-open");
  const gs=document.getElementById("globalSearch");if(gs){gs.placeholder="Search in "+n+"...";if(pendingWindowSearch)gs.value=pendingWindowSearch}
  const viewer=document.getElementById('viewer');if(viewer){viewer.classList.toggle('home-service-view',n==='Home Services');viewer.classList.add('show');}
