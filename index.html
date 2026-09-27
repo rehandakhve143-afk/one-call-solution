@@ -151,6 +151,11 @@ setTimeout(function(){
   <div id="bottomProfileBody"></div>
 </div></div>
 
+<div class="modal" id="myAdsModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>My Ads & Listings</h2><div class="muted">Edit • Pause • Resume • Renew • Remove</div></div><button class="x" onclick="closeBottomHub('myAdsModal')">×</button></div>
+  <div id="myAdsBody"><div class="muted">Loading…</div></div>
+</div></div>
+
 <div class="modal" id="workHistoryModal"><div class="sheet">
   <div class="bottom-hub-head"><div><h2>Work History</h2><div class="muted">Customer + Service Provider completed/cancelled work</div></div><button class="x" onclick="closeWorkHistory()">×</button></div>
   <div class="support-role-row"><button id="historyCustomerBtn" class="on" onclick="setWorkHistoryRole('CUSTOMER')">Customer</button><button id="historyProviderBtn" onclick="setWorkHistoryRole('PROVIDER')">Service Provider</button></div>
@@ -1428,7 +1433,7 @@ function setBottomActive(id){
  const x=document.getElementById(id);if(x)x.classList.add('active');
 }
 function closeBottomHub(id){const m=document.getElementById(id);if(m)m.classList.remove('show')}
-function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','workHistoryModal','serviceRatingModal','settingsModal','walletModal','locationModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
+function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','myAdsModal','workHistoryModal','serviceRatingModal','settingsModal','walletModal','locationModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
 function bottomHome(){
  closeAllBottomHubs();
  if(document.getElementById('viewer')?.classList.contains('show'))closeModule();
@@ -1561,6 +1566,9 @@ function openBottomProfile(){
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">'+
      '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span><span class="ar-copy"><b>Customer Profile</b><small>'+customerText+'</small></span><span class="ar-go">›</span>'+
    '</button>'+
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openMyAds()">'+
+     '<span class="ar-ico">📣</span><span class="ar-copy"><b>My Ads & Listings</b><small>Edit • Pause • Resume • Renew • Remove</small></span><span class="ar-go">›</span>'+
+   '</button>'+
    '<button class="ocs-account-row ocs-account-role" onclick="openProviderDashboardFromMenu()">'+
      '<span class="ar-ico">🧰</span><span class="ar-copy"><b>Service Provider Dashboard</b><small>Jobs • Wallet • Earnings • Support</small></span><span class="ar-go">›</span>'+
    '</button>'+
@@ -1577,6 +1585,78 @@ function openBottomProfile(){
  document.getElementById('bottomProfileModal').classList.add('show');
 }
 
+
+function myAdStatusLabel(x){
+ const s=String(x&&x.status||'').toLowerCase();
+ if(s==='live'&&x.expires_at&&new Date(x.expires_at).getTime()<=Date.now())return 'EXPIRED';
+ return s.toUpperCase()||'UNKNOWN';
+}
+function myAdOpenEdit(x){
+ const cat=String(x.category||'');
+ closeBottomHub('myAdsModal');
+ if(x.source_kind==='property_listing'||['Single Property','Builder Property','Builder Project Profile'].includes(cat)){
+   pendingPropertyPost=true;openModule('Property');return;
+ }
+ const meta=x.metadata||{},drafts=readBizDrafts(),target=cat||meta.category||'Other Business';
+ drafts[target]=Object.assign({},drafts[target]||{},{
+   name:meta.business||meta.name||'',
+   type:meta.type||'',
+   area:meta.area||meta.city||'',
+   about:meta.about||'',
+   phone:meta.phone||'',
+   billingEmail:x.contact_email||'',
+   listingId:String(x.id||''),
+   media:Array.isArray(meta.media)?meta.media:[],
+   status:x.status||'live',
+   backendRecordId:x.id
+ });
+ try{localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts))}catch(e){}
+ openBiz(target);
+}
+function myAdRenew(x){
+ const cat=String(x.category||'');
+ closeBottomHub('myAdsModal');
+ if(x.source_kind==='property_listing'||['Single Property','Builder Property','Builder Project Profile'].includes(cat)){pendingPropertyPost=true;openModule('Property');return}
+ openBiz(cat||'Other Business');
+}
+async function myAdSetStatus(id,action){
+ if(!ocsSupabase)return alert('Online service load nahi hui.');
+ const labels={pause:'Pause',resume:'Resume',remove:'Remove'};
+ if(action==='remove'&&!confirm('Is ad/listing ko Remove karna hai? Public screen se hat jayega.'))return;
+ try{
+   const {error}=await ocsSupabase.rpc('owner_set_platform_post_status_v1',{p_id:id,p_action:action});
+   if(error)throw error;
+   await openMyAds(true);
+   refreshHomeLiveWindowPosters().catch(()=>{});
+ }catch(e){alert((labels[action]||'Update')+' nahi hua: '+(e&&e.message?e.message:'Unknown error'))}
+}
+async function openMyAds(keepOpen){
+ if(!keepOpen)closeAllBottomHubs();
+ const body=document.getElementById('myAdsBody'),modal=document.getElementById('myAdsModal');if(!body||!modal)return;
+ modal.classList.add('show');body.innerHTML='<div class="muted">Loading your ads…</div>';
+ const session=await getOcsSession();
+ if(!session||!session.user){body.innerHTML='<div class="notice">My Ads dekhne ke liye pehle OCS login karein.</div>';return}
+ try{
+   const {data,error}=await ocsSupabase.rpc('my_platform_posts_v1',{p_limit:100});if(error)throw error;
+   const rows=Array.isArray(data)?data:[];
+   if(!rows.length){body.innerHTML='<div class="notice">Abhi koi paid/FREE LIVE ad record nahi hai.<br><button class="primary" style="margin-top:9px" onclick="closeBottomHub(\'myAdsModal\');openBiz()">Post Your Ad</button></div>';return}
+   body.innerHTML='<div style="display:grid;gap:10px">'+rows.map(x=>{
+     const meta=x.metadata||{},status=myAdStatusLabel(x),live=status==='LIVE',paused=status==='PAUSED',expired=status==='EXPIRED';
+     const media=Array.isArray(meta.media)?meta.media:[],img=(media.find(z=>z&&z.type==='image')||{}).url||meta.image||'';
+     return '<div style="border:1px solid #dce8e5;border-radius:16px;padding:10px;background:#fff;display:grid;grid-template-columns:74px 1fr;gap:10px">'+
+       '<div style="height:72px;border-radius:12px;background:#edf3f2 center/cover no-repeat;'+(img?'background-image:url('+JSON.stringify(img)+')':'')+'"></div>'+
+       '<div><div style="display:flex;justify-content:space-between;gap:8px"><b style="font-size:12px;color:#244a51">'+ocsSavedText(meta.business||meta.name||x.title||x.category)+'</b><span style="font-size:9px;font-weight:900;color:'+(live?'#087a70':expired?'#a65a00':'#667')+'">'+status+'</span></div>'+
+       '<small style="display:block;color:#789;margin-top:3px">'+ocsSavedText(x.category)+' • '+ocsSavedText(x.plan_label||'')+'</small>'+
+       '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px">'+
+       '<button type="button" onclick="myAdOpenEdit('+JSON.stringify(x).replace(/"/g,'&quot;')+')" style="border:0;border-radius:9px;padding:7px 9px;font-weight:800">Edit</button>'+
+       (live?'<button type="button" onclick="myAdSetStatus(\''+x.id+'\',\'pause\')" style="border:0;border-radius:9px;padding:7px 9px;font-weight:800">Pause</button>':'')+
+       (paused?'<button type="button" onclick="myAdSetStatus(\''+x.id+'\',\'resume\')" style="border:0;border-radius:9px;padding:7px 9px;font-weight:800">Resume</button>':'')+
+       (expired?'<button type="button" onclick="myAdRenew('+JSON.stringify(x).replace(/"/g,'&quot;')+')" style="border:0;border-radius:9px;padding:7px 9px;font-weight:800">Renew</button>':'')+
+       (status!=='REMOVED'?'<button type="button" onclick="myAdSetStatus(\''+x.id+'\',\'remove\')" style="border:0;border-radius:9px;padding:7px 9px;font-weight:800">Remove</button>':'')+
+       '</div></div></div>'
+   }).join('')+'</div>';
+ }catch(e){body.innerHTML='<div class="notice">Ads load nahi huwe: '+ocsSavedText(e&&e.message?e.message:'Unknown error')+'</div>'}
+}
 
 function getOcsWalletSnapshot(){
  let customer=0,sp=0,spPaused=false,commission=9,welcome=100;
@@ -3035,10 +3115,32 @@ function loadBizDraft(cat){
  const d=readBizDrafts()[cat]||{};
  obName.value=d.name||'';obType.value=d.type||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';updateBizLikeSummary(cat);
 }
+const OCS_BIZ_FORM_CONFIG={
+ 'Local Shop':{type:'Shop Type',typePh:'Electrical Shop / Hardware Shop',about:'Products / Offers / About',aboutPh:'Popular products, brands, offers…'},
+ 'Sliding / Aluminium':{type:'Work Type',typePh:'Sliding / Aluminium / Glass',about:'Services',aboutPh:'Windows, doors, glass, partitions…'},
+ 'Welding / Fabrication':{type:'Work Type',typePh:'Gate / Grill / Fabrication',about:'Services',aboutPh:'Gate, grill, railing, fabrication…'},
+ 'Beauty / Make-up':{type:'Profile Type',typePh:'Salon / Make-up Artist',about:'Services / Packages',aboutPh:'Bridal, party make-up, beauty services…'},
+ 'Used Vehicle':{type:'Vehicle Type',typePh:'2-Wheeler / 4-Wheeler',about:'Vehicle / Stock Details',aboutPh:'Models, condition, price range…'},
+ 'New Vehicle':{type:'Dealer / Vehicle Type',typePh:'Bike Dealer / Car Dealer',about:'Models / Offers',aboutPh:'Available models, offers, finance…'},
+ 'Medical Store':{type:'Store Type',typePh:'Medical / Pharmacy',about:'Store Details',aboutPh:'Medicine enquiry, delivery, timings…'},
+ 'Diagnostic Lab':{type:'Lab Type',typePh:'Diagnostic / Pathology Lab',about:'Tests / Packages',aboutPh:'Blood tests, packages, home collection…'},
+ 'Modular Kitchen':{type:'Profile Type',typePh:'Designer / Manufacturer',about:'Services',aboutPh:'Design, measurement, material, site visit…'},
+ 'Hotel / Restaurant / Lodging':{type:'Business Type',typePh:'Hotel / Restaurant / Lodging',about:'Stay / Food Details',aboutPh:'Rooms, food, facilities, timings…'},
+ 'Other Business':{type:'Business Type',typePh:'Business type',about:'About',aboutPh:'Short description…'}
+};
+function syncBizReadyForm(cat){
+ const cfg=OCS_BIZ_FORM_CONFIG[cat]||OCS_BIZ_FORM_CONFIG['Other Business'];
+ const fields=document.getElementById('otherFields');if(!fields)return;
+ const labels=fields.querySelectorAll('label'),inputs=fields.querySelectorAll('input,textarea');
+ if(labels[1])labels[1].textContent=cfg.type;
+ if(inputs[1])inputs[1].placeholder=cfg.typePh;
+ if(labels[3])labels[3].textContent=cfg.about;
+ const ta=fields.querySelector('textarea');if(ta)ta.placeholder=cfg.aboutPh;
+}
 function openBiz(category){
  const modal=document.getElementById('bizModal'),sel=document.getElementById('bizCat');
  if(category&&[...sel.options].some(o=>o.value===category||o.text===category))sel.value=category;
- const isProperty=sel.value==='Property';document.getElementById('otherFields').style.display=isProperty?'none':'block';const af=document.getElementById('bizAdminFree');if(af)af.checked=false;
+ const isProperty=sel.value==='Property';document.getElementById('otherFields').style.display=isProperty?'none':'block';syncBizReadyForm(sel.value);const af=document.getElementById('bizAdminFree');if(af)af.checked=false;
  if(isProperty){
    const price=document.getElementById('bizCurrentPrice'),gst=document.getElementById('bizGstNote');
    if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹499';
@@ -3055,7 +3157,7 @@ function manageCurrentWindow(){
 }
 document.getElementById('bizCat').onchange=function(){
  const isProperty=this.value==='Property';
- document.getElementById('otherFields').style.display=isProperty?'none':'block';
+ document.getElementById('otherFields').style.display=isProperty?'none':'block';syncBizReadyForm(this.value);
  const price=document.getElementById('bizCurrentPrice'),gst=document.getElementById('bizGstNote');
  if(isProperty){
    if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹499';
