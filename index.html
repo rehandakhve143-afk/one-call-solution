@@ -2750,6 +2750,55 @@ function livePostWhatsAppItem(meta){
  ].filter(Boolean);
  window.open('https://wa.me/'+n+'?text='+encodeURIComponent(lines.join('\n')),'_blank','noopener');
 }
+const OCS_LIVE_LIKES_KEY='ocsLiveListingLikesV1';
+function livePostKey(meta,cat){
+ meta=meta||{};
+ return String(meta.__sourceRef||meta.listingId||meta.localId||[cat||meta.category||'',meta.business||meta.name||'',meta.phone||'',meta.itemPrice||''].join('|'));
+}
+function livePostIsLiked(meta,cat){
+ try{const a=JSON.parse(localStorage.getItem(OCS_LIVE_LIKES_KEY)||'{}');return !!a[livePostKey(meta,cat)]}catch(e){return false}
+}
+function livePostToggleLike(meta,cat){
+ try{
+   const k=livePostKey(meta,cat),a=JSON.parse(localStorage.getItem(OCS_LIVE_LIKES_KEY)||'{}');
+   const liked=!a[k];if(liked)a[k]=true;else delete a[k];
+   localStorage.setItem(OCS_LIVE_LIKES_KEY,JSON.stringify(a));
+   let saved=[];try{saved=JSON.parse(localStorage.getItem('ocsSavedItems')||'[]');if(!Array.isArray(saved))saved=[]}catch(e){saved=[]}
+   saved=saved.filter(x=>x&&String(x.key||'')!==('live:'+k));
+   if(liked)saved.unshift({key:'live:'+k,category:cat||meta.category||'',name:String(meta.business||meta.name||'OCS Listing'),savedAt:new Date().toISOString(),source:'live-listing'});
+   localStorage.setItem('ocsSavedItems',JSON.stringify(saved.slice(0,200)));
+   return liked;
+ }catch(e){return false}
+}
+async function livePostShare(meta,cat,imageUrl){
+ meta=meta||{};
+ const name=String(meta.business||meta.name||meta.title||cat||'OCS Listing').trim();
+ const price=(meta.itemPrice!==null&&meta.itemPrice!==undefined&&Number(meta.itemPrice)>0)?('₹'+Number(meta.itemPrice).toLocaleString('en-IN')):'Price on enquiry';
+ const area=String(meta.area||meta.city||'').trim();
+ const text=[name,'Price: '+price,area?('Area: '+area):'',imageUrl?('Photo: '+imageUrl):'','One Call Solution'].filter(Boolean).join('\n');
+ try{
+   if(navigator.share){await navigator.share({title:name,text});return}
+ }catch(e){if(e&&e.name==='AbortError')return}
+ window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank','noopener');
+}
+function livePostEnquiry(meta,cat,imageUrl){
+ meta=meta||{};
+ const n=String(meta.phone||meta.whatsapp||meta.contactWhatsapp||'').replace(/\D/g,'');
+ if(!n)return alert('WhatsApp number available nahi hai.');
+ const name=String(meta.business||meta.name||meta.title||cat||'OCS Listing').trim();
+ const price=(meta.itemPrice!==null&&meta.itemPrice!==undefined&&Number(meta.itemPrice)>0)?('₹'+Number(meta.itemPrice).toLocaleString('en-IN')):'Price on enquiry';
+ const vehicle=(cat==='Used Vehicle'||cat==='New Vehicle');
+ const lines=[
+   'Hello, mujhe OCS par ye '+(vehicle?'vehicle':'listing')+' pasand aayi:',
+   '',
+   name,
+   'Price: '+price,
+   imageUrl?('Photo: '+imageUrl):'',
+   '',
+   vehicle?'Is vehicle ki availability / final price / details bataiye.':'Iske bare me details / availability bataiye.'
+ ].filter(Boolean);
+ window.open('https://wa.me/'+n+'?text='+encodeURIComponent(lines.join('\n')),'_blank','noopener');
+}
 let ocsWindowPosterTick=0;
 async function refreshHomeLiveWindowPosters(){
  const rows=await fetchPublicLivePosts(null,160);if(!rows.length)return;
@@ -2778,18 +2827,18 @@ async function injectLiveCategoryAds(cat){
  '#ocsLiveCategoryFeed .lfBigSlider{display:flex;width:100%;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:#edf3f2}#ocsLiveCategoryFeed .lfBigSlider::-webkit-scrollbar{display:none}#ocsLiveCategoryFeed .lfBigSlider img{flex:0 0 100%;width:100%;aspect-ratio:16/9;object-fit:cover;scroll-snap-align:start;background:#edf3f2}#ocsLiveCategoryFeed .lfBigSlider.lower{margin-top:8px;border-top:1px solid #edf2f1}'+
  '#ocsLiveCategoryFeed .lfVideoRail{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 10px 0;scrollbar-width:none}#ocsLiveCategoryFeed .lfVideoRail::-webkit-scrollbar{display:none}#ocsLiveCategoryFeed .lfVideoRail video{flex:0 0 100%;width:100%;aspect-ratio:16/9;border-radius:12px;background:#111;scroll-snap-align:start}'+
  '#ocsLiveCategoryFeed .lfBody{padding:11px}#ocsLiveCategoryFeed h3{margin:0;font-size:16px;color:#173f46}#ocsLiveCategoryFeed .lfPrice{font-size:19px;font-weight:950;color:#0a6f66;margin:5px 0 4px}#ocsLiveCategoryFeed p{margin:4px 0 8px;font-size:10px;color:#677d82;line-height:1.4}#ocsLiveCategoryFeed .lfActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}#ocsLiveCategoryFeed .lfActions button{border:0;border-radius:10px;min-height:38px;font-size:10px;font-weight:900}#ocsLiveCategoryFeed .lfCall{background:#eef5f4;color:#134b48}#ocsLiveCategoryFeed .lfWa{background:#dcf8e7;color:#13743b}#ocsLiveCategoryFeed .lfItemWa{width:100%;margin-top:7px;border:0;border-radius:10px;min-height:40px;background:#17b663;color:#fff;font-size:10px;font-weight:950}'+
- '#ocsLivePhotoLightbox{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:18px;touch-action:pan-y}#ocsLivePhotoLightbox.show{display:flex}#ocsLivePhotoLightbox img{max-width:100%;max-height:86vh;border-radius:16px;object-fit:contain;user-select:none;-webkit-user-drag:none}#ocsLivePhotoLightbox .lfLbClose{position:absolute;right:18px;top:18px;width:48px;height:48px;border:0;border-radius:50%;background:#fff;font-size:28px;font-weight:900;z-index:3}#ocsLivePhotoLightbox .lfLbNav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:58px;border:0;border-radius:14px;background:rgba(255,255,255,.88);font-size:30px;font-weight:900;z-index:3}#ocsLivePhotoLightbox .lfLbPrev{left:10px}#ocsLivePhotoLightbox .lfLbNext{right:10px}#ocsLivePhotoLightbox .lfLbCount{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.62);color:#fff;border-radius:999px;padding:7px 12px;font:800 12px system-ui,Arial;z-index:3}';
+ '#ocsLivePhotoLightbox{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:18px 18px 126px;touch-action:pan-y}#ocsLivePhotoLightbox.show{display:flex}#ocsLivePhotoLightbox img{max-width:100%;max-height:72vh;border-radius:16px;object-fit:contain;user-select:none;-webkit-user-drag:none}#ocsLivePhotoLightbox .lfLbClose{position:absolute;right:18px;top:18px;width:48px;height:48px;border:0;border-radius:50%;background:#fff;font-size:28px;font-weight:900;z-index:3}#ocsLivePhotoLightbox .lfLbNav{position:absolute;top:46%;transform:translateY(-50%);width:46px;height:58px;border:0;border-radius:14px;background:rgba(255,255,255,.88);font-size:30px;font-weight:900;z-index:3}#ocsLivePhotoLightbox .lfLbPrev{left:10px}#ocsLivePhotoLightbox .lfLbNext{right:10px}#ocsLivePhotoLightbox .lfLbCount{position:absolute;left:18px;top:22px;background:rgba(0,0,0,.58);color:#fff;border-radius:999px;padding:7px 12px;font:800 12px system-ui,Arial;z-index:3}#ocsLivePhotoLightbox .lfLbInfo{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(255,255,255,.97);border-radius:18px;padding:10px;z-index:4;box-shadow:0 10px 28px rgba(0,0,0,.24);font-family:system-ui,Arial;color:#173f46}#ocsLivePhotoLightbox .lfLbInfoTop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}#ocsLivePhotoLightbox .lfLbTitle{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#ocsLivePhotoLightbox .lfLbPrice{font-size:16px;font-weight:950;color:#087a70;white-space:nowrap}#ocsLivePhotoLightbox .lfLbActions{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#ocsLivePhotoLightbox .lfLbActions button{border:0;border-radius:11px;min-height:42px;font-size:9px;font-weight:900;background:#eef4f3;color:#173f46}#ocsLivePhotoLightbox .lfLbLike.liked{background:#ffe4eb;color:#c62855}#ocsLivePhotoLightbox .lfLbShare{background:#eef0ff!important;color:#3d4f90!important}#ocsLivePhotoLightbox .lfLbCall{background:#eef5f4!important;color:#134b48!important}#ocsLivePhotoLightbox .lfLbEnquiry{background:#dcf8e7!important;color:#13743b!important}';
  (doc.head||doc.documentElement).appendChild(style)}
  const feed=doc.createElement('section');feed.id='ocsLiveCategoryFeed';
  feed.innerHTML='<div class="lfHead"><b>LIVE '+ocsSavedText(cat)+' Ads</b><small>'+rows.length+' active</small></div><div class="lfRail">'+rows.map((x,i)=>{const m=livePostMeta(x),media=livePostMedia(m),photos=media.filter(z=>z.type==='image').slice(0,20),videos=media.filter(z=>z.type==='video').slice(0,3),name=livePostDisplayName(x);
  const fallback=m.image?[{url:m.image,type:'image'}]:[];
  const allPhotos=photos.length?photos:fallback,upper=allPhotos.slice(0,10),lower=allPhotos.slice(10,20);
- const slider=(arr,extra)=>arr.length?'<div class="lfBigSlider '+(extra||'')+'">'+arr.map((p,pi)=>'<img src="'+String(p.url||'')+'" loading="lazy" alt="'+ocsSavedText(name)+' photo '+(pi+1)+'">').join('')+'</div>':'';
+ const slider=(arr,extra)=>arr.length?'<div class="lfBigSlider '+(extra||'')+'">'+arr.map((p,pi)=>'<img data-live-index="'+i+'" src="'+String(p.url||'')+'" loading="lazy" alt="'+ocsSavedText(name)+' photo '+(pi+1)+'">').join('')+'</div>':'';
  const videoHtml=videos.length?'<div class="lfVideoRail">'+videos.map(v=>'<video controls preload="metadata" src="'+String(v.url||'')+'"></video>').join('')+'</div>':'';
  const priceHtml=(m.itemPrice!==null&&m.itemPrice!==undefined&&Number(m.itemPrice)>0)?'<div class="lfPrice">₹'+Number(m.itemPrice).toLocaleString('en-IN')+'</div>':'';
  const itemWa=(cat==='Local Shop')?'<button class="lfItemWa" onclick="parent.livePostWhatsAppItem(parent.__ocsLiveFeed['+i+'])">🟢 WhatsApp this Product</button>':'';
  return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px">LIVE</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p><div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>'+itemWa+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
- window.__ocsLiveFeed=rows.map(x=>livePostMeta(x));
+ window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat}));
  const target=doc.querySelector('main,.wrap,.container,.app')||doc.body;
  if(target===doc.body)doc.body.insertBefore(feed,doc.body.firstChild);else target.insertBefore(feed,target.firstChild);
 
@@ -2797,28 +2846,46 @@ async function injectLiveCategoryAds(cat){
  let liveLb=doc.getElementById('ocsLivePhotoLightbox');
  if(!liveLb){
    liveLb=doc.createElement('div');liveLb.id='ocsLivePhotoLightbox';
-   liveLb.innerHTML='<button class="lfLbClose" type="button" aria-label="Close">×</button><button class="lfLbNav lfLbPrev" type="button" aria-label="Previous photo">‹</button><img alt="OCS listing photo"><button class="lfLbNav lfLbNext" type="button" aria-label="Next photo">›</button><div class="lfLbCount">1 / 1</div>';
+   liveLb.innerHTML='<button class="lfLbClose" type="button" aria-label="Close">×</button><button class="lfLbNav lfLbPrev" type="button" aria-label="Previous photo">‹</button><img alt="OCS listing photo"><button class="lfLbNav lfLbNext" type="button" aria-label="Next photo">›</button><div class="lfLbCount">1 / 1</div><div class="lfLbInfo"><div class="lfLbInfoTop"><div class="lfLbTitle">OCS Listing</div><div class="lfLbPrice">Price on enquiry</div></div><div class="lfLbActions"><button class="lfLbLike" type="button">♡ Like</button><button class="lfLbShare" type="button">↗ Share</button><button class="lfLbCall" type="button">📞 Contact</button><button class="lfLbEnquiry" type="button">WhatsApp Enquiry</button></div></div>';
    doc.body.appendChild(liveLb);
  }
- const liveImages=[...feed.querySelectorAll('.lfBigSlider img')];
- let liveLbIndex=0,liveLbTouchX=0;
- const renderLiveLb=()=>{
-   if(!liveImages.length)return;
-   liveLbIndex=(liveLbIndex+liveImages.length)%liveImages.length;
-   const big=liveLb.querySelector('img'),count=liveLb.querySelector('.lfLbCount');
-   if(big)big.src=liveImages[liveLbIndex].src;
-   if(count)count.textContent=(liveLbIndex+1)+' / '+liveImages.length;
+ let liveGalleryImages=[],liveLbIndex=0,liveLbTouchX=0,liveLbMeta=null,liveLbCat=cat;
+ const syncLiveLbInfo=()=>{
+   if(!liveLbMeta)return;
+   const title=liveLb.querySelector('.lfLbTitle'),price=liveLb.querySelector('.lfLbPrice'),like=liveLb.querySelector('.lfLbLike');
+   if(title)title.textContent=String(liveLbMeta.business||liveLbMeta.name||liveLbMeta.title||liveLbCat||'OCS Listing');
+   if(price)price.textContent=(liveLbMeta.itemPrice!==null&&liveLbMeta.itemPrice!==undefined&&Number(liveLbMeta.itemPrice)>0)?('₹'+Number(liveLbMeta.itemPrice).toLocaleString('en-IN')):'Price on enquiry';
+   if(like){const liked=livePostIsLiked(liveLbMeta,liveLbCat);like.classList.toggle('liked',liked);like.textContent=liked?'♥ Liked':'♡ Like'}
  };
- const openLiveLb=i=>{liveLbIndex=i;renderLiveLb();liveLb.classList.add('show')};
+ const renderLiveLb=()=>{
+   if(!liveGalleryImages.length)return;
+   liveLbIndex=(liveLbIndex+liveGalleryImages.length)%liveGalleryImages.length;
+   const big=liveLb.querySelector('img'),count=liveLb.querySelector('.lfLbCount');
+   if(big)big.src=liveGalleryImages[liveLbIndex].src;
+   if(count)count.textContent=(liveLbIndex+1)+' / '+liveGalleryImages.length;
+   syncLiveLbInfo();
+ };
+ const openLiveLb=(img)=>{
+   const rowIndex=Number(img.dataset.liveIndex||0),card=img.closest('.lfCard');
+   liveGalleryImages=card?[...card.querySelectorAll('.lfBigSlider img')]:[img];
+   liveLbIndex=Math.max(0,liveGalleryImages.indexOf(img));
+   liveLbMeta=window.__ocsLiveFeed[rowIndex]||{};
+   liveLbCat=liveLbMeta.__category||cat;
+   renderLiveLb();liveLb.classList.add('show');
+ };
  const stepLiveLb=d=>{liveLbIndex+=d;renderLiveLb()};
  const closeLiveLb=()=>liveLb.classList.remove('show');
  liveLb.querySelector('.lfLbClose').onclick=closeLiveLb;
  liveLb.querySelector('.lfLbPrev').onclick=e=>{e.stopPropagation();stepLiveLb(-1)};
  liveLb.querySelector('.lfLbNext').onclick=e=>{e.stopPropagation();stepLiveLb(1)};
+ liveLb.querySelector('.lfLbLike').onclick=e=>{e.stopPropagation();if(liveLbMeta){livePostToggleLike(liveLbMeta,liveLbCat);syncLiveLbInfo()}};
+ liveLb.querySelector('.lfLbShare').onclick=e=>{e.stopPropagation();const img=liveGalleryImages[liveLbIndex];if(liveLbMeta)livePostShare(liveLbMeta,liveLbCat,img&&img.src)};
+ liveLb.querySelector('.lfLbCall').onclick=e=>{e.stopPropagation();if(liveLbMeta)livePostCall(liveLbMeta)};
+ liveLb.querySelector('.lfLbEnquiry').onclick=e=>{e.stopPropagation();const img=liveGalleryImages[liveLbIndex];if(liveLbMeta)livePostEnquiry(liveLbMeta,liveLbCat,img&&img.src)};
  liveLb.onclick=e=>{if(e.target===liveLb)closeLiveLb()};
  liveLb.addEventListener('touchstart',e=>{liveLbTouchX=e.touches[0].clientX},{passive:true});
  liveLb.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-liveLbTouchX;if(Math.abs(dx)>35)stepLiveLb(dx<0?1:-1)},{passive:true});
- liveImages.forEach((img,i)=>img.addEventListener('click',()=>openLiveLb(i)));
+ [...feed.querySelectorAll('.lfBigSlider img')].forEach(img=>img.addEventListener('click',()=>openLiveLb(img)));
 
  feed.querySelectorAll('.lfBigSlider').forEach(g=>{
    const imgs=[...g.querySelectorAll('img')];if(imgs.length<=1)return;
@@ -2859,8 +2926,8 @@ const OCS_XYZ_DEMO={
     "Sliding / Aluminium":{name:"XYZ Sliding & Aluminium",subtitle:"Windows • Doors • Glass",image:"https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=82"],detail:"Sliding windows • Aluminium sections • Glass work"},
     "Welding / Fabrication":{name:"XYZ Welding & Fabrication",subtitle:"Gate • Grill • Metal Work",image:"https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?auto=format&fit=crop&w=1200&q=82"],detail:"Gate • Grill • Railing • Fabrication"},
     "Beauty / Make-up":{name:"XYZ Beauty & Make-up",subtitle:"Beauty • Bridal • Make-up",image:"https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1487412912498-0447578fcca8?auto=format&fit=crop&w=1200&q=82"],detail:"Bridal • Party Make-up • Beauty Services"},
-    "Used Vehicle":{name:"XYZ Used Vehicle",subtitle:"Second-hand Bikes & Cars",image:"https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=1200&q=82"],detail:"Demo used bike/car listing • Call for details"},
-    "New Vehicle":{name:"XYZ New Vehicle",subtitle:"New Bikes & Cars",image:"https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=1200&q=82"],detail:"Demo showroom listing • New vehicle enquiry"},
+    "Used Vehicle":{name:"XYZ Used Vehicle",subtitle:"Second-hand Bikes & Cars",price:"₹4.50 Lakh • Demo Asking Price",image:"https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=1200&q=82"],detail:"Demo used bike/car listing • Call for details"},
+    "New Vehicle":{name:"XYZ New Vehicle",subtitle:"New Bikes & Cars",price:"₹9.99 Lakh onwards • Demo Price",image:"https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=1200&q=82"],detail:"Demo showroom listing • New vehicle enquiry"},
     "Medical Store":{name:"XYZ Medical Store",subtitle:"Medicine Enquiry • Demo Store",image:"https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=82"],detail:"Medicine enquiry • Call / WhatsApp"},
     "Diagnostic Lab":{name:"XYZ Diagnostic Lab",subtitle:"Tests • Packages • Demo Lab",image:"https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=82"],detail:"Blood Test • Health Packages • Home Collection Demo"},
     "Modular Kitchen":{name:"XYZ Modular Kitchen",subtitle:"Design • Measurement • Quote",image:"https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=82"],detail:"Kitchen design • Site visit • Demo quote"},
@@ -2875,6 +2942,12 @@ function ocsXyzDemoCall(){location.href="tel:"+OCS_XYZ_DEMO.phone}
 function ocsXyzDemoWhatsApp(){
  const msg="Hello XYZ, mujhe OCS demo listing ke bare me enquiry chahiye.";
  window.open("https://wa.me/"+OCS_XYZ_DEMO.phone+"?text="+encodeURIComponent(msg),"_blank","noopener");
+}
+async function ocsXyzDemoShare(cat,imageUrl){
+ const d=xyzDemoFor(cat);if(!d)return;
+ const text=[d.name,d.price||'Price on enquiry',d.subtitle,imageUrl?('Photo: '+imageUrl):'','One Call Solution'].filter(Boolean).join('\n');
+ try{if(navigator.share){await navigator.share({title:d.name,text});return}}catch(e){if(e&&e.name==='AbortError')return}
+ window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank','noopener');
 }
 function ocsXyzDemoEmail(){location.href="mailto:"+OCS_XYZ_DEMO.email+"?subject="+encodeURIComponent("OCS XYZ Demo Enquiry")}
 function ocsXyzDemoChat(cat){
@@ -2913,7 +2986,7 @@ function injectXyzDemoListing(cat){
  '#ocsXyzDemoCard .xyzActions button:nth-child(1){background:#eef5f4;color:#134b48}#ocsXyzDemoCard .xyzActions button:nth-child(2){background:#087a70;color:#fff}#ocsXyzDemoCard .xyzActions button:nth-child(3){background:#dcf8e7;color:#13743b}'+
  '#ocsXyzDemoCard .xyzLinks{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}#ocsXyzDemoCard .xyzLinks a{background:#f2f5ff;color:#3d4f90}'+
  '#ocsXyzDemoCard .xyzBigSlider{display:flex;width:100%;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:#eef4f3}#ocsXyzDemoCard .xyzBigSlider::-webkit-scrollbar{display:none}#ocsXyzDemoCard .xyzBigSlider img{flex:0 0 100%;width:100%;aspect-ratio:16/9;object-fit:cover;scroll-snap-align:start;cursor:pointer;background:#eef4f3}#ocsXyzDemoCard .xyzBigSlider.lower{margin-top:10px;border-radius:14px;overflow-x:auto}'+
- '#ocsXyzPhotoLightbox{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:18px;touch-action:pan-y}#ocsXyzPhotoLightbox.show{display:flex}#ocsXyzPhotoLightbox img{max-width:100%;max-height:86vh;border-radius:16px;object-fit:contain;user-select:none;-webkit-user-drag:none}#ocsXyzPhotoLightbox .xyzLbClose{position:absolute;right:18px;top:18px;width:48px;height:48px;border:0;border-radius:50%;background:#fff;font-size:28px;font-weight:900;z-index:3}#ocsXyzPhotoLightbox .xyzLbNav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:58px;border:0;border-radius:14px;background:rgba(255,255,255,.88);font-size:30px;font-weight:900;z-index:3}#ocsXyzPhotoLightbox .xyzLbPrev{left:10px}#ocsXyzPhotoLightbox .xyzLbNext{right:10px}#ocsXyzPhotoLightbox .xyzLbCount{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.62);color:#fff;border-radius:999px;padding:7px 12px;font:800 12px system-ui,Arial;z-index:3}'+
+ '#ocsXyzPhotoLightbox{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:18px 18px 126px;touch-action:pan-y}#ocsXyzPhotoLightbox.show{display:flex}#ocsXyzPhotoLightbox img{max-width:100%;max-height:72vh;border-radius:16px;object-fit:contain;user-select:none;-webkit-user-drag:none}#ocsXyzPhotoLightbox .xyzLbClose{position:absolute;right:18px;top:18px;width:48px;height:48px;border:0;border-radius:50%;background:#fff;font-size:28px;font-weight:900;z-index:3}#ocsXyzPhotoLightbox .xyzLbNav{position:absolute;top:46%;transform:translateY(-50%);width:46px;height:58px;border:0;border-radius:14px;background:rgba(255,255,255,.88);font-size:30px;font-weight:900;z-index:3}#ocsXyzPhotoLightbox .xyzLbPrev{left:10px}#ocsXyzPhotoLightbox .xyzLbNext{right:10px}#ocsXyzPhotoLightbox .xyzLbCount{position:absolute;left:18px;top:22px;background:rgba(0,0,0,.58);color:#fff;border-radius:999px;padding:7px 12px;font:800 12px system-ui,Arial;z-index:3}#ocsXyzPhotoLightbox .xyzLbInfo{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(255,255,255,.97);border-radius:18px;padding:10px;z-index:4;box-shadow:0 10px 28px rgba(0,0,0,.24);font-family:system-ui,Arial;color:#173f46}#ocsXyzPhotoLightbox .xyzLbInfoTop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}#ocsXyzPhotoLightbox .xyzLbTitle{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#ocsXyzPhotoLightbox .xyzLbPrice{font-size:15px;font-weight:950;color:#087a70;text-align:right}#ocsXyzPhotoLightbox .xyzLbActions{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#ocsXyzPhotoLightbox .xyzLbActions button{border:0;border-radius:11px;min-height:42px;font-size:9px;font-weight:900;background:#eef4f3;color:#173f46}#ocsXyzPhotoLightbox .xyzLbLike.liked{background:#ffe4eb;color:#c62855}#ocsXyzPhotoLightbox .xyzLbShare{background:#eef0ff;color:#3d4f90}#ocsXyzPhotoLightbox .xyzLbCall{background:#eef5f4;color:#134b48}#ocsXyzPhotoLightbox .xyzLbEnquiry{background:#dcf8e7;color:#13743b}'+
  '#ocsXyzDemoCard video{width:100%;max-height:220px;border-radius:14px;margin-top:10px;background:#111}';
  (doc.head||doc.documentElement).appendChild(style);
  const demoBase=(d.photos||[d.image]).filter(Boolean);
@@ -2936,17 +3009,24 @@ function injectXyzDemoListing(cat){
  let lb=doc.getElementById("ocsXyzPhotoLightbox");
  if(!lb){
    lb=doc.createElement("div");lb.id="ocsXyzPhotoLightbox";
-   lb.innerHTML='<button class="xyzLbClose" type="button" aria-label="Close">×</button><button class="xyzLbNav xyzLbPrev" type="button" aria-label="Previous photo">‹</button><img alt="XYZ photo preview"><button class="xyzLbNav xyzLbNext" type="button" aria-label="Next photo">›</button><div class="xyzLbCount">1 / 1</div>';
+   lb.innerHTML='<button class="xyzLbClose" type="button" aria-label="Close">×</button><button class="xyzLbNav xyzLbPrev" type="button" aria-label="Previous photo">‹</button><img alt="XYZ photo preview"><button class="xyzLbNav xyzLbNext" type="button" aria-label="Next photo">›</button><div class="xyzLbCount">1 / 1</div><div class="xyzLbInfo"><div class="xyzLbInfoTop"><div class="xyzLbTitle">XYZ Demo</div><div class="xyzLbPrice">Price on enquiry</div></div><div class="xyzLbActions"><button class="xyzLbLike" type="button">♡ Like</button><button class="xyzLbShare" type="button">↗ Share</button><button class="xyzLbCall" type="button">📞 Contact</button><button class="xyzLbEnquiry" type="button">WhatsApp Enquiry</button></div></div>';
    doc.body.appendChild(lb);
  }
  const allGalleryImgs=[...card.querySelectorAll(".xyzBigSlider img")];
  let lbIndex=0,lbTouchX=0;
+ const syncXyzLbInfo=()=>{
+   const title=lb.querySelector(".xyzLbTitle"),price=lb.querySelector(".xyzLbPrice"),like=lb.querySelector(".xyzLbLike");
+   if(title)title.textContent=d.name;
+   if(price)price.textContent=d.price||"Price on enquiry";
+   if(like){const liked=isBusinessLiked(cat);like.classList.toggle("liked",liked);like.textContent=liked?"♥ Liked":"♡ Like"}
+ };
  const renderLb=()=>{
    if(!allGalleryImgs.length)return;
    lbIndex=(lbIndex+allGalleryImgs.length)%allGalleryImgs.length;
    const big=lb.querySelector("img"),count=lb.querySelector(".xyzLbCount");
    if(big)big.src=allGalleryImgs[lbIndex].src;
    if(count)count.textContent=(lbIndex+1)+" / "+allGalleryImgs.length;
+   syncXyzLbInfo();
  };
  const openLb=(index)=>{lbIndex=index;renderLb();lb.classList.add("show")};
  const stepLb=(delta)=>{lbIndex+=delta;renderLb()};
@@ -2954,6 +3034,10 @@ function injectXyzDemoListing(cat){
  lb.querySelector(".xyzLbClose").onclick=closeLb;
  lb.querySelector(".xyzLbPrev").onclick=(ev)=>{ev.stopPropagation();stepLb(-1)};
  lb.querySelector(".xyzLbNext").onclick=(ev)=>{ev.stopPropagation();stepLb(1)};
+ lb.querySelector(".xyzLbLike").onclick=(ev)=>{ev.stopPropagation();toggleBusinessLike(cat);syncXyzLbInfo()};
+ lb.querySelector(".xyzLbShare").onclick=(ev)=>{ev.stopPropagation();ocsXyzDemoShare(cat,allGalleryImgs[lbIndex]&&allGalleryImgs[lbIndex].src)};
+ lb.querySelector(".xyzLbCall").onclick=(ev)=>{ev.stopPropagation();ocsXyzDemoCall()};
+ lb.querySelector(".xyzLbEnquiry").onclick=(ev)=>{ev.stopPropagation();ocsXyzDemoWhatsApp()};
  lb.onclick=(ev)=>{if(ev.target===lb)closeLb()};
  lb.addEventListener("touchstart",ev=>{lbTouchX=ev.touches[0].clientX},{passive:true});
  lb.addEventListener("touchend",ev=>{
@@ -3803,7 +3887,7 @@ window.addEventListener('unhandledrejection',e=>ocsLogTechnicalError('PROMISE',e
 window.ocsLogTechnicalError=ocsLogTechnicalError;
 
 // New-build alert. app-version.json is updated with releases.
-const OCS_APP_BUILD='20260927-propertytypes1';
+const OCS_APP_BUILD='20260927-galleryactions1';
 async function ocsCheckForNewBuild(){
  try{
    const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
