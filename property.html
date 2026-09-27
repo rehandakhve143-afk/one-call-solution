@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>One Call Solution • Property</title>
+<title>One Call Solution • Property</title><meta name="theme-color" content="#0f766e"><link rel="manifest" href="manifest.json?v=20260927-pwa1">
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f8fb;color:#0b2942}
 button,input,select,textarea{font:inherit}.app{max-width:720px;margin:auto;min-height:100vh;background:#f7fbfd;padding-bottom:90px}
@@ -710,6 +710,32 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    editMode=false;
  };
  restoreState();
+})();
+</script>
+<script>
+(function ocsPropertyAutosave(){
+ let timer=null;
+ const ov=document.getElementById('overlay');
+ if(!ov)return;
+ const queue=()=>{
+   if(ov.style.display!=='flex')return;
+   clearTimeout(timer);
+   timer=setTimeout(()=>{try{savePropertyDraft(true)}catch(e){}},500);
+ };
+ ov.addEventListener('input',queue);
+ ov.addEventListener('change',queue);
+})();
+(function ocsPropertyDirectReliability(){
+ if(window.parent!==window)return;
+ if('serviceWorker' in navigator){
+   window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260927-pwa1',{scope:'./'}).catch(()=>{}));
+ }
+ const bar=document.createElement('div');
+ bar.style.cssText='position:fixed;left:10px;right:10px;top:10px;z-index:99999;display:none;align-items:center;gap:8px;padding:10px 12px;border-radius:13px;background:#263238;color:#fff;font:700 12px Arial;box-shadow:0 8px 22px rgba(0,0,0,.22)';
+ bar.innerHTML='<span style="flex:1">Internet nahi hai • Draft safe hai</span><button type="button" style="border:0;border-radius:8px;padding:7px 10px;font-weight:800" onclick="location.reload()">Retry</button>';
+ document.body.appendChild(bar);
+ const sync=()=>{bar.style.display=navigator.onLine?'none':'flex'};
+ addEventListener('online',sync);addEventListener('offline',sync);sync();
 })();
 </script>
 </body></html>
