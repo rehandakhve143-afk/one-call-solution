@@ -769,7 +769,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
  addEventListener('unhandledrejection',e=>log('PROPERTY_PROMISE',e.reason&&e.reason.message?e.reason.message:String(e.reason||'Promise error'),'promise',0));
 
  if(window.parent===window){
-   const build='20260927-galleryactions1';
+   const build='20260927-shopgallery1';
    const checkBuild=async()=>{
      try{
        const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
