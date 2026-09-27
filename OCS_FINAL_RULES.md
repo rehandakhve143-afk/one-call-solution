@@ -110,7 +110,6 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - The invoice/email must clearly show the purchased **plan duration** (for example 28 Days or 6 Months), validity start date and expiry/end date.
 - **Admin FREE override = ₹0 payment and ₹0 GST.**
 - Admin can mark a specific **Slider Ad, Property post, Shop/Business window listing or other paid window post** as FREE directly while creating it; no Razorpay step is required and it goes LIVE for the selected validity. Normal users cannot use this control.
-- Admin also keeps the separate named FREE override list for selected business/person cases.
 - This rule does **not** add 18% to normal Customer Home Service booking prices.
 - This rule does **not** change the launch Home Service Provider commission rule: OCS commission remains **9% total** under the current launch pricing decision.
 - Service Provider activation/verification remains separate from paid business advertising/listing plans.
