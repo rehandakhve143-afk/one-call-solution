@@ -2668,7 +2668,7 @@ async function injectLiveCategoryAds(cat){
  if(!style){style=doc.createElement('style');style.id='ocsLiveCategoryStyle';style.textContent=
  '#ocsLiveCategoryFeed{margin:12px auto 18px;max-width:760px;font-family:system-ui,Arial,sans-serif}#ocsLiveCategoryFeed .lfHead{display:flex;justify-content:space-between;align-items:end;margin:0 2px 9px}#ocsLiveCategoryFeed .lfHead b{font-size:15px;color:#173f46}#ocsLiveCategoryFeed .lfHead small{font-size:9px;color:#789}'+
  '#ocsLiveCategoryFeed .lfRail{display:flex;gap:10px;overflow:auto;scroll-snap-type:x mandatory;padding:2px 2px 6px}#ocsLiveCategoryFeed .lfCard{min-width:min(86vw,330px);scroll-snap-align:start;border:1px solid #dce8e5;border-radius:18px;background:#fff;overflow:hidden;box-shadow:0 8px 24px rgba(20,45,55,.10)}'+
- '#ocsLiveCategoryFeed .lfMedia{height:170px;background:#edf3f2 center/cover no-repeat;position:relative}#ocsLiveCategoryFeed .lfBadge{position:absolute;left:9px;top:9px;background:#e9fff6;color:#087a70;border-radius:999px;padding:5px 8px;font-size:8px;font-weight:950}'+
+ '#ocsLiveCategoryFeed .lfMedia{width:100%;aspect-ratio:16/9;min-height:170px;background-color:#edf3f2;background-repeat:no-repeat;background-position:center center;background-size:cover;position:relative;overflow:hidden}#ocsLiveCategoryFeed .lfBadge{position:absolute;left:9px;top:9px;background:#e9fff6;color:#087a70;border-radius:999px;padding:5px 8px;font-size:8px;font-weight:950}'+
  '#ocsLiveCategoryFeed .lfBody{padding:11px}#ocsLiveCategoryFeed h3{margin:0;font-size:16px;color:#173f46}#ocsLiveCategoryFeed p{margin:4px 0 8px;font-size:10px;color:#677d82;line-height:1.4}#ocsLiveCategoryFeed .lfActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}#ocsLiveCategoryFeed .lfActions button{border:0;border-radius:10px;min-height:38px;font-size:10px;font-weight:900}#ocsLiveCategoryFeed .lfCall{background:#eef5f4;color:#134b48}#ocsLiveCategoryFeed .lfWa{background:#dcf8e7;color:#13743b}';
  (doc.head||doc.documentElement).appendChild(style)}
  const feed=doc.createElement('section');feed.id='ocsLiveCategoryFeed';
@@ -2683,7 +2683,7 @@ const OCS_MODULE_NAMES=["Home Services","Property","Local Shop","Sliding / Alumi
 
 const OCS_XYZ_DEMO_ENABLED=true;
 const OCS_XYZ_DEMO={
-  marker:"OCS_XYZ_DEMO_V4",
+  marker:"OCS_XYZ_DEMO_V5",
   phone:"9881181016",
   email:"rehandakhve143@gmail.com",
   address:"XYZ Address, Khopoli, Maharashtra",
@@ -2741,7 +2741,7 @@ function injectXyzDemoListing(cat){
  const frame=document.getElementById("frame"),doc=frame&&frame.contentDocument;if(!doc||!doc.body||doc.getElementById("ocsXyzDemoCard"))return;
  const style=doc.createElement("style");style.id="ocsXyzDemoStyle";style.textContent=
  '#ocsXyzDemoCard{margin:14px auto 18px;max-width:760px;border:1px solid #d8e7e3;border-radius:20px;background:#fff;box-shadow:0 10px 30px rgba(16,70,74,.10);overflow:hidden;font-family:system-ui,Arial,sans-serif}'+
- '#ocsXyzDemoCard *{box-sizing:border-box}#ocsXyzDemoCard .xyzHero{position:relative;height:210px;background:#eaf3f1 center/cover no-repeat}'+
+ '#ocsXyzDemoCard *{box-sizing:border-box}#ocsXyzDemoCard .xyzHero{position:relative;width:100%;aspect-ratio:16/9;min-height:200px;background-color:#eaf3f1;background-repeat:no-repeat;background-position:center center;background-size:cover;overflow:hidden}'+
  '#ocsXyzDemoCard .xyzBadge{position:absolute;left:12px;top:12px;background:#fff8dc;border:1px solid #efd987;border-radius:999px;padding:5px 9px;font-size:9px;font-weight:950;color:#725800}'+
  '#ocsXyzDemoCard .xyzBody{padding:14px}#ocsXyzDemoCard h2{margin:0;color:#173f46;font-size:20px}#ocsXyzDemoCard .xyzSub{margin:4px 0 8px;color:#5c7479;font-size:11px;font-weight:700}'+
  '#ocsXyzDemoCard .xyzDetail{padding:10px 11px;background:#f6faf9;border-radius:12px;color:#3f5d62;font-size:11px;line-height:1.5}'+
