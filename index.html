@@ -2949,7 +2949,7 @@ async function openModule(n,role,serviceCat){
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20260927-backflow4'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260927-navhistory1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -2972,7 +2972,7 @@ async function openModule(n,role,serviceCat){
    frame.src='property.html?v=20260927-navhistory1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260927-backflow4'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260927-navhistory1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
