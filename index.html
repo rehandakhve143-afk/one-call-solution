@@ -2683,7 +2683,7 @@ const OCS_MODULE_NAMES=["Home Services","Property","Local Shop","Sliding / Alumi
 
 const OCS_XYZ_DEMO_ENABLED=true;
 const OCS_XYZ_DEMO={
-  marker:"OCS_XYZ_DEMO_V1",
+  marker:"OCS_XYZ_DEMO_V2",
   phone:"9881181016",
   email:"rehandakhve143@gmail.com",
   address:"XYZ Address, Khopoli, Maharashtra",
@@ -2766,12 +2766,24 @@ function injectXyzDemoListing(cat){
 function renderXyzDemoBanner(){
  if(!OCS_XYZ_DEMO_ENABLED||document.querySelector(".ocs-xyz-demo-banner"))return;
  const hero=document.querySelector(".ocs-super-hero"),dots=document.querySelector(".ocs-super-dots");if(!hero||!dots)return;
- const d=OCS_XYZ_DEMO.listings["Local Shop"];
- const slide=document.createElement("div");slide.className="ocs-super-slide ocs-xyz-demo-banner";
- slide.style.backgroundImage="url("+JSON.stringify(d.image)+")";
- slide.innerHTML='<div class="ocs-super-hero-copy"><div class="k">Sponsored • XYZ Demo</div><h1>XYZ Demo Advertisement</h1><p>'+OCS_XYZ_DEMO.address+' • '+OCS_XYZ_DEMO.phone+'</p><button type="button" onclick="ocsXyzDemoCall()">Call Now</button></div>';
- hero.insertBefore(slide,dots);
- const dot=document.createElement("button");dot.type="button";dot.className="ocs-xyz-demo-dot";dot.onclick=()=>setSuperSlide([...document.querySelectorAll(".ocs-super-slide")].indexOf(slide));dots.appendChild(dot);
+ const cats=Object.keys(OCS_XYZ_DEMO.listings);
+ cats.forEach(cat=>{
+   const d=OCS_XYZ_DEMO.listings[cat];
+   const slide=document.createElement("div");slide.className="ocs-super-slide ocs-xyz-demo-banner";
+   slide.dataset.xyzCategory=cat;
+   slide.style.backgroundImage="url("+JSON.stringify(d.image)+")";
+   slide.innerHTML='<div class="ocs-super-hero-copy"><div class="k">Sponsored • XYZ Demo • '+cat+'</div><h1>'+d.name+'</h1><p>'+d.subtitle+'<br>📞 '+OCS_XYZ_DEMO.phone+' • ✉ '+OCS_XYZ_DEMO.email+'</p><button type="button">View Ad</button></div>';
+   const btn=slide.querySelector("button");
+   if(btn)btn.onclick=(ev)=>{ev.stopPropagation();openModule(cat)};
+   slide.onclick=()=>openModule(cat);
+   hero.insertBefore(slide,dots);
+   const dot=document.createElement("button");dot.type="button";dot.className="ocs-xyz-demo-dot";dot.title=cat;
+   dot.onclick=()=>setSuperSlide([...document.querySelectorAll(".ocs-super-slide")].indexOf(slide));
+   dots.appendChild(dot);
+ });
+ dots.style.maxWidth="92%";
+ dots.style.overflowX="auto";
+ dots.style.scrollbarWidth="none";
 }
 let modulesB64=Object.fromEntries(OCS_MODULE_NAMES.map(n=>[n,null]));
 let ocsModulesPromise=null;
