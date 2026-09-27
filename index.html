@@ -2787,15 +2787,16 @@ function livePostEnquiry(meta,cat,imageUrl){
  if(!n)return alert('WhatsApp number available nahi hai.');
  const name=String(meta.business||meta.name||meta.title||cat||'OCS Listing').trim();
  const price=(meta.itemPrice!==null&&meta.itemPrice!==undefined&&Number(meta.itemPrice)>0)?('₹'+Number(meta.itemPrice).toLocaleString('en-IN')):'Price on enquiry';
- const vehicle=(cat==='Used Vehicle'||cat==='New Vehicle');
+ const vehicle=(cat==='Used Vehicle'||cat==='New Vehicle'),shop=cat==='Local Shop';
+ const subject=vehicle?'vehicle':(shop?'product':'listing');
  const lines=[
-   'Hello, mujhe OCS par ye '+(vehicle?'vehicle':'listing')+' pasand aayi:',
+   'Hello, mujhe OCS par ye '+subject+' pasand '+(vehicle||shop?'aaya':'aayi')+':',
    '',
    name,
    'Price: '+price,
    imageUrl?('Photo: '+imageUrl):'',
    '',
-   vehicle?'Is vehicle ki availability / final price / details bataiye.':'Iske bare me details / availability bataiye.'
+   vehicle?'Is vehicle ki availability / final price / details bataiye.':(shop?'Ye product available hai? Final price / offer aur details bataiye.':'Iske bare me details / availability bataiye.')
  ].filter(Boolean);
  window.open('https://wa.me/'+n+'?text='+encodeURIComponent(lines.join('\n')),'_blank','noopener');
 }
@@ -2852,10 +2853,14 @@ async function injectLiveCategoryAds(cat){
  let liveGalleryImages=[],liveLbIndex=0,liveLbTouchX=0,liveLbMeta=null,liveLbCat=cat;
  const syncLiveLbInfo=()=>{
    if(!liveLbMeta)return;
-   const title=liveLb.querySelector('.lfLbTitle'),price=liveLb.querySelector('.lfLbPrice'),like=liveLb.querySelector('.lfLbLike');
+   const title=liveLb.querySelector('.lfLbTitle'),price=liveLb.querySelector('.lfLbPrice'),like=liveLb.querySelector('.lfLbLike'),share=liveLb.querySelector('.lfLbShare'),call=liveLb.querySelector('.lfLbCall'),enquiry=liveLb.querySelector('.lfLbEnquiry');
+   const isShop=liveLbCat==='Local Shop',isUsed=liveLbCat==='Used Vehicle',isNew=liveLbCat==='New Vehicle',isVehicle=isUsed||isNew;
    if(title)title.textContent=String(liveLbMeta.business||liveLbMeta.name||liveLbMeta.title||liveLbCat||'OCS Listing');
    if(price)price.textContent=(liveLbMeta.itemPrice!==null&&liveLbMeta.itemPrice!==undefined&&Number(liveLbMeta.itemPrice)>0)?('₹'+Number(liveLbMeta.itemPrice).toLocaleString('en-IN')):'Price on enquiry';
    if(like){const liked=livePostIsLiked(liveLbMeta,liveLbCat);like.classList.toggle('liked',liked);like.textContent=liked?'♥ Liked':'♡ Like'}
+   if(share)share.textContent=isShop?'↗ Share Product':(isVehicle?'↗ Share Vehicle':'↗ Share');
+   if(call)call.textContent=isShop?'📞 Call Shop':(isNew?'📞 Call Dealer':(isUsed?'📞 Call Seller':'📞 Contact'));
+   if(enquiry)enquiry.textContent=isShop?'WhatsApp Product':(isVehicle?'WhatsApp Enquiry':'WhatsApp Enquiry');
  };
  const renderLiveLb=()=>{
    if(!liveGalleryImages.length)return;
@@ -2922,7 +2927,7 @@ const OCS_XYZ_DEMO={
   common:["XYZ","Demo","Test Listing","OCS Demo"],
   listings:{
     "Property":{name:"XYZ Builder Property",subtitle:"XYZ Residency • Demo Property",image:"https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=82"],detail:"Flat Sale • 2 BHK • Demo Price ₹45 Lakh onwards"},
-    "Local Shop":{name:"XYZ Electrical & Hardware",subtitle:"Electrical • Hardware • Demo Shop",image:"https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1581783898377-1c85bf937427?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=1200&q=82"],detail:"Switches • Wire • Tools • Hardware"},
+    "Local Shop":{name:"XYZ Electrical & Hardware",subtitle:"Electrical • Hardware • Demo Shop",price:"₹499 • Demo Product Price",image:"https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1581783898377-1c85bf937427?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=1200&q=82"],detail:"Switches • Wire • Tools • Hardware"},
     "Sliding / Aluminium":{name:"XYZ Sliding & Aluminium",subtitle:"Windows • Doors • Glass",image:"https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=82"],detail:"Sliding windows • Aluminium sections • Glass work"},
     "Welding / Fabrication":{name:"XYZ Welding & Fabrication",subtitle:"Gate • Grill • Metal Work",image:"https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?auto=format&fit=crop&w=1200&q=82"],detail:"Gate • Grill • Railing • Fabrication"},
     "Beauty / Make-up":{name:"XYZ Beauty & Make-up",subtitle:"Beauty • Bridal • Make-up",image:"https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=82",photos:["https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=1200&q=82","https://images.unsplash.com/photo-1487412912498-0447578fcca8?auto=format&fit=crop&w=1200&q=82"],detail:"Bridal • Party Make-up • Beauty Services"},
@@ -3015,10 +3020,14 @@ function injectXyzDemoListing(cat){
  const allGalleryImgs=[...card.querySelectorAll(".xyzBigSlider img")];
  let lbIndex=0,lbTouchX=0;
  const syncXyzLbInfo=()=>{
-   const title=lb.querySelector(".xyzLbTitle"),price=lb.querySelector(".xyzLbPrice"),like=lb.querySelector(".xyzLbLike");
+   const title=lb.querySelector(".xyzLbTitle"),price=lb.querySelector(".xyzLbPrice"),like=lb.querySelector(".xyzLbLike"),share=lb.querySelector(".xyzLbShare"),call=lb.querySelector(".xyzLbCall"),enquiry=lb.querySelector(".xyzLbEnquiry");
+   const isShop=cat==="Local Shop",isUsed=cat==="Used Vehicle",isNew=cat==="New Vehicle",isVehicle=isUsed||isNew;
    if(title)title.textContent=d.name;
    if(price)price.textContent=d.price||"Price on enquiry";
    if(like){const liked=isBusinessLiked(cat);like.classList.toggle("liked",liked);like.textContent=liked?"♥ Liked":"♡ Like"}
+   if(share)share.textContent=isShop?"↗ Share Product":(isVehicle?"↗ Share Vehicle":"↗ Share");
+   if(call)call.textContent=isShop?"📞 Call Shop":(isNew?"📞 Call Dealer":(isUsed?"📞 Call Seller":"📞 Contact"));
+   if(enquiry)enquiry.textContent=isShop?"WhatsApp Product":(isVehicle?"WhatsApp Enquiry":"WhatsApp Enquiry");
  };
  const renderLb=()=>{
    if(!allGalleryImgs.length)return;
@@ -3037,7 +3046,7 @@ function injectXyzDemoListing(cat){
  lb.querySelector(".xyzLbLike").onclick=(ev)=>{ev.stopPropagation();toggleBusinessLike(cat);syncXyzLbInfo()};
  lb.querySelector(".xyzLbShare").onclick=(ev)=>{ev.stopPropagation();ocsXyzDemoShare(cat,allGalleryImgs[lbIndex]&&allGalleryImgs[lbIndex].src)};
  lb.querySelector(".xyzLbCall").onclick=(ev)=>{ev.stopPropagation();ocsXyzDemoCall()};
- lb.querySelector(".xyzLbEnquiry").onclick=(ev)=>{ev.stopPropagation();ocsXyzDemoWhatsApp()};
+ lb.querySelector(".xyzLbEnquiry").onclick=(ev)=>{ev.stopPropagation();if(cat==="Local Shop"){const msg=["Hello XYZ, mujhe OCS par ye product pasand aaya:",d.name,"Price: "+(d.price||"Price on enquiry"),allGalleryImgs[lbIndex]?("Photo: "+allGalleryImgs[lbIndex].src):"","Ye product available hai? Final price / offer bataiye."].filter(Boolean).join("\n");window.open("https://wa.me/"+OCS_XYZ_DEMO.phone+"?text="+encodeURIComponent(msg),"_blank","noopener")}else ocsXyzDemoWhatsApp()};
  lb.onclick=(ev)=>{if(ev.target===lb)closeLb()};
  lb.addEventListener("touchstart",ev=>{lbTouchX=ev.touches[0].clientX},{passive:true});
  lb.addEventListener("touchend",ev=>{
@@ -3887,7 +3896,7 @@ window.addEventListener('unhandledrejection',e=>ocsLogTechnicalError('PROMISE',e
 window.ocsLogTechnicalError=ocsLogTechnicalError;
 
 // New-build alert. app-version.json is updated with releases.
-const OCS_APP_BUILD='20260927-galleryactions1';
+const OCS_APP_BUILD='20260927-shopgallery1';
 async function ocsCheckForNewBuild(){
  try{
    const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
