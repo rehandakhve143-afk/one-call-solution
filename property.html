@@ -156,11 +156,11 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 
 <div id="s1">
 <span class="step-kicker">Profile & Type</span>
-<label>I am posting as</label><select class="field" id="poster" onchange="posterChange()"><option>Property Owner</option><option>Builder / Developer</option></select>
+<label>Property Post Type</label><select class="field" id="poster" onchange="posterChange()"><option>Single Property – Sale / Rent</option><option>Builder Property</option><option>Builder Project Profile</option></select>
 <div class="property-plan-box" id="propertyPlanBox">
-  <b id="propertyPlanTitle">Owner Single Post</b>
+  <b id="propertyPlanTitle">Single Property – Sale / Rent</b>
   <span id="propertyPlanPrice">₹199 + GST / 28 days</span>
-  <small id="propertyPlanHelp">Single property listing with photos and direct customer contact.</small>
+  <small id="propertyPlanHelp">One owner property for Sale or Rent • photos + direct customer contact.</small>
 </div>
 <div id="builderIdentity" class="builder-block hidden">
   <h3>Builder Profile</h3><div class="muted">Builder details ek baar bharen; project advertisement me reuse/edit kar sakte hain.</div>
@@ -208,7 +208,8 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <div class="muted">Expiry se 7 days aur 1 day pehle renewal reminder is email par jayega.</div>
 <div id="builderLinks" class="builder-block hidden">
   <h3>Builder Advertisement Links</h3>
-  <label>Brochure Link (Optional)</label><input class="field" id="brochure" placeholder="Brochure URL">
+  <label>Brochure Link (Optional)</label><input class="field" id="brochure" placeholder="Brochure PDF / URL">
+  <label>Catalogue Link (Optional)</label><input class="field" id="catalogue" placeholder="Catalogue PDF / URL">
   <label>Video / YouTube Link (Optional)</label><input class="field" id="video" placeholder="Video URL">
   <label>Builder Website (Optional)</label><input class="field" id="website" placeholder="https://yourwebsite...">
   <label>Virtual Tour Link (Optional)</label><input class="field" id="virtualTour" placeholder="Virtual tour URL">
@@ -252,7 +253,12 @@ function formValues(){
 }
 function applyValues(data){
  if(!data)return;
- Object.entries(data).forEach(([id,v])=>{const el=$(id);if(el&&el.type!=='file')el.value=v});
+ Object.entries(data).forEach(([id,v])=>{
+   const el=$(id);if(!el||el.type==='file')return;
+   if(id==='poster'&&v==='Property Owner')v='Single Property – Sale / Rent';
+   if(id==='poster'&&v==='Builder / Developer')v='Builder Project Profile';
+   el.value=v;
+ });
  posterChange();typeChange();
 }
 function savePropertyDraft(silent){
@@ -278,36 +284,44 @@ function closePost(){$('overlay').style.display='none'}
 function openXyzBuilderSample(){
  openPost();ocsBuilderSampleMode=true;
  const sample={
-  poster:'Builder / Developer',builderCompany:'XYZ Builder',builderContactPerson:'XYZ Builder Team',builderReg:'SAMPLE-RERA-0001',
-  purpose:'Sale',ptype:'Flat',project:'XYZ Residency',city:'Navi Mumbai',area:'New Panvel',address:'Sample Project Address, New Panvel, Navi Mumbai',
+  poster:'Builder Project Profile',builderCompany:'XYZ Builder',builderContactPerson:'XYZ Builder Team',builderReg:'SAMPLE-RERA-0001',
+  purpose:'Sale',ptype:'Flat',project:'XYZ Residency',city:'Khopoli',area:'XYZ Area',address:'XYZ Address, Khopoli, Maharashtra',
   mapLink:'https://example.com/xyz-builder-location',price:'7200000',bhk:'2 BHK',sqft:'1050',projectStatus:'Under Construction',
-  desc:'Sample 2 BHK builder project with project gallery, modern amenities and direct builder contact.',
-  contactPhone:'0000000000',contactWhatsapp:'0000000000',contactEmail:'sales@xyzbuilder.example',renewalEmail:'accounts@xyzbuilder.example',
-  brochure:'https://example.com/xyz-builder-brochure',video:'https://example.com/xyz-builder-video',website:'https://example.com/xyz-builder',virtualTour:'https://example.com/xyz-builder-tour'
+  desc:'XYZ demo Builder Project Profile with project gallery, brochure, catalogue, video and direct contact.',
+  contactPhone:'9881181016',contactWhatsapp:'9881181016',contactEmail:'rehandakhve143@gmail.com',renewalEmail:'rehandakhve143@gmail.com',
+  brochure:'https://example.com/xyz-builder-brochure.pdf',catalogue:'https://example.com/xyz-builder-catalogue.pdf',video:'https://example.com/xyz-builder-video',website:'https://example.com/xyz-builder',virtualTour:'https://example.com/xyz-builder-tour'
  };
  applyValues(sample);go(1);
  const ds=$('draftStatus');if(ds){ds.classList.add('show');ds.textContent='XYZ Builder sample loaded • Demo only';}
 }
+function propertyPostingMode(){return $('poster')?.value||'Single Property – Sale / Rent'}
+function isBuilderPost(){return propertyPostingMode()==='Builder Property'||propertyPostingMode()==='Builder Project Profile'}
+function isBuilderProjectProfile(){return propertyPostingMode()==='Builder Project Profile'}
+function propertyPostingLabel(){return propertyPostingMode()}
+function propertyPostingCategory(){return propertyPostingMode()==='Single Property – Sale / Rent'?'Single Property':propertyPostingMode()}
 function posterChange(){
- const b=$('poster').value.includes('Builder');
- ['builderProject','builderIdentity','builderMedia','builderLinks','builderStatusWrap'].forEach(id=>$(id)?.classList.toggle('hidden',!b));
+ const b=isBuilderPost(),profile=isBuilderProjectProfile();
+ ['builderProject','builderIdentity','builderStatusWrap'].forEach(id=>$(id)?.classList.toggle('hidden',!b));
+ ['builderMedia','builderLinks'].forEach(id=>$(id)?.classList.toggle('hidden',!profile));
  if(b){$('purpose').value='Sale';$('purpose').disabled=true}else $('purpose').disabled=false;
  const title=$('propertyPlanTitle'),price=$('propertyPlanPrice'),help=$('propertyPlanHelp'),notice=$('propertyPaymentNotice');
- if(b){
-   if(title)title.textContent='Builder Profile / Advertisement';
-   if(help)help.textContent='Project gallery, property details, brochure, video / YouTube, website, virtual tour and direct contact.';
- }else{
-   if(title)title.textContent='Owner Single Post';
-   if(help)help.textContent='Single property listing with photos and direct customer contact.';
+ if(title)title.textContent=propertyPostingLabel();
+ if(help){
+   help.textContent=profile
+     ?'Full builder project showcase • multiple photos, brochure, catalogue, video / YouTube, website, virtual tour and direct contact.'
+     :b
+       ?'One builder property advertisement • photos, project details and direct customer contact.'
+       :'One owner property for Sale or Rent • photos and direct customer contact.';
  }
- const pp=propertyPlanPrice(propertyPlanDays),lab=propertyPlanDays===180?'6 Months':'28 Days';
+ const lab=propertyPlanDays===180?'6 Months':'28 Days';
  if(price)price.textContent=propertyPlanPayText(propertyPlanDays)+' / '+lab;
  if(notice)propertyPlanDurationChange();
 }
 function typeChange(){$('bhkWrap').classList.toggle('hidden',$('ptype').value==='Land')}
 function propertyPlanPrice(days){
- const b=$('poster').value.includes('Builder');
- const key=(b?'propertyBuilder':'propertyOwner')+(Number(days)===180?'6m':'');
+ const mode=propertyPostingMode();
+ const root=mode==='Builder Project Profile'?'propertyBuilderProfile':(mode==='Builder Property'?'propertyBuilder':'propertyOwner');
+ const key=root+(Number(days)===180?'6m':'');
  let raw=null;
  try{if(window.parent&&typeof window.parent.getPricing==='function')raw=window.parent.getPricing()[key]}catch(e){}
  raw=Number(raw);return Number.isFinite(raw)?raw:null;
@@ -340,15 +354,15 @@ function propertyAdminFreeSelected(){return !!$('propertyAdminFree')?.checked}
 function propertyPlanDurationChange(){
  const sel=$('propertyPlanSelect');propertyPlanDays=sel?Number(sel.value)||28:28;
  const notice=$('propertyPaymentNotice');if(!notice)return;
- const b=$('poster').value.includes('Builder'),label=propertyPlanDays===180?'6 Months':'28 Days',p=propertyPlanPrice(propertyPlanDays);
+ const label=propertyPlanDays===180?'6 Months':'28 Days',p=propertyPlanPrice(propertyPlanDays);
  const tax=propertyPlanTax(propertyPlanDays);
  const invoiceEmail=($('renewalEmail')?.value||'').trim(),adminFree=propertyAdminFreeSelected();
- notice.innerHTML='<b>Final step:</b> '+(b?'Builder Advertisement':'Owner Single Post')+' • '+label+'<br>'+(adminFree?'<b>ADMIN FREE • Pay ₹0 • GST ₹0</b>':(tax?propertyPlanPayText(propertyPlanDays):'Rate not set'))+'<br>Validity: '+propertyPlanDays+' days'+(adminFree?' • No GST invoice required':' • GST invoice: '+(invoiceEmail||'registered email'))+'.';
+ notice.innerHTML='<b>Final step:</b> '+propertyPostingLabel()+' • '+label+'<br>'+(adminFree?'<b>ADMIN FREE • Pay ₹0 • GST ₹0</b>':(tax?propertyPlanPayText(propertyPlanDays):'Rate not set'))+'<br>Validity: '+propertyPlanDays+' days'+(adminFree?' • No GST invoice required':' • GST invoice: '+(invoiceEmail||'registered email'))+'.';
 }
 function validEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim())}
 function validPhone(v){return String(v||'').replace(/\D/g,'').length>=10}
 function validateStep(n){
- const b=$('poster').value.includes('Builder');
+ const b=isBuilderPost();
  if(n===1&&b&&(!$('builderCompany').value.trim()||!$('builderContactPerson').value.trim()||!$('project').value.trim())){alert('Builder/Company name, Contact Person aur Project/Advertisement Name required.');return false}
  if(n===2&&(!$('city').value.trim()||!$('area').value.trim()||!$('address').value.trim()||!Number($('price').value||0))){alert('City, Area, Address aur Price required.');return false}
  if(n===4){
@@ -369,18 +383,18 @@ function go(n){
  const sh=document.querySelector('.sheet');if(sh)sh.scrollTop=0;
 }
 function makePreview(){
- const b=$('poster').value.includes('Builder'),type=$('ptype').value,purpose=$('purpose').value;
+ const b=isBuilderPost(),profile=isBuilderProjectProfile(),type=$('ptype').value,purpose=$('purpose').value;
  const name=b?($('project').value||'Builder Project'):(type==='Land'?'Land for '+purpose:$('bhk').value+' '+type+' for '+purpose);
  const company=b?($('builderCompany').value||'Builder / Developer'):'Property Owner';
  const p=propertyPlanPrice(propertyPlanDays),planLabel=propertyPlanDays===180?'6 Months':'28 Days';
  const featureBits=[];
- if(b){featureBits.push('Project Gallery');if($('brochure').value)featureBits.push('Brochure');if($('video').value)featureBits.push('Video / YouTube');if($('website').value)featureBits.push('Website');if($('virtualTour').value)featureBits.push('Virtual Tour')}
+ if(profile){featureBits.push('Project Gallery');if($('brochure').value)featureBits.push('Brochure');if($('catalogue').value)featureBits.push('Catalogue');if($('video').value)featureBits.push('Video / YouTube');if($('website').value)featureBits.push('Website');if($('virtualTour').value)featureBits.push('Virtual Tour')}
  $('preview').innerHTML='<b style="font-size:20px">'+esc(name)+'</b><br><span class="muted">'+esc(company)+' • '+esc($('area').value)+' • '+esc($('city').value)+'</span>'+
  '<div class="price">₹'+Number($('price').value||0).toLocaleString('en-IN')+(purpose==='Rent'?' / month':'')+'</div>'+
  '<div>'+esc(type)+(type!=='Land'?' • '+esc($('bhk').value):'')+($('sqft').value?' • '+esc($('sqft').value)+' sq ft':'')+(b&&$('projectStatus').value?' • '+esc($('projectStatus').value):'')+'</div>'+
  '<p>'+esc($('desc').value||'No description added')+'</p>'+
- '<div class="property-preview-plan"><b>'+(b?'Builder Advertisement':'Owner Single Post')+'</b><span>'+(p===null?'Rate not set':propertyPlanPayText(propertyPlanDays))+' / '+planLabel+'</span></div>'+
- (b?'<div class="ownerbox"><b>Builder Profile Features</b><br>'+esc(featureBits.join(' • ')||'Project Gallery')+'</div>':'<div class="ownerbox"><b>Owner Single Post</b><br>One property listing • Photos • Direct contact</div>')+
+ '<div class="property-preview-plan"><b>'+esc(propertyPostingLabel())+'</b><span>'+(p===null?'Rate not set':propertyPlanPayText(propertyPlanDays))+' / '+planLabel+'</span></div>'+
+ (profile?'<div class="ownerbox"><b>Builder Project Profile Features</b><br>'+esc(featureBits.join(' • ')||'Project Gallery')+'</div>':b?'<div class="ownerbox"><b>Builder Property</b><br>One builder property • Photos • Project details • Direct contact</div>':'<div class="ownerbox"><b>Single Property – Sale / Rent</b><br>One property listing • Photos • Direct contact</div>')+
  '<div class="preview-actions"><span>📞 Call</span><span>💬 Chat</span><span>🟢 WhatsApp</span><span>✉ Email</span>'+(b&&$('mapLink').value?'<span>📍 Directions</span>':'')+'</div>';
 }
 function listingActionAttrs(kind,value){
@@ -393,13 +407,13 @@ function listingActionAttrs(kind,value){
 }
 function publish(){
  if(!validateStep(4)){go(4);return}
- const b=$('poster').value.includes('Builder'),type=$('ptype').value,purpose=$('purpose').value;
+ const b=isBuilderPost(),profile=isBuilderProjectProfile(),type=$('ptype').value,purpose=$('purpose').value;
  const name=b?($('project').value||'New Builder Project'):(type==='Land'?'Land for '+purpose:$('bhk').value+' '+type+' for '+purpose);
  const company=b?($('builderCompany').value||'Builder / Developer'):'';
- const linkButtons=b?'<div class="ownerbox"><b>'+esc(company)+'</b><div class="links"><button>Gallery</button>'+($('brochure').value?'<button data-url="'+esc($('brochure').value)+'">Brochure</button>':'')+($('video').value?'<button data-url="'+esc($('video').value)+'">Video / YouTube</button>':'')+($('website').value?'<button data-url="'+esc($('website').value)+'">Website</button>':'')+($('virtualTour').value?'<button data-url="'+esc($('virtualTour').value)+'">Virtual Tour</button>':'')+'</div></div>':'';
+ const linkButtons=profile?'<div class="ownerbox"><b>'+esc(company)+'</b><div class="links"><button>Gallery</button>'+($('brochure').value?'<button data-url="'+esc($('brochure').value)+'">Brochure</button>':'')+($('catalogue').value?'<button data-url="'+esc($('catalogue').value)+'">Catalogue</button>':'')+($('video').value?'<button data-url="'+esc($('video').value)+'">Video / YouTube</button>':'')+($('website').value?'<button data-url="'+esc($('website').value)+'">Website</button>':'')+($('virtualTour').value?'<button data-url="'+esc($('virtualTour').value)+'">Virtual Tour</button>':'')+'</div></div>':(b?'<div class="ownerbox"><b>'+esc(company)+'</b><br>Builder Property • Direct Contact</div>':'');
  const status=b&&$('projectStatus').value?'<span class="chip">'+esc($('projectStatus').value)+'</span>':'';
  const contact='<div class="actions"><button class="call"'+listingActionAttrs('call',$('contactPhone').value)+'>Call</button><button>Chat</button><button class="wa"'+listingActionAttrs('wa',$('contactWhatsapp').value)+'>WhatsApp</button><button'+listingActionAttrs('email',$('contactEmail').value)+'>Email</button></div>';
- $('liveArea').insertAdjacentHTML('afterbegin','<div class="card"><div class="photo">'+(type==='Land'?'🌳':b?'🏢':'🏠')+'<span class="badge">'+(b?'BUILDER PROJECT':'OWNER POST')+'</span></div><div class="body"><div class="title">'+esc(name)+'</div><div class="loc">📍 '+esc($('area').value||'Area')+' • '+esc($('city').value||'City')+'</div><div class="price">₹'+Number($('price').value||0).toLocaleString('en-IN')+(purpose==='Rent'?' / month':'')+'</div><div class="chips"><span class="chip">'+esc(type)+'</span>'+($('sqft').value?'<span class="chip">'+esc($('sqft').value)+' sq ft</span>':'')+status+'</div>'+linkButtons+contact+'</div></div>');
+ $('liveArea').insertAdjacentHTML('afterbegin','<div class="card"><div class="photo">'+(type==='Land'?'🌳':b?'🏢':'🏠')+'<span class="badge">'+(profile?'BUILDER PROJECT PROFILE':b?'BUILDER PROPERTY':'SINGLE PROPERTY')+'</span></div><div class="body"><div class="title">'+esc(name)+'</div><div class="loc">📍 '+esc($('area').value||'Area')+' • '+esc($('city').value||'City')+'</div><div class="price">₹'+Number($('price').value||0).toLocaleString('en-IN')+(purpose==='Rent'?' / month':'')+'</div><div class="chips"><span class="chip">'+esc(type)+'</span>'+($('sqft').value?'<span class="chip">'+esc($('sqft').value)+' sq ft</span>':'')+status+'</div>'+linkButtons+contact+'</div></div>');
  $('s6').classList.add('hidden');$('done').classList.remove('hidden');$('stepHelp').textContent='Published successfully';clearPropertyDraft();
 }
 document.querySelectorAll('.tabs .pill').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs .pill').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
@@ -550,12 +564,12 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
      if(adminFree&&window.parent&&typeof window.parent.recordAdminFreePostBackend==='function'){
        await window.parent.recordAdminFreePostBackend({
          sourceKind:"property_listing",
-         category:$("poster")?.value.includes("Builder")?"Property Builder":"Property Owner",
+         category:propertyPostingCategory(),
          title:"OCS Property Listing • "+($("project")?.value||$("propertyTitle")?.value||$("poster")?.value||"Property"),
          email:invoiceEmail,
          planLabel,
          durationDays:propertyPlanDays,
-         metadata:{propertyType:$("ptype")?.value||"",city:$("city")?.value||"",area:$("area")?.value||"",poster:$("poster")?.value||""}
+         metadata:{propertyType:$("ptype")?.value||"",city:$("city")?.value||"",area:$("area")?.value||"",poster:$("poster")?.value||"",propertyCategory:propertyPostingCategory()}
        });
      }
      if(Number(pp)>0&&!adminFree){
@@ -569,7 +583,7 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
            planLabel,
            durationDays:propertyPlanDays,
            baseAmount:Number(pp),
-           metadata:{propertyType:$("ptype")?.value||"",city:$("city")?.value||"",area:$("area")?.value||"",poster:$("poster")?.value||""}
+           metadata:{propertyType:$("ptype")?.value||"",city:$("city")?.value||"",area:$("area")?.value||"",poster:$("poster")?.value||"",propertyCategory:propertyPostingCategory()}
          });
          if(!paid)return;
        }catch(e){alert("Payment complete nahi hua: "+(e&&e.message?e.message:"Unknown error"));return}
