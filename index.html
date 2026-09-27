@@ -1432,8 +1432,40 @@ function setBottomActive(id){
  document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.remove('active'));
  const x=document.getElementById(id);if(x)x.classList.add('active');
 }
-function closeBottomHub(id){const m=document.getElementById(id);if(m)m.classList.remove('show')}
-function closeAllBottomHubs(){['bottomBookingsModal','bottomSupportModal','bottomProfileModal','myAdsModal','workHistoryModal','serviceRatingModal','settingsModal','walletModal','locationModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'].forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')})}
+let ocsPendingModalParent="",ocsPendingModalParentTimer=null;
+function ocsQueueModalParent(id){
+ if(!id)return;
+ ocsPendingModalParent=id;
+ clearTimeout(ocsPendingModalParentTimer);
+ ocsPendingModalParentTimer=setTimeout(()=>{ocsPendingModalParent=""},500);
+}
+function closeBottomHub(id){
+ const m=document.getElementById(id);
+ if(m&&m.classList.contains('show'))ocsQueueModalParent(id);
+ if(m)m.classList.remove('show');
+}
+function closeAllBottomHubs(){
+ const ids=['bottomBookingsModal','bottomSupportModal','bottomProfileModal','myAdsModal','workHistoryModal','serviceRatingModal','settingsModal','walletModal','locationModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'];
+ const visible=ids.map(id=>document.getElementById(id)).find(m=>m&&m.classList.contains('show'));
+ if(visible)ocsQueueModalParent(visible.id);
+ ids.forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')});
+}
+(function ocsTrackModalParents(){
+ try{
+   const obs=new MutationObserver(ms=>{
+     ms.forEach(mu=>{
+       const el=mu.target;
+       if(!(el instanceof HTMLElement)||!el.classList.contains('modal')||!el.classList.contains('show'))return;
+       if(ocsPendingModalParent&&ocsPendingModalParent!==el.id){
+         el.dataset.ocsBackParent=ocsPendingModalParent;
+         ocsPendingModalParent="";
+         clearTimeout(ocsPendingModalParentTimer);
+       }
+     });
+   });
+   document.querySelectorAll('.modal').forEach(m=>obs.observe(m,{attributes:true,attributeFilter:['class']}));
+ }catch(e){}
+})();
 function bottomHome(){
  closeAllBottomHubs();
  if(document.getElementById('viewer')?.classList.contains('show'))closeModule();
@@ -2880,6 +2912,46 @@ function closeModule(){
  document.body.classList.remove("module-open");
  const gs=document.getElementById("globalSearch");if(gs){gs.value="";gs.placeholder="Search services, shops, property, vehicle..."}
 }
+function ocsIndexHandleBack(){
+ try{
+   const live=document.getElementById('ocsLiveSearchOverlay');if(live){live.remove();return true}
+   const xyz=document.getElementById('xyzDemoSearchOverlay');if(xyz){xyz.remove();return true}
+   const shown=[...document.querySelectorAll('.modal.show')].pop();
+   if(shown){
+     const parent=shown.dataset.ocsBackParent||'';
+     shown.classList.remove('show');
+     delete shown.dataset.ocsBackParent;
+     if(parent){
+       const p=document.getElementById(parent);
+       if(p){p.classList.add('show');return true}
+     }
+     return true
+   }
+   const viewer=document.getElementById('viewer');
+   if(viewer&&viewer.classList.contains('show')){
+     if(currentModuleName==='Property'){
+       try{
+         const f=document.getElementById('frame');
+         if(f&&f.contentWindow&&typeof f.contentWindow.ocsPropertyHandleBack==='function'&&f.contentWindow.ocsPropertyHandleBack())return true;
+       }catch(e){}
+     }
+     closeModule();return true
+   }
+ }catch(e){}
+ return false
+}
+(function ocsInstallIndexBrowserBack(){
+ try{
+   if(!/\/(?:index\.html)?$/i.test(location.pathname))return;
+   history.replaceState({ocsIndexBase:true},"",location.href);
+   history.pushState({ocsIndexGuard:true},"",location.href);
+   window.addEventListener('popstate',()=>{
+     if(ocsIndexHandleBack()){
+       setTimeout(()=>history.pushState({ocsIndexGuard:true},"",location.href),0);
+     }
+   });
+ }catch(e){}
+})();
 async function getOcsReferralCode(){
  const session=await getOcsSession();
  if(!session||!session.user)return "";
