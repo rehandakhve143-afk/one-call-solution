@@ -274,6 +274,26 @@ function restorePropertyDraft(){
 }
 function clearPropertyDraft(){try{localStorage.removeItem(OCS_PROPERTY_DRAFT_KEY)}catch(e){}}
 let currentPropertyStep=1,ocsBuilderSampleMode=false;
+function ocsPropertyNotifyNav(){
+ try{if(window.parent&&typeof window.parent.ocsNotifyFrameNavigation==='function')window.parent.ocsNotifyFrameNavigation()}catch(e){}
+}
+function ocsPropertyNavState(){
+ const ov=$('overlay');
+ return {overlay:!!(ov&&ov.style.display==='flex'),step:Number(currentPropertyStep||1)};
+}
+function ocsPropertyRestoreNavState(state){
+ try{
+   const ov=$('overlay');if(!ov)return;
+   if(state&&state.overlay){
+     ov.style.display='flex';
+     go(Math.max(1,Math.min(6,Number(state.step||1))),true);
+   }else{
+     ov.style.display='none';
+   }
+ }catch(e){}
+}
+window.ocsPropertyNavState=ocsPropertyNavState;
+window.ocsPropertyRestoreNavState=ocsPropertyRestoreNavState;
 function openPost(){
  ocsBuilderSampleMode=false;
  const pb=$('propertyPublishBtn');if(pb){pb.textContent='Continue to Payment & Publish';pb.onclick=()=>publish()}
@@ -281,8 +301,9 @@ function openPost(){
  go(1);
  const hasLive=document.querySelector('#liveArea [data-ocs-owned="1"]');
  if(!hasLive)restorePropertyDraft();
+ ocsPropertyNotifyNav();
 }
-function closePost(){$('overlay').style.display='none'}
+function closePost(){$('overlay').style.display='none';ocsPropertyNotifyNav()}
 function ocsPropertyHandleBack(){
  try{
    const ov=$('overlay');
@@ -397,16 +418,17 @@ function validateStep(n){
  }
  return true;
 }
-function go(n){
- if(n>currentPropertyStep&&!validateStep(currentPropertyStep))return;
+function go(n,fromHistory){
+ if(!fromHistory&&n>currentPropertyStep&&!validateStep(currentPropertyStep))return;
  for(let i=1;i<=6;i++) $('s'+i).classList.toggle('hidden',i!==n);
  $('done').classList.add('hidden');currentPropertyStep=n;
  const labels={1:'Profile & property type',2:'Project details & location',3:'Photos & videos',4:'Contact & links',5:'Preview advertisement',6:'Package, payment & publish'};
  $('stepHelp').textContent='Step '+n+' of 6 • '+labels[n];
  if(n===5)makePreview();
  if(n===6){const ps=$('propertyPlanSelect');if(ps)ps.value=String(propertyPlanDays);propertyPlanDurationChange()}
- posterChange();typeChange();if(n>1)savePropertyDraft(true);
+ posterChange();typeChange();if(n>1&&!fromHistory)savePropertyDraft(true);
  const sh=document.querySelector('.sheet');if(sh)sh.scrollTop=0;
+ ocsPropertyNotifyNav();
 }
 function makePreview(){
  const b=isBuilderPost(),profile=isBuilderProjectProfile(),type=$('ptype').value,purpose=$('purpose').value;
