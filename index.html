@@ -414,11 +414,7 @@ setTimeout(function(){
 </div>
 <button class="primary" style="margin-top:14px" onclick="savePricingAdmin()">Save Prices & GST</button>
 
-<div class="free-box"><h3 style="margin:0 0 8px">🎁 Admin Free Override</h3><div class="muted">Normal users paid rahenge. Admin kisi specific business/person ka koi bhi post FREE kar sakta hai — Slider Ad, Post Your Ad, Shop/Property/Business Listing ya sabhi.</div>
-<label>Business / Person Name</label><input id="freeName" placeholder="e.g. Rehan Electricals">
-<label>Free For</label><select id="freeScope"><option value="ALL">Any Post / All</option><option value="BANNER">Slider / Banner Ad Only</option><option value="LISTING">Shop / Property / Business Listing Only</option></select>
-<button class="primary" style="margin-top:8px" onclick="addFreeOverride()">Add FREE Override</button>
-<div id="freeOverrideList" class="free-list"></div></div>
+<div class="muted" style="margin-top:12px;padding:10px 12px;border:1px solid #e2e9e7;border-radius:12px;background:#f8fbfa"><b>Note:</b> Yahan ₹0 rate set karne par woh plan sab users ke liye FREE ho jayega. Sirf ek Admin FREE post ke liye post form ka “Make this Ad / Listing FREE” option use karein.</div>
 </div></div>
 
 <div class="modal" id="bannerModal"><div class="sheet"><button class="x" onclick="closeBannerAd()">×</button><h2>📣 Post Premium Home Banner Ad</h2>
@@ -1078,7 +1074,7 @@ async function renderHomeDashboardShortcuts(){
   }
   if(hasAdmin){
     html+='<button class="ocs-home-dash-btn admin" onclick="openHomeAdminDashboard()"><span class="ico">A</span><b>Admin Dashboard</b><small>Live booking • control</small></button>';
-    html+='<button class="ocs-home-dash-btn admin" onclick="openPricingAdmin()"><span class="ico">₹0</span><b>Pricing / Free Posts</b><small>Rates • GST • FREE override</small></button>';
+    html+='<button class="ocs-home-dash-btn admin" onclick="openPricingAdmin()"><span class="ico">₹</span><b>Pricing / GST</b><small>Public rates • GST settings</small></button>';
   }
   grid.innerHTML=html;
   wrap.hidden=false;
@@ -2238,17 +2234,8 @@ async function syncAdminFreePostControls(){
  }
  return ok;
 }
-function getFreeOverrides(){try{return JSON.parse(localStorage.getItem('ocsFreeOverrides')||'[]')}catch(e){return []}}
-function setFreeOverrides(v){localStorage.setItem('ocsFreeOverrides',JSON.stringify(v))}
-function isFreeFor(name,scope){
- name=String(name||'').trim().toLowerCase();if(!name)return false;
- scope=String(scope||'LISTING').toUpperCase();
- return getFreeOverrides().some(x=>{
-   const n=String(x.name||'').trim().toLowerCase(),sc=String(x.scope||'').toUpperCase();
-   return n===name&&(sc==='ALL'||sc==='BOTH'||sc===scope);
- });
-}
-function pricingValue(key,name,scope){return isFreeFor(name,scope||'LISTING')?0:Number(getPricing()[key]||0)}
+try{localStorage.removeItem('ocsFreeOverrides')}catch(e){}
+function pricingValue(key,name,scope){return Number(getPricing()[key]||0)}
 function moneyINR(n){return Number(n||0)===0?'FREE':'₹'+Number(n||0).toLocaleString('en-IN')}
 async function openPricingAdmin(){
  if(!await ocsAdminFreeAllowed()){alert('Admin access allowed nahi hai.');return}
@@ -2276,7 +2263,7 @@ async function openPricingAdmin(){
  if(document.getElementById('gstin'))document.getElementById('gstin').value=g.gstin||'';
  if(document.getElementById('gstLegalName'))document.getElementById('gstLegalName').value=g.legalName||'One Call Solution';
  if(document.getElementById('gstBusinessAddress'))document.getElementById('gstBusinessAddress').value=g.businessAddress||'';
- renderFreeOverrides();document.getElementById('pricingModal').classList.add('show');
+ document.getElementById('pricingModal').classList.add('show');
 }
 function closePricingAdmin(){document.getElementById('pricingModal').classList.remove('show')}
 function savePricingAdmin(){
@@ -2308,15 +2295,8 @@ function savePricingAdmin(){
    legalName:(document.getElementById('gstLegalName')?.value||'One Call Solution').trim(),
    businessAddress:(document.getElementById('gstBusinessAddress')?.value||'').trim()
  });
- updateBizPrice();updateBannerPrice();alert('Prices & GST settings saved. ₹0 means FREE.');
+ updateBizPrice();updateBannerPrice();alert('Prices & GST settings saved. Note: ₹0 public rate means FREE for everyone.');
 }
-async function addFreeOverride(){
- if(!await ocsAdminFreeAllowed()){alert('Admin access allowed nahi hai.');return}
- const name=(document.getElementById('freeName').value||'').trim(),scope=document.getElementById('freeScope').value;if(!name){alert('Business / person name enter karein.');return}
- const a=getFreeOverrides().filter(x=>String(x.name||'').trim().toLowerCase()!==name.toLowerCase());a.push({name,scope});setFreeOverrides(a);document.getElementById('freeName').value='';renderFreeOverrides();updateBannerPrice();updateBizPrice();
-}
-async function removeFreeOverride(i){if(!await ocsAdminFreeAllowed()){alert('Admin access allowed nahi hai.');return}const a=getFreeOverrides();a.splice(i,1);setFreeOverrides(a);renderFreeOverrides();updateBannerPrice();updateBizPrice()}
-function renderFreeOverrides(){const a=getFreeOverrides(),box=document.getElementById('freeOverrideList');if(!box)return;const label=s=>({ALL:'Any Post / All',BOTH:'Any Post / All',BANNER:'Slider / Banner Ad',LISTING:'Shop / Property / Business Listing'})[String(s||'').toUpperCase()]||String(s||'');box.innerHTML=a.length?a.map((x,i)=>'<div class="free-pill"><span><b>'+x.name+'</b><br>'+label(x.scope)+' • ADMIN FREE</span><button onclick="removeFreeOverride('+i+')">Remove</button></div>').join(''):'No Admin FREE override yet.'}
 let bannerImageData="",editingBannerId="";
 function getBannerRequests(){try{return JSON.parse(localStorage.getItem('ocsBannerRequests')||'[]')}catch(e){return []}}
 function setBannerRequests(a){localStorage.setItem('ocsBannerRequests',JSON.stringify(a))}
