@@ -2657,8 +2657,28 @@ function livePostCall(meta){
  const n=String(meta.phone||meta.contactPhone||'').replace(/[^0-9+]/g,'');if(n)location.href='tel:'+n;else alert('Call number available nahi hai.');
 }
 function livePostWhatsApp(meta){
- const n=String(meta.phone||meta.whatsapp||meta.contactWhatsapp||'').replace(/D/g,'');if(!n)return alert('WhatsApp number available nahi hai.');
+ const n=String(meta.phone||meta.whatsapp||meta.contactWhatsapp||'').replace(/\D/g,'');if(!n)return alert('WhatsApp number available nahi hai.');
  window.open('https://wa.me/'+n+'?text='+encodeURIComponent('Hello, mujhe aapki OCS listing ke bare me enquiry chahiye.'),'_blank','noopener');
+}
+function livePostWhatsAppItem(meta){
+ meta=meta||{};
+ const n=String(meta.phone||meta.whatsapp||meta.contactWhatsapp||'').replace(/\D/g,'');
+ if(!n)return alert('Shop ka WhatsApp number available nahi hai.');
+ const media=livePostMedia(meta),img=(media.find(z=>z.type==='image')||{}).url||meta.image||'';
+ const name=String(meta.business||meta.name||meta.title||'OCS Product / Post').trim();
+ const price=(meta.itemPrice!==null&&meta.itemPrice!==undefined&&Number(meta.itemPrice)>0)?('₹'+Number(meta.itemPrice).toLocaleString('en-IN')):'Price on enquiry';
+ const area=String(meta.area||meta.city||'').trim();
+ const lines=[
+   'Hello, mujhe OCS par ye product/post pasand aaya:',
+   '',
+   name,
+   'Price: '+price,
+   area?('Area: '+area):'',
+   img?('Photo: '+img):'',
+   '',
+   'Iske bare me details / availability bataiye.'
+ ].filter(Boolean);
+ window.open('https://wa.me/'+n+'?text='+encodeURIComponent(lines.join('\n')),'_blank','noopener');
 }
 let ocsWindowPosterTick=0;
 async function refreshHomeLiveWindowPosters(){
@@ -2687,7 +2707,7 @@ async function injectLiveCategoryAds(cat){
  '#ocsLiveCategoryFeed .lfMedia{width:100%;aspect-ratio:16/9;min-height:170px;background-color:#edf3f2;background-repeat:no-repeat;background-position:center center;background-size:cover;position:relative;overflow:hidden}#ocsLiveCategoryFeed .lfBadge{position:absolute;left:9px;top:9px;background:#e9fff6;color:#087a70;border-radius:999px;padding:5px 8px;font-size:8px;font-weight:950}'+
  '#ocsLiveCategoryFeed .lfBigSlider{display:flex;width:100%;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:#edf3f2}#ocsLiveCategoryFeed .lfBigSlider::-webkit-scrollbar{display:none}#ocsLiveCategoryFeed .lfBigSlider img{flex:0 0 100%;width:100%;aspect-ratio:16/9;object-fit:cover;scroll-snap-align:start;background:#edf3f2}#ocsLiveCategoryFeed .lfBigSlider.lower{margin-top:8px;border-top:1px solid #edf2f1}'+
  '#ocsLiveCategoryFeed .lfVideoRail{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 10px 0;scrollbar-width:none}#ocsLiveCategoryFeed .lfVideoRail::-webkit-scrollbar{display:none}#ocsLiveCategoryFeed .lfVideoRail video{flex:0 0 100%;width:100%;aspect-ratio:16/9;border-radius:12px;background:#111;scroll-snap-align:start}'+
- '#ocsLiveCategoryFeed .lfBody{padding:11px}#ocsLiveCategoryFeed h3{margin:0;font-size:16px;color:#173f46}#ocsLiveCategoryFeed .lfPrice{font-size:19px;font-weight:950;color:#0a6f66;margin:5px 0 4px}#ocsLiveCategoryFeed p{margin:4px 0 8px;font-size:10px;color:#677d82;line-height:1.4}#ocsLiveCategoryFeed .lfActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}#ocsLiveCategoryFeed .lfActions button{border:0;border-radius:10px;min-height:38px;font-size:10px;font-weight:900}#ocsLiveCategoryFeed .lfCall{background:#eef5f4;color:#134b48}#ocsLiveCategoryFeed .lfWa{background:#dcf8e7;color:#13743b}';
+ '#ocsLiveCategoryFeed .lfBody{padding:11px}#ocsLiveCategoryFeed h3{margin:0;font-size:16px;color:#173f46}#ocsLiveCategoryFeed .lfPrice{font-size:19px;font-weight:950;color:#0a6f66;margin:5px 0 4px}#ocsLiveCategoryFeed p{margin:4px 0 8px;font-size:10px;color:#677d82;line-height:1.4}#ocsLiveCategoryFeed .lfActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}#ocsLiveCategoryFeed .lfActions button{border:0;border-radius:10px;min-height:38px;font-size:10px;font-weight:900}#ocsLiveCategoryFeed .lfCall{background:#eef5f4;color:#134b48}#ocsLiveCategoryFeed .lfWa{background:#dcf8e7;color:#13743b}#ocsLiveCategoryFeed .lfItemWa{width:100%;margin-top:7px;border:0;border-radius:10px;min-height:40px;background:#17b663;color:#fff;font-size:10px;font-weight:950}';
  (doc.head||doc.documentElement).appendChild(style)}
  const feed=doc.createElement('section');feed.id='ocsLiveCategoryFeed';
  feed.innerHTML='<div class="lfHead"><b>LIVE '+ocsSavedText(cat)+' Ads</b><small>'+rows.length+' active</small></div><div class="lfRail">'+rows.map((x,i)=>{const m=livePostMeta(x),media=livePostMedia(m),photos=media.filter(z=>z.type==='image').slice(0,20),videos=media.filter(z=>z.type==='video').slice(0,3),name=livePostDisplayName(x);
@@ -2696,7 +2716,8 @@ async function injectLiveCategoryAds(cat){
  const slider=(arr,extra)=>arr.length?'<div class="lfBigSlider '+(extra||'')+'">'+arr.map((p,pi)=>'<img src="'+String(p.url||'')+'" loading="lazy" alt="'+ocsSavedText(name)+' photo '+(pi+1)+'">').join('')+'</div>':'';
  const videoHtml=videos.length?'<div class="lfVideoRail">'+videos.map(v=>'<video controls preload="metadata" src="'+String(v.url||'')+'"></video>').join('')+'</div>':'';
  const priceHtml=(m.itemPrice!==null&&m.itemPrice!==undefined&&Number(m.itemPrice)>0)?'<div class="lfPrice">₹'+Number(m.itemPrice).toLocaleString('en-IN')+'</div>':'';
- return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px">LIVE</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p><div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div></div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
+ const itemWa=(cat==='Local Shop')?'<button class="lfItemWa" onclick="parent.livePostWhatsAppItem(parent.__ocsLiveFeed['+i+'])">🟢 WhatsApp this Product</button>':'';
+ return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px">LIVE</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p><div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>'+itemWa+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
  window.__ocsLiveFeed=rows.map(x=>livePostMeta(x));
  const target=doc.querySelector('main,.wrap,.container,.app')||doc.body;
  if(target===doc.body)doc.body.insertBefore(feed,doc.body.firstChild);else target.insertBefore(feed,target.firstChild);
