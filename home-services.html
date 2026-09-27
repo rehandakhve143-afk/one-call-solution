@@ -418,11 +418,21 @@ body.customer-locked-ui #customer>details.card{display:none!important}
  .ocs-otp-card,.ocs-otp-provider{margin:10px}
 }
 </style>
+<style id="ocsUniversalTopSearchStyle">
+.ocs-universal-search{position:sticky;top:0;z-index:30000;display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.98);border-bottom:1px solid #dce9e6;box-shadow:0 5px 16px rgba(20,58,61,.10);backdrop-filter:blur(10px)}
+.ocs-universal-search span{font-size:20px;color:#087a70;flex:0 0 auto}
+.ocs-universal-search input{flex:1;min-width:0;border:1px solid #dce8e5!important;border-radius:12px!important;background:#f4f8f7!important;padding:10px 11px!important;margin:0!important;font-size:12px!important;outline:0}
+.ocs-universal-search button{min-height:40px!important;padding:9px 12px!important;border-radius:11px!important;background:#087a70!important;color:#fff!important;font-size:11px!important;box-shadow:none!important}
+.top{top:57px!important}
+body.customer-locked-ui .ocs-hs-head{top:57px!important}
+.ocs-universal-search-hit{outline:3px solid #17a589!important;outline-offset:3px!important}
+</style>
 </head>
 <body>
 
 
 <div class="app">
+<div class="ocs-universal-search" id="ocsUniversalSearch"><span aria-hidden="true">⌕</span><input id="ocsUniversalSearchInput" placeholder="Search Home Services..." oninput="ocsUniversalSearchRun(this.value,false)" onkeydown="if(event.key==='Enter')ocsUniversalSearchRun(this.value,true)"><button type="button" onclick="ocsUniversalSearchRun(document.getElementById('ocsUniversalSearchInput')?.value,true)">Search</button></div>
 <div class="top">
 <div class="brand-row"><img class="ocs-top-logo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div class="brand-wrap"><div class="brand">ONE CALL <span>SOLUTION</span></div><div class="tagline">One for All and All for One</div></div></div>
 <div class="tabs">
@@ -4649,6 +4659,39 @@ async function bootHomeServices(){
    updateSelectionTray();
  }
 }
+function ocsUniversalSearchRun(value,submit){
+ const raw=String(value||'').trim(),q=raw.toLowerCase();
+ try{document.querySelectorAll('.ocs-universal-search-hit').forEach(x=>x.classList.remove('ocs-universal-search-hit'))}catch(e){}
+ // Customer category screen: use the existing category filter.
+ try{
+   if(document.body.classList.contains('customer-locked-ui')&&S&&S.status==='SELECT_SERVICE'&&typeof filterLockedCategories==='function'){
+     filterLockedCategories(raw);return;
+   }
+ }catch(e){}
+ // Customer rate-card screen: live filter services by name/text.
+ try{
+   if(document.body.classList.contains('customer-locked-ui')&&S&&S.status==='SELECT_ITEM'){
+     const rows=[...document.querySelectorAll('.ocs-svc-row')];
+     rows.forEach(r=>{const t=String(r.dataset.search||r.innerText||'').toLowerCase();r.style.display=!q||t.includes(q)?'':'none'});
+     if(submit&&q){
+       const hit=rows.find(r=>r.style.display!=='none');
+       if(hit){hit.classList.add('ocs-universal-search-hit');hit.scrollIntoView({behavior:'smooth',block:'center'})}
+     }
+     return;
+   }
+ }catch(e){}
+ // Other Customer/SP/Admin screens: find visible matching card/button/text.
+ const scope=[...document.querySelectorAll('section.screen:not(.hide),.ocs-hs-page,#addWorkSheet:not(.hide),#providerAddWorkSheet:not(.hide)')];
+ const root=scope[scope.length-1]||document.body;
+ const candidates=[...root.querySelectorAll('button,.card,.service,.compact-action,[class*="card"],[class*="item"],h1,h2,h3,b,p,label,summary')];
+ if(!q)return;
+ const hit=candidates.find(el=>{
+   try{const s=getComputedStyle(el);return s.display!=='none'&&s.visibility!=='hidden'&&el.getClientRects().length&&String(el.innerText||el.textContent||'').toLowerCase().includes(q)}catch(e){return false}
+ });
+ if(hit){hit.classList.add('ocs-universal-search-hit');hit.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>hit.classList.remove('ocs-universal-search-hit'),2200)}
+ else if(submit)alert("'"+raw+"' yahan nahi mila.");
+}
+
 bootHomeServices();
 </script>
 <script>
@@ -4695,7 +4738,7 @@ bootHomeServices();
  addEventListener('error',e=>log('HOME_SERVICES',e.message,e.filename,e.lineno));
  addEventListener('unhandledrejection',e=>log('HOME_SERVICES_PROMISE',e.reason&&e.reason.message?e.reason.message:String(e.reason||'Promise error'),'promise',0));
 
- const build='20260927-refreshkeep1';
+ const build='20260927-searchall1';
  async function checkBuild(){
    try{
      const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
