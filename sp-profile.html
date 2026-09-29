@@ -93,7 +93,7 @@ input:focus,select:focus{border-color:#0a8377;box-shadow:0 0 0 3px rgba(10,131,1
         <option value="30">Up to 30 km</option>
       </select>
 
-      <label>Select Skills *</label>
+      <label>Select One Work Category *</label>
       <div class="grid" id="skillsGrid"></div>
 
       <div id="otherWrap" style="display:none">
@@ -102,7 +102,7 @@ input:focus,select:focus{border-color:#0a8377;box-shadow:0 0 0 3px rgba(10,131,1
       </div>
 
       <button class="btn primary" id="saveBtn" onclick="saveProfile()">Save Service Provider Profile</button>
-      <div class="note">Same OCS login use hoga. Separate Service Provider login ki zarurat nahi.</div>
+      <div class="note"><b>OCS Rule:</b> Signup me sirf 1 Work Category select hogi. Us category ki matching services hi SP ko milengi. Category change/add karna ho to OCS Support/Admin approval required hoga.</div>
       <div class="err" id="errorBox"></div>
     </div>
   </div>
@@ -128,9 +128,9 @@ function openDashboard(){location.href='home-services.html?tab=provider&sp=1&v=2
 
 function renderSkillsGrid(){
  const box=document.getElementById('skillsGrid');
- box.innerHTML=SKILLS.map(x=>'<label class="skillcheck"><input type="checkbox" name="spSkill" value="'+esc(x)+'" '+(x==='Other'?'onchange="toggleOther(this.checked)"':'')+'><span>'+esc(x)+'</span></label>').join('');
+ box.innerHTML=SKILLS.map(x=>'<label class="skillcheck"><input type="radio" name="spSkill" value="'+esc(x)+'" onchange="toggleOther(this.value===\'Other\'&&this.checked)"><span>'+esc(x)+'</span></label>').join('');
 }
-function toggleOther(on){document.getElementById('otherWrap').style.display=on?'block':'none'}
+function toggleOther(on){const w=document.getElementById('otherWrap');if(w)w.style.display=on?'block':'none';if(!on){const i=document.getElementById('paOtherSkill');if(i)i.value=''}}
 
 function showSummary(p){
  document.getElementById('loading').style.display='none';
@@ -172,10 +172,11 @@ async function saveProfile(){
  const area=document.getElementById('paArea').value.trim();
  const radius=document.getElementById('paRadius').value;
  let skills=[...document.querySelectorAll('input[name="spSkill"]:checked')].map(x=>x.value);
+ if(skills.length>1){showError('Sirf 1 Work Category select karein.');return}
  const other=skills.includes('Other');
  const otherText=document.getElementById('paOtherSkill').value.trim();
  if(other){skills=skills.filter(x=>x!=='Other');if(otherText)skills.push(otherText)}
- if(!name||mobile.length<10||!area||!skills.length){showError('Name, valid mobile, service area aur kam se kam 1 skill required.');return}
+ if(!name||mobile.length<10||!area||!skills.length){showError('Name, valid mobile, service area aur 1 Work Category required.');return}
  if(!sb||!session||!session.user){showError('OCS login session nahi mila. Back to OCS Home karke login check karein.');return}
  const btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='Saving…';
  try{
