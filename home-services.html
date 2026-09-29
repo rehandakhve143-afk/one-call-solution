@@ -5070,16 +5070,10 @@ bootHomeServices();
 
  const build='20260929-otpui1';
  async function checkBuild(){
-   try{
-     const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
-     const v=await r.json();if(!v||!v.build||String(v.build)===build||document.getElementById('ocsHsUpdateBar'))return;
-     const u=document.createElement('div');u.id='ocsHsUpdateBar';
-     u.style.cssText='position:fixed;left:10px;right:10px;bottom:12px;z-index:2147483646;display:flex;align-items:center;gap:9px;padding:11px 12px;border-radius:14px;background:#0f766e;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.24);font:800 12px system-ui,Arial';
-     u.innerHTML='<span style="flex:1">OCS ka naya version available hai.</span><button type="button" style="border:0;border-radius:9px;padding:8px 12px;background:#fff;color:#0f766e;font-weight:900" onclick="location.reload()">Refresh</button>';
-     document.body.appendChild(u);
-   }catch(e){}
+   const old=document.getElementById('ocsHsUpdateBar');
+   if(old)old.remove();
+   return false;
  }
- setTimeout(checkBuild,3500);setInterval(checkBuild,10*60*1000);
 })();
 </script>
 </body>
