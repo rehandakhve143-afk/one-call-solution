@@ -1,5 +1,5 @@
 {
-  "build": "20260929-spcategorydashboard1",
+  "build": "20260929-refreshfix1",
   "updated_at": "2026-09-29",
-  "message": "SP dashboard Work Category is now single-select and approved category is locked"
+  "message": "Fixed repeated false update banner and synced OCS page versions"
 }
