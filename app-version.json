@@ -1,5 +1,5 @@
 {
-  "build": "20260929-freshlogin1",
+  "build": "20260929-otpui1",
   "updated_at": "2026-09-29",
-  "message": "Fresh login reset plus stabilized core customer Service Provider flow"
+  "message": "Premium login OTP UI and auth code compatibility"
 }
