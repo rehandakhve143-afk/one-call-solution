@@ -333,6 +333,7 @@ setTimeout(function(){
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Tiles / Stone Work">Tiles / Stone Work</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Waterproofing">Waterproofing</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="False Ceiling / POP / Gypsum / PVC">False Ceiling / POP / Gypsum / PVC</label>
+    <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Sliding / Aluminium Repair">Sliding / Aluminium Repair</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="General Labour / Helper">General Labour / Helper</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Other">Other</label>
   </div>
@@ -879,6 +880,7 @@ function providerUiSkillMatchesBackend(label,s){
   if(label==='Tiles / Stone Work')return cat==='Tiles / Stone';
   if(label==='Waterproofing')return cat==='Waterproofing';
   if(label==='False Ceiling / POP / Gypsum / PVC')return cat==='False Ceiling / POP / Gypsum / PVC';
+  if(label==='Sliding / Aluminium Repair')return cat==='Sliding / Aluminium Repair';
   if(label==='General Labour / Helper')return name==='General Labour / Helper';
   return false;
 }
