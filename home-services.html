@@ -623,6 +623,28 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
 
 
 
+<div id="customerCancelModal" class="ocs-action-modal hide" aria-hidden="true">
+  <div class="ocs-action-card">
+    <div class="ocs-action-head">
+      <div><small>CUSTOMER</small><h3>Cancel Booking</h3></div>
+      <button type="button" class="ocs-action-close" onclick="closeCustomerCancelModal()">×</button>
+    </div>
+    <div class="notice" style="margin-top:0"><b>Cancel reason select karein</b><br>Service Provider assign hone se pehle cancellation par visit charge nahi lagega.</div>
+    <div style="display:grid;gap:8px;margin:12px 0">
+      <label class="ocs-skill-choice"><input type="radio" name="customerCancelReason" value="Booked by mistake"> Booked by mistake</label>
+      <label class="ocs-skill-choice"><input type="radio" name="customerCancelReason" value="Service no longer required"> Service no longer required</label>
+      <label class="ocs-skill-choice"><input type="radio" name="customerCancelReason" value="Wrong service selected"> Wrong service selected</label>
+      <label class="ocs-skill-choice"><input type="radio" name="customerCancelReason" value="Taking too long to find Service Provider"> Taking too long to find Service Provider</label>
+      <label class="ocs-skill-choice"><input type="radio" name="customerCancelReason" value="Other"> Other</label>
+    </div>
+    <textarea id="customerCancelOther" rows="3" placeholder="Other reason (optional)" style="display:none"></textarea>
+    <div class="row">
+      <button class="btn gray" onclick="closeCustomerCancelModal()">Keep Booking</button>
+      <button class="btn red" onclick="submitCustomerCancelBeforeStart()">Cancel Booking</button>
+    </div>
+  </div>
+</div>
+
 <div id="providerActionModal" class="ocs-action-modal hide" aria-hidden="true">
   <div class="ocs-action-card">
     <div class="ocs-action-head">
@@ -1795,12 +1817,43 @@ function secureQuoteRevisionTopUp(){
 }
 
 async function customerCancelBeforeStart(){
- if(!ocsGuardAction("customer-cancel-prestart",1400))return;
+ if(!ocsGuardAction("customer-cancel-prestart",800))return;
  const allowed=["BOOKING_DETAILS","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","REQUESTED","ASSIGNED","ON_WAY","REACHED"];
  const effectiveStatus=(S.quoteRevision&&S.quoteRevision.returnStatus)||S.status;
  if(!allowed.includes(S.status)||effectiveStatus==="WORKING"){alert("Start Service OTP ke baad normal Cancel available nahi hai. Work Not Completed / Resolve Here use karein.");return}
- const reason=(prompt("Cancel reason *")||"").trim();if(!reason)return;
- if(!confirm("Booking cancel karna hai?"))return;
+ const modal=document.getElementById("customerCancelModal");
+ if(!modal)return;
+ document.querySelectorAll('input[name="customerCancelReason"]').forEach(x=>x.checked=false);
+ const other=document.getElementById("customerCancelOther");
+ if(other){other.value="";other.style.display="none"}
+ modal.classList.remove("hide");
+ modal.setAttribute("aria-hidden","false");
+}
+function closeCustomerCancelModal(){
+ const modal=document.getElementById("customerCancelModal");
+ if(modal){modal.classList.add("hide");modal.setAttribute("aria-hidden","true")}
+}
+document.addEventListener("change",function(e){
+ if(e.target&&e.target.name==="customerCancelReason"){
+   const other=document.getElementById("customerCancelOther");
+   if(other)other.style.display=e.target.value==="Other"?"block":"none";
+ }
+});
+async function submitCustomerCancelBeforeStart(){
+ const selected=document.querySelector('input[name="customerCancelReason"]:checked');
+ if(!selected){alert("Cancel reason select karein.");return}
+ let reason=selected.value;
+ if(reason==="Other"){
+   reason=(document.getElementById("customerCancelOther")?.value||"").trim();
+   if(!reason){alert("Other reason likhein.");return}
+ }
+ closeCustomerCancelModal();
+ await customerCancelBeforeStartConfirmed(reason);
+}
+async function customerCancelBeforeStartConfirmed(reason){
+ const allowed=["BOOKING_DETAILS","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","REQUESTED","ASSIGNED","ON_WAY","REACHED"];
+ const effectiveStatus=(S.quoteRevision&&S.quoteRevision.returnStatus)||S.status;
+ if(!allowed.includes(S.status)||effectiveStatus==="WORKING")return;
 
  const travelStarted=["ON_WAY","REACHED"].includes(effectiveStatus);
  const providerWasAssigned=["ASSIGNED","ON_WAY","REACHED"].includes(effectiveStatus);
