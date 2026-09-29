@@ -5027,7 +5027,7 @@ bootHomeServices();
 <script>
 (function ocsHomeServicesReliability(){
  if('serviceWorker' in navigator){
-   window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260929-refreshfix1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+   window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260929-coreflow1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
  }
  const bar=document.createElement('div');bar.id='ocsHsNetworkBar';
  bar.style.cssText='position:fixed;left:10px;right:10px;top:10px;z-index:2147483646;display:none;align-items:center;gap:9px;padding:11px 12px;border-radius:14px;background:#263238;color:#fff;box-shadow:0 8px 26px rgba(0,0,0,.22);font:700 12px system-ui,Arial';
@@ -5068,7 +5068,7 @@ bootHomeServices();
  addEventListener('error',e=>log('HOME_SERVICES',e.message,e.filename,e.lineno));
  addEventListener('unhandledrejection',e=>log('HOME_SERVICES_PROMISE',e.reason&&e.reason.message?e.reason.message:String(e.reason||'Promise error'),'promise',0));
 
- const build='20260929-refreshfix1';
+ const build='20260929-coreflow1';
  async function checkBuild(){
    try{
      const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
