@@ -644,7 +644,11 @@ async function simpleOcsLogin(role){
     if(isEmail){
       const {error}=await ocsSupabase.auth.signInWithOtp({
         email:raw,
-        options:{shouldCreateUser:true,data:{last_login_role:isProvider?'service_provider':'customer'}}
+        options:{
+          shouldCreateUser:true,
+          emailRedirectTo:'https://rehandakhve143-afk.github.io/one-call-solution/',
+          data:{last_login_role:isProvider?'service_provider':'customer'}
+        }
       });
       if(error)throw error;
       try{localStorage.setItem('ocsLoginOtpTarget',JSON.stringify({role:isProvider?'provider':'customer',type:'email',value:raw.toLowerCase()}))}catch(e){}
