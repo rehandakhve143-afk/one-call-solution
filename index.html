@@ -276,14 +276,36 @@ setTimeout(function(){
   <button class="primary account-submit" onclick="saveNewOcsPassword()">Save New Password</button>
 </div></div>
 
+<style id="ocs-login-otp-premium">
+.ocs-login-otp-card{margin-top:14px;padding:15px;border:1px solid #d8e8e4;border-radius:18px;background:#f9fcfb;box-shadow:0 8px 24px rgba(26,76,72,.07)}
+.ocs-login-otp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.ocs-login-otp-head small{display:block;font-size:9px;font-weight:900;letter-spacing:.9px;color:#0a8b7d;margin-bottom:3px}
+.ocs-login-otp-head b{font-size:14px;color:#173f46}
+.ocs-login-otp-head>span{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:#e8f7f3;font-size:16px}
+.ocs-login-otp-input{width:100%!important;box-sizing:border-box!important;height:58px!important;border:1.5px solid #b9d8d1!important;border-radius:14px!important;background:#fff!important;text-align:center!important;font-size:25px!important;font-weight:900!important;letter-spacing:7px!important;color:#173f46!important;padding:0 12px!important;outline:none!important}
+.ocs-login-otp-input:focus{border-color:#0b8d80!important;box-shadow:0 0 0 3px rgba(11,141,128,.10)!important}
+.ocs-login-otp-verify{width:100%;margin-top:10px;border:0;border-radius:13px;padding:13px 14px;background:#087f73;color:#fff;font-weight:900;font-size:14px}
+.ocs-login-otp-resend{display:block;width:100%;margin-top:5px;padding:9px 5px;border:0;background:transparent;color:#667d81;font-size:11.5px}
+.ocs-login-otp-resend b{color:#087f73}
+#customerEmailStatus,#providerEmailStatus{margin-top:9px!important;font-size:11px!important}
+@media(max-width:420px){
+ .ocs-login-otp-card{padding:13px;border-radius:16px}
+ .ocs-login-otp-input{height:54px!important;font-size:23px!important;letter-spacing:6px!important}
+}
+</style>
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">OCS ACCOUNT</span><h2 id="accountTitle">Login to One Call Solution</h2><p class="muted" id="accountSub">Email ID ya Mobile Number se simple login</p>
 <div id="customerAccountForm">
   <div id="customerAuthBox">
   <label>Mobile Number or Email ID *</label><input id="caEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
-  <button class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('customer')">Continue</button>
-  <div id="customerLoginOtpWrap" style="display:none;margin-top:10px"><label id="customerLoginOtpLabel">OTP *</label><div class="verifyrow"><input id="customerLoginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="6-digit OTP" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)"><button onclick="verifySimpleOcsOtp('customer')">Verify & Login</button></div><button type="button" class="btn gray" style="margin-top:8px;width:100%" onclick="resendSimpleOcsOtp('customer')">Resend OTP</button></div>
+  <button id="customerLoginContinue" class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('customer')">Continue</button>
+  <div id="customerLoginOtpWrap" class="ocs-login-otp-card" style="display:none">
+    <div class="ocs-login-otp-head"><div><small>SECURE LOGIN</small><b id="customerLoginOtpLabel">Enter OTP</b></div><span>🔐</span></div>
+    <input id="customerLoginOtp" class="ocs-login-otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Enter OTP" oninput="this.value=this.value.replace(/\D/g,'').slice(0,8)">
+    <button class="ocs-login-otp-verify" onclick="verifySimpleOcsOtp('customer')">Verify & Login</button>
+    <button type="button" class="ocs-login-otp-resend" onclick="resendSimpleOcsOtp('customer')">Didn't get the code? <b>Resend OTP</b></button>
+  </div>
   <div class="verifyok" id="customerEmailStatus">Mobile ya Email se simple login</div>
-  <div class="help" style="margin:7px 0 12px">Email ID ya Mobile Number dalo → Continue → 6-digit OTP enter karein → Verify & Login. Email link ki zarurat nahi. Login ke baad OCS Home khulega; pending profile Settings me complete karein.</div>
+  <div class="help" style="margin:7px 0 12px">Email ID ya Mobile Number dalo → Continue → OTP enter karein → Verify & Login. Email link ki zarurat nahi. Login ke baad OCS Home khulega; pending profile Settings me complete karein.</div>
   </div>
   <div id="customerProfileSetup" style="display:none">
   <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
@@ -298,8 +320,13 @@ setTimeout(function(){
   <div id="providerProfileSummary" style="display:none"></div>
   <div id="providerAuthBox">
   <label>Mobile Number or Email ID *</label><input id="paEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
-  <button class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('provider')">Continue</button>
-  <div id="providerLoginOtpWrap" style="display:none;margin-top:10px"><label id="providerLoginOtpLabel">OTP *</label><div class="verifyrow"><input id="providerLoginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="6-digit OTP" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)"><button onclick="verifySimpleOcsOtp('provider')">Verify & Login</button></div><button type="button" class="btn gray" style="margin-top:8px;width:100%" onclick="resendSimpleOcsOtp('provider')">Resend OTP</button></div>
+  <button id="providerLoginContinue" class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('provider')">Continue</button>
+  <div id="providerLoginOtpWrap" class="ocs-login-otp-card" style="display:none">
+    <div class="ocs-login-otp-head"><div><small>SECURE LOGIN</small><b id="providerLoginOtpLabel">Enter OTP</b></div><span>🔐</span></div>
+    <input id="providerLoginOtp" class="ocs-login-otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Enter OTP" oninput="this.value=this.value.replace(/\D/g,'').slice(0,8)">
+    <button class="ocs-login-otp-verify" onclick="verifySimpleOcsOtp('provider')">Verify & Login</button>
+    <button type="button" class="ocs-login-otp-resend" onclick="resendSimpleOcsOtp('provider')">Didn't get the code? <b>Resend OTP</b></button>
+  </div>
   <div class="verifyok" id="providerEmailStatus">Mobile ya Email se simple login</div>
   <div class="help" style="margin:7px 0 12px">New aur existing user ke liye same flow: Email/Mobile → OTP → Login. Password, magic link ya separate Create Account screen nahi chahiye.</div>
   </div>
@@ -655,8 +682,10 @@ async function simpleOcsLogin(role){
       try{localStorage.setItem('ocsLoginOtpTarget',JSON.stringify({role:isProvider?'provider':'customer',type:'email',value:raw.toLowerCase()}))}catch(e){}
       const wrap=document.getElementById(isProvider?'providerLoginOtpWrap':'customerLoginOtpWrap');
       const label=document.getElementById(isProvider?'providerLoginOtpLabel':'customerLoginOtpLabel');
+      const cont=document.getElementById(isProvider?'providerLoginContinue':'customerLoginContinue');
       if(wrap)wrap.style.display='block';
-      if(label)label.textContent='Email OTP (6-digit) *';
+      if(cont)cont.style.display='none';
+      if(label)label.textContent='Enter Email OTP';
       if(st){st.textContent='✓ Email OTP sent • code yahin enter karein';st.style.color='#b7791f'}
       return true;
     }
@@ -665,8 +694,10 @@ async function simpleOcsLogin(role){
     try{localStorage.setItem('ocsLoginOtpTarget',JSON.stringify({role:isProvider?'provider':'customer',type:'sms',value:phone}))}catch(e){}
     const wrap=document.getElementById(isProvider?'providerLoginOtpWrap':'customerLoginOtpWrap');
     const label=document.getElementById(isProvider?'providerLoginOtpLabel':'customerLoginOtpLabel');
+    const cont=document.getElementById(isProvider?'providerLoginContinue':'customerLoginContinue');
     if(wrap)wrap.style.display='block';
-    if(label)label.textContent='SMS OTP (6-digit) *';
+    if(cont)cont.style.display='none';
+    if(label)label.textContent='Enter SMS OTP';
     if(st){st.textContent='✓ SMS OTP sent • code yahin enter karein';st.style.color='#b7791f'}
     return true;
   }catch(e){
@@ -696,7 +727,7 @@ async function verifySimpleOcsOtp(role){
   const isEmail=raw.includes('@');
   const phone=!isEmail?ocsIndiaPhone(raw):'';
   const token=(document.getElementById(isProvider?'providerLoginOtp':'customerLoginOtp')?.value||'').trim();
-  if(!/^\d{6}$/.test(token)){alert('6-digit OTP enter karein.');return false}
+  if(!/^\d{6,8}$/.test(token)){alert('Valid OTP enter karein.');return false}
   if(!isEmail&&!phone){alert('Valid Email ID ya Mobile Number check karein.');return false}
   try{
     const payload=isEmail?{email:raw,token,type:'email'}:{phone,token,type:'sms'};
@@ -1049,11 +1080,11 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20260929-freshlogin1');
+    clean.searchParams.set('v','20260929-otpui1');
     clean.searchParams.set('login','1');
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20260929-freshlogin1&login=1');
+    location.replace('index.html?v=20260929-otpui1&login=1');
   }
   return true;
 }
@@ -1073,7 +1104,7 @@ async function openLogin(){
   const setup=document.getElementById('customerProfileSetup');
   if(pill)pill.textContent='OCS ACCOUNT';
   if(title)title.textContent='Login to One Call Solution';
-  if(sub)sub.textContent='Email ID ya Mobile Number → 6-digit OTP → direct OCS Home';
+  if(sub)sub.textContent='Email ID ya Mobile Number → OTP → direct OCS Home';
   if(cf)cf.style.display='block';
   if(pf)pf.style.display='none';
   if(auth)auth.style.display='block';
@@ -3949,7 +3980,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260929-freshlogin1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260929-otpui1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4023,7 +4054,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20260929-freshlogin1';
+const OCS_APP_BUILD='20260929-otpui1';
 async function ocsCheckForNewBuild(){
  try{
    const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
