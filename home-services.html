@@ -1723,7 +1723,11 @@ async function submitCustomRequest(){
  let workSkill=$("customSkillName")?.value.trim();
  let d=$("customDesc")?.value.trim(); let sch=document.querySelector('input[name="customSchedule"]:checked')?.value;
  if(!workSkill){alert("Work / Skill Name mandatory hai.");return}
- if(!d){alert("Describe your work / problem mandatory hai.");return} if(!sch){alert("Preferred schedule select karein.");return}
+ if(!d){alert("Describe your work / problem mandatory hai.");return}
+ const fullAddress=String(S.address||"").trim();
+ if(!fullAddress||/^(customer address|customer service address)$/i.test(fullAddress)){alert("Full service address enter karein.");return}
+ if(!Number.isFinite(Number(S.customerBookingLat))||!Number.isFinite(Number(S.customerBookingLng))){alert("Use Current Location se booking location pin set karein.");return}
+ if(!sch){alert("Preferred schedule select karein.");return}
  const photos=Array.from($("customPhoto")?.files||[]).slice(0,5).map(x=>({kind:"photo",name:x.name}));
  const videos=Array.from($("customVideo")?.files||[]).slice(0,1).map(x=>({kind:"video",name:x.name}));
  S.requestMedia=photos.concat(videos);S.chatMessages=[];S.customDescription=d;S.customSchedule=sch;
@@ -1746,7 +1750,10 @@ async function submitCustomRequest(){
      p_description:d,
      p_schedule:sch,
      p_address:S.address||"",
-     p_media:S.requestMedia
+     p_media:S.requestMedia,
+     p_readiness:ocsBookingReadinessPayload(),
+     p_latitude:Number(S.customerBookingLat),
+     p_longitude:Number(S.customerBookingLng)
    });
    if(error)throw error;
    ocsApplyBackendBooking(data);
@@ -2090,10 +2097,24 @@ function renderProviderProfileSummaryPanel(pp){
       '<div class="ocs-profile-skill-title">Work Category</div>'+
       '<div>'+(chips||'<span class="muted">No skill saved.</span>')+'</div>'+
       '<div class="ocs-profile-note">1 SP = 1 Work Category. Approved category locked hai; change/add ke liye OCS Support / Admin approval required hai.</div>'+
+      '<div class="ocs-profile-note">'+(pp.service_location_set?'<b>Service Location ✓</b><br>Nearest-job matching active.':'<b>Service Location Required</b><br>Nearest matching ke liye ek baar current work location set karein.')+'</div>'+
       '<div class="ocs-profile-actions">'+
+        '<button class="btn" onclick="setProviderCurrentServiceLocation()">📍 Set Work Location</button>'+
         '<button class="btn gray" onclick="closeProviderProfilePanel()">Close</button>'+
       '</div>'+
     '</div>';
+}
+function setProviderCurrentServiceLocation(){
+  if(!navigator.geolocation){alert("GPS location available nahi hai.");return}
+  navigator.geolocation.getCurrentPosition(async p=>{
+    try{
+      const radius=Number(S.providerRadius||12)||12;
+      const {error}=await ocsSupabase.rpc("set_provider_service_location_v1",{p_latitude:Number(p.coords.latitude),p_longitude:Number(p.coords.longitude),p_radius_km:radius});
+      if(error)throw error;
+      alert("Service Provider work location saved.");
+      const pp=await providerProfilePanelSnapshot();renderProviderProfileSummaryPanel(pp);
+    }catch(e){alert("Work location save nahi hui: "+(e&&e.message?e.message:"Unknown error"))}
+  },()=>alert("Location permission allow karein."),{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
 }
 function ocsProviderWorkCategoryChanged(el){
   const wrap=document.getElementById("ocsProviderOtherCategoryWrap");
@@ -2222,7 +2243,7 @@ async function openProviderWalletQuick(){
         '<div class="box"><small>OCS Commission</small><b>'+commissionRate+'%</b></div>'+
         '<div class="box"><small>Job Access</small><b>'+(d.admin_paused?'Admin Hold':'Active')+'</b></div>'+
       '</div>'+
-      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Wallet ₹0 ya negative ho sakta hai. Recharge reminder/email rahega; new jobs ka hold OCS Admin control me hai.</div>':'')+
+      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Minimum wallet ₹200 required for new jobs. Recharge to continue receiving work.</div>':'')+
       (d.admin_paused?'<div class="notice bad"><b>Admin Hold</b><br>New jobs OCS Admin ne pause ki hain.</div>':'')+
       '<div class="provider-wallet-actions"><button class="btn" onclick="rechargeWallet()">Add Money</button><button class="btn alt" onclick="openProviderPayoutPanel()">Bank &amp; Payout</button></div>'+
       '<div class="provider-payout-summary"><div class="rowline"><span>Today Credit</span><b>₹'+todayCredit.toFixed(2)+'</b></div><div class="rowline"><span>Today Debit</span><b>₹'+todayDebit.toFixed(2)+'</b></div></div>'+
@@ -2540,7 +2561,7 @@ async function rechargeWallet(){
  const current=Math.round((Number(S.wallet||0))*100)/100;
  const suggested=Math.max(100,Math.round(Math.max(0,-current)+100));
  const currentText=current<0?"−₹"+Math.abs(current).toFixed(2):"₹"+current.toFixed(2);
- let a=Number(prompt("OCS Wallet\nCurrent balance: "+currentText+"\nNo fixed minimum balance. ₹0/negative par recharge reminder rahega; new jobs ka hold OCS Admin control me hai.\nTop-up amount enter karein.",suggested.toFixed(2)));
+ let a=Number(prompt("OCS Wallet\nCurrent balance: "+currentText+"\nMinimum wallet balance ₹200 required to receive/accept new jobs.\nTop-up amount enter karein.",suggested.toFixed(2)));
  if(!a||a<50){alert("Minimum wallet top-up ₹50.");return}
  try{
    const {data:intent,error:ie}=await ocsSupabase.rpc("create_wallet_topup_intent_v1",{p_amount:a});
@@ -2561,7 +2582,7 @@ function auditPlatformCharge(amount){
 }
 function queueWalletMaintenanceEmail(){
  const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
- const msg="Your OCS Wallet balance is "+bal+". Please recharge to keep your wallet healthy. New-job access remains under OCS Admin control.";
+ const msg="Your OCS Wallet balance is "+bal+". Minimum ₹200 required to receive new jobs. Please recharge.";
  S.walletReminderHistory=S.walletReminderHistory||[];
  S.walletReminderHistory.unshift({channel:"EMAIL",message:msg,status:"QUEUED",at:new Date().toISOString()});
  S.walletEmailReminderQueuedAt=new Date().toISOString();
@@ -2569,7 +2590,7 @@ function queueWalletMaintenanceEmail(){
 }
 function queueWalletZeroReminders(){
  const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
- const msg="OCS Wallet is "+bal+". Please recharge your wallet. Work status remains under OCS Admin control.";
+ const msg="OCS Wallet is "+bal+". Minimum ₹200 required to receive new jobs. Please recharge.";
  S.walletReminderHistory=S.walletReminderHistory||[];
  ["SMS","EMAIL","CALL"].forEach(ch=>S.walletReminderHistory.unshift({channel:ch,message:msg,status:"QUEUED",at:new Date().toISOString()}));
  hist("Wallet ₹0/negative • SMS + Email + Call reminder queued • Work status remains under Admin control");
@@ -3592,15 +3613,15 @@ if(S.status==="SELECT_ITEM"){
      <div class="ocs-hs-search"><span>⌕</span><input id="svcSearch" placeholder="Search ${displayCategory.toLowerCase()}..." oninput="filterServiceCards(this.value)"></div>
      <p class="ocs-svc-note">Material/parts separate where applicable. Visit / Inspection and no-work charges follow OCS rules.</p>
      ${ocsLabourOnlyWarning()}
+     <button type="button" class="ocs-other-request" data-ocs-other-request="1">Can’t find your work? New Service Request →</button>
      ${bookingBar}
      <div class="ocs-svc-list">${rows}</div>
-     <button type="button" class="ocs-other-request" data-ocs-other-request="1">Can’t find your work? Request another service →</button>
    </div>
  </div>`;return h
 }
 if(S.status==="CUSTOM_REQUEST"){
  const customPrefill=S.category==="Custom / Other"&&S.service==="New Service Request"?"":(S.service||"");
- h=`<button class="backbtn" onclick="S.status='SELECT_ITEM';render()">← ${ocsSafe((services[S.category]&&services[S.category].label)||S.category)}</button><div class="card"><h3>Get Quote • New Service Request</h3><div class="muted">Work / Skill Name clear likhein, phir details + photo/video bhejein. Provider reply ke baad isi booking me Chat rahega.</div><label>Work / Skill Name *</label><input id="customSkillName" value="${ocsSafe(customPrefill)}" placeholder="e.g. Glass Work / Door Repair / Custom Repair">${S.category==="Custom / Other"?'<div class="notice good"><b>Exact Skill Match</b><br>Example: Glass Work request sirf approved Glass Work Service Provider ko jayega.</div>':""}<label>Describe your work / problem *</label><textarea id="customDesc" rows="4" placeholder="Kaam ki poori detail likhiye"></textarea><label>Work Photos (up to 5)</label><input id="customPhoto" type="file" accept="image/*" multiple><label>Work Video (up to 1 minute)</label><input id="customVideo" type="file" accept="video/*"><div class="notice good"><b>Photo • Video • Chat</b><br>Ye sab isi OCS booking record ke saath rahega.</div><label>Preferred Schedule *</label><div class="schedule-grid"><label><input type="radio" name="customSchedule" value="Morning 8 AM–12 PM">Morning • 8 AM–12 PM</label><label><input type="radio" name="customSchedule" value="Afternoon 12–4 PM">Afternoon • 12–4 PM</label><label><input type="radio" name="customSchedule" value="Evening 4–8 PM">Evening • 4–8 PM</label></div><button class="btn" onclick="submitCustomRequest()">Send Get Quote Request</button></div>`;return h
+ h=`<button class="backbtn" onclick="S.status='SELECT_ITEM';render()">← ${ocsSafe((services[S.category]&&services[S.category].label)||S.category)}</button><div class="card"><h3>Get Quote • New Service Request</h3><div class="muted">Work / Skill Name clear likhein, phir details + photo/video bhejein. Provider reply ke baad isi booking me Chat rahega.</div><label>Work / Skill Name *</label><input id="customSkillName" value="${ocsSafe(customPrefill)}" placeholder="e.g. Glass Work / Door Repair / Custom Repair">${S.category==="Custom / Other"?'<div class="notice good"><b>Exact Skill Match</b><br>Example: Glass Work request sirf approved Glass Work Service Provider ko jayega.</div>':""}<label>Describe your work / problem *</label><textarea id="customDesc" rows="4" placeholder="Kaam ki poori detail likhiye"></textarea><label>Work Photos (up to 5)</label><input id="customPhoto" type="file" accept="image/*" multiple><label>Work Video (up to 1 minute)</label><input id="customVideo" type="file" accept="video/*"><div class="notice good"><b>Photo • Video • Chat</b><br>Ye sab isi OCS booking record ke saath rahega.</div><label>Full Service Address *</label><input value="${ocsSafe(S.address||"")}" placeholder="House/Flat, Building, Area, Landmark" onchange="S.address=this.value;saveHomeState()">${ocsBookingLocationHTML()}<label>Preferred Schedule *</label><div class="schedule-grid"><label><input type="radio" name="customSchedule" value="Morning 8 AM–12 PM">Morning • 8 AM–12 PM</label><label><input type="radio" name="customSchedule" value="Afternoon 12–4 PM">Afternoon • 12–4 PM</label><label><input type="radio" name="customSchedule" value="Evening 4–8 PM">Evening • 4–8 PM</label></div><button class="btn" onclick="submitCustomRequest()">Send Get Quote Request</button></div>`;return h
 }
 if(S.status==="QUOTE_WAIT"){h=`<div class="notice good"><b>Get Quote Request Sent</b><br>Matching verified Service Provider ko work details + attachments bheje gaye. Quote isi OCS booking me aayega.</div>${quoteTimerHTML()}<div class="card"><b>${S.service||S.category}</b><p>${ocsSafe(S.customDescription||"")}</p><div class="muted">Preferred: ${ocsSafe(S.customSchedule||"")}</div><div class="notice"><b>OCS Rule:</b> Final rate/payment sirf app me accepted quote se official hoga. Call/Chat me bola amount official nahi hai.</div></div>${quoteMediaHTML()}${quoteChatHTML("customer")}`;return h}
 if(S.status==="QUOTE_EXPIRED"){h=`<div class="card"><h3>Quote Expired</h3><div class="notice">This quote was valid for 24 hours. Expired amount ab official/usable nahi hai.</div><button class="btn" onclick="customerRequestNewQuote()">Ask for Fresh Quote</button></div>${quoteHistoryHTML()}${quoteChatHTML("customer")}`;return h}
@@ -3886,6 +3907,8 @@ if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQ
    h=`<div class="card"><h3>Skills Required</h3><div class="notice"><b>Abhi koi skill saved nahi hai.</b><br>Electrical ya jo kaam aata hai woh select karke profile save karein. Skill approve hone ke baad matching jobs milenge.</div><button class="btn" onclick="openProviderProfileSafe()">Add / Edit Skills</button></div>`;
  }else if(verification.includes("pending")||verification===""){
    h=`<div class="card"><h3>Verification Pending</h3><div class="notice">Profile saved hai. Selected skills ko OCS Admin approve karega. Approval ke baad hi matching jobs yahan aayenge.</div><div class="muted" style="margin-top:8px">Profile & Skills upar se kabhi bhi open kar sakte hain.</div></div>`;
+ }else if(Number(S.wallet||0)<200){
+   h=`<div class="card"><h3>Wallet Recharge Required</h3><div class="notice"><b>Minimum ₹200 wallet required for new jobs.</b><br>Current wallet: ₹${Number(S.wallet||0).toFixed(2)}</div><button class="btn" onclick="rechargeWallet()">Recharge Wallet</button></div>`;
  }else{
    h="";
  }
@@ -3910,8 +3933,10 @@ if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice">No incoming request.
 
 if(S.status==="REQUESTED"){
  const skillMatch=providerMatchesCurrentBooking();
- const canReceive=S.available&&!S.adminPaused&&S.jobAccess&&S.providerProfileAvailable&&S.providerRequestForThisProfile&&skillMatch;
- const walletLow=Number(S.wallet)<=0;
+ const walletLow=Number(S.wallet)<200;
+ const canReceive=S.available&&!S.adminPaused&&S.jobAccess&&!walletLow&&S.providerProfileAvailable&&S.providerRequestForThisProfile&&skillMatch;
+ const readyInfo=S.bookingReadiness||{};
+ const distanceInfo=Number(S.oneWayDistanceKm||0)>0?(" • "+Number(S.oneWayDistanceKm).toFixed(1)+" km away"):"";
  if(!S.providerProfileAvailable){
    h=`<div class="card"><h3>Service Provider Registration Required</h3><div class="notice">New Home Service request receive karne ke liye pehle Service Provider profile complete karein.</div></div>`;
  }else if(!S.providerRequestForThisProfile||!skillMatch){
@@ -3919,15 +3944,18 @@ if(S.status==="REQUESTED"){
  }else if(canReceive){
    h=`
 <div class="card"><h3>Incoming Request</h3>
-${walletLow?'<div class="notice"><b>Wallet Reminder</b><br>Wallet ₹0 ya negative hai. Recharge karein. New jobs automatically block nahi hongi; Work ON/OFF OCS Admin control me rahega.</div>':''}
-<b>${S.service}</b><div class="muted">Customer: ${ocsSafe(S.customerName||"Customer")} • ${ocsSafe(S.address)}</div>
+<b>${S.service}</b><div class="muted">Customer area${distanceInfo} • Exact address Accept ke baad unlock hoga</div>
+${readyInfo.material_status?'<div class="muted">Material: '+ocsSafe(readyInfo.material_status==="READY"?"Ready":"Inspection / Not clear")+'</div>':''}
+${readyInfo.power_point?'<div class="muted">Nearby power point: '+ocsSafe(String(readyInfo.power_point).replace("_"," "))+'</div>':''}
 <div class="money">${S.requestType==="quote"?"Get Quote":"₹"+S.base}</div>
 <div class="row">
 <button class="btn ok" onclick="providerDecision('accept')">Accept</button>
 <button class="btn red" onclick="providerDecision('reject')">Reject</button>
 </div></div>`;
+ }else if(walletLow){
+   h=`<div class="card"><h3>Wallet Recharge Required</h3><div class="notice"><b>Minimum OCS Wallet ₹200 required.</b><br>Current wallet: ₹${Number(S.wallet||0).toFixed(2)}. Recharge ke baad matching jobs receive honge.</div><button class="btn" onclick="rechargeWallet()">Recharge Wallet</button></div>`;
  }else if(S.adminPaused||!S.jobAccess){
-   h=`<div class="card"><h3>New Jobs Paused by OCS Admin</h3><div class="notice">Wallet balance is not the reason. OCS Admin controls Pause / Resume.</div></div>`;
+   h=`<div class="card"><h3>New Jobs Paused by OCS Admin</h3><div class="notice">OCS Admin ne new jobs pause kiye hain.</div></div>`;
  }else{
    h=`<div class="card"><h3>Available for Work is OFF</h3><div class="notice">New request receive karne ke liye Available for Work ON karein.</div></div>`;
  }
@@ -4345,13 +4373,13 @@ function adminHTMLState(){
  <div class="row"><span>Mobile</span><b>${ocsSafe(liveSnap.provider_mobile||"Not added")}</b></div>
  <div class="row"><span>Available for Work</span><b>${liveSnap.available_for_work?"ON":"OFF"}</b></div>
  <div class="row"><span>Wallet Balance</span><b>${walletText}</b></div>
- <div class="row"><span>Wallet Rule</span><b>No fixed minimum</b></div>
+ <div class="row"><span>Wallet Rule</span><b>Minimum ₹200</b></div>
  <div class="row"><span>Wallet Status</span><b>${Number(wallet)<=0?"Recharge Reminder":"Active"}</b></div>`:
  '<div class="muted">No assigned Service Provider record.</div>';
 
  let provider=liveSnap&&liveSnap.provider_id?`<div><b>${ocsSafe(liveSnap.provider_name||"Service Provider")}</b> • Available: ${liveSnap.available_for_work?"ON":"OFF"} • New Jobs: ${liveSnap.admin_paused?"PAUSED":"ACTIVE"}</div>
- <div class="muted">Wallet Balance: ${walletText} • No fixed minimum • Work status Admin controlled</div>`:
- `<div><b>${ocsSafe(S.provider||"Service Provider")}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div><div class="muted">Wallet Balance: ${walletText} • No fixed minimum • Work status Admin controlled</div>`;
+ <div class="muted">Wallet Balance: ${walletText} • Minimum ₹200 • Work status Admin controlled</div>`:
+ `<div><b>${ocsSafe(S.provider||"Service Provider")}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div><div class="muted">Wallet Balance: ${walletText} • Minimum ₹200 • Work status Admin controlled</div>`;
 
  let visit=`<div class="muted">GPS one-way: ${Number(S.oneWayDistanceKm||0).toFixed(1)} km • Suggested: ${S.suggestedVisitCharge?money(S.suggestedVisitCharge):"—"} • Final: ${S.visitCharge?money(S.visitCharge):"—"}</div>`;
  let support=S.supportTicket?`<b>${S.supportTicket}</b> • ${S.cancelReason||S.providerChangeReason||"Review required"}`:`<span class="muted">No open support ticket.</span>`;
