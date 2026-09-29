@@ -1,5 +1,5 @@
 {
-  "build": "20260929-slidingrates1",
+  "build": "20260929-labourwarn1",
   "updated_at": "2026-09-29",
-  "message": "Added All-India Sliding Aluminium repair rates and SP matching category"
+  "message": "Added labour-only material readiness warning to rate lists and booking"
 }
