@@ -1017,6 +1017,47 @@ async function routeAfterOcsLogin(){
   bottomHome();
   await renderHomeDashboardShortcuts();
 }
+async function ocsFreshLoginStart(){
+  let fresh=false;
+  try{fresh=new URLSearchParams(location.search||'').get('fresh')==='1'}catch(e){}
+  if(!fresh)return false;
+
+  try{
+    if(ocsSupabase&&ocsSupabase.auth){
+      try{await ocsSupabase.auth.signOut({scope:'local'})}
+      catch(e){try{await ocsSupabase.auth.signOut()}catch(_){}}
+    }
+  }catch(e){console.warn('Fresh login signout',e)}
+
+  try{
+    const removeKeys=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&(/^ocs/i.test(k)||k==='sb-uipmkrsggpkupgbgoxkg-auth-token'))removeKeys.push(k);
+    }
+    [
+      'ocsPostLoginReturn','ocsLoginIntentRole','ocsLoginOtpTarget',
+      'ocsPendingSignupEmail','ocsResumeBookingAfterLogin',
+      'ocsHomeServiceFullState','ocsCurrentBooking',
+      'ocsCustomerProfile','ocsProviderProfile'
+    ].forEach(k=>removeKeys.push(k));
+    [...new Set(removeKeys)].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
+  }catch(e){console.warn('Fresh login local state clear',e)}
+
+  try{sessionStorage.clear()}catch(e){}
+
+  try{
+    const clean=new URL(location.href);
+    clean.search='';
+    clean.searchParams.set('v','20260929-freshlogin1');
+    clean.searchParams.set('login','1');
+    location.replace(clean.pathname+clean.search);
+  }catch(e){
+    location.replace('index.html?v=20260929-freshlogin1&login=1');
+  }
+  return true;
+}
+
 async function openLogin(){
   const session=await getOcsSession();
   if(session&&session.user){
@@ -1043,6 +1084,7 @@ async function openLogin(){
 function ocsStartSupabaseHooks(){
   if(!ocsSupabase||ocsSupabaseHooksStarted)return;
   ocsSupabaseHooksStarted=true;
+  setTimeout(async()=>{try{await ocsFreshLoginStart()}catch(e){console.error('Fresh login reset failed',e)}},0);
   ocsSupabase.auth.onAuthStateChange((event)=>{
     setTimeout(refreshOcsEmailStatus,0);
     setTimeout(()=>renderHomeDashboardShortcuts(),120);
@@ -1052,7 +1094,7 @@ function ocsStartSupabaseHooks(){
   });
   setTimeout(refreshOcsEmailStatus,0);
   setTimeout(()=>renderHomeDashboardShortcuts(),120);
-  setTimeout(()=>{try{if(new URLSearchParams(location.search||'').get('login')==='1')openLogin()}catch(e){}},150);
+  setTimeout(()=>{try{const q=new URLSearchParams(location.search||'');if(q.get('fresh')!=='1'&&q.get('login')==='1')openLogin()}catch(e){}},150);
   setTimeout(async()=>{
     try{
       if(ocsProviderProfileMenuIntent){
@@ -3907,7 +3949,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260929-coreflow1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260929-freshlogin1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -3981,7 +4023,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20260929-coreflow1';
+const OCS_APP_BUILD='20260929-freshlogin1';
 async function ocsCheckForNewBuild(){
  try{
    const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
