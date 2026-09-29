@@ -1092,32 +1092,31 @@ async function openHomeProviderDashboard(){
   location.href='home-services.html?tab=provider&sp=1&v=20260927-adminrecords1';
 }
 async function openHomeAdminDashboard(){
+  const adminUrl='home-services.html?tab=admin&v=20260929-adminhome1';
   const session=await getOcsSession();
-  if(!session||!session.user){openLogin();return}
+  if(!session||!session.user){
+    try{localStorage.setItem('ocsPostLoginReturn',adminUrl)}catch(e){}
+    openLogin();
+    return;
+  }
   const hasAdmin=await ocsUserHasRole('admin');
-  if(!hasAdmin){alert('Admin access allowed nahi hai.');return}
-  location.href='home-services.html?tab=admin&v=20260927-adminrecords1';
+  if(!hasAdmin){alert('Admin access allowed nahi hai. Admin account se login karein.');return}
+  location.href=adminUrl;
 }
 async function renderHomeDashboardShortcuts(){
   const wrap=document.getElementById('ocsHomeDashboards');
   const grid=document.getElementById('ocsHomeDashboardGrid');
   if(!wrap||!grid)return;
   const session=await getOcsSession();
-  if(!session||!session.user){
-    wrap.hidden=false;
-    grid.innerHTML=
-      '<button class="ocs-home-dash-btn" onclick="openHomeCustomerDashboard()"><span class="ico">C</span><b>Customer Dashboard</b><small>Login • bookings • rewards</small></button>'+
-      '<button class="ocs-home-dash-btn" onclick="openHomeProviderDashboard()"><span class="ico">SP</span><b>Service Provider</b><small>Login / join • jobs</small></button>';
-    return;
+  let hasAdmin=false;
+  if(session&&session.user){
+    hasAdmin=await ocsUserHasRole('admin');
   }
-  const [hasSp,hasAdmin]=await Promise.all([ocsUserHasRole('service_provider'),ocsUserHasRole('admin')]);
   let html=
-    '<button class="ocs-home-dash-btn" onclick="openHomeCustomerDashboard()"><span class="ico">C</span><b>Customer Dashboard</b><small>Bookings • rewards • support</small></button>';
-  if(hasSp||hasAdmin){
-    html+='<button class="ocs-home-dash-btn" onclick="openHomeProviderDashboard()"><span class="ico">SP</span><b>SP Dashboard</b><small>Jobs • wallet • earnings</small></button>';
-  }
+    '<button class="ocs-home-dash-btn" onclick="openHomeCustomerDashboard()"><span class="ico">C</span><b>Customer Dashboard</b><small>Bookings • rewards • support</small></button>'+
+    '<button class="ocs-home-dash-btn" onclick="openHomeProviderDashboard()"><span class="ico">SP</span><b>SP Dashboard</b><small>Jobs • wallet • earnings</small></button>'+
+    '<button class="ocs-home-dash-btn admin" onclick="openHomeAdminDashboard()"><span class="ico">A</span><b>Admin Dashboard</b><small>Admin login • control</small></button>';
   if(hasAdmin){
-    html+='<button class="ocs-home-dash-btn admin" onclick="openHomeAdminDashboard()"><span class="ico">A</span><b>Admin Dashboard</b><small>Live booking • control</small></button>';
     html+='<button class="ocs-home-dash-btn admin" onclick="openPricingAdmin()"><span class="ico">₹</span><b>Pricing / GST</b><small>Public rates • GST settings</small></button>';
   }
   grid.innerHTML=html;
