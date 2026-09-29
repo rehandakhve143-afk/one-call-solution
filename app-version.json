@@ -1,5 +1,5 @@
 {
-  "build": "20260929-refreshfix1",
+  "build": "20260929-coreflow1",
   "updated_at": "2026-09-29",
-  "message": "Fixed repeated false update banner and synced OCS page versions"
+  "message": "Core customer to Service Provider booking flow stabilized"
 }
