@@ -3982,7 +3982,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20260929-onespcategory1';
+const OCS_APP_BUILD='20260929-slidingrates1';
 async function ocsCheckForNewBuild(){
  try{
    const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
