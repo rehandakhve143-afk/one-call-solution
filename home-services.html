@@ -1240,6 +1240,7 @@ function requiredSkillsForBooking(){
  if(cat==="Maid Service")return /cook/i.test(svc)?["Maid","Cook"]:["Maid"];
  if(cat==="Wi-Fi / TV Installation & Setup")return ["Wi-Fi / TV Setup","Wi-Fi / TV Installation & Setup"];
  if(cat==="Tiles / Stone")return ["Tiles / Stone Work","Tiles / Stone"];
+ if(cat==="Sliding / Aluminium Repair")return ["Sliding / Aluminium Repair"];
  return cat?[cat]:[];
 }
 function syncRegisteredProfiles(){
@@ -1314,6 +1315,27 @@ const services={
 'Tiles / Stone':{icon:'◻️',items:[{"name":"Ceramic Floor Tile Laying","type":"fixed","display":"₹40 / sq.ft.","price":40},{"name":"Vitrified Floor Tile Laying","type":"fixed","display":"₹45 / sq.ft.","price":45},{"name":"Bathroom Wall Tile Laying","type":"fixed","display":"₹50 / sq.ft.","price":50},{"name":"Kitchen Dado Tile Work","type":"fixed","display":"₹50 / sq.ft.","price":50},{"name":"Large Format Tile Laying","type":"fixed","display":"₹70 / sq.ft.","price":70},{"name":"Balcony / Outdoor Tile Laying","type":"fixed","display":"₹45 / sq.ft.","price":45},{"name":"Tile Skirting","type":"fixed","display":"₹20 / RFT","price":20},{"name":"Old Tile Removal","type":"fixed","display":"₹25 / sq.ft.","price":25},{"name":"Granite / Marble Floor Work","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"Granite Platform Slab – Labour","type":"fixed","display":"₹200 / RFT","price":200},{"name":"Designer / Pattern Tile Work","type":"quote","display":"Get Quote"},{"name":"Full Bathroom Tile Work","type":"quote","display":"Get Quote"},{"name":"Full House Tile Work","type":"quote","display":"Get Quote"},{"name":"Small Tile / Stone Repair","type":"fixed","display":"₹499 onwards","price":499},{"name":"Granite / Marble Door Frame","type":"quote","display":"Get Quote"},{"name":"Window Granite / Marble Border","type":"quote","display":"Get Quote"},{"name":"Tiles / Stone Visit / Measurement","type":"quote","display":"₹199–₹249"},{"name":"Any Other Tiles / Stone Work","type":"quote","display":"Get Quote"}]},
 'Waterproofing':{icon:'💧',items:[{"name":"Terrace / Roof Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Bathroom Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"Balcony Waterproofing – Labour Only","type":"fixed","display":"₹35 / sq.ft.","price":35},{"name":"External Wall Waterproofing – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Internal Damp Wall Treatment – Labour Only","type":"fixed","display":"₹30 / sq.ft.","price":30},{"name":"Water Tank Waterproofing","type":"quote","display":"Get Quote"},{"name":"Crack / Joint Waterproofing","type":"quote","display":"Get Quote"},{"name":"PU Injection / Special Waterproofing","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
 'False Ceiling / POP / Gypsum / PVC':{icon:'🏠',items:[{"name":"Gypsum Board False Ceiling – Labour Only","type":"fixed","display":"₹75 / sq.ft.","price":75},{"name":"POP Ceiling – Labour Only","type":"fixed","display":"₹60 / sq.ft.","price":60},{"name":"PVC Ceiling – Labour Only","type":"fixed","display":"₹70 / sq.ft.","price":70},{"name":"Cove / Designer Ceiling Work","type":"quote","display":"Get Quote"},{"name":"Repair / Patch Work","type":"quote","display":"Get Quote"},{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
+'Sliding / Aluminium Repair':{icon:'🪟',items:[
+{"name":"Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"},
+{"name":"Sliding Window Alignment / Adjustment","type":"fixed","price":239,"display":"₹239"},
+{"name":"Sliding Door Alignment / Adjustment","type":"fixed","price":299,"display":"₹299"},
+{"name":"Roller Change Labour – Window","type":"fixed","price":239,"display":"₹239 / shutter"},
+{"name":"Roller Change Labour – Door","type":"fixed","price":299,"display":"₹299 / shutter"},
+{"name":"Handle / Lock Change Labour","type":"fixed","price":239,"display":"₹239 / No."},
+{"name":"Sliding Track Cleaning + Adjustment","type":"fixed","price":239,"display":"₹239"},
+{"name":"Track Minor Repair","type":"fixed","price":399,"display":"₹399"},
+{"name":"Rubber / Beading Replacement Labour","type":"fixed","price":299,"display":"₹299 / window"},
+{"name":"Silicone / Leakage Sealing Labour","type":"fixed","price":299,"display":"₹299"},
+{"name":"Mosquito Mesh / Sliding Mesh Minor Repair","type":"fixed","price":299,"display":"₹299"},
+{"name":"Glass Replacement Labour – Small Window","type":"fixed","price":399,"display":"₹399"},
+{"name":"Glass Replacement – Large Window / Door","type":"quote","display":"Get Quote"},
+{"name":"Aluminium Frame Minor Repair","type":"fixed","price":399,"display":"₹399"},
+{"name":"Bent / Damaged Track or Frame Repair","type":"quote","display":"Get Quote"},
+{"name":"Sliding Shutter Removal + Refit","type":"fixed","price":299,"display":"₹299 / shutter"},
+{"name":"Complete Sliding Window Repair","type":"quote","display":"Get Quote"},
+{"name":"Complete Sliding Door Repair","type":"quote","display":"Get Quote"},
+{"name":"Any Other Sliding / Aluminium Repair","type":"quote","display":"Get Quote"}
+]},
 };
 
 function money(n){return "₹"+Number(n||0).toLocaleString("en-IN")}
@@ -1870,7 +1892,7 @@ const OCS_PROVIDER_SKILL_OPTIONS=[
   "Chimney","RO / Water Purifier","Cleaning","Maid","Cook","Pest Control",
   "CCTV","Gas Stove","Wi-Fi / TV Setup","Packers & Movers","Painter",
   "Tiles / Stone Work","Waterproofing","False Ceiling / POP / Gypsum / PVC",
-  "General Labour / Helper","Other"
+  "Sliding / Aluminium Repair","General Labour / Helper","Other"
 ];
 function providerSkillLabel(row){
   const cat=String(row?.category||"");
@@ -1886,6 +1908,7 @@ function providerSkillLabel(row){
   if(cat==="Maid Service")return "Maid";
   if(cat==="Wi-Fi / TV Installation & Setup")return "Wi-Fi / TV Setup";
   if(cat==="Tiles / Stone")return "Tiles / Stone Work";
+  if(cat==="Sliding / Aluminium Repair")return "Sliding / Aluminium Repair";
   if(cat==="Custom / Other")return svc||"Other";
   return cat||svc||"Other";
 }
@@ -3354,7 +3377,8 @@ function ocsUiIcon(kind){
   "Packers & Movers":'<path d="M4 7l8-4 8 4-8 4-8-4Zm0 0v10l8 4 8-4V7M12 11v10"/>',
   "Tiles / Stone":'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
   Waterproofing:'<path d="M12 3c3 4 6 7.2 6 11a6 6 0 1 1-12 0c0-3.8 3-7 6-11Z"/><path d="M9 15c.6 1.4 1.6 2 3 2"/>',
-  "False Ceiling / POP / Gypsum / PVC":'<path d="M4 5h16v5H4zM7 10v4M17 10v4M5 14h14v5H5z"/>'
+  "False Ceiling / POP / Gypsum / PVC":'<path d="M4 5h16v5H4zM7 10v4M17 10v4M5 14h14v5H5z"/>',
+  "Sliding / Aluminium Repair":'<path d="M4 4h16v16H4zM12 4v16M4 12h16M8 8l-2 2M16 16l2-2"/>'
  };
  const p=m[kind]||'<path d="M4 5h16v14H4zM8 9h8M8 13h8"/>';
  return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
