@@ -1,4 +1,4 @@
-const OCS_CACHE='ocs-shell-v16';
+const OCS_CACHE='ocs-shell-v17';
 const OCS_SHELL=[
   './',
   './index.html',
@@ -43,6 +43,21 @@ self.addEventListener('fetch',event=>{
         .catch(async()=>{
           return (await caches.match(req,{ignoreSearch:true})) || (await caches.match('./index.html',{ignoreSearch:true})) || Response.error();
         })
+    );
+    return;
+  }
+
+  if(url.origin===location.origin && url.pathname.endsWith('/app-version.json')){
+    event.respondWith(
+      fetch(req,{cache:'no-store'})
+        .then(res=>{
+          if(res&&res.ok){
+            const copy=res.clone();
+            caches.open(OCS_CACHE).then(cache=>cache.put('./app-version.json',copy)).catch(()=>{});
+          }
+          return res;
+        })
+        .catch(()=>caches.match('./app-version.json',{ignoreSearch:true}))
     );
     return;
   }
