@@ -4602,6 +4602,9 @@ function ocsHsQueue(){
 window.ocsHsQueueHistory=ocsHsQueue;
 
 function ocsHsApplyTab(tab){
+ if(tab==="admin" && (typeof OCS_ROUTE_TAB==="undefined" || OCS_ROUTE_TAB!=="admin")){
+   tab=(typeof OCS_ROUTE_TAB!=="undefined"&&OCS_ROUTE_TAB==="provider")?"provider":"customer";
+ }
  const c=document.getElementById("customer"),p=document.getElementById("provider"),a=document.getElementById("admin");
  if(c)c.classList.toggle("hide",tab!=="customer");
  if(p)p.classList.toggle("hide",tab!=="provider");
@@ -4673,7 +4676,25 @@ async function bootHomeServices(){
    await showTab("provider");
    return
  }
- if(OCS_ROUTE_TAB==="admin"){await showTab("admin");return}
+ if(OCS_ROUTE_TAB==="admin"){
+   try{
+     const session=await ocsSession();
+     if(!session||!session.user){
+       location.replace("index.html?v=20260929-adminroutefix1");
+       return;
+     }
+     const {data,error}=await ocsSupabase.rpc("admin_access_snapshot_v1");
+     if(error||!data||!data.is_admin){
+       location.replace("index.html?v=20260929-adminroutefix1");
+       return;
+     }
+   }catch(e){
+     location.replace("index.html?v=20260929-adminroutefix1");
+     return;
+   }
+   await showTab("admin");
+   return
+ }
 
  // A direct service/category tap should open that rate card even if another booking is active.
  // The active booking remains untouched in the backend and can still be tracked from Bookings.
