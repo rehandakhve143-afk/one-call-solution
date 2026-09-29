@@ -1366,7 +1366,7 @@ function ocsPowerReadinessHTML(){
 }
 function ocsBookingReadinessPayload(){return {material_status:String(S.materialReadiness||""),power_point:String(S.powerReadiness||"")};}
 function ocsBookingLocationHTML(){
-  const ready=Number.isFinite(Number(S.customerBookingLat))&&Number.isFinite(Number(S.customerBookingLng));
+  const ready=S.customerBookingLat!==null&&S.customerBookingLng!==null&&Number.isFinite(Number(S.customerBookingLat))&&Number.isFinite(Number(S.customerBookingLng));
   return '<div class="notice '+(ready?"good":"")+'" style="margin:10px 0"><b>Location Pin '+(ready?"✓":"Required")+'</b><br><span>'+(ready?"Current booking location saved. Nearest matching SP search hoga.":"Nearest Service Provider ke liye current location pin set karein.")+'</span><button type="button" class="btn gray" style="margin-top:9px" onclick="ocsUseBookingLocation()">📍 Use Current Location</button></div>';
 }
 function ocsUseBookingLocation(){
@@ -1726,7 +1726,7 @@ async function submitCustomRequest(){
  if(!d){alert("Describe your work / problem mandatory hai.");return}
  const fullAddress=String(S.address||"").trim();
  if(!fullAddress||/^(customer address|customer service address)$/i.test(fullAddress)){alert("Full service address enter karein.");return}
- if(!Number.isFinite(Number(S.customerBookingLat))||!Number.isFinite(Number(S.customerBookingLng))){alert("Use Current Location se booking location pin set karein.");return}
+ if(S.customerBookingLat===null||S.customerBookingLng===null||!Number.isFinite(Number(S.customerBookingLat))||!Number.isFinite(Number(S.customerBookingLng))){alert("Use Current Location se booking location pin set karein.");return}
  if(!sch){alert("Preferred schedule select karein.");return}
  const photos=Array.from($("customPhoto")?.files||[]).slice(0,5).map(x=>({kind:"photo",name:x.name}));
  const videos=Array.from($("customVideo")?.files||[]).slice(0,1).map(x=>({kind:"video",name:x.name}));
@@ -2685,7 +2685,7 @@ async function booking(){
  if(!ocsGuardAction("create-booking",1600))return;
  const fullAddress=String(S.address||"").trim();
  if(!fullAddress||/^(customer address|customer service address)$/i.test(fullAddress)){alert("Full service address enter karein.");return}
- if(!Number.isFinite(Number(S.customerBookingLat))||!Number.isFinite(Number(S.customerBookingLng))){alert("Use Current Location se booking location pin set karein.");return}
+ if(S.customerBookingLat===null||S.customerBookingLng===null||!Number.isFinite(Number(S.customerBookingLat))||!Number.isFinite(Number(S.customerBookingLng))){alert("Use Current Location se booking location pin set karein.");return}
  if(ocsPowerReadinessRequired()&&!["YES","NO","NOT_SURE"].includes(String(S.powerReadiness||""))){alert("Nearby working power point available hai ya nahi select karein.");return}
  if(ocsLabourMaterialGateRequired()){
    if(S.materialReadiness!=="READY"&&S.materialReadiness!=="INSPECTION"){
