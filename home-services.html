@@ -427,6 +427,41 @@ body.customer-locked-ui #customer>details.card{display:none!important}
 body.customer-locked-ui .ocs-hs-head{top:57px!important}
 .ocs-universal-search-hit{outline:3px solid #17a589!important;outline-offset:3px!important}
 </style>
+
+<style id="ocsRequestedCustomerPolish">
+.ocs-requested-wrap{padding:2px 0 20px}
+.ocs-requested-hero{display:flex;gap:14px;align-items:flex-start;margin:10px 0 12px;padding:18px 16px;border:1px solid #d8ebe6;border-radius:20px;background:linear-gradient(145deg,#f2fbf8,#fff);box-shadow:0 8px 24px rgba(18,67,62,.07)}
+.ocs-requested-hero small{display:block;font-size:9px;letter-spacing:.9px;font-weight:950;color:#07816f;margin-bottom:5px}
+.ocs-requested-hero h3{margin:0 0 5px!important;font-size:18px!important;color:#173f46}
+.ocs-requested-hero p{margin:0;color:#6b7e82;font-size:12px;line-height:1.45}
+.ocs-requested-loader{display:flex;align-items:center;gap:4px;height:38px;min-width:42px}
+.ocs-requested-loader span{width:8px;height:8px;border-radius:50%;background:#0a8f78;animation:ocsRequestedPulse 1.2s infinite ease-in-out}
+.ocs-requested-loader span:nth-child(2){animation-delay:.15s}.ocs-requested-loader span:nth-child(3){animation-delay:.3s}
+@keyframes ocsRequestedPulse{0%,80%,100%{transform:scale(.7);opacity:.35}40%{transform:scale(1);opacity:1}}
+.ocs-requested-progress{margin:0 0 12px;padding:14px 15px;border:1px solid #e1ebe9;border-radius:18px;background:#fff}
+.ocs-requested-progress>div{display:flex;gap:11px;position:relative;padding:3px 0 15px}
+.ocs-requested-progress>div:last-child{padding-bottom:2px}
+.ocs-requested-progress>div:not(:last-child):after{content:"";position:absolute;left:14px;top:30px;bottom:1px;width:2px;background:#dfe9e7}
+.ocs-requested-progress i{width:29px;height:29px;flex:0 0 29px;border-radius:50%;display:grid;place-items:center;background:#edf3f2;color:#708488;font-size:11px;font-weight:900;font-style:normal;z-index:1}
+.ocs-requested-progress .done i{background:#dff6ee;color:#08785f}.ocs-requested-progress .active i{background:#087a70;color:#fff;box-shadow:0 0 0 5px #e7f5f2}
+.ocs-requested-progress span{min-width:0}.ocs-requested-progress b{display:block;font-size:12px;color:#24434a}.ocs-requested-progress small{display:block;margin-top:2px;font-size:10px;color:#7a8b8e}
+.ocs-requested-card{margin-bottom:12px;padding:15px;border:1px solid #dfe9e7;border-radius:18px;background:#fff}
+.ocs-requested-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:10px;border-bottom:1px solid #eef2f1}
+.ocs-requested-card-head>b{font-size:13px;color:#24434a}.ocs-requested-card-head span{font-size:9px;font-weight:900;color:#789095;background:#f3f7f6;border-radius:999px;padding:5px 8px}
+.ocs-requested-main{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:12px 0 8px}
+.ocs-requested-main small,.ocs-requested-meta small{display:block;font-size:9px;color:#839397;margin-bottom:3px}
+.ocs-requested-main b{font-size:14px;color:#173f46}.ocs-requested-main strong{font-size:17px;color:#087a70;white-space:nowrap}
+.ocs-requested-items{display:flex;gap:6px;overflow:auto;padding:1px 0 10px;scrollbar-width:none}.ocs-requested-items::-webkit-scrollbar{display:none}
+.ocs-requested-items span{white-space:nowrap;padding:6px 9px;border-radius:999px;background:#f0f7f5;color:#46656a;font-size:9px;font-weight:750}
+.ocs-requested-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:9px;border-top:1px solid #eef2f1}
+.ocs-requested-meta span{padding:8px 9px;border-radius:11px;background:#f7faf9}.ocs-requested-meta b{font-size:11px;color:#34585e}
+.ocs-requested-note{display:flex;gap:10px;align-items:center;margin-bottom:12px;padding:11px 12px;border:1px solid #d8ebe6;border-radius:14px;background:#eff9f6}
+.ocs-requested-note>span{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#087a70;font-weight:950}
+.ocs-requested-note b{display:block;font-size:11px;color:#24544f}.ocs-requested-note small{display:block;margin-top:2px;font-size:9.5px;line-height:1.4;color:#6d8585}
+.ocs-requested-actions{display:grid;grid-template-columns:.85fr 1.15fr;gap:8px}.ocs-requested-actions .btn{margin:0!important;min-height:44px!important;font-size:11px!important}
+.ocs-requested-cancel-note{text-align:center;margin-top:8px;color:#77878a;font-size:9.5px;line-height:1.4}
+</style>
+
 </head>
 <body>
 
@@ -3393,7 +3428,47 @@ if(S.status==="READY")h=`
 <button class="btn" onclick="booking()">Find Service Provider</button>
 </div>`;
 
-if(S.status==="REQUESTED")h=`<div class="notice"><b>Finding an eligible Service Provider</b><br>OCS nearby available providers check kar raha hai.</div><button class="btn red" onclick="customerCancelBeforeStart()">Cancel Booking</button><div class="muted" style="margin-top:7px">Provider On the Way hone se pehle cancel par visit charge ₹0.</div>`;
+if(S.status==="REQUESTED"){
+ const reqAmount=S.requestType==="quote"?"Get Quote":money(Number(S.total||S.base||0));
+ const reqPayment=String(S.paymentChoice||"ONLINE").toUpperCase()==="CASH"?"Cash":"Online";
+ const reqItems=Array.isArray(S.selectedItems)?S.selectedItems:[];
+ const reqId=String(S.activeBookingId||"").slice(0,8).toUpperCase();
+ h=`
+ <div class="ocs-requested-wrap">
+   <div class="ocs-requested-hero">
+     <div class="ocs-requested-loader"><span></span><span></span><span></span></div>
+     <div>
+       <small>BOOKING REQUEST SENT ✓</small>
+       <h3>Finding your Service Provider</h3>
+       <p>OCS verified aur matching skill wale available Service Providers check kar raha hai.</p>
+     </div>
+   </div>
+
+   <div class="ocs-requested-progress" aria-label="Booking matching progress">
+     <div class="done"><i>✓</i><span><b>Request received</b><small>Your booking is safely recorded</small></span></div>
+     <div class="active"><i>2</i><span><b>Matching nearby SP</b><small>Skill + availability check in progress</small></span></div>
+     <div><i>3</i><span><b>SP confirmation</b><small>Accept hote hi yahan status update hoga</small></span></div>
+   </div>
+
+   <div class="ocs-requested-card">
+     <div class="ocs-requested-card-head"><b>Booking Summary</b>${reqId?'<span>#'+reqId+'</span>':''}</div>
+     <div class="ocs-requested-main"><div><small>Service</small><b>${ocsSafe(S.service||S.category||"Home Service")}</b></div><strong>${reqAmount}</strong></div>
+     ${reqItems.length?'<div class="ocs-requested-items">'+reqItems.slice(0,4).map(x=>'<span>'+ocsSafe(x.name||"Service")+(Number(x.qty||1)>1?' ×'+Number(x.qty||1):'')+'</span>').join('')+(reqItems.length>4?'<span>+'+(reqItems.length-4)+' more</span>':'')+'</div>':''}
+     <div class="ocs-requested-meta">
+       <span><small>Category</small><b>${ocsSafe(S.category||"Home Service")}</b></span>
+       <span><small>Payment</small><b>${reqPayment}</b></span>
+     </div>
+   </div>
+
+   <div class="ocs-requested-note"><span>↻</span><div><b>Status automatically updates</b><small>SP accept karte hi next screen automatically open hogi. App atka hua nahi hai.</small></div></div>
+
+   <div class="ocs-requested-actions">
+     <button class="btn gray" onclick="openSupport('customer')">OCS Support</button>
+     <button class="btn red" onclick="customerCancelBeforeStart()">Cancel Booking</button>
+   </div>
+   <div class="ocs-requested-cancel-note">Provider <b>On the Way</b> hone se pehle cancel karne par visit charge ₹0.</div>
+ </div>`;
+}
 
 if(S.status==="INITIAL_QUOTE")h=`<div class="notice good"><b>Quote Sent • ${money(S.quote&&S.quote.amount)}</b><br>Customer approval aur OCS secure payment ka wait hai.</div>${quoteTimerHTML()}<div class="notice"><b>Official rule:</b> Customer accept kiye bina rate official nahi hai.</div>${quoteHistoryHTML()}${quoteMediaHTML()}${quoteChatHTML("provider")}`;
 if(S.status==="QUOTE_SECURE_PAYMENT")h=`<div class="card"><div class="notice"><b>Quote Accepted</b><br>Customer OCS Secure Payment complete kar raha hai.</div><button class="btn alt" onclick="providerRequestQuoteRevision()">Request Quote Revision</button></div>${quoteHistoryHTML()}${quoteChatHTML("provider")}`;
@@ -4738,7 +4813,7 @@ bootHomeServices();
  addEventListener('error',e=>log('HOME_SERVICES',e.message,e.filename,e.lineno));
  addEventListener('unhandledrejection',e=>log('HOME_SERVICES_PROMISE',e.reason&&e.reason.message?e.reason.message:String(e.reason||'Promise error'),'promise',0));
 
- const build='20260927-searchall1';
+ const build='20260929-requestedpolish1';
  async function checkBuild(){
    try{
      const r=await fetch('app-version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;
