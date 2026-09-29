@@ -1976,69 +1976,101 @@ function renderProviderProfileSummaryPanel(pp){
     '<div class="ocs-profile-summary">'+
       '<div class="ocs-profile-name">'+providerProfileEsc(pp.full_name||S.registeredProviderName||"Service Provider")+'</div>'+
       '<div class="ocs-profile-sub">'+providerProfileEsc(pp.phone||S.providerMobile||"Mobile not added")+' • '+(approvedCount?'Approved':'Verification Pending')+'</div>'+
-      '<div class="ocs-profile-skill-title">Skills</div>'+
+      '<div class="ocs-profile-skill-title">Work Category</div>'+
       '<div>'+(chips||'<span class="muted">No skill saved.</span>')+'</div>'+
-      '<div class="ocs-profile-note">Approved profile aur skills locked hain. Skill change ki zarurat ho to OCS Support / Admin se request karein.</div>'+
+      '<div class="ocs-profile-note">1 SP = 1 Work Category. Approved category locked hai; change/add ke liye OCS Support / Admin approval required hai.</div>'+
       '<div class="ocs-profile-actions">'+
         '<button class="btn gray" onclick="closeProviderProfilePanel()">Close</button>'+
       '</div>'+
     '</div>';
 }
+function ocsProviderWorkCategoryChanged(el){
+  const wrap=document.getElementById("ocsProviderOtherCategoryWrap");
+  if(wrap)wrap.style.display=(el&&el.checked&&el.value==="Other")?"block":"none";
+}
 async function showProviderSkillEditor(){
   const body=document.getElementById("providerProfilePanelBody");
   if(!body)return;
-  body.innerHTML='<div class="ocs-profile-summary"><div class="muted">Skills loading...</div></div>';
+  body.innerHTML='<div class="ocs-profile-summary"><div class="muted">Work Category loading...</div></div>';
   try{
     const pp=await providerProfilePanelSnapshot();
     const rows=Array.isArray(pp.skills)?pp.skills:[];
-    const enabled=new Set();
-    const approved=new Set();
-    rows.forEach(r=>{
-      const label=providerSkillLabel(r);
-      if(r.enabled_by_provider!==false)enabled.add(label);
-      if(r.enabled_by_provider!==false&&r.approved===true&&String(r.verification_status||"").toLowerCase()==="approved")approved.add(label);
-    });
+    const enabledRows=rows.filter(r=>r&&r.enabled_by_provider!==false);
+    const approvedRows=enabledRows.filter(r=>r.approved===true&&String(r.verification_status||"").toLowerCase()==="approved");
+    const approvedLabels=[...new Set(approvedRows.map(providerSkillLabel).filter(Boolean))];
+
+    if(approvedLabels.length){
+      body.innerHTML=
+        '<div class="ocs-profile-summary">'+
+          '<div class="ocs-profile-name">Work Category</div>'+
+          '<div class="ocs-profile-sub">1 SP = 1 Work Category</div>'+
+          '<div class="ocs-profile-note"><b>Approved category locked hai.</b><br>Current: '+approvedLabels.map(providerProfileEsc).join(", ")+'<br><br>Category change/add karne ke liye OCS Support / Admin approval required hai.</div>'+
+          '<div class="ocs-profile-actions">'+
+            '<button class="btn gray" onclick="openProviderProfileSafe()">← Profile Summary</button>'+
+          '</div>'+
+        '</div>';
+      return;
+    }
+
+    const enabledLabels=[...new Set(enabledRows.map(providerSkillLabel).filter(Boolean))];
+    const knownEnabled=enabledLabels.find(x=>OCS_PROVIDER_SKILL_OPTIONS.includes(x)&&x!=="Other")||"";
+    const customEnabled=enabledLabels.find(x=>!OCS_PROVIDER_SKILL_OPTIONS.includes(x))||"";
+    const currentValue=customEnabled?"Other":knownEnabled;
     const opts=OCS_PROVIDER_SKILL_OPTIONS.map(label=>{
-      const locked=approved.has(label);
-      const checked=enabled.has(label)||locked;
-      return '<label class="ocs-skill-choice'+(locked?' locked':'')+'"><input type="checkbox" name="ocsProviderSkillEdit" value="'+providerProfileEsc(label)+'" '+(checked?'checked ':'')+(locked?'disabled ':'')+'><span>'+providerProfileEsc(label)+(locked?' ✓ Approved':'')+'</span></label>';
+      const checked=label===currentValue;
+      return '<label class="ocs-skill-choice"><input type="radio" name="ocsProviderSkillEdit" value="'+providerProfileEsc(label)+'" '+(checked?'checked ':'')+'onchange="ocsProviderWorkCategoryChanged(this)"><span>'+providerProfileEsc(label)+'</span></label>';
     }).join("");
+
     body.innerHTML=
       '<div class="ocs-profile-summary">'+
-        '<div class="ocs-profile-name">Add / Change Skills</div>'+
-        '<div class="ocs-profile-sub">Approved skill remove nahi hogi. Nayi skill approval ke baad active hogi.</div>'+
+        '<div class="ocs-profile-name">Select Work Category</div>'+
+        '<div class="ocs-profile-sub"><b>1 SP = 1 category.</b> Sirf ek Work Category select karein.</div>'+
         '<div class="ocs-skill-grid">'+opts+'</div>'+
+        '<div id="ocsProviderOtherCategoryWrap" style="display:'+(currentValue==="Other"?'block':'none')+';margin-top:10px">'+
+          '<label>Other Work / Skill Name *</label>'+
+          '<input id="ocsProviderOtherCategory" value="'+providerProfileEsc(customEnabled)+'" placeholder="e.g. Glass Work / Door Repair">'+
+        '</div>'+
+        '<div class="ocs-profile-note">Selected category Admin approval ke baad matching ke liye active hogi.</div>'+
         '<div class="ocs-profile-actions">'+
-          '<button class="btn" onclick="saveProviderSkillEditor()">Save Skill Changes</button>'+
+          '<button class="btn" onclick="saveProviderSkillEditor()">Save Work Category</button>'+
           '<button class="btn gray" onclick="openProviderProfileSafe()">← Profile Summary</button>'+
         '</div>'+
       '</div>';
   }catch(e){
-    body.innerHTML='<div class="ocs-profile-note">Skills load nahi hui: '+providerProfileEsc(e&&e.message?e.message:"Unknown error")+'</div>';
+    body.innerHTML='<div class="ocs-profile-note">Work Category load nahi hui: '+providerProfileEsc(e&&e.message?e.message:"Unknown error")+'</div>';
   }
 }
 async function saveProviderSkillEditor(){
   const body=document.getElementById("providerProfilePanelBody");
   try{
     const pp=await providerProfilePanelSnapshot();
-    const selected=[...document.querySelectorAll('input[name="ocsProviderSkillEdit"]')].filter(x=>x.checked).map(x=>x.value);
-    const approvedRows=(Array.isArray(pp.skills)?pp.skills:[]).filter(r=>r.enabled_by_provider!==false&&r.approved===true&&String(r.verification_status||"").toLowerCase()==="approved");
-    approvedRows.forEach(r=>{const label=providerSkillLabel(r);if(!selected.includes(label))selected.push(label)});
-    if(!selected.length){alert("Kam se kam 1 skill select karein.");return}
-    if(body)body.innerHTML='<div class="ocs-profile-summary"><div class="muted">Saving skill changes...</div></div>';
+    const approvedRows=(Array.isArray(pp.skills)?pp.skills:[]).filter(r=>r&&r.enabled_by_provider!==false&&r.approved===true&&String(r.verification_status||"").toLowerCase()==="approved");
+    if(approvedRows.length){
+      alert("Approved Work Category direct change nahi hogi. OCS Support / Admin approval required hai.");
+      await showProviderSkillEditor();
+      return;
+    }
+    const chosen=document.querySelector('input[name="ocsProviderSkillEdit"]:checked');
+    if(!chosen){alert("1 Work Category select karein.");return}
+    let category=String(chosen.value||"").trim();
+    if(category==="Other"){
+      category=String(document.getElementById("ocsProviderOtherCategory")?.value||"").trim();
+      if(!category){alert("Other select kiya hai to Work / Skill Name likhein.");return}
+    }
+    if(body)body.innerHTML='<div class="ocs-profile-summary"><div class="muted">Saving Work Category...</div></div>';
     const {error}=await ocsSupabase.rpc("complete_service_provider_registration",{
       p_full_name:pp.full_name||S.registeredProviderName||"Service Provider",
       p_phone:pp.phone||S.providerMobile||"",
-      p_skill_labels:selected
+      p_skill_labels:[category]
     });
     if(error)throw error;
     await ocsLoadLive("provider");
     render();
     const fresh=await providerProfilePanelSnapshot();
     renderProviderProfileSummaryPanel(fresh);
-    alert("Skill changes saved. Nayi skill approval ke baad active hogi.");
+    alert("Work Category saved. Admin approval ke baad matching active hogi.");
   }catch(e){
-    if(body)body.innerHTML='<div class="ocs-profile-note">Skill save nahi hui: '+providerProfileEsc(e&&e.message?e.message:"Unknown error")+'</div><div class="ocs-profile-actions"><button class="btn gray" onclick="openProviderProfileSafe()">Back</button></div>';
+    if(body)body.innerHTML='<div class="ocs-profile-note">Work Category save nahi hui: '+providerProfileEsc(e&&e.message?e.message:"Unknown error")+'</div><div class="ocs-profile-actions"><button class="btn gray" onclick="openProviderProfileSafe()">Back</button></div>';
   }
 }
 
