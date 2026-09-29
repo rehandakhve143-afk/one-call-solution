@@ -1,5 +1,5 @@
 {
-  "build": "20260929-labourwarn1",
+  "build": "20260929-spcategorydashboard1",
   "updated_at": "2026-09-29",
-  "message": "Added labour-only material readiness warning to rate lists and booking"
+  "message": "SP dashboard Work Category is now single-select and approved category is locked"
 }
