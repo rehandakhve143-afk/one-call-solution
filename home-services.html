@@ -746,6 +746,10 @@ function ocsApplyBackendBooking(b){
   S.customSchedule=b.request_schedule||S.customSchedule||"";
   if(Array.isArray(b.request_media))S.requestMedia=b.request_media;
   if(Array.isArray(b.selected_items))S.selectedItems=b.selected_items;
+  if(b.booking_readiness&&typeof b.booking_readiness==="object")S.bookingReadiness=b.booking_readiness;
+  if(b.distance_km!==null&&b.distance_km!==undefined)S.oneWayDistanceKm=Number(b.distance_km||0);
+  if(b.latitude!==null&&b.latitude!==undefined)S.customerBookingLat=Number(b.latitude);
+  if(b.longitude!==null&&b.longitude!==undefined)S.customerBookingLng=Number(b.longitude);
   S.isQuoteBooking=S.requestType==="quote";
   S.status=ocsStatusFromBackend(b.status);
   if(b.provider_id){S.providerBackendId=b.provider_id;S.providerRequestForThisProfile=true}
@@ -813,7 +817,7 @@ async function ocsLoadLive(role){
       if(ce)throw ce;
       if(cur&&cur.length)booking=cur[0];
       if(!booking){
-        const {data:jobs,error:je}=await ocsSupabase.rpc("provider_open_jobs_v3");
+        const {data:jobs,error:je}=await ocsSupabase.rpc("provider_open_jobs_v4");
         if(je)throw je;
         if(jobs&&jobs.length){booking=jobs[0];bookingFromOpenJobs=true;}
       }
@@ -863,7 +867,7 @@ async function ocsLoadLive(role){
     }
     ocsApplyBackendBooking(booking);
     if(role==="provider"&&bookingFromOpenJobs){
-      // provider_open_jobs_v3 already checked login, availability, Admin pause,
+      // provider_open_jobs_v4 already checked login, availability, Admin pause,
       // rejection history and approved/enabled matching skills in the backend.
       S.providerProfileAvailable=true;
       S.providerRequestForThisProfile=true;
@@ -962,13 +966,16 @@ async function ocsCreateLiveBooking(){
     if(boot.error)throw boot.error;
   }catch(e){console.error("Customer account bootstrap failed",e)}
   const items=(S.selectedItems||[]).map(x=>({name:x.name,price:Number(x.price||0),qty:Number(x.qty||1)}));
-  const {data,error}=await ocsSupabase.rpc("create_customer_booking_v3",{
+  const {data,error}=await ocsSupabase.rpc("create_customer_booking_v4",{
     p_category:S.category||"",
     p_service_name:S.service||S.serviceName||S.category||"Home Service",
     p_booking_amount:Number(S.total||S.base||0),
     p_payment_method:String(S.paymentChoice||"ONLINE").toLowerCase(),
     p_address:S.address||"",
-    p_selected_items:items
+    p_selected_items:items,
+    p_readiness:ocsBookingReadinessPayload(),
+    p_latitude:Number(S.customerBookingLat),
+    p_longitude:Number(S.customerBookingLng)
   });
   if(error)throw error;
   ocsApplyBackendBooking(data);
@@ -1064,7 +1071,8 @@ providerRatings:[],customerRating:null,pendingRatingStars:0,pendingRatingComment
 currentJob:null,nextJob:null,pendingNextRequest:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null,
 customerName:"Customer 1",customerMobile:"Not added",customerEmail:"Not added",customerProfileAvailable:false,customerVerified:false,
 providerMobile:"Not added",providerEmail:"Not added",providerVerified:true,providerProfileAvailable:false,
-registeredProviderName:"",registeredProviderSkills:[],providerArea:"",providerRadius:0,providerVerificationStatus:"Not registered",providerBackendConnected:false,providerRequestForThisProfile:false
+registeredProviderName:"",registeredProviderSkills:[],providerArea:"",providerRadius:0,providerVerificationStatus:"Not registered",providerBackendConnected:false,providerRequestForThisProfile:false,
+bookingReadiness:{},powerReadiness:"",customerBookingLat:null,customerBookingLng:null
 };
 
 const OCS_HOME_STATE_KEY="ocsHomeServiceFullState";
@@ -1343,6 +1351,29 @@ function ocsMaterialReadinessHTML(){
     '<label style="display:flex;gap:9px;align-items:flex-start;margin-top:8px;font-weight:800"><input type="radio" name="ocsMaterialReadiness" value="INSPECTION" '+(inspect?'checked ':'')+'onchange="ocsSetMaterialReadiness(\'INSPECTION\')" style="width:auto;margin-top:2px"> <span>Material clear nahi / Inspection chahiye</span></label>'+
   '</div>';
 }
+function ocsPowerReadinessRequired(){
+  return String(S.category||"")==="Electrical"&&S.serviceType==="fixed"&&!isSiteVisitBooking();
+}
+function ocsSetPowerReadiness(v){S.powerReadiness=String(v||"");saveHomeState();}
+function ocsPowerReadinessHTML(){
+  if(!ocsPowerReadinessRequired())return "";
+  const v=String(S.powerReadiness||"");
+  return '<div class="notice" style="margin:10px 0;background:#f5fbfa;border-color:#b9ddd6"><b>Electrical work readiness</b><br><span style="display:block;margin-top:5px">Drill / testing ke liye nearby working power point available hai?</span>'+
+    '<label style="display:flex;gap:8px;align-items:center;margin-top:9px;font-weight:800"><input type="radio" name="ocsPowerReady" value="YES" '+(v==="YES"?"checked ":"")+'onchange="ocsSetPowerReadiness(\'YES\')" style="width:auto"> Yes</label>'+
+    '<label style="display:flex;gap:8px;align-items:center;margin-top:7px;font-weight:800"><input type="radio" name="ocsPowerReady" value="NO" '+(v==="NO"?"checked ":"")+'onchange="ocsSetPowerReadiness(\'NO\')" style="width:auto"> No</label>'+
+    '<label style="display:flex;gap:8px;align-items:center;margin-top:7px;font-weight:800"><input type="radio" name="ocsPowerReady" value="NOT_SURE" '+(v==="NOT_SURE"?"checked ":"")+'onchange="ocsSetPowerReadiness(\'NOT_SURE\')" style="width:auto"> Not sure</label>'+
+    '<small style="display:block;margin-top:7px">No / Not sure hone par booking block nahi hogi; SP ko pehle se info milegi.</small></div>';
+}
+function ocsBookingReadinessPayload(){return {material_status:String(S.materialReadiness||""),power_point:String(S.powerReadiness||"")};}
+function ocsBookingLocationHTML(){
+  const ready=Number.isFinite(Number(S.customerBookingLat))&&Number.isFinite(Number(S.customerBookingLng));
+  return '<div class="notice '+(ready?"good":"")+'" style="margin:10px 0"><b>Location Pin '+(ready?"✓":"Required")+'</b><br><span>'+(ready?"Current booking location saved. Nearest matching SP search hoga.":"Nearest Service Provider ke liye current location pin set karein.")+'</span><button type="button" class="btn gray" style="margin-top:9px" onclick="ocsUseBookingLocation()">📍 Use Current Location</button></div>';
+}
+function ocsUseBookingLocation(){
+  if(!navigator.geolocation){alert("GPS location available nahi hai.");return}
+  navigator.geolocation.getCurrentPosition(p=>{S.customerBookingLat=Number(p.coords.latitude);S.customerBookingLng=Number(p.coords.longitude);saveHomeState();render();},()=>alert("Location permission allow karein. Nearest Service Provider ke liye location pin required hai."),{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
+}
+
 
 const services={
  'Custom / Other':{label:'New Service Request',icon:'🛠️',items:[{"name":"New Service Request","type":"quote","display":"Describe • Get Quote"}]},
@@ -1709,7 +1740,7 @@ async function submitCustomRequest(){
      return;
    }
    try{const boot=await ocsSupabase.rpc("ensure_customer_account_v1");if(boot.error)throw boot.error}catch(e){console.error("Customer account bootstrap failed",e)}
-   const {data,error}=await ocsSupabase.rpc("create_customer_quote_request_v1",{
+   const {data,error}=await ocsSupabase.rpc("create_customer_quote_request_v2",{
      p_category:S.category,
      p_service_name:S.service,
      p_description:d,
@@ -2631,6 +2662,10 @@ function settleVisitChargePayment(){
 async function booking(){
  if(!ocsRequireStage(["BOOKING_DETAILS","READY"],"Create booking"))return;
  if(!ocsGuardAction("create-booking",1600))return;
+ const fullAddress=String(S.address||"").trim();
+ if(!fullAddress||/^(customer address|customer service address)$/i.test(fullAddress)){alert("Full service address enter karein.");return}
+ if(!Number.isFinite(Number(S.customerBookingLat))||!Number.isFinite(Number(S.customerBookingLng))){alert("Use Current Location se booking location pin set karein.");return}
+ if(ocsPowerReadinessRequired()&&!["YES","NO","NOT_SURE"].includes(String(S.powerReadiness||""))){alert("Nearby working power point available hai ya nahi select karein.");return}
  if(ocsLabourMaterialGateRequired()){
    if(S.materialReadiness!=="READY"&&S.materialReadiness!=="INSPECTION"){
      alert("Labour-only booking ke liye material / parts status select karein.");
@@ -3407,7 +3442,7 @@ function resetAll(){
    selectedItems:[],
    startOtp:null,quote:null,quoteDecision:null,quoteHistory:[],quoteRevision:null,pendingRevisionTopUp:0,quoteRevisionRefund:0,
    quoteResponseDeadline:0,quoteProviderAccepted:false,quoteValidUntil:0,beforeWorkProof:[],afterWorkProof:[],
-   customDescription:"",customSchedule:"",materialReadiness:"",
+   customDescription:"",customSchedule:"",materialReadiness:"",powerReadiness:"",bookingReadiness:{},customerBookingLat:null,customerBookingLng:null,
    customerAddingWork:false,addWorkSelected:{},addWorkQty:{},
    customerExtraItems:[],customerExtraRequest:"",customerExtraStatus:"",extraQuote:null,lastAddedWork:null,
    providerAddingWork:false,providerAddSelected:{},providerAddQty:{},
@@ -3579,7 +3614,7 @@ if(S.status==="BOOKING_DETAILS"){
  let itemLines=fixed&&selected.length
    ? '<div class="card" style="margin:10px 0;padding:10px">'+selected.map(x=>'<div class="row" style="align-items:flex-start"><div><b>'+ocsSafe(x.name)+'</b><div class="muted">'+money(Number(x.price||0))+' × '+Number(x.qty||1)+'</div></div><b>'+money(Number(x.price||0)*Number(x.qty||1))+'</b></div>').join('')+'</div>'
    : '';
- h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${ocsLabourOnlyWarning()}${ocsMaterialReadinessHTML()}${S.paymentHeld?secureHoldHTML():""}<label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
+ h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${ocsLabourOnlyWarning()}${ocsMaterialReadinessHTML()}${ocsPowerReadinessHTML()}${S.paymentHeld?secureHoldHTML():""}<label>Full Service Address *</label><input value="${ocsSafe(S.address||"")}" placeholder="House/Flat, Building, Area, Landmark" onchange="S.address=this.value;saveHomeState()">${ocsBookingLocationHTML()}<h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
 }
 
 if(S.status==="READY")h=`
