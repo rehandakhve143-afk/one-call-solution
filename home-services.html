@@ -757,6 +757,7 @@ async function ocsLoadLive(role){
             if(x.category==="Maid Service")return "Maid";
             if(x.category==="Wi-Fi / TV Installation & Setup")return "Wi-Fi / TV Setup";
             if(x.category==="Tiles / Stone")return "Tiles / Stone Work";
+            if(x.category==="Custom / Other")return x.service_name||x.skill||"Other";
             return x.category||x.service_name||x.skill;
           }).filter(Boolean);
           const approved=skills.some(x=>x.approved===true&&x.verification_status==="approved");
@@ -1241,6 +1242,7 @@ function requiredSkillsForBooking(){
  if(cat==="Wi-Fi / TV Installation & Setup")return ["Wi-Fi / TV Setup","Wi-Fi / TV Installation & Setup"];
  if(cat==="Tiles / Stone")return ["Tiles / Stone Work","Tiles / Stone"];
  if(cat==="Sliding / Aluminium Repair")return ["Sliding / Aluminium Repair"];
+ if(cat==="Custom / Other")return svc?[svc]:[];
  return cat?[cat]:[];
 }
 function syncRegisteredProfiles(){
@@ -1270,6 +1272,9 @@ function providerMatchesCurrentBooking(){
  const need=requiredSkillsForBooking().map(normalSkill).filter(Boolean);
  const have=(S.registeredProviderSkills||[]).map(normalSkill).filter(Boolean);
  if(!need.length)return true;
+ if(String(S.category||"").trim()==="Custom / Other"){
+   return need.some(n=>have.some(h=>h===n));
+ }
  return need.some(n=>have.some(h=>h===n||h.includes(n)||n.includes(h)));
 }
 function prepareProfileMatching(){
@@ -1298,8 +1303,27 @@ function ocsLabourOnlyWarning(){
     'Part/material clear nahi hai to pehle <b>Visit / Inspection</b> ya <b>Get Quote</b> use karein.'+
   '</div>';
 }
+function ocsLabourMaterialGateRequired(){
+  return ocsLabourOnlyCategory(S.category)&&S.serviceType==="fixed"&&!isSiteVisitBooking();
+}
+function ocsSetMaterialReadiness(v){
+  S.materialReadiness=String(v||"");
+  saveHomeState();
+}
+function ocsMaterialReadinessHTML(){
+  if(!ocsLabourMaterialGateRequired())return "";
+  const ready=S.materialReadiness==="READY";
+  const inspect=S.materialReadiness==="INSPECTION";
+  return '<div class="notice" style="margin:10px 0;background:#f5fbfa;border-color:#b9ddd6">'+
+    '<b>Before calling Service Provider</b><br>'+
+    '<span style="display:block;margin-top:5px">Labour-only booking ke liye material/parts status confirm karein.</span>'+
+    '<label style="display:flex;gap:9px;align-items:flex-start;margin-top:10px;font-weight:800"><input type="radio" name="ocsMaterialReadiness" value="READY" '+(ready?'checked ':'')+'onchange="ocsSetMaterialReadiness(\'READY\')" style="width:auto;margin-top:2px"> <span>Material / parts ready hain</span></label>'+
+    '<label style="display:flex;gap:9px;align-items:flex-start;margin-top:8px;font-weight:800"><input type="radio" name="ocsMaterialReadiness" value="INSPECTION" '+(inspect?'checked ':'')+'onchange="ocsSetMaterialReadiness(\'INSPECTION\')" style="width:auto;margin-top:2px"> <span>Material clear nahi / Inspection chahiye</span></label>'+
+  '</div>';
+}
 
 const services={
+ 'Custom / Other':{label:'New Service Request',icon:'🛠️',items:[{"name":"New Service Request","type":"quote","display":"Describe • Get Quote"}]},
  'Electrical':{icon:'⚡',items:[{"name": "Fan Fitting / Capacitor Change", "type": "fixed", "price": 239, "display": "₹239", "fanBundle": false}, {"name": "Fan Hook / Anchor Fastener Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Fan + Anchor Fastener Fitting", "type": "fixed", "price": 450, "display": "₹450"}, {"name": "Regulator Fitting – Concealed", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Regulator Fitting – Normal", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Switch Change – 1 No.", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "1 Switch + 1 Socket Change", "type": "fixed", "price": 250, "display": "₹250"}, {"name": "Geyser Fitting – Normal", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Geyser + Angle Cock", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "15/16 Amp Board Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Inverter Wiring – 1 BHK Casing/Patti", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "Inverter Wiring – 1 BHK Concealed", "type": "fixed", "price": 700, "display": "₹700"}, {"name": "Normal Inverter Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Inverter + Overhead Battery Load", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "MCB Single/Double Pole Fitting", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Tube/LED Light Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Holder Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Electric Board Change", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Bulb Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Building Street Light – 1", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "Earthing Maintenance / Check", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "New Earthing Installation Wiring – 1 BHK", "type": "fixed", "price": 700, "display": "₹700"}, {"name": "Visit / Inspection – Work Checking", "type": "fixed", "price": 249, "display": "₹249"}, {"name": "Exhaust Fan Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Wall Fan Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "BLDC/Smart Fan Installation", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Decorative Fan Installation", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "New Switch Box Installation", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Switchboard Repair", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Plug Top Replacement/Fitting", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Doorbell Installation/Replacement", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Smart/Wi-Fi Switch Installation", "type": "fixed", "price": 239, "display": "₹239"}, {"name": "Submeter Installation", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Stabiliser Installation", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "External Wiring with Casing/Patti – per 5m", "type": "fixed", "price": 300, "display": "₹300"}, {"name": "Internal/Concealed Wiring – per 5m", "type": "fixed", "price": 350, "display": "₹350"}, {"name": "New Normal Power Point Wiring", "type": "fixed", "price": 500, "display": "₹500"}, {"name": "AC Dedicated Power Point Wiring", "type": "fixed", "price": 800, "display": "₹800"}, {"name": "MCB Tripping / Electrical Fault Diagnosis", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Short Circuit / Fault Finding", "type": "fixed", "price": 400, "display": "₹400"}, {"name": "Main Distribution Board Work", "type": "quote", "display": "Get Quote"}, {"name": "Full House Rewiring", "type": "quote", "display": "Get Quote"}, {"name": "New Complete Earthing", "type": "quote", "display": "Get Quote"}, {"name": "Chandelier / Heavy Decorative Light", "type": "quote", "price": 800, "display": "Get Quote / starts ₹800"}, {"name": "Any Other Electrical Work", "type": "quote", "display": "Get Quote"}]},
  'Plumbing':{icon:'🚰',items:[{"name":"Tap / Faucet Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Tap Washer / Minor Leakage Repair","type":"fixed","price":239,"display":"₹239"},{"name":"Mixer Tap Installation","type":"fixed","price":400,"display":"₹400"},{"name":"Basin / Sink Mixer Installation","type":"fixed","price":400,"display":"₹400"},{"name":"Basin Waste / Connection Pipe Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Kitchen Sink Blockage Removal","type":"fixed","price":350,"display":"₹350"},{"name":"Wash Basin Blockage Removal","type":"fixed","price":300,"display":"₹300"},{"name":"Bathroom Floor Drain Blockage","type":"fixed","price":400,"display":"₹400"},{"name":"Drain Cover Installation / Replacement","type":"fixed","price":239,"display":"₹239"},{"name":"PVC / CPVC Open Pipe Leakage Repair","type":"fixed","price":400,"display":"₹400"},{"name":"Concealed Pipe Leakage Repair","type":"fixed","price":800,"display":"₹800+"},{"name":"Connection Hose / Flexible Pipe Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Flush Tank Internal Repair","type":"fixed","price":350,"display":"₹350"},{"name":"External Flush Tank Replacement","type":"fixed","price":450,"display":"₹450"},{"name":"Flush Tank / Commode Leakage Repair","type":"fixed","price":300,"display":"₹300"},{"name":"Jet Spray Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Toilet Seat Cover Fitting / Replacement","type":"fixed","price":239,"display":"₹239"},{"name":"Western Commode Installation","type":"fixed","price":1000,"display":"₹1,000"},{"name":"Indian Toilet Installation","type":"fixed","price":1000,"display":"₹1,000"},{"name":"Wall-Mounted Toilet Repair","type":"fixed","price":700,"display":"₹700"},{"name":"Toilet / Pot Blockage Removal","type":"quote","price":700,"display":"₹700–₹1,300"},{"name":"Overhead Shower Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Hand Shower Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Shower Repair","type":"fixed","price":239,"display":"₹239"},{"name":"Shower Mixer Installation","type":"fixed","price":400,"display":"₹400"},{"name":"Diverter Installation / Replacement","type":"fixed","price":600,"display":"₹600"},{"name":"Soap Holder Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Towel Rod / Holder Fitting","type":"fixed","price":239,"display":"₹239"},{"name":"Bathroom Shelf Fitting","type":"fixed","price":300,"display":"₹300"},{"name":"Wash Basin Installation","type":"fixed","price":500,"display":"₹500"},{"name":"Kitchen Sink Installation","type":"fixed","price":500,"display":"₹500"},{"name":"Waste Coupling Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Geyser Inlet / Outlet Connection","type":"fixed","price":350,"display":"₹350"},{"name":"Geyser Connection Leakage Repair","type":"fixed","price":250,"display":"₹250"},{"name":"Washing Machine Inlet / Outlet Connection","type":"fixed","price":300,"display":"₹300"},{"name":"RO Water Connection","type":"fixed","price":250,"display":"₹250"},{"name":"Shut-off Valve Installation / Replacement","type":"fixed","price":250,"display":"₹250"},{"name":"Water Tank Cleaning","type":"quote","price":1500,"display":"₹1,500 / Get Quote"},{"name":"New PVC / CPVC Pipeline Work","type":"quote","display":"Get Quote"},{"name":"Full Bathroom Plumbing / Fitting","type":"quote","display":"Get Quote"},{"name":"Full House Plumbing / Re-plumbing","type":"quote","display":"Get Quote"},{"name":"Concealed Leakage Detection","type":"quote","display":"Get Quote"},{"name":"High-Rise / External Hanging Pipe Work","type":"quote","display":"Get Quote"},{"name":"Emergency / Major Drain Blockage","type":"quote","display":"Get Quote"},{"name":"Any Other Plumbing Work","type":"quote","display":"Get Quote"},{"name":"Plumber Visit / Inspection – Work Checking","type":"fixed","price":249,"display":"₹249"}]},
  'AC Service':{icon:'❄️',items:[
@@ -1632,22 +1656,25 @@ function changeSelectedQty(i,d){
 }
 function continueSelectedItems(){
  if(!(S.selectedItems||[]).length){alert("Kam se kam 1 service select karein.");return}
+ S.materialReadiness="";
  S.service=S.selectedItems.map(x=>x.name+" × "+x.qty).join(", "); S.serviceType="fixed"; S.quantity=S.selectedItems.reduce((a,x)=>a+x.qty,0); S.base=S.selectedItems.reduce((a,x)=>a+x.price*x.qty,0); S.total=S.base; S.status="BOOKING_DETAILS"; render();
 }
 function selectServiceItem(i){
- const it=services[S.category].items[i]; S.service=it.name; S.serviceType=it.type; S.quantity=1;
+ const it=services[S.category].items[i]; S.materialReadiness=""; S.service=it.name; S.serviceType=it.type; S.quantity=1;
  if(it.type==="fixed"){S.base=Number(it.price||0);S.total=S.base;S.status="BOOKING_DETAILS"}
  else{S.base=0;S.total=0;S.status="CUSTOM_REQUEST"}
  render();
 }
 function setQty(q){q=Math.max(1,Number(q)||1);S.quantity=q;let it=(services[S.category]?.items||[]).find(x=>x.name===S.service);S.base=Number(it?.price||0)*q;S.total=S.base;render()}
 async function submitCustomRequest(){
+ let workSkill=$("customSkillName")?.value.trim();
  let d=$("customDesc")?.value.trim(); let sch=document.querySelector('input[name="customSchedule"]:checked')?.value;
+ if(!workSkill){alert("Work / Skill Name mandatory hai.");return}
  if(!d){alert("Describe your work / problem mandatory hai.");return} if(!sch){alert("Preferred schedule select karein.");return}
  const photos=Array.from($("customPhoto")?.files||[]).slice(0,5).map(x=>({kind:"photo",name:x.name}));
  const videos=Array.from($("customVideo")?.files||[]).slice(0,1).map(x=>({kind:"video",name:x.name}));
  S.requestMedia=photos.concat(videos);S.chatMessages=[];S.customDescription=d;S.customSchedule=sch;
- S.service=S.service&&S.serviceType==="quote"?S.service:(S.category+" • New Service Request");
+ S.service=workSkill;
  S.serviceType="quote";S.isQuoteBooking=true;
  try{
    const session=await ocsSession();
@@ -2360,6 +2387,7 @@ function updateSelectionTray(){
 }
 function bookCategorySiteVisit(){
  if(!S.category){alert("Please select a service category first.");return}
+ S.materialReadiness="";
  S.selectedItems=[{i:-249,name:S.category+" Site Visit / Inspection",price:0,qty:1,noQty:true}];
  S.serviceName=S.category+" Site Visit / Inspection";
  S.bookingAmount=0; S.total=0; S.currentTotal=0; S.finalAmount=0; S.amount=0;
@@ -2550,6 +2578,16 @@ function settleVisitChargePayment(){
 async function booking(){
  if(!ocsRequireStage(["BOOKING_DETAILS","READY"],"Create booking"))return;
  if(!ocsGuardAction("create-booking",1600))return;
+ if(ocsLabourMaterialGateRequired()){
+   if(S.materialReadiness!=="READY"&&S.materialReadiness!=="INSPECTION"){
+     alert("Labour-only booking ke liye material / parts status select karein.");
+     return;
+   }
+   if(S.materialReadiness==="INSPECTION"){
+     alert("Material clear nahi hai. Services me wapas jaakar Visit / Inspection ya Get Quote select karein.");
+     return;
+   }
+ }
  if(OCS_BROWSE_MODE&&ocsSupabase){
    try{
      const {data:active,error:ae}=await ocsSupabase.rpc("customer_active_booking");
@@ -3316,7 +3354,7 @@ function resetAll(){
    selectedItems:[],
    startOtp:null,quote:null,quoteDecision:null,quoteHistory:[],quoteRevision:null,pendingRevisionTopUp:0,quoteRevisionRefund:0,
    quoteResponseDeadline:0,quoteProviderAccepted:false,quoteValidUntil:0,beforeWorkProof:[],afterWorkProof:[],
-   customDescription:"",customSchedule:"",
+   customDescription:"",customSchedule:"",materialReadiness:"",
    customerAddingWork:false,addWorkSelected:{},addWorkQty:{},
    customerExtraItems:[],customerExtraRequest:"",customerExtraStatus:"",extraQuote:null,lastAddedWork:null,
    providerAddingWork:false,providerAddSelected:{},providerAddQty:{},
@@ -3438,18 +3476,19 @@ function customerHTML(){
 let h="";
 
 if(S.status==="SELECT_SERVICE"){
- const cats=Object.entries(services);
+ const cats=Object.entries(services).sort(([a],[b])=>(a==="Custom / Other"?1:b==="Custom / Other"?-1:0));
  h=`<div class="ocs-hs-page">
-   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 24.2</span><button class="ocs-hs-back" onclick="try{window.parent.closeModule()}catch(e){}">‹</button><img class="ocs-hs-brandlogo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><h2>Home Services</h2><small>Verified professionals • clear rates</small></div></div>
+   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 24.3</span><button class="ocs-hs-back" onclick="try{window.parent.closeModule()}catch(e){}">‹</button><img class="ocs-hs-brandlogo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><h2>Home Services</h2><small>Verified professionals • clear rates</small></div></div>
    <div class="ocs-hs-body">
      <div class="ocs-hs-hero"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Professional Home Services At Your Doorstep</b><span>Verified • Skilled • Reliable</span></div></div>
      <div class="ocs-hs-search"><span>⌕</span><input id="catSearch" placeholder="Search home services..." oninput="filterLockedCategories(this.value)"></div>
-     <div class="ocs-hs-cat-list">${cats.map(([k,v])=>`<button type="button" class="ocs-hs-cat" data-cat="${k.toLowerCase()}" data-ocs-category="${k}"><span class="ico">${ocsUiIcon(k)}</span><span class="copy"><b>${k}</b><small>${v.items.length}+ Services</small></span><span class="arr">›</span></button>`).join('')}</div>
+     <div class="ocs-hs-cat-list">${cats.map(([k,v])=>`<button type="button" class="ocs-hs-cat" data-cat="${k.toLowerCase()}" data-ocs-category="${k}"><span class="ico">${ocsUiIcon(k)}</span><span class="copy"><b>${v.label||k}</b><small>${v.items.length}+ Services</small></span><span class="arr">›</span></button>`).join('')}</div>
    </div>
  </div>`;return h
 }
 if(S.status==="SELECT_ITEM"){
  let d=services[S.category];S.selectedItems=S.selectedItems||[];
+ let displayCategory=d.label||S.category;
  let selectedQty=S.selectedItems.reduce((a,x)=>a+Number(x.qty||1),0);
  let selectedTotal=S.selectedItems.reduce((a,x)=>a+Number(x.price||0)*Number(x.qty||1),0);
  let bookingBar=S.selectedItems.length?`<div class="ocs-inline-booking"><div class="ib-copy"><b>${selectedQty} Service${selectedQty>1?'s':''} Selected</b><small>Grand Total: ${money(selectedTotal)}</small></div><button type="button" data-ocs-continue="1">Continue Booking →</button></div>`:'';
@@ -3459,10 +3498,10 @@ if(S.status==="SELECT_ITEM"){
    return `<div class="ocs-svc-row svc-card" data-search="${it.name.toLowerCase()}"><span class="ocs-svc-thumb">${ocsServiceIcon()}</span><span class="ocs-svc-copy"><b>${it.name}</b><span>${it.display||money(it.price)}</span><small>Labour / service charge</small></span>${x&&!it.noQty?`<span class="ocs-svc-step"><button type="button" data-ocs-qty="${i}" data-delta="-1">−</button><b>${x.qty}</b><button type="button" data-ocs-qty="${i}" data-delta="1">+</button></span>`:`<button type="button" class="ocs-svc-add" data-ocs-add="${i}">${x?'Added ✓':'Add'}</button>`}</div>`
  }).join('');
  h=`<div class="ocs-hs-page">
-   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 24.2</span><button type="button" class="ocs-hs-back" data-ocs-back-categories="1">‹</button><img class="ocs-hs-brandlogo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><h2>${S.category} Services</h2><small>${d.items.length} services</small></div></div>
+   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 24.3</span><button type="button" class="ocs-hs-back" data-ocs-back-categories="1">‹</button><img class="ocs-hs-brandlogo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><h2>${displayCategory}</h2><small>${d.items.length} service${d.items.length===1?'':'s'}</small></div></div>
    <div class="ocs-hs-body">
-     <div class="ocs-svc-banner"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Safe ${S.category} Solutions For Your Home</b><span>Verified Service Providers • clear OCS rates</span></div></div>
-     <div class="ocs-hs-search"><span>⌕</span><input id="svcSearch" placeholder="Search ${S.category.toLowerCase()} service..." oninput="filterServiceCards(this.value)"></div>
+     <div class="ocs-svc-banner"><img src="assets/home-services-card-final.jpg" alt=""><div><b>${S.category==="Custom / Other"?"Tell us the work you need":"Safe "+displayCategory+" Solutions For Your Home"}</b><span>Verified Service Providers • clear OCS rates</span></div></div>
+     <div class="ocs-hs-search"><span>⌕</span><input id="svcSearch" placeholder="Search ${displayCategory.toLowerCase()}..." oninput="filterServiceCards(this.value)"></div>
      <p class="ocs-svc-note">Material/parts separate where applicable. Visit / Inspection and no-work charges follow OCS rules.</p>
      ${ocsLabourOnlyWarning()}
      ${bookingBar}
@@ -3471,7 +3510,10 @@ if(S.status==="SELECT_ITEM"){
    </div>
  </div>`;return h
 }
-if(S.status==="CUSTOM_REQUEST"){h=`<button class="backbtn" onclick="S.status='SELECT_ITEM';render()">← ${S.category}</button><div class="card"><h3>Get Quote • New Service Request</h3><div class="muted">Koi bhi Get Quote work ke liye details + photo/video bhejein. Provider reply ke baad isi booking me Chat rahega.</div><label>Describe your work / problem *</label><textarea id="customDesc" rows="4" placeholder="Kaam ki poori detail likhiye"></textarea><label>Work Photos (up to 5)</label><input id="customPhoto" type="file" accept="image/*" multiple><label>Work Video (up to 1 minute)</label><input id="customVideo" type="file" accept="video/*"><div class="notice good"><b>Photo • Video • Chat</b><br>Ye sab isi OCS booking record ke saath rahega.</div><label>Preferred Schedule *</label><div class="schedule-grid"><label><input type="radio" name="customSchedule" value="Morning 8 AM–12 PM">Morning • 8 AM–12 PM</label><label><input type="radio" name="customSchedule" value="Afternoon 12–4 PM">Afternoon • 12–4 PM</label><label><input type="radio" name="customSchedule" value="Evening 4–8 PM">Evening • 4–8 PM</label></div><button class="btn" onclick="submitCustomRequest()">Send Get Quote Request</button></div>`;return h}
+if(S.status==="CUSTOM_REQUEST"){
+ const customPrefill=S.category==="Custom / Other"&&S.service==="New Service Request"?"":(S.service||"");
+ h=`<button class="backbtn" onclick="S.status='SELECT_ITEM';render()">← ${ocsSafe((services[S.category]&&services[S.category].label)||S.category)}</button><div class="card"><h3>Get Quote • New Service Request</h3><div class="muted">Work / Skill Name clear likhein, phir details + photo/video bhejein. Provider reply ke baad isi booking me Chat rahega.</div><label>Work / Skill Name *</label><input id="customSkillName" value="${ocsSafe(customPrefill)}" placeholder="e.g. Glass Work / Door Repair / Custom Repair">${S.category==="Custom / Other"?'<div class="notice good"><b>Exact Skill Match</b><br>Example: Glass Work request sirf approved Glass Work Service Provider ko jayega.</div>':""}<label>Describe your work / problem *</label><textarea id="customDesc" rows="4" placeholder="Kaam ki poori detail likhiye"></textarea><label>Work Photos (up to 5)</label><input id="customPhoto" type="file" accept="image/*" multiple><label>Work Video (up to 1 minute)</label><input id="customVideo" type="file" accept="video/*"><div class="notice good"><b>Photo • Video • Chat</b><br>Ye sab isi OCS booking record ke saath rahega.</div><label>Preferred Schedule *</label><div class="schedule-grid"><label><input type="radio" name="customSchedule" value="Morning 8 AM–12 PM">Morning • 8 AM–12 PM</label><label><input type="radio" name="customSchedule" value="Afternoon 12–4 PM">Afternoon • 12–4 PM</label><label><input type="radio" name="customSchedule" value="Evening 4–8 PM">Evening • 4–8 PM</label></div><button class="btn" onclick="submitCustomRequest()">Send Get Quote Request</button></div>`;return h
+}
 if(S.status==="QUOTE_WAIT"){h=`<div class="notice good"><b>Get Quote Request Sent</b><br>Matching verified Service Provider ko work details + attachments bheje gaye. Quote isi OCS booking me aayega.</div>${quoteTimerHTML()}<div class="card"><b>${S.service||S.category}</b><p>${ocsSafe(S.customDescription||"")}</p><div class="muted">Preferred: ${ocsSafe(S.customSchedule||"")}</div><div class="notice"><b>OCS Rule:</b> Final rate/payment sirf app me accepted quote se official hoga. Call/Chat me bola amount official nahi hai.</div></div>${quoteMediaHTML()}${quoteChatHTML("customer")}`;return h}
 if(S.status==="QUOTE_EXPIRED"){h=`<div class="card"><h3>Quote Expired</h3><div class="notice">This quote was valid for 24 hours. Expired amount ab official/usable nahi hai.</div><button class="btn" onclick="customerRequestNewQuote()">Ask for Fresh Quote</button></div>${quoteHistoryHTML()}${quoteChatHTML("customer")}`;return h}
 if(S.status==="INITIAL_QUOTE"){h=`<div class="card"><h3>Service Provider Quote</h3><p>${ocsSafe(S.quote.desc)}</p><div class="money">${money(S.quote.amount)}</div>${quoteTimerHTML()}<div class="notice good"><b>Before Accepting Quote</b><br>Customer aur Service Provider OCS par Call / Video Call / Chat se work clear kar sakte hain. Final official amount sirf OCS quote approval se lock hoga.</div></div>${quoteChatHTML("customer")}<div class="card"><div class="row"><button class="btn ok" onclick="initialQuoteDecision('APPROVED')">Accept & Lock Amount</button><button class="btn red" onclick="initialQuoteDecision('REJECTED')">Reject</button></div><div class="muted">Accept ke baad extra photo/video proof mandatory nahi. Quote, discussion, payment aur booking history dono sides me rahegi.</div></div>${quoteHistoryHTML()}`;return h}
@@ -3484,7 +3526,7 @@ if(S.status==="BOOKING_DETAILS"){
  let itemLines=fixed&&selected.length
    ? '<div class="card" style="margin:10px 0;padding:10px">'+selected.map(x=>'<div class="row" style="align-items:flex-start"><div><b>'+ocsSafe(x.name)+'</b><div class="muted">'+money(Number(x.price||0))+' × '+Number(x.qty||1)+'</div></div><b>'+money(Number(x.price||0)*Number(x.qty||1))+'</b></div>').join('')+'</div>'
    : '';
- h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${ocsLabourOnlyWarning()}${S.paymentHeld?secureHoldHTML():""}<label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
+ h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${ocsLabourOnlyWarning()}${ocsMaterialReadinessHTML()}${S.paymentHeld?secureHoldHTML():""}<label>Address / Location</label><input value="${S.address}" onchange="S.address=this.value"><h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
 }
 
 if(S.status==="READY")h=`
@@ -3534,6 +3576,7 @@ if(S.status==="REQUESTED"){
      </div>
    </div>
    ${ocsLabourOnlyWarning()}
+   ${ocsLabourMaterialGateRequired()&&S.materialReadiness==="READY"?'<div class="notice good"><b>✓ Material / parts ready confirmed</b><br>Labour-only booking ke liye readiness confirm ho chuki hai.</div>':""}
 
    <div class="ocs-requested-note"><span>↻</span><div><b>Status automatically updates</b><small>SP accept karte hi next screen automatically open hogi. App atka hua nahi hai.</small></div></div>
 
