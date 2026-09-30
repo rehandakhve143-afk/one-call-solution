@@ -368,8 +368,30 @@ setTimeout(function(){
     <label>Other Skill / Service Name *</label>
     <input id="paOtherSkill" placeholder="e.g. Glass work / Door repair / Custom service">
   </div>
-  <div class="help" style="margin-top:12px"><b>1 SP = 1 Work Category.</b> Category change/add ke liye OCS Support/Admin approval required hoga. Bank details basic profile banate waqt required nahi hain; payout/settlement release se pehle verified Bank &amp; Payout details mandatory hongi.</div>
-  <button class="primary account-submit" onclick="saveProviderAccount()">Save Service Provider Profile</button>
+  <div class="help" style="margin-top:12px"><b>1 SP = 1 Work Category.</b> Category change/add ke liye OCS Support/Admin approval required hoga.</div>
+
+  <h3 style="margin:16px 0 8px">Work Location *</h3>
+  <div class="help">Nearest matching jobs ke liye ek baar apni normal work/service location set karein.</div>
+  <button type="button" id="paWorkLocationBtn" class="btn gray" style="width:100%;margin-top:8px" onclick="setProviderOnboardingLocation()">📍 Use Current Work Location</button>
+  <div class="verifyok" id="paWorkLocationStatus">Work location not set</div>
+
+  <h3 style="margin:16px 0 8px">Bank Details *</h3>
+  <label>Account Holder Name *</label><input id="paBankHolder" autocomplete="name" placeholder="Name as per bank account">
+  <label>Bank Name *</label><input id="paBankName" placeholder="Bank name">
+  <label>Account Number *</label><input id="paBankAccount" inputmode="numeric" placeholder="Bank account number">
+  <label>Confirm Account Number *</label><input id="paBankAccountConfirm" inputmode="numeric" placeholder="Re-enter account number">
+  <label>Account Type *</label><select id="paBankType"><option value="savings">Savings</option><option value="current">Current</option></select>
+  <label>IFSC *</label><input id="paBankIfsc" autocapitalize="characters" placeholder="e.g. HDFC0001234">
+  <label>UPI ID <span class="muted">(optional)</span></label><input id="paBankUpi" placeholder="name@bank">
+
+  <h3 style="margin:16px 0 8px">Selfie Verification *</h3>
+  <div class="help">Clear face selfie upload karein. Ye private verification ke liye hai; public profile photo nahi hai.</div>
+  <input id="paSelfie" type="file" accept="image/jpeg,image/png,image/webp" capture="user" onchange="handleProviderSelfie(this)">
+  <div id="paSelfiePreview" style="margin-top:8px"></div>
+  <div class="verifyok" id="paSelfieStatus">Selfie not selected</div>
+
+  <div class="help" style="margin-top:14px"><b>Final step:</b> Submit ke baad status Pending Approval rahega. Admin approve hone ke baad hi Work ON aur incoming jobs active honge.</div>
+  <button class="primary account-submit" onclick="saveProviderAccount()">Submit for Admin Approval</button>
   </div>
 </div>
 </div></div>
@@ -1080,11 +1102,11 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20260929-otpui1');
+    clean.searchParams.set('v','20260930-sponboarding1');
     clean.searchParams.set('login','1');
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20260929-otpui1&login=1');
+    location.replace('index.html?v=20260930-sponboarding1&login=1');
   }
   return true;
 }
@@ -1272,7 +1294,7 @@ async function openAccount(role,forceProviderSetup){
      if(auth)auth.style.display='none';
      if(setup)setup.style.display='block';
      document.getElementById('accountTitle').textContent='Complete Service Provider Profile';
-     document.getElementById('accountSub').textContent='Name, mobile, service area aur skill save karein';
+     document.getElementById('accountSub').textContent='Profile, one category, work location, bank aur selfie submit karein';
    }else{
      if(sum)sum.style.display='none';
      if(auth)auth.style.display='block';
@@ -1311,6 +1333,10 @@ async function showProviderProfileSummary(){
    if(session&&session.user&&ocsSupabase){
      const {data,error}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
      if(!error&&data&&Array.isArray(data.skills))rows=data.skills.filter(x=>x&&x.enabled_by_provider!==false);
+     try{
+       const ob=await ocsSupabase.rpc('provider_onboarding_snapshot_v1');
+       if(!ob.error)window.__ocsProviderOnboarding=ob.data||{};
+     }catch(_){}
    }
  }catch(e){console.error('Provider summary load failed',e)}
  const approved=rows.filter(x=>x.approved===true||String(x.verification_status||'').toLowerCase()==='approved');
@@ -1326,7 +1352,11 @@ async function showProviderProfileSummary(){
      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">'+
        '<div><b style="font-size:17px">'+ocsEsc(p.name||'Service Provider')+'</b>'+
        '<div class="muted" style="margin-top:3px">'+ocsEsc(p.area||'Service area')+' • '+ocsEsc(String(p.radius||12))+' km</div></div>'+
-       '<span class="rolepill" style="background:#e9f8f2;color:#157458">'+(approved.length?'APPROVED':'PROFILE SAVED')+'</span>'+
+       '<span class="rolepill" style="background:#e9f8f2;color:#157458">'+
+       ((window.__ocsProviderOnboarding&&window.__ocsProviderOnboarding.status==='approved')?'APPROVED':
+        (window.__ocsProviderOnboarding&&window.__ocsProviderOnboarding.status==='pending')?'PENDING APPROVAL':
+        (window.__ocsProviderOnboarding&&window.__ocsProviderOnboarding.status==='rejected')?'REJECTED':'PROFILE INCOMPLETE')+
+       '</span>'+
      '</div>'+
      '<div style="margin-top:13px"><b style="font-size:12px">Skills</b><div>'+skillHtml+'</div></div>'+
      '<div class="help" style="margin-top:12px">Approved skills locked hain. Skill change ki zarurat ho to OCS Support / Admin se request karein.</div>'+
@@ -1458,6 +1488,21 @@ async function saveCustomerAccount(){
    alert('Customer profile online save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
  }
 }
+let providerWorkLat=null,providerWorkLng=null;
+function setProviderOnboardingLocation(){
+  if(!navigator.geolocation){alert('GPS location available nahi hai.');return}
+  const st=document.getElementById('paWorkLocationStatus');
+  if(st){st.textContent='Getting current location...';st.style.color='#6f8188'}
+  navigator.geolocation.getCurrentPosition(
+    p=>{
+      providerWorkLat=Number(p.coords.latitude);
+      providerWorkLng=Number(p.coords.longitude);
+      if(st){st.textContent='✓ Work location set';st.style.color='#16815d'}
+    },
+    ()=>{if(st){st.textContent='Location permission required';st.style.color='#b42318'};alert('Location permission allow karein. Work location required hai.')},
+    {enableHighAccuracy:true,timeout:10000,maximumAge:30000}
+  );
+}
 let providerSelfieFile=null;
 function handleProviderSelfie(input){
  const file=input&&input.files&&input.files[0]?input.files[0]:null;
@@ -1473,53 +1518,78 @@ function handleProviderSelfie(input){
  }
 }
 async function saveProviderAccount(){
- const name=paName.value.trim(),mobile=paMobile.value.trim(),area=paArea.value.trim(),radius=paRadius.value;
+ const name=paName.value.trim(),mobile=paMobile.value.trim(),area=paArea.value.trim(),radius=Number(paRadius.value||12);
  const session=await refreshOcsEmailStatus();
  if(!session||!session.user){alert('Pehle OCS login complete karein.');return}
  const email=(session.user.email||'').trim();
- let skills=providerSkillLabels();
- if(skills.length>1){
-   alert('Sirf 1 Work Category select karein. Ek SP signup me 2 category allowed nahi hain.');
-   return;
- }
+ const skills=providerSkillLabels();
+ if(skills.length!==1){alert('Sirf 1 Work Category select karein.');return}
  const otherChecked=[...document.querySelectorAll('input[name="paSkill"]:checked')].some(x=>x.value==='Other');
  const otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
  if(otherChecked&&!otherSkill){alert('Other select kiya hai to apni skill / service ka naam likhein.');return}
- if(!name||mobile.replace(/\D/g,'').length<10||!area||!skills.length){
-   alert('Name, valid mobile, service area aur 1 Work Category required.');
-   return;
- }
+ if(!name||mobile.replace(/\D/g,'').length<10||!area){alert('Name, valid mobile aur service area required.');return}
+ if(providerWorkLat===null||providerWorkLng===null){alert('Use Current Work Location press karke work location set karein.');return}
+ if(!providerSelfieFile){alert('Selfie verification required hai.');return}
+
+ const holder=(document.getElementById('paBankHolder')?.value||'').trim();
+ const bank=(document.getElementById('paBankName')?.value||'').trim();
+ const account=(document.getElementById('paBankAccount')?.value||'').replace(/\D/g,'');
+ const confirmAccount=(document.getElementById('paBankAccountConfirm')?.value||'').replace(/\D/g,'');
+ const accountType=(document.getElementById('paBankType')?.value||'savings').trim();
+ const ifsc=(document.getElementById('paBankIfsc')?.value||'').trim().toUpperCase();
+ const upi=(document.getElementById('paBankUpi')?.value||'').trim();
+ if(!holder||!bank||!account||!confirmAccount||!ifsc){alert('Bank details complete karein.');return}
+ if(account!==confirmAccount){alert('Account Number aur Confirm Account Number match nahi karte.');return}
+
  try{
    const sync=await syncProviderRegistrationToBackend(name,mobile,skills);
-   const {data:snap,error:snapErr}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
-   if(snapErr)throw snapErr;
-   const backendSkills=Array.isArray(snap&&snap.skills)?snap.skills.filter(x=>x&&x.enabled_by_provider!==false):[];
-   const selectedCategories=new Set(skills.map(x=>String(x||'').trim()));
-   const electricalSelected=selectedCategories.has('Electrical');
-   const electricalSaved=backendSkills.some(x=>String(x.category||'').trim()==='Electrical');
-   if(electricalSelected&&!electricalSaved){
-     throw new Error('Electrical skill backend me save nahi hui. Please retry after page refresh.');
-   }
+
+   const payout=await ocsSupabase.rpc('save_provider_payout_v2',{
+     p_account_holder_name:holder,
+     p_bank_name:bank,
+     p_account_number:account,
+     p_ifsc:ifsc,
+     p_account_type:accountType,
+     p_upi_id:upi||null
+   });
+   if(payout.error)throw payout.error;
+
+   const loc=await ocsSupabase.rpc('set_provider_service_location_v1',{
+     p_latitude:providerWorkLat,
+     p_longitude:providerWorkLng,
+     p_radius_km:radius
+   });
+   if(loc.error)throw loc.error;
+
+   const ext=(String(providerSelfieFile.type||'').includes('png')?'png':String(providerSelfieFile.type||'').includes('webp')?'webp':'jpg');
+   const selfiePath=session.user.id+'/selfie.'+ext;
+   const upload=await ocsSupabase.storage.from('ocs-provider-private').upload(
+     selfiePath,providerSelfieFile,{upsert:true,contentType:providerSelfieFile.type||'image/jpeg'}
+   );
+   if(upload.error)throw upload.error;
+
+   const submit=await ocsSupabase.rpc('submit_provider_onboarding_v1',{
+     p_service_area:area,
+     p_service_radius_km:radius,
+     p_selfie_path:selfiePath
+   });
+   if(submit.error)throw submit.error;
+
    localStorage.setItem('ocsProviderProfile',JSON.stringify({
      name,mobile,email,area,radius,skills,
      backendConnected:true,
-     backendProviderId:sync&&sync.provider_id?sync.provider_id:(session.user&&session.user.id),
-     skillsSaved:backendSkills.length,
+     backendProviderId:(sync&&sync.provider_id)||session.user.id,
      mobileVerified:!!accountVerified.providerMobile,
-     mobileVerificationPending:!accountVerified.providerMobile,
      kycStatus:'Pending',
-     payoutStatus:'Not Added',
-     status:'Profile Saved • Verification Pending'
+     payoutStatus:'Pending',
+     status:'Submitted • Admin Approval Pending'
    }));
-   alert('Changes saved. Approved skills active rahengi; nayi skill verification ke baad active hogi.');
-   if(ocsRequestedSpDashboard()){
-     location.replace('home-services.html?tab=provider&sp=1&v=20260927-adminrecords1');
-     return;
-   }
+
+   alert('Service Provider profile Admin approval ke liye submit ho gaya. Approval ke baad Work ON hoga.');
    await showProviderProfileSummary();
  }catch(e){
-   console.error('Provider registration sync failed',e);
-   alert('Profile online save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
+   console.error('Provider onboarding submit failed',e);
+   alert('SP profile submit nahi hua: '+(e&&e.message?e.message:'Unknown error'));
  }
 }
 function getCustomerProfile(){try{return JSON.parse(localStorage.getItem('ocsCustomerProfile')||'null')}catch(e){return null}}
@@ -3980,7 +4050,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260929-refreshloopfix1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260930-sponboarding1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4054,7 +4124,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20260929-otpui1';
+const OCS_APP_BUILD='20260930-sponboarding1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
