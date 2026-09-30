@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20260930-spprefill1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260930-spprefill1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20260930-spsummary1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260930-spsummary1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -19,9 +19,9 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 try{
   const q=new URLSearchParams(location.search||"");
   if(q.get("admin")==="1"){
-    location.replace("home-services.html?tab=admin&v=20260930-spprefill1");
+    location.replace("home-services.html?tab=admin&v=20260930-spsummary1");
   }else if(q.get("sp")==="1"){
-    location.replace("home-services.html?tab=provider&sp=1&v=20260930-spprefill1");
+    location.replace("home-services.html?tab=provider&sp=1&v=20260930-spsummary1");
   }
 }catch(e){}
 </script><script>
@@ -306,6 +306,26 @@ setTimeout(function(){
 .ocs-sp-location-status.ok{color:#16815d;background:#f1fbf7}
 #providerProfileSetup .ocs-sp-submit{position:static!important;inset:auto!important;bottom:auto!important;left:auto!important;right:auto!important;display:block!important;width:100%!important;margin:16px 0 4px!important;z-index:auto!important}
 #providerProfileSetup input,#providerProfileSetup select{scroll-margin-bottom:100px}
+</style>
+<style id="ocs-sp-summary-polish">
+.ocs-sp-summary-card{border:1px solid #dfeae7;border-radius:22px;background:#fff;overflow:hidden;box-shadow:0 10px 28px rgba(25,67,63,.07)}
+.ocs-sp-summary-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:17px 16px 14px;background:linear-gradient(180deg,#f8fcfb 0%,#fff 100%)}
+.ocs-sp-summary-name{font-size:19px;font-weight:900;color:#173f46;line-height:1.15}
+.ocs-sp-summary-mobile{font-size:12px;color:#718185;margin-top:4px}
+.ocs-sp-summary-badge{flex:0 0 auto;padding:7px 10px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.25px}
+.ocs-sp-summary-badge.ok{background:#e8f8f1;color:#13765d}
+.ocs-sp-summary-badge.pending{background:#fff4dc;color:#9a6714}
+.ocs-sp-summary-badge.bad{background:#fff0ed;color:#a23f33}
+.ocs-sp-summary-rows{padding:4px 16px 8px}
+.ocs-sp-summary-row{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #edf2f0}
+.ocs-sp-summary-row:last-child{border-bottom:0}
+.ocs-sp-summary-row span{font-size:11px;color:#7b8c8f}
+.ocs-sp-summary-row b{font-size:12.5px;color:#173f46;text-align:right;max-width:62%}
+.ocs-sp-summary-check{color:#16815d!important}
+.ocs-sp-summary-missing{color:#b7791f!important}
+.ocs-sp-summary-actions{padding:12px 16px 16px}
+.ocs-sp-summary-actions .primary,.ocs-sp-summary-actions .btn{position:static!important;width:100%!important;margin:7px 0 0!important}
+#providerProfileSummaryBack{position:static!important;border:0!important;background:#f3f7f6!important;color:#355b5f!important;border-radius:13px!important;padding:11px 13px!important;font-size:12px!important;font-weight:850!important}
 </style>
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">OCS ACCOUNT</span><h2 id="accountTitle">Login to One Call Solution</h2><p class="muted" id="accountSub">Email ID ya Mobile Number se simple login</p>
 <div id="customerAccountForm">
@@ -1064,7 +1084,7 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('home-services.html?tab=provider&sp=1&v=20260930-spprefill1');
+      location.replace('home-services.html?tab=provider&sp=1&v=20260930-spsummary1');
       return;
     }
     await openAccount('provider',true);
@@ -1123,11 +1143,11 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20260930-spprefill1');
+    clean.searchParams.set('v','20260930-spsummary1');
     clean.searchParams.set('login','1');
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20260930-spprefill1&login=1');
+    location.replace('index.html?v=20260930-spsummary1&login=1');
   }
   return true;
 }
@@ -1178,7 +1198,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('home-services.html?tab=provider&sp=1&v=20260930-spprefill1');
+          location.replace('home-services.html?tab=provider&sp=1&v=20260930-spsummary1');
           return;
         }
         await openAccount('provider',true);
@@ -1205,10 +1225,10 @@ async function openHomeProviderDashboard(){
   if(!session||!session.user){ocsProviderProfileMenuIntent=true;openLogin();return}
   const hasSp=await ocsUserHasRole('service_provider');
   if(!hasSp){await openAccount('provider',true);return}
-  location.href='home-services.html?tab=provider&sp=1&v=20260930-spprefill1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260930-spsummary1';
 }
 async function openHomeAdminDashboard(){
-  const adminUrl='home-services.html?tab=admin&v=20260930-spprefill1';
+  const adminUrl='home-services.html?tab=admin&v=20260930-spsummary1';
   const session=await getOcsSession();
   if(!session||!session.user){
     try{localStorage.setItem('ocsPostLoginReturn',adminUrl)}catch(e){}
@@ -1241,7 +1261,7 @@ async function renderHomeDashboardShortcuts(){
 
 function openProviderDashboardFromMenu(){
   closeAllBottomHubs();
-  location.href='home-services.html?tab=provider&sp=1&v=20260930-spprefill1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260930-spsummary1';
 }
 
 function openProviderProfileFromMenu(){
@@ -1250,7 +1270,7 @@ function openProviderProfileFromMenu(){
     localStorage.removeItem('ocsPostLoginReturn');
   }catch(e){}
   closeBottomHub('bottomProfileModal');
-  location.href='index.html?open=sp-profile&v=20260930-spprefill1';
+  location.href='index.html?open=sp-profile&v=20260930-spsummary1';
 }
 async function openAccountEntry(){
  const session=await getOcsSession();
@@ -1404,7 +1424,7 @@ function closeAccount(){
  document.body.classList.remove('ocs-account-open');
 }
 async function showProviderProfileSummary(){
- const p=getProviderProfile()||{};
+ const local=getProviderProfile()||{};
  const summary=document.getElementById('providerProfileSummary');
  const auth=document.getElementById('providerAuthBox');
  const setup=document.getElementById('providerProfileSetup');
@@ -1414,42 +1434,70 @@ async function showProviderProfileSummary(){
  if(back)back.style.display='none';
  if(!summary)return;
  summary.style.display='block';
- let rows=[];
+
+ let pp={},ob={},pay={},rows=[];
  try{
    const session=await getOcsSession();
    if(session&&session.user&&ocsSupabase){
-     const {data,error}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
-     if(!error&&data&&Array.isArray(data.skills))rows=data.skills.filter(x=>x&&x.enabled_by_provider!==false);
-     try{
-       const ob=await ocsSupabase.rpc('provider_onboarding_snapshot_v1');
-       if(!ob.error)window.__ocsProviderOnboarding=ob.data||{};
-     }catch(_){}
+     const [pr,or,br]=await Promise.all([
+       ocsSupabase.rpc('provider_profile_snapshot_v1'),
+       ocsSupabase.rpc('provider_onboarding_snapshot_v1'),
+       ocsSupabase.rpc('provider_payout_snapshot_v1')
+     ]);
+     if(!pr.error&&pr.data)pp=pr.data||{};
+     if(!or.error&&or.data){ob=or.data||{};window.__ocsProviderOnboarding=ob}
+     if(!br.error&&br.data)pay=br.data||{};
+     rows=Array.isArray(pp.skills)?pp.skills.filter(x=>x&&x.enabled_by_provider!==false):[];
    }
  }catch(e){console.error('Provider summary load failed',e)}
- const approved=rows.filter(x=>x.approved===true||String(x.verification_status||'').toLowerCase()==='approved');
- const pending=rows.filter(x=>!(x.approved===true||String(x.verification_status||'').toLowerCase()==='approved'));
- const skillHtml=rows.length
-   ? rows.map(x=>'<span style="display:inline-block;margin:4px 5px 0 0;padding:6px 9px;border-radius:999px;background:'+
-      ((x.approved===true||String(x.verification_status||'').toLowerCase()==='approved')?'#e9f8f2;color:#157458':'#fff5df;color:#9a6714')+
-      ';font-size:11px;font-weight:800">'+ocsEsc(x.category||x.service_name||'Skill')+
-      ((x.approved===true||String(x.verification_status||'').toLowerCase()==='approved')?' ✓':' • Pending')+'</span>').join('')
-   : '<span class="muted">'+ocsEsc((p.skills||[]).join(', ')||'No skill saved')+'</span>';
+
+ const status=String(ob.status||'not_submitted').toLowerCase();
+ const badgeText=status==='approved'?'APPROVED':status==='pending'?'PENDING APPROVAL':status==='rejected'?'REJECTED':'INCOMPLETE';
+ const badgeClass=status==='approved'?'ok':status==='rejected'?'bad':'pending';
+
+ const bestSkill=rows.find(x=>x.approved===true&&String(x.verification_status||'').toLowerCase()==='approved')||rows[0]||null;
+ let category='Not selected';
+ if(bestSkill){
+   const cat=String(bestSkill.category||'');
+   const svc=String(bestSkill.service_name||'');
+   if(cat==='Appliance Repair'&&svc)category=svc;
+   else if(cat==='AC Service')category='AC';
+   else if(cat==='Maid Service'&&/Cooking/i.test(svc))category='Cook';
+   else if(cat==='Maid Service')category='Maid';
+   else if(cat==='Wi-Fi / TV Installation & Setup')category='Wi-Fi / TV Setup';
+   else if(cat==='Tiles / Stone')category='Tiles / Stone Work';
+   else category=cat||svc||String(bestSkill.skill||'Work Category');
+ }
+
+ const name=pp.full_name||local.name||'Service Provider';
+ const mobile=pp.phone||local.mobile||'Not added';
+ const area=ob.service_area||local.area||'Not added';
+ const radius=Number(ob.service_radius_km||pp.service_radius_km||local.radius||12);
+ const locationOk=!!ob.location_added;
+ const bankOk=!!(ob.bank_added||pay.has_details);
+ const selfieOk=!!ob.selfie_added;
+ const bankText=bankOk?((pay.bank_name||'Bank')+(pay.masked_account_number?' • '+pay.masked_account_number:'')):'Not added';
+
  summary.innerHTML=
-   '<div style="border:1px solid #e3ece9;border-radius:18px;padding:14px;background:#f8fbfa">'+
-     '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">'+
-       '<div><b style="font-size:17px">'+ocsEsc(p.name||'Service Provider')+'</b>'+
-       '<div class="muted" style="margin-top:3px">'+ocsEsc(p.area||'Service area')+' • '+ocsEsc(String(p.radius||12))+' km</div></div>'+
-       '<span class="rolepill" style="background:#e9f8f2;color:#157458">'+
-       ((window.__ocsProviderOnboarding&&window.__ocsProviderOnboarding.status==='approved')?'APPROVED':
-        (window.__ocsProviderOnboarding&&window.__ocsProviderOnboarding.status==='pending')?'PENDING APPROVAL':
-        (window.__ocsProviderOnboarding&&window.__ocsProviderOnboarding.status==='rejected')?'REJECTED':'PROFILE INCOMPLETE')+
-       '</span>'+
-     '</div>'+
-     '<div style="margin-top:13px"><b style="font-size:12px">Skills</b><div>'+skillHtml+'</div></div>'+
-     '<div class="help" style="margin-top:12px">Approved skills locked hain. Skill change ki zarurat ho to OCS Support / Admin se request karein.</div>'+
-     ((window.__ocsProviderOnboarding&&window.__ocsProviderOnboarding.status==='approved')?'':'<button class="primary account-submit" style="width:100%;margin-top:10px" onclick="editProviderProfileSkills()">Complete SP Approval Details</button>')+
-     '<button class="btn gray" style="width:100%;margin-top:8px" onclick="closeAccount()">Close</button>'+
-   '</div>';
+  '<div class="ocs-sp-summary-card">'+
+    '<div class="ocs-sp-summary-top">'+
+      '<div><div class="ocs-sp-summary-name">'+ocsEsc(name)+'</div><div class="ocs-sp-summary-mobile">'+ocsEsc(String(mobile))+'</div></div>'+
+      '<span class="ocs-sp-summary-badge '+badgeClass+'">'+badgeText+'</span>'+
+    '</div>'+
+    '<div class="ocs-sp-summary-rows">'+
+      '<div class="ocs-sp-summary-row"><span>Work Category</span><b>'+ocsEsc(category)+'</b></div>'+
+      '<div class="ocs-sp-summary-row"><span>Service Area</span><b>'+ocsEsc(area)+(area!=='Not added'?' • '+radius+' km':'')+'</b></div>'+
+      '<div class="ocs-sp-summary-row"><span>Work Location</span><b class="'+(locationOk?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+(locationOk?'✓ Saved':'Required')+'</b></div>'+
+      '<div class="ocs-sp-summary-row"><span>Bank Details</span><b class="'+(bankOk?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+ocsEsc(bankText)+'</b></div>'+
+      '<div class="ocs-sp-summary-row"><span>Selfie Verification</span><b class="'+(selfieOk?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+(selfieOk?'✓ Submitted':'Required')+'</b></div>'+
+    '</div>'+
+    '<div class="ocs-sp-summary-actions">'+
+      (status==='approved'
+       ?'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20260930-spsummary1\'">Open SP Dashboard</button>'
+       :'<button class="primary" onclick="editProviderProfileSkills()">Complete Missing Details</button>')+
+      '<button class="btn gray" onclick="closeAccount()">Close</button>'+
+    '</div>'+
+  '</div>';
 }
 function editProviderProfileSkills(){
  const summary=document.getElementById('providerProfileSummary');
@@ -3417,7 +3465,7 @@ function ensureOcsModules(){
   if(ocsModulesPromise)return ocsModulesPromise;
   ocsModulesPromise=new Promise((resolve,reject)=>{
     const s=document.createElement('script');
-    s.src='assets/modules-data.js?v=20260930-spprefill1';
+    s.src='assets/modules-data.js?v=20260930-spsummary1';
     s.async=true;
     s.onload=()=>{modulesB64=window.OCS_MODULES_B64||modulesB64;resolve(modulesB64)};
     s.onerror=()=>{ocsModulesPromise=null;reject(new Error('OCS module data load failed'))};
@@ -3503,13 +3551,13 @@ setInterval(()=>{refreshHomeLiveWindowPosters().catch(()=>{})},6000);
 async function openModule(n,role,serviceCat){
  if(n==='Home Services'){
    if(role==='provider'){
-     location.href='service-provider.html?v=20260930-spprefill1';
+     location.href='service-provider.html?v=20260930-spsummary1';
      return;
    }
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20260930-spprefill1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260930-spsummary1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -3530,10 +3578,10 @@ async function openModule(n,role,serviceCat){
  };
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
-   frame.src='property.html?v=20260930-spprefill1';
+   frame.src='property.html?v=20260930-spsummary1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260930-spprefill1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260930-spsummary1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
@@ -4175,7 +4223,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260930-spprefill1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260930-spsummary1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4249,7 +4297,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20260930-spprefill1';
+const OCS_APP_BUILD='20260930-spsummary1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
