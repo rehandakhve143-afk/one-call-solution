@@ -1,5 +1,5 @@
 {
-  "build": "20260930-worktoggle1",
+  "build": "20260930-spprefill1",
   "updated_at": "2026-09-30",
-  "message": "SP Work ON shows approval requirement and opens full approval setup"
+  "message": "Auto-fill saved SP details and persist Work Location immediately"
 }
