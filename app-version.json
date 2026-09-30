@@ -1,5 +1,5 @@
 {
-  "build": "20260930-adminhide1",
+  "build": "20260930-worktoggle1",
   "updated_at": "2026-09-30",
-  "message": "Hide Admin dashboard from non-admin users"
+  "message": "SP Work ON shows approval requirement and opens full approval setup"
 }
