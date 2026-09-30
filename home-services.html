@@ -4671,8 +4671,9 @@ $("providerName").textContent=S.registeredProviderName||S.provider||"Service Pro
 const pvl=$("providerVerificationLine");if(pvl)pvl.textContent=(S.providerVerificationStatus||"Verification Pending")+(S.providerArea?(" • "+S.providerArea+" • "+(S.providerRadius||0)+" km"):"");
 const prl=$("providerRatingLine");if(prl)prl.innerHTML=providerRatingSummary();
 const prv=$("providerReviews");if(prv)prv.innerHTML=providerRatingCommentsHTML();
-$("availabilityBtn").textContent="Available: "+(S.available?"ON":"OFF");
-$("availabilityBtn").style.background=S.available?"#16a34a":"#64748b";
+const onboardingApproved=String(S.providerOnboardingStatus||"not_submitted").toLowerCase()==="approved";
+$("availabilityBtn").textContent=onboardingApproved?("Available: "+(S.available?"ON":"OFF")):"Approval Required";
+$("availabilityBtn").style.background=onboardingApproved?(S.available?"#16a34a":"#64748b"):"#b7791f";
 if($("walletBalance"))$("walletBalance").textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 const walletQuick=$("providerWalletQuick");if(walletQuick)walletQuick.textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 $("currentJob").textContent=S.currentJob||((["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","WORKING","ON_WAY","REACHED","ASSIGNED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?(S.service||S.serviceName||"Current Booking"):"None");
@@ -4689,12 +4690,13 @@ $("cStatus").textContent=S.status;
 const providerIdle=["SELECT_SERVICE","SELECT_ITEM","CUSTOM_REQUEST"].includes(S.status);
 const providerHasSkills=Array.isArray(S.registeredProviderSkills)&&S.registeredProviderSkills.length>0;
 const providerVerification=String(S.providerVerificationStatus||"").toLowerCase();
+const onboardingState=String(S.providerOnboardingStatus||"not_submitted").toLowerCase();
 $("pStatus").textContent=!S.providerProfileAvailable
  ?"PROFILE REQUIRED"
- :(providerIdle&&!providerHasSkills
-   ?"SKILLS REQUIRED"
-   :(providerIdle&&(providerVerification.includes("pending")||providerVerification==="")
-     ?"VERIFICATION PENDING"
+ :(onboardingState!=="approved"
+   ?(onboardingState==="pending"?"APPROVAL PENDING":onboardingState==="rejected"?"APPROVAL REJECTED":"APPROVAL REQUIRED")
+   :(providerIdle&&!providerHasSkills
+     ?"SKILLS REQUIRED"
      :(providerIdle?"WAITING FOR JOB":S.status)));
 const pt=$("ptab");const normalBookingNew=S.status==="REQUESTED";const extraWorkNew=S.customerExtraStatus==="SENT_TO_PROVIDER"&&S.customerExtraRequest;const nextWorkNew=!!S.pendingNextRequest;if(pt)pt.textContent=(normalBookingNew||extraWorkNew||nextWorkNew)?"Service Provider • NEW":"Service Provider";
 $("cBody").innerHTML=customerHTML();
