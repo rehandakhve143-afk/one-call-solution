@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20260930-categoryclean1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260930-categoryclean1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20260930-selfiefix1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260930-selfiefix1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -19,9 +19,9 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 try{
   const q=new URLSearchParams(location.search||"");
   if(q.get("admin")==="1"){
-    location.replace("home-services.html?tab=admin&v=20260930-categoryclean1");
+    location.replace("home-services.html?tab=admin&v=20260930-selfiefix1");
   }else if(q.get("sp")==="1"){
-    location.replace("home-services.html?tab=provider&sp=1&v=20260930-categoryclean1");
+    location.replace("home-services.html?tab=provider&sp=1&v=20260930-selfiefix1");
   }
 }catch(e){}
 </script><script>
@@ -306,6 +306,11 @@ setTimeout(function(){
 .ocs-sp-location-status.ok{color:#16815d;background:#f1fbf7}
 #providerProfileSetup .ocs-sp-submit{position:static!important;inset:auto!important;bottom:auto!important;left:auto!important;right:auto!important;display:block!important;width:100%!important;margin:16px 0 4px!important;z-index:auto!important}
 #providerProfileSetup input,#providerProfileSetup select{scroll-margin-bottom:100px}
+</style>
+<style id="ocs-sp-selfie-polish">
+#paSelfiePreview{margin-top:10px!important}
+#paSelfiePreview img{display:block;width:96px;height:96px;object-fit:cover;border-radius:18px;border:2px solid #d7e9e4;box-shadow:0 5px 14px rgba(24,70,64,.10);background:#f4f8f7}
+#paSelfie{margin-top:8px}
 </style>
 <style id="ocs-sp-summary-polish">
 .ocs-sp-summary-card{border:1px solid #dfeae7;border-radius:22px;background:#fff;overflow:hidden;box-shadow:0 10px 28px rgba(25,67,63,.07)}
@@ -1091,7 +1096,7 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('home-services.html?tab=provider&sp=1&v=20260930-categoryclean1');
+      location.replace('home-services.html?tab=provider&sp=1&v=20260930-selfiefix1');
       return;
     }
     await openAccount('provider',true);
@@ -1150,11 +1155,11 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20260930-categoryclean1');
+    clean.searchParams.set('v','20260930-selfiefix1');
     clean.searchParams.set('login','1');
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20260930-categoryclean1&login=1');
+    location.replace('index.html?v=20260930-selfiefix1&login=1');
   }
   return true;
 }
@@ -1205,7 +1210,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('home-services.html?tab=provider&sp=1&v=20260930-categoryclean1');
+          location.replace('home-services.html?tab=provider&sp=1&v=20260930-selfiefix1');
           return;
         }
         await openAccount('provider',true);
@@ -1232,10 +1237,10 @@ async function openHomeProviderDashboard(){
   if(!session||!session.user){ocsProviderProfileMenuIntent=true;openLogin();return}
   const hasSp=await ocsUserHasRole('service_provider');
   if(!hasSp){await openAccount('provider',true);return}
-  location.href='home-services.html?tab=provider&sp=1&v=20260930-categoryclean1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260930-selfiefix1';
 }
 async function openHomeAdminDashboard(){
-  const adminUrl='home-services.html?tab=admin&v=20260930-categoryclean1';
+  const adminUrl='home-services.html?tab=admin&v=20260930-selfiefix1';
   const session=await getOcsSession();
   if(!session||!session.user){
     try{localStorage.setItem('ocsPostLoginReturn',adminUrl)}catch(e){}
@@ -1268,7 +1273,7 @@ async function renderHomeDashboardShortcuts(){
 
 function openProviderDashboardFromMenu(){
   closeAllBottomHubs();
-  location.href='home-services.html?tab=provider&sp=1&v=20260930-categoryclean1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260930-selfiefix1';
 }
 
 function openProviderProfileFromMenu(){
@@ -1277,7 +1282,7 @@ function openProviderProfileFromMenu(){
     localStorage.removeItem('ocsPostLoginReturn');
   }catch(e){}
   closeBottomHub('bottomProfileModal');
-  location.href='index.html?open=sp-profile&v=20260930-categoryclean1';
+  location.href='index.html?open=sp-profile&v=20260930-selfiefix1';
 }
 async function openAccountEntry(){
  const session=await getOcsSession();
@@ -1500,7 +1505,7 @@ async function showProviderProfileSummary(){
     '</div>'+
     '<div class="ocs-sp-summary-actions">'+
       (status==='approved'
-       ?'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20260930-categoryclean1\'">Open SP Dashboard</button>'
+       ?'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20260930-selfiefix1\'">Open SP Dashboard</button>'
        :'<button class="primary" onclick="editProviderProfileSkills()">Complete Missing Details</button>')+
       '<button class="btn gray" onclick="closeAccount()">Close</button>'+
     '</div>'+
@@ -1678,7 +1683,7 @@ function handleProviderSelfie(input){
  const box=document.getElementById('paSelfiePreview');
  if(box){
    const url=URL.createObjectURL(file);
-   box.innerHTML='<img alt="Service Provider selfie preview" src="'+url+'">';
+   box.innerHTML='<div style="display:flex;align-items:center;gap:12px"><img alt="Service Provider selfie preview" src="'+url+'"><div><b style="font-size:12px;color:#173f46">Selfie selected</b><div style="font-size:10.5px;color:#718185;margin-top:3px">Private verification only</div></div></div>';
  }
 }
 async function saveProviderAccount(){
@@ -1691,7 +1696,18 @@ async function saveProviderAccount(){
  const otherChecked=[...document.querySelectorAll('input[name="paSkill"]:checked')].some(x=>x.value==='Other');
  const otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
  if(otherChecked&&!otherSkill){alert('Other select kiya hai to apni skill / service ka naam likhein.');return}
- if(!name||mobile.replace(/\D/g,'').length<10||!area){alert('Name, valid mobile aur service area required.');return}
+ if(!name){
+   alert('Full Name required hai.');
+   paName.scrollIntoView({behavior:'smooth',block:'center'});paName.focus();return
+ }
+ if(mobile.replace(/\D/g,'').length<10){
+   alert('Valid 10-digit Mobile Number required hai.');
+   paMobile.scrollIntoView({behavior:'smooth',block:'center'});paMobile.focus();return
+ }
+ if(!area){
+   alert('Service Area / City required hai. Example: Khopoli');
+   paArea.scrollIntoView({behavior:'smooth',block:'center'});paArea.focus();return
+ }
 
  let ob={};
  try{
@@ -3472,7 +3488,7 @@ function ensureOcsModules(){
   if(ocsModulesPromise)return ocsModulesPromise;
   ocsModulesPromise=new Promise((resolve,reject)=>{
     const s=document.createElement('script');
-    s.src='assets/modules-data.js?v=20260930-categoryclean1';
+    s.src='assets/modules-data.js?v=20260930-selfiefix1';
     s.async=true;
     s.onload=()=>{modulesB64=window.OCS_MODULES_B64||modulesB64;resolve(modulesB64)};
     s.onerror=()=>{ocsModulesPromise=null;reject(new Error('OCS module data load failed'))};
@@ -3558,13 +3574,13 @@ setInterval(()=>{refreshHomeLiveWindowPosters().catch(()=>{})},6000);
 async function openModule(n,role,serviceCat){
  if(n==='Home Services'){
    if(role==='provider'){
-     location.href='service-provider.html?v=20260930-categoryclean1';
+     location.href='service-provider.html?v=20260930-selfiefix1';
      return;
    }
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20260930-categoryclean1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260930-selfiefix1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -3585,10 +3601,10 @@ async function openModule(n,role,serviceCat){
  };
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
-   frame.src='property.html?v=20260930-categoryclean1';
+   frame.src='property.html?v=20260930-selfiefix1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260930-categoryclean1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260930-selfiefix1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
@@ -4230,7 +4246,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260930-categoryclean1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260930-selfiefix1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4304,7 +4320,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20260930-categoryclean1';
+const OCS_APP_BUILD='20260930-selfiefix1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
