@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20260930-profileclean1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260930-profileclean1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20260930-menuclean1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260930-menuclean1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -19,9 +19,9 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 try{
   const q=new URLSearchParams(location.search||"");
   if(q.get("admin")==="1"){
-    location.replace("home-services.html?tab=admin&v=20260930-profileclean1");
+    location.replace("home-services.html?tab=admin&v=20260930-menuclean1");
   }else if(q.get("sp")==="1"){
-    location.replace("home-services.html?tab=provider&sp=1&v=20260930-profileclean1");
+    location.replace("home-services.html?tab=provider&sp=1&v=20260930-menuclean1");
   }
 }catch(e){}
 </script><script>
@@ -220,7 +220,7 @@ setTimeout(function(){
   </div>
   <select id="setPayment" style="display:none"><option value="ONLINE">Online</option><option value="CASH">Cash</option></select>
   <button class="primary" style="margin-top:12px;width:100%" onclick="saveSettings()">Save Settings</button>
-  <div class="bottom-hub-actions"><button onclick="closeSettings();openBottomSupport()">Help / Support</button><button onclick="closeSettings()">Close</button></div>
+  <div class="bottom-hub-actions"><button onclick="closeSettings()">Close</button></div>
 </div></div>
 
 <div class="modal" id="walletModal"><div class="sheet">
@@ -404,7 +404,7 @@ setTimeout(function(){
 <button onclick="closeCustomerDashboard();openWorkHistory('CUSTOMER')"><b>Work History & Rating</b><small>Completed work, payment and ratings</small></button>
 <button onclick="closeCustomerDashboard();openWalletHub()"><b>Wallet / Rewards</b><small>Share & Earn and reward balance</small></button>
 <button onclick="closeCustomerDashboard();openAccount('customer')"><b>Customer Profile</b><small>Name, mobile and account details</small></button>
-<button onclick="closeCustomerDashboard();openBottomSupport()"><b>Customer Support</b><small>Booking, payment or account help</small></button>
+
 <button onclick="closeCustomerDashboard();openModule('Home Services','customer')"><b>Book Home Service</b><small>Start a new service request</small></button>
 </div>
 <div class="dash-actions" style="margin-top:12px"><button onclick="closeCustomerDashboard()">Close</button></div>
@@ -1043,7 +1043,7 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('home-services.html?tab=provider&sp=1&v=20260930-profileclean1');
+      location.replace('home-services.html?tab=provider&sp=1&v=20260930-menuclean1');
       return;
     }
     await openAccount('provider',true);
@@ -1102,11 +1102,11 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20260930-profileclean1');
+    clean.searchParams.set('v','20260930-menuclean1');
     clean.searchParams.set('login','1');
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20260930-profileclean1&login=1');
+    location.replace('index.html?v=20260930-menuclean1&login=1');
   }
   return true;
 }
@@ -1157,7 +1157,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('home-services.html?tab=provider&sp=1&v=20260930-profileclean1');
+          location.replace('home-services.html?tab=provider&sp=1&v=20260930-menuclean1');
           return;
         }
         await openAccount('provider',true);
@@ -1184,10 +1184,10 @@ async function openHomeProviderDashboard(){
   if(!session||!session.user){ocsProviderProfileMenuIntent=true;openLogin();return}
   const hasSp=await ocsUserHasRole('service_provider');
   if(!hasSp){await openAccount('provider',true);return}
-  location.href='home-services.html?tab=provider&sp=1&v=20260930-profileclean1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260930-menuclean1';
 }
 async function openHomeAdminDashboard(){
-  const adminUrl='home-services.html?tab=admin&v=20260930-profileclean1';
+  const adminUrl='home-services.html?tab=admin&v=20260930-menuclean1';
   const session=await getOcsSession();
   if(!session||!session.user){
     try{localStorage.setItem('ocsPostLoginReturn',adminUrl)}catch(e){}
@@ -1220,7 +1220,7 @@ async function renderHomeDashboardShortcuts(){
 
 function openProviderDashboardFromMenu(){
   closeAllBottomHubs();
-  location.href='home-services.html?tab=provider&sp=1&v=20260930-profileclean1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260930-menuclean1';
 }
 
 function openProviderProfileFromMenu(){
@@ -1229,7 +1229,7 @@ function openProviderProfileFromMenu(){
     localStorage.removeItem('ocsPostLoginReturn');
   }catch(e){}
   closeBottomHub('bottomProfileModal');
-  location.href='sp-profile.html?v=20260930-profileclean1';
+  location.href='sp-profile.html?v=20260930-menuclean1';
 }
 async function openAccountEntry(){
  const session=await getOcsSession();
@@ -1775,9 +1775,7 @@ function openBottomProfile(){
 
  body.innerHTML=
  '<div class="ocs-account-list">'+
-   '<button class="ocs-account-row ocs-account-role" onclick="closeBottomHub(\'bottomProfileModal\');openCustomerDashboard()">'+
-     '<span class="ar-ico">⌂</span><span class="ar-copy"><b>Customer Dashboard</b><small>Bookings • History • Rewards • Support</small></span><span class="ar-go">›</span>'+
-   '</button>'+
+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">'+
      '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span><span class="ar-copy"><b>Customer Profile</b><small>'+customerText+'</small></span><span class="ar-go">›</span>'+
    '</button>'+
@@ -1791,9 +1789,7 @@ function openBottomProfile(){
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">'+
      '<span class="ar-ico">⚙️</span><span class="ar-copy"><b>Settings</b><small>Login, location, notifications & logout</small></span><span class="ar-go">›</span>'+
    '</button>'+
-   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()">'+
-     '<span class="ar-ico">💬</span><span class="ar-copy"><b>Help & Support</b><small>General OCS help</small></span><span class="ar-go">›</span>'+
-   '</button>'+
+
  '</div>';
  document.getElementById('bottomProfileModal').classList.add('show');
 }
@@ -3290,7 +3286,7 @@ function ensureOcsModules(){
   if(ocsModulesPromise)return ocsModulesPromise;
   ocsModulesPromise=new Promise((resolve,reject)=>{
     const s=document.createElement('script');
-    s.src='assets/modules-data.js?v=20260930-profileclean1';
+    s.src='assets/modules-data.js?v=20260930-menuclean1';
     s.async=true;
     s.onload=()=>{modulesB64=window.OCS_MODULES_B64||modulesB64;resolve(modulesB64)};
     s.onerror=()=>{ocsModulesPromise=null;reject(new Error('OCS module data load failed'))};
@@ -3376,13 +3372,13 @@ setInterval(()=>{refreshHomeLiveWindowPosters().catch(()=>{})},6000);
 async function openModule(n,role,serviceCat){
  if(n==='Home Services'){
    if(role==='provider'){
-     location.href='service-provider.html?v=20260930-profileclean1';
+     location.href='service-provider.html?v=20260930-menuclean1';
      return;
    }
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20260930-profileclean1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260930-menuclean1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -3403,10 +3399,10 @@ async function openModule(n,role,serviceCat){
  };
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
-   frame.src='property.html?v=20260930-profileclean1';
+   frame.src='property.html?v=20260930-menuclean1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260930-profileclean1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260930-menuclean1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
@@ -4048,7 +4044,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260930-profileclean1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260930-menuclean1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4122,7 +4118,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20260930-profileclean1';
+const OCS_APP_BUILD='20260930-menuclean1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
