@@ -1,5 +1,5 @@
 {
-  "build": "20260929-otpui1",
-  "updated_at": "2026-09-29",
-  "message": "Premium login OTP UI and auth code compatibility"
+  "build": "20260930-sponboarding1",
+  "updated_at": "2026-09-30",
+  "message": "Strict Service Provider onboarding with bank selfie location and Admin approval"
 }
