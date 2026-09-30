@@ -1,5 +1,5 @@
 {
-  "build": "20260930-menuclean2",
+  "build": "20260930-adminhide1",
   "updated_at": "2026-09-30",
-  "message": "Final clean Account and Customer Dashboard navigation"
+  "message": "Hide Admin dashboard from non-admin users"
 }
