@@ -560,6 +560,15 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
     <div id="adminPlatformRecords"><div class="admin-records-empty">Loading records…</div></div>
   </section>
 
+  <section class="admin-panel-card">
+    <div class="admin-panel-head">
+      <div><span>SP APPROVAL</span><h3>Pending Service Providers</h3></div>
+      <button type="button" class="admin-refresh-btn" onclick="adminLoadProviderOnboarding()">↻ Refresh</button>
+    </div>
+    <div class="muted" style="margin-bottom:8px">Profile + one category + work location + bank + selfie complete hone ke baad hi Approve karein.</div>
+    <div id="adminProviderOnboarding"><div class="notice">Loading pending SP approvals...</div></div>
+  </section>
+
   <section class="admin-panel-card admin-live-card" id="adminLiveCard">
     <div class="admin-panel-head">
       <div><span>LIVE</span><h3>Live Booking</h3></div>
@@ -4120,6 +4129,66 @@ async function adminCloseSupport(){
  }catch(e){alert("Support ticket close failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
+async function adminViewProviderSelfie(path){
+ if(!path||!ocsSupabase){alert("Selfie not available.");return}
+ try{
+   const {data,error}=await ocsSupabase.storage.from("ocs-provider-private").createSignedUrl(path,120);
+   if(error)throw error;
+   if(!data||!data.signedUrl)throw new Error("Selfie link unavailable");
+   window.open(data.signedUrl,"_blank","noopener");
+ }catch(e){alert("Selfie open nahi hui: "+(e&&e.message?e.message:"Unknown error"))}
+}
+async function adminLoadProviderOnboarding(){
+ const box=document.getElementById("adminProviderOnboarding");if(!box)return;
+ box.innerHTML='<div class="muted">Loading pending SP approvals...</div>';
+ try{
+   const {data,error}=await ocsSupabase.rpc("admin_pending_provider_onboarding_v1");
+   if(error)throw error;
+   const rows=Array.isArray(data)?data:[];
+   window.OCS_ADMIN_SP_ONBOARDING={};
+   if(!rows.length){
+     box.innerHTML='<div class="notice good"><b>No pending SP approval</b><br>Sab submitted Service Providers reviewed hain.</div>';
+     return;
+   }
+   box.innerHTML=rows.map((x,i)=>{
+     const key="sp_onboard_"+i;
+     window.OCS_ADMIN_SP_ONBOARDING[key]=x;
+     return '<div class="card" style="padding:12px;margin:10px 0">'+
+       '<div style="display:flex;justify-content:space-between;gap:8px"><b>'+ocsSafe(x.provider_name||"Service Provider")+'</b><span class="status">PENDING</span></div>'+
+       '<div class="muted" style="margin-top:5px">'+ocsSafe(x.phone||"")+'</div>'+
+       '<div class="row" style="margin-top:9px"><span>Category</span><b>'+ocsSafe(x.category||"Not set")+'</b></div>'+
+       '<div class="row"><span>Service Area</span><b>'+ocsSafe(x.service_area||"Not set")+' • '+Number(x.service_radius_km||12)+' km</b></div>'+
+       '<div class="row"><span>Bank</span><b>'+ocsSafe(x.bank_name||"Not added")+' '+ocsSafe(x.masked_account||"")+'</b></div>'+
+       '<div class="row"><span>IFSC</span><b>'+ocsSafe(x.ifsc||"—")+'</b></div>'+
+       '<div class="row"><span>Bank Status</span><b>'+ocsSafe(String(x.bank_status||"pending").toUpperCase())+'</b></div>'+
+       '<button class="btn gray" onclick="adminViewProviderSelfie(OCS_ADMIN_SP_ONBOARDING[\''+key+'\'].selfie_path)">View Selfie</button>'+
+       '<div class="row"><button class="btn ok" onclick="adminReviewProviderOnboarding(\''+key+'\',\'approved\')">Approve SP</button>'+
+       '<button class="btn red" onclick="adminReviewProviderOnboarding(\''+key+'\',\'rejected\')">Reject</button></div>'+
+       '</div>';
+   }).join('');
+ }catch(e){
+   box.innerHTML='<div class="notice bad">SP approval queue load failed: '+ocsSafe(e&&e.message?e.message:"Unknown error")+'</div>';
+ }
+}
+async function adminReviewProviderOnboarding(key,decision){
+ const x=window.OCS_ADMIN_SP_ONBOARDING&&window.OCS_ADMIN_SP_ONBOARDING[key];
+ if(!x){alert("SP approval record missing.");return}
+ let reason=null;
+ if(decision==="rejected"){
+   reason=(prompt("Reject reason (optional)")||"").trim()||null;
+ }
+ try{
+   const {error}=await ocsSupabase.rpc("admin_review_provider_onboarding_v1",{
+     p_provider_id:x.provider_id,
+     p_decision:decision,
+     p_reason:reason
+   });
+   if(error)throw error;
+   hist("Admin "+decision+" Service Provider onboarding • "+(x.provider_name||x.provider_id));
+   await adminLoadProviderOnboarding();
+ }catch(e){alert("SP review failed: "+(e&&e.message?e.message:"Unknown error"))}
+}
+
 async function adminLoadSkillQueue(){
  const box=document.getElementById("adminSkillQueue");if(!box)return;
  const bulk=document.getElementById("adminSkillBulkActions");
@@ -4370,13 +4439,13 @@ function adminHTMLState(){
  <div class="row"><span>Mobile</span><b>${ocsSafe(liveSnap.provider_mobile||"Not added")}</b></div>
  <div class="row"><span>Available for Work</span><b>${liveSnap.available_for_work?"ON":"OFF"}</b></div>
  <div class="row"><span>Wallet Balance</span><b>${walletText}</b></div>
- <div class="row"><span>Wallet Rule</span><b>Minimum ₹200</b></div>
+ <div class="row"><span>Wallet Guide</span><b>Recommended ₹200</b></div>
  <div class="row"><span>Wallet Status</span><b>${Number(wallet)<=0?"Recharge Reminder":"Active"}</b></div>`:
  '<div class="muted">No assigned Service Provider record.</div>';
 
  let provider=liveSnap&&liveSnap.provider_id?`<div><b>${ocsSafe(liveSnap.provider_name||"Service Provider")}</b> • Available: ${liveSnap.available_for_work?"ON":"OFF"} • New Jobs: ${liveSnap.admin_paused?"PAUSED":"ACTIVE"}</div>
- <div class="muted">Wallet Balance: ${walletText} • Minimum ₹200 • Work status Admin controlled</div>`:
- `<div><b>${ocsSafe(S.provider||"Service Provider")}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div><div class="muted">Wallet Balance: ${walletText} • Minimum ₹200 • Work status Admin controlled</div>`;
+ <div class="muted">Wallet Balance: ${walletText} • Recommended ₹200 • Work status Admin controlled</div>`:
+ `<div><b>${ocsSafe(S.provider||"Service Provider")}</b> • Available: ${S.available?"ON":"OFF"} • New Jobs: ${S.jobAccess?"ACTIVE":"PAUSED"}</div><div class="muted">Wallet Balance: ${walletText} • Recommended ₹200 • Work status Admin controlled</div>`;
 
  let visit=`<div class="muted">GPS one-way: ${Number(S.oneWayDistanceKm||0).toFixed(1)} km • Suggested: ${S.suggestedVisitCharge?money(S.suggestedVisitCharge):"—"} • Final: ${S.visitCharge?money(S.visitCharge):"—"}</div>`;
  let support=S.supportTicket?`<b>${S.supportTicket}</b> • ${S.cancelReason||S.providerChangeReason||"Review required"}`:`<span class="muted">No open support ticket.</span>`;
@@ -5024,7 +5093,7 @@ bootHomeServices();
 <script>
 (function ocsHomeServicesReliability(){
  if('serviceWorker' in navigator){
-   window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260929-refreshloopfix1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+   window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260930-sponboarding1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
  }
  const bar=document.createElement('div');bar.id='ocsHsNetworkBar';
  bar.style.cssText='position:fixed;left:10px;right:10px;top:10px;z-index:2147483646;display:none;align-items:center;gap:9px;padding:11px 12px;border-radius:14px;background:#263238;color:#fff;box-shadow:0 8px 26px rgba(0,0,0,.22);font:700 12px system-ui,Arial';
@@ -5065,7 +5134,7 @@ bootHomeServices();
  addEventListener('error',e=>log('HOME_SERVICES',e.message,e.filename,e.lineno));
  addEventListener('unhandledrejection',e=>log('HOME_SERVICES_PROMISE',e.reason&&e.reason.message?e.reason.message:String(e.reason||'Promise error'),'promise',0));
 
- const build='20260929-otpui1';
+ const build='20260930-sponboarding1';
  async function checkBuild(){
    const old=document.getElementById('ocsHsUpdateBar');
    if(old)old.remove();
