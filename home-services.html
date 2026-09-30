@@ -814,6 +814,17 @@ async function ocsLoadLive(role){
         }
       }catch(e){console.error("Provider profile snapshot failed",e)}
 
+      try{
+        const {data:ob,error:obe}=await ocsSupabase.rpc("provider_onboarding_snapshot_v1");
+        if(!obe&&ob){
+          S.providerOnboardingStatus=String(ob.status||"not_submitted").toLowerCase();
+          if(S.providerOnboardingStatus==="approved"){S.providerVerificationStatus="Approved";S.providerVerified=true}
+          else if(S.providerOnboardingStatus==="pending"){S.providerVerificationStatus="Approval Pending";S.providerVerified=false}
+          else if(S.providerOnboardingStatus==="rejected"){S.providerVerificationStatus="Approval Rejected";S.providerVerified=false}
+          else{S.providerVerificationStatus="Approval Required";S.providerVerified=false}
+        }
+      }catch(e){console.error("Provider onboarding snapshot failed",e)}
+
       const {data:snap,error:se}=await ocsSupabase.rpc("provider_status_snapshot");
       if(se)throw se;
       if(snap&&snap.length){
@@ -1080,7 +1091,7 @@ providerRatings:[],customerRating:null,pendingRatingStars:0,pendingRatingComment
 currentJob:null,nextJob:null,pendingNextRequest:null,completionRequested:false,providerChangeReason:null,providerChangeTicket:null,previousProvider:null,wncTicket:null,wncFault:null,
 customerName:"Customer 1",customerMobile:"Not added",customerEmail:"Not added",customerProfileAvailable:false,customerVerified:false,
 providerMobile:"Not added",providerEmail:"Not added",providerVerified:true,providerProfileAvailable:false,
-registeredProviderName:"",registeredProviderSkills:[],providerArea:"",providerRadius:0,providerVerificationStatus:"Not registered",providerBackendConnected:false,providerRequestForThisProfile:false,
+registeredProviderName:"",registeredProviderSkills:[],providerArea:"",providerRadius:0,providerVerificationStatus:"Not registered",providerOnboardingStatus:"not_submitted",providerBackendConnected:false,providerRequestForThisProfile:false,
 bookingReadiness:{},powerReadiness:"",customerBookingLat:null,customerBookingLng:null
 };
 
