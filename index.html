@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20260930-spprofileunified1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260930-spprofileunified1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20260930-spprefill1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20260930-spprefill1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -19,9 +19,9 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 try{
   const q=new URLSearchParams(location.search||"");
   if(q.get("admin")==="1"){
-    location.replace("home-services.html?tab=admin&v=20260930-spprofileunified1");
+    location.replace("home-services.html?tab=admin&v=20260930-spprefill1");
   }else if(q.get("sp")==="1"){
-    location.replace("home-services.html?tab=provider&sp=1&v=20260930-spprofileunified1");
+    location.replace("home-services.html?tab=provider&sp=1&v=20260930-spprefill1");
   }
 }catch(e){}
 </script><script>
@@ -396,6 +396,7 @@ setTimeout(function(){
   </div>
 
   <h3 style="margin:16px 0 8px">Bank Details *</h3>
+  <div id="paBankSavedNote" class="notice good" style="display:none;margin-bottom:9px"></div>
   <label>Account Holder Name *</label><input id="paBankHolder" autocomplete="name" placeholder="Name as per bank account">
   <label>Bank Name *</label><input id="paBankName" placeholder="Bank name">
   <label>Account Number *</label><input id="paBankAccount" inputmode="numeric" placeholder="Bank account number">
@@ -1063,7 +1064,7 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('home-services.html?tab=provider&sp=1&v=20260930-spprofileunified1');
+      location.replace('home-services.html?tab=provider&sp=1&v=20260930-spprefill1');
       return;
     }
     await openAccount('provider',true);
@@ -1122,11 +1123,11 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20260930-spprofileunified1');
+    clean.searchParams.set('v','20260930-spprefill1');
     clean.searchParams.set('login','1');
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20260930-spprofileunified1&login=1');
+    location.replace('index.html?v=20260930-spprefill1&login=1');
   }
   return true;
 }
@@ -1177,7 +1178,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('home-services.html?tab=provider&sp=1&v=20260930-spprofileunified1');
+          location.replace('home-services.html?tab=provider&sp=1&v=20260930-spprefill1');
           return;
         }
         await openAccount('provider',true);
@@ -1204,10 +1205,10 @@ async function openHomeProviderDashboard(){
   if(!session||!session.user){ocsProviderProfileMenuIntent=true;openLogin();return}
   const hasSp=await ocsUserHasRole('service_provider');
   if(!hasSp){await openAccount('provider',true);return}
-  location.href='home-services.html?tab=provider&sp=1&v=20260930-spprofileunified1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260930-spprefill1';
 }
 async function openHomeAdminDashboard(){
-  const adminUrl='home-services.html?tab=admin&v=20260930-spprofileunified1';
+  const adminUrl='home-services.html?tab=admin&v=20260930-spprefill1';
   const session=await getOcsSession();
   if(!session||!session.user){
     try{localStorage.setItem('ocsPostLoginReturn',adminUrl)}catch(e){}
@@ -1240,7 +1241,7 @@ async function renderHomeDashboardShortcuts(){
 
 function openProviderDashboardFromMenu(){
   closeAllBottomHubs();
-  location.href='home-services.html?tab=provider&sp=1&v=20260930-spprofileunified1';
+  location.href='home-services.html?tab=provider&sp=1&v=20260930-spprefill1';
 }
 
 function openProviderProfileFromMenu(){
@@ -1249,13 +1250,60 @@ function openProviderProfileFromMenu(){
     localStorage.removeItem('ocsPostLoginReturn');
   }catch(e){}
   closeBottomHub('bottomProfileModal');
-  location.href='index.html?open=sp-profile&v=20260930-spprofileunified1';
+  location.href='index.html?open=sp-profile&v=20260930-spprefill1';
 }
 async function openAccountEntry(){
  const session=await getOcsSession();
  if(session&&session.user){openBottomProfile();return}
  openLogin();
 }
+async function prefillProviderApprovalFromBackend(){
+  if(!ocsSupabase)return;
+  try{
+    const [ppRes,obRes,payRes]=await Promise.all([
+      ocsSupabase.rpc('provider_profile_snapshot_v1'),
+      ocsSupabase.rpc('provider_onboarding_snapshot_v1'),
+      ocsSupabase.rpc('provider_payout_snapshot_v1')
+    ]);
+    const pp=(!ppRes.error&&ppRes.data)||{};
+    const ob=(!obRes.error&&obRes.data)||{};
+    const pay=(!payRes.error&&payRes.data)||{};
+    window.__ocsProviderOnboarding=ob||{};
+
+    const n=document.getElementById('paName');
+    const m=document.getElementById('paMobile');
+    const a=document.getElementById('paArea');
+    const r=document.getElementById('paRadius');
+    if(n&&pp.full_name)n.value=pp.full_name;
+    if(m&&pp.phone)m.value=String(pp.phone);
+    if(a&&ob.service_area)a.value=ob.service_area;
+    if(r)r.value=String(ob.service_radius_km||pp.service_radius_km||12);
+
+    const locSt=document.getElementById('paWorkLocationStatus');
+    if(locSt&&ob.location_added){
+      locSt.textContent='✓ Work location already saved';
+      locSt.style.color='#16815d';
+      locSt.classList.add('ok');
+    }
+
+    const selfieSt=document.getElementById('paSelfieStatus');
+    if(selfieSt&&ob.selfie_added){
+      selfieSt.textContent='✓ Selfie already submitted';
+      selfieSt.style.color='#16815d';
+    }
+
+    const bankTitle=document.getElementById('paBankSavedNote');
+    if(bankTitle){
+      if(pay.has_details){
+        bankTitle.style.display='block';
+        bankTitle.innerHTML='<b>✓ Bank details already saved</b><br>'+ocsEsc(pay.bank_name||'Bank')+' • '+ocsEsc(pay.masked_account_number||'');
+      }else{
+        bankTitle.style.display='none';
+      }
+    }
+  }catch(e){console.error('SP approval prefill failed',e)}
+}
+
 async function openAccount(role,forceProviderSetup){
  const isProvider=role==='provider';
  forceProviderSetup=forceProviderSetup===true;
@@ -1308,6 +1356,7 @@ async function openAccount(role,forceProviderSetup){
      if(st){st.textContent=p.mobileVerified?'✓ Mobile verified':'Mobile verification: Verify later in Settings';st.style.color=p.mobileVerified?'#16815d':'#6f8188'}
    }
    if(hasProviderRole){
+     await prefillProviderApprovalFromBackend();
      let onboardingStatus='not_submitted';
      try{
        const ob=await ocsSupabase.rpc('provider_onboarding_snapshot_v1');
@@ -1538,10 +1587,26 @@ function setProviderOnboardingLocation(){
   const st=document.getElementById('paWorkLocationStatus');
   if(st){st.textContent='Getting current location...';st.style.color='#6f8188'}
   navigator.geolocation.getCurrentPosition(
-    p=>{
+    async p=>{
       providerWorkLat=Number(p.coords.latitude);
       providerWorkLng=Number(p.coords.longitude);
-      if(st){st.textContent='✓ Work location saved • nearby matching ready';st.style.color='#16815d';st.classList.add('ok')}
+      try{
+        const radius=Number(document.getElementById('paRadius')?.value||12);
+        const session=await getOcsSession();
+        if(session&&session.user&&ocsSupabase){
+          const r=await ocsSupabase.rpc('set_provider_service_location_v1',{
+            p_latitude:providerWorkLat,
+            p_longitude:providerWorkLng,
+            p_radius_km:radius
+          });
+          if(r.error)throw r.error;
+        }
+        if(st){st.textContent='✓ Work location saved • nearby matching ready';st.style.color='#16815d';st.classList.add('ok')}
+        if(window.__ocsProviderOnboarding)window.__ocsProviderOnboarding.location_added=true;
+      }catch(e){
+        if(st){st.textContent='Location selected • save failed';st.style.color='#b42318'}
+        alert('Work location online save nahi hui: '+(e&&e.message?e.message:'Unknown error'));
+      }
     },
     ()=>{if(st){st.textContent='Location permission required';st.style.color='#b42318'};alert('Location permission allow karein. Work location required hai.')},
     {enableHighAccuracy:true,timeout:10000,maximumAge:30000}
@@ -3352,7 +3417,7 @@ function ensureOcsModules(){
   if(ocsModulesPromise)return ocsModulesPromise;
   ocsModulesPromise=new Promise((resolve,reject)=>{
     const s=document.createElement('script');
-    s.src='assets/modules-data.js?v=20260930-spprofileunified1';
+    s.src='assets/modules-data.js?v=20260930-spprefill1';
     s.async=true;
     s.onload=()=>{modulesB64=window.OCS_MODULES_B64||modulesB64;resolve(modulesB64)};
     s.onerror=()=>{ocsModulesPromise=null;reject(new Error('OCS module data load failed'))};
@@ -3438,13 +3503,13 @@ setInterval(()=>{refreshHomeLiveWindowPosters().catch(()=>{})},6000);
 async function openModule(n,role,serviceCat){
  if(n==='Home Services'){
    if(role==='provider'){
-     location.href='service-provider.html?v=20260930-spprofileunified1';
+     location.href='service-provider.html?v=20260930-spprefill1';
      return;
    }
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20260930-spprofileunified1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20260930-spprefill1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -3465,10 +3530,10 @@ async function openModule(n,role,serviceCat){
  };
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
-   frame.src='property.html?v=20260930-spprofileunified1';
+   frame.src='property.html?v=20260930-spprefill1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20260930-spprofileunified1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20260930-spprefill1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
@@ -4110,7 +4175,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260930-spprofileunified1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20260930-spprefill1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4184,7 +4249,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20260930-spprofileunified1';
+const OCS_APP_BUILD='20260930-spprefill1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
