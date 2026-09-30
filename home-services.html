@@ -963,11 +963,11 @@ async function ocsCreateLiveBooking(){
   const session=await ocsSession();
   if(!session||!session.user){
     try{
-      localStorage.setItem("ocsPostLoginReturn","home-services.html?v=20260926-rolelock2&tab=customer&resume=booking");
+      localStorage.setItem("ocsPostLoginReturn","home-services.html?v=20260930-sponboarding1&tab=customer&resume=booking");
       localStorage.setItem("ocsResumeBookingAfterLogin","1");
       saveHomeState();
     }catch(e){}
-    location.href="index.html?v=20260925-otpflow3&login=1&resume=booking";
+    location.href="index.html?v=20260930-sponboarding1&login=1&resume=booking";
     throw new Error("OCS_LOGIN_REDIRECT");
   }
   try{
@@ -1746,7 +1746,7 @@ async function submitCustomRequest(){
    const session=await ocsSession();
    if(!session||!session.user){
      try{
-       localStorage.setItem("ocsPostLoginReturn","home-services.html?v=20260926-rolelock2&tab=customer");
+       localStorage.setItem("ocsPostLoginReturn","home-services.html?v=20260930-sponboarding1&tab=customer");
        saveHomeState();
      }catch(e){}
      location.href="index.html?login=1";
@@ -4808,7 +4808,7 @@ function updateOcsPageNav(){
  nav.style.gridTemplateColumns=showNext?"1fr auto 1fr":"1fr auto";
 }
 function ocsNavHome(){
- try{location.href="index.html?v=20260926-navfix1"}catch(e){}
+ try{location.href="index.html?v=20260930-sponboarding1"}catch(e){}
 }
 function ocsHandleInternalBack(){
  try{
@@ -4961,16 +4961,16 @@ async function bootHomeServices(){
    try{
      const session=await ocsSession();
      if(!session||!session.user){
-       location.replace("index.html?open=sp-dashboard&v=20260926-rolelock2");
+       location.replace("index.html?open=sp-dashboard&v=20260930-sponboarding1");
        return;
      }
      const {data,error}=await ocsSupabase.rpc("provider_profile_snapshot_v1");
      if(error||!data||data.registered!==true){
-       location.replace("index.html?open=sp-dashboard&v=20260926-rolelock2");
+       location.replace("index.html?open=sp-dashboard&v=20260930-sponboarding1");
        return;
      }
    }catch(e){
-     location.replace("index.html?open=sp-dashboard&v=20260926-rolelock2");
+     location.replace("index.html?open=sp-dashboard&v=20260930-sponboarding1");
      return;
    }
    await showTab("provider");
@@ -4980,16 +4980,16 @@ async function bootHomeServices(){
    try{
      const session=await ocsSession();
      if(!session||!session.user){
-       location.replace("index.html?v=20260929-adminroutefix1");
+       location.replace("index.html?v=20260930-sponboarding1");
        return;
      }
      const {data,error}=await ocsSupabase.rpc("admin_access_snapshot_v1");
      if(error||!data||!data.is_admin){
-       location.replace("index.html?v=20260929-adminroutefix1");
+       location.replace("index.html?v=20260930-sponboarding1");
        return;
      }
    }catch(e){
-     location.replace("index.html?v=20260929-adminroutefix1");
+     location.replace("index.html?v=20260930-sponboarding1");
      return;
    }
    await showTab("admin");
