@@ -2243,7 +2243,7 @@ async function openProviderWalletQuick(){
         '<div class="box"><small>OCS Commission</small><b>'+commissionRate+'%</b></div>'+
         '<div class="box"><small>Job Access</small><b>'+(d.admin_paused?'Admin Hold':'Active')+'</b></div>'+
       '</div>'+
-      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Minimum wallet ₹200 required for new jobs. Recharge to continue receiving work.</div>':'')+
+      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. Recharge reminder rahega; matching jobs continue rahengi unless OCS Admin pauses new jobs.</div>':'')+
       (d.admin_paused?'<div class="notice bad"><b>Admin Hold</b><br>New jobs OCS Admin ne pause ki hain.</div>':'')+
       '<div class="provider-wallet-actions"><button class="btn" onclick="rechargeWallet()">Add Money</button><button class="btn alt" onclick="openProviderPayoutPanel()">Bank &amp; Payout</button></div>'+
       '<div class="provider-payout-summary"><div class="rowline"><span>Today Credit</span><b>₹'+todayCredit.toFixed(2)+'</b></div><div class="rowline"><span>Today Debit</span><b>₹'+todayDebit.toFixed(2)+'</b></div></div>'+
@@ -2561,7 +2561,7 @@ async function rechargeWallet(){
  const current=Math.round((Number(S.wallet||0))*100)/100;
  const suggested=Math.max(100,Math.round(Math.max(0,-current)+100));
  const currentText=current<0?"−₹"+Math.abs(current).toFixed(2):"₹"+current.toFixed(2);
- let a=Number(prompt("OCS Wallet\nCurrent balance: "+currentText+"\nMinimum wallet balance ₹200 required to receive/accept new jobs.\nTop-up amount enter karein.",suggested.toFixed(2)));
+ let a=Number(prompt("OCS Wallet\nCurrent balance: "+currentText+"\nRecommended wallet balance ₹200. ₹200 se niche bhi matching jobs aayengi; recharge reminder rahega. Admin can pause/resume new jobs.\nTop-up amount enter karein.",suggested.toFixed(2)));
  if(!a||a<50){alert("Minimum wallet top-up ₹50.");return}
  try{
    const {data:intent,error:ie}=await ocsSupabase.rpc("create_wallet_topup_intent_v1",{p_amount:a});
@@ -2582,7 +2582,7 @@ function auditPlatformCharge(amount){
 }
 function queueWalletMaintenanceEmail(){
  const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
- const msg="Your OCS Wallet balance is "+bal+". Minimum ₹200 required to receive new jobs. Please recharge.";
+ const msg="Your OCS Wallet balance is "+bal+". Recommended wallet ₹200. Please recharge; jobs continue unless OCS Admin pauses new jobs.";
  S.walletReminderHistory=S.walletReminderHistory||[];
  S.walletReminderHistory.unshift({channel:"EMAIL",message:msg,status:"QUEUED",at:new Date().toISOString()});
  S.walletEmailReminderQueuedAt=new Date().toISOString();
@@ -2590,7 +2590,7 @@ function queueWalletMaintenanceEmail(){
 }
 function queueWalletZeroReminders(){
  const bal=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+Number(S.wallet||0).toFixed(2);
- const msg="OCS Wallet is "+bal+". Minimum ₹200 required to receive new jobs. Please recharge.";
+ const msg="OCS Wallet is "+bal+". Recommended wallet ₹200. Please recharge; jobs continue unless OCS Admin pauses new jobs.";
  S.walletReminderHistory=S.walletReminderHistory||[];
  ["SMS","EMAIL","CALL"].forEach(ch=>S.walletReminderHistory.unshift({channel:ch,message:msg,status:"QUEUED",at:new Date().toISOString()}));
  hist("Wallet ₹0/negative • SMS + Email + Call reminder queued • Work status remains under Admin control");
@@ -3907,8 +3907,6 @@ if(S.status==="SELECT_SERVICE"||S.status==="SELECT_ITEM"||S.status==="CUSTOM_REQ
    h=`<div class="card"><h3>Skills Required</h3><div class="notice"><b>Abhi koi skill saved nahi hai.</b><br>Electrical ya jo kaam aata hai woh select karke profile save karein. Skill approve hone ke baad matching jobs milenge.</div><button class="btn" onclick="openProviderProfileSafe()">Add / Edit Skills</button></div>`;
  }else if(verification.includes("pending")||verification===""){
    h=`<div class="card"><h3>Verification Pending</h3><div class="notice">Profile saved hai. Selected skills ko OCS Admin approve karega. Approval ke baad hi matching jobs yahan aayenge.</div><div class="muted" style="margin-top:8px">Profile & Skills upar se kabhi bhi open kar sakte hain.</div></div>`;
- }else if(Number(S.wallet||0)<200){
-   h=`<div class="card"><h3>Wallet Recharge Required</h3><div class="notice"><b>Minimum ₹200 wallet required for new jobs.</b><br>Current wallet: ₹${Number(S.wallet||0).toFixed(2)}</div><button class="btn" onclick="rechargeWallet()">Recharge Wallet</button></div>`;
  }else{
    h="";
  }
@@ -3934,7 +3932,7 @@ if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice">No incoming request.
 if(S.status==="REQUESTED"){
  const skillMatch=providerMatchesCurrentBooking();
  const walletLow=Number(S.wallet)<200;
- const canReceive=S.available&&!S.adminPaused&&S.jobAccess&&!walletLow&&S.providerProfileAvailable&&S.providerRequestForThisProfile&&skillMatch;
+ const canReceive=S.available&&!S.adminPaused&&S.jobAccess&&S.providerProfileAvailable&&S.providerRequestForThisProfile&&skillMatch;
  const readyInfo=S.bookingReadiness||{};
  const distanceInfo=Number(S.oneWayDistanceKm||0)>0?(" • "+Number(S.oneWayDistanceKm).toFixed(1)+" km away"):"";
  if(!S.providerProfileAvailable){
@@ -3944,6 +3942,7 @@ if(S.status==="REQUESTED"){
  }else if(canReceive){
    h=`
 <div class="card"><h3>Incoming Request</h3>
+${walletLow?'<div class="notice"><b>Wallet Reminder</b><br>Current wallet: ₹'+Number(S.wallet||0).toFixed(2)+'. Recommended ₹200 maintain karein. Job request/Accept block nahi hai; OCS Admin control alag hai.</div>':''}
 <b>${S.service}</b><div class="muted">Customer area${distanceInfo} • Exact address Accept ke baad unlock hoga</div>
 ${readyInfo.material_status?'<div class="muted">Material: '+ocsSafe(readyInfo.material_status==="READY"?"Ready":"Inspection / Not clear")+'</div>':''}
 ${readyInfo.power_point?'<div class="muted">Nearby power point: '+ocsSafe(String(readyInfo.power_point).replace("_"," "))+'</div>':''}
@@ -3952,8 +3951,6 @@ ${readyInfo.power_point?'<div class="muted">Nearby power point: '+ocsSafe(String
 <button class="btn ok" onclick="providerDecision('accept')">Accept</button>
 <button class="btn red" onclick="providerDecision('reject')">Reject</button>
 </div></div>`;
- }else if(walletLow){
-   h=`<div class="card"><h3>Wallet Recharge Required</h3><div class="notice"><b>Minimum OCS Wallet ₹200 required.</b><br>Current wallet: ₹${Number(S.wallet||0).toFixed(2)}. Recharge ke baad matching jobs receive honge.</div><button class="btn" onclick="rechargeWallet()">Recharge Wallet</button></div>`;
  }else if(S.adminPaused||!S.jobAccess){
    h=`<div class="card"><h3>New Jobs Paused by OCS Admin</h3><div class="notice">OCS Admin ne new jobs pause kiye hain.</div></div>`;
  }else{
