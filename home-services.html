@@ -2414,6 +2414,11 @@ async function saveProviderPayoutDetails(){
 
 async function toggleAvailability(){
  const next=!S.available;
+ if(next&&String(S.providerOnboardingStatus||"not_submitted").toLowerCase()!=="approved"){
+   alert("Work ON se pehle SP approval complete karein. Bank + Selfie + Work Location + 1 Category submit karke Admin approval required hai.");
+   location.href="index.html?open=sp-profile&v=20260930-worktoggle1";
+   return;
+ }
  try{
    await ocsToggleAvailabilityLive(next);
    if(!S.available) hist("Available for Work OFF • Current/accepted job continues • No new requests");
