@@ -347,12 +347,12 @@ setTimeout(function(){
   <div class="help" style="margin:7px 0 12px">Email ID ya Mobile Number dalo → Continue → OTP enter karein → Verify & Login. Email link ki zarurat nahi. Login ke baad OCS Home khulega; pending profile Settings me complete karein.</div>
   </div>
   <div id="customerProfileSetup" style="display:none">
-  <label>Full Name <span class="muted">(optional now)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
-  <label>Mobile Number *</label>
+  <label>Full Name <span class="muted">(optional)</span></label><input id="caName" autocomplete="name" placeholder="Your full name">
+  <label>Mobile Number <span class="muted">(optional here)</span></label>
   <input id="caMobile" inputmode="tel" placeholder="10-digit mobile">
-  <div class="verifyok" id="customerMobileStatus">Mobile verification: Verify later in Settings</div>
-  <button class="primary account-submit" onclick="saveCustomerAccount()">Save Customer Profile</button>
-  <div class="help">Abhi Email login se profile save hoga. Mobile OTP verification SMS setup ke baad Settings me complete kar sakte hain.</div>
+  <div class="verifyok" id="customerMobileStatus">Mobile can be added now or during Home Service booking</div>
+  <button class="primary account-submit" onclick="saveCustomerAccount()">Save Profile</button>
+  <div class="help">Customer login ke liye extra profile form compulsory nahi hai. Home Service booking ke waqt contact mobile missing hua to wahi ek baar lenge.</div>
   </div>
 </div>
 <div id="providerAccountForm" style="display:none">
@@ -1598,14 +1598,15 @@ async function saveCustomerAccount(){
  const profileEmail=signedEmail||'';
  const sessionPhone=String(session.user.phone||'').replace(/^\+91/,'');
  const finalMobile=(mobile||sessionPhone).replace(/\D/g,'');
- if(finalMobile.length<10){alert('Customer Profile ke liye valid 10-digit mobile number enter karein.');return}
+ if(finalMobile&&finalMobile.length<10){alert('Mobile number 10-digit enter karein ya blank chhod dein.');return}
  const safeName=name||(signedEmail?signedEmail.split('@')[0]:'Customer');
  try{
    const {data,error}=await ocsSupabase.rpc('complete_customer_registration',{
      p_full_name:safeName,
-     p_phone:finalMobile
+     p_phone:finalMobile||''
    });
    if(error)throw error;
+   const savedMobile=String((data&&data.phone)||finalMobile||'').replace(/\D/g,'');
    const pendingRef=pendingReferralCode();
    let referralResult=null;
    if(pendingRef){
@@ -1617,16 +1618,19 @@ async function saveCustomerAccount(){
      }catch(re){console.error('Referral apply failed',re)}
    }
    localStorage.setItem('ocsCustomerProfile',JSON.stringify({
-     name:safeName,mobile:finalMobile,email:profileEmail,
+     name:safeName,mobile:savedMobile,email:profileEmail,
      verified:true,emailVerified:!!profileEmail,mobileVerified:!!accountVerified.customerMobile,
-     mobileVerificationPending:!accountVerified.customerMobile,
+     mobileVerificationPending:!!savedMobile&&!accountVerified.customerMobile,
      backendConnected:true,
      backendCustomerId:(data&&data.customer_id)||session.user.id,
      referralApplied:!!(referralResult&&referralResult.applied)
    }));
    const st=document.getElementById('customerMobileStatus');
-   if(st){st.textContent='Saved • Mobile verification can be completed later in Settings';st.style.color='#16815d'}
-   alert('Customer Profile saved. Mobile OTP verification baad me Settings me complete kar sakte hain.');
+   if(st){
+     st.textContent=savedMobile?'Profile saved • Mobile verification can be completed later':'Profile saved • Mobile will be asked only when a Home Service booking needs contact';
+     st.style.color='#16815d';
+   }
+   alert('Customer Profile saved.');
    closeAccount();bottomHome();
  }catch(e){
    console.error('Customer registration sync failed',e);
