@@ -719,6 +719,7 @@ async function saveNewOcsPassword(){
   alert('OCS password successfully change ho gaya. Ab Email + new password se Login karein.');
   return true;
 }
+const OCS_OTP_SEND_GUARD={sending:{},lastSent:{}};
 async function simpleOcsLogin(role){
   if(!ocsSupabase){alert('Online login service load nahi hua. Internet check karke page reopen karein.');return false}
   try{localStorage.setItem('ocsLoginIntentRole',role||'customer')}catch(e){}
@@ -729,6 +730,18 @@ async function simpleOcsLogin(role){
   const isEmail=raw.includes('@');
   const phone=!isEmail?ocsIndiaPhone(raw):'';
   if(!isEmail&&!phone){alert('Valid 10-digit Mobile Number ya Email ID enter karein.');return false}
+  const guardKey=(isProvider?'provider':'customer')+'|'+(isEmail?raw.toLowerCase():phone);
+  if(OCS_OTP_SEND_GUARD.sending[guardKey])return false;
+  const last=Number(OCS_OTP_SEND_GUARD.lastSent[guardKey]||0);
+  const waitMs=30000-(Date.now()-last);
+  if(waitMs>0){
+    const sec=Math.ceil(waitMs/1000);
+    if(st){st.textContent='✓ OTP already sent • '+sec+' sec baad Resend karein';st.style.color='#b7791f'}
+    return false;
+  }
+  const cont=document.getElementById(isProvider?'providerLoginContinue':'customerLoginContinue');
+  OCS_OTP_SEND_GUARD.sending[guardKey]=true;
+  if(cont){cont.disabled=true;cont.textContent='Sending OTP...'}
   try{
     if(isEmail){
       const {error}=await ocsSupabase.auth.signInWithOtp({
@@ -747,6 +760,7 @@ async function simpleOcsLogin(role){
       if(wrap)wrap.style.display='block';
       if(cont)cont.style.display='none';
       if(label)label.textContent='Enter Email OTP';
+      OCS_OTP_SEND_GUARD.lastSent[guardKey]=Date.now();
       if(st){st.textContent='✓ Email OTP sent • code yahin enter karein';st.style.color='#b7791f'}
       return true;
     }
@@ -759,6 +773,7 @@ async function simpleOcsLogin(role){
     if(wrap)wrap.style.display='block';
     if(cont)cont.style.display='none';
     if(label)label.textContent='Enter SMS OTP';
+    OCS_OTP_SEND_GUARD.lastSent[guardKey]=Date.now();
     if(st){st.textContent='✓ SMS OTP sent • code yahin enter karein';st.style.color='#b7791f'}
     return true;
   }catch(e){
@@ -770,6 +785,9 @@ async function simpleOcsLogin(role){
       alert('OTP send nahi hua: '+msg);
     }
     return false;
+  }finally{
+    OCS_OTP_SEND_GUARD.sending[guardKey]=false;
+    if(cont&&cont.style.display!=='none'){cont.disabled=false;cont.textContent='Continue'}
   }
 }
 async function resendSimpleOcsOtp(role){
