@@ -2339,7 +2339,7 @@ async function openProviderWalletQuick(){
         '<div class="box"><small>OCS Commission</small><b>'+commissionRate+'%</b></div>'+
         '<div class="box"><small>Job Access</small><b>'+(d.admin_paused?'Admin Hold':'Active')+'</b></div>'+
       '</div>'+
-      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. Recharge reminder rahega; matching jobs continue rahengi unless OCS Admin pauses new jobs.</div>':'')+
+      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. New job receive/Accept block rahega. ₹200 ya usse zyada hote hi Work ON karke jobs receive kar sakte hain.</div>':'')+
       (d.admin_paused?'<div class="notice bad"><b>Admin Hold</b><br>New jobs OCS Admin ne pause ki hain.</div>':'')+
       '<div class="provider-wallet-actions"><button class="btn" onclick="rechargeWallet()">Add Money</button><button class="btn alt" onclick="openProviderPayoutPanel()">Bank &amp; Payout</button></div>'+
       '<div class="provider-payout-summary"><div class="rowline"><span>Today Credit</span><b>₹'+todayCredit.toFixed(2)+'</b></div><div class="rowline"><span>Today Debit</span><b>₹'+todayDebit.toFixed(2)+'</b></div></div>'+
@@ -2493,6 +2493,11 @@ async function toggleAvailability(){
  if(next&&String(S.providerOnboardingStatus||"not_submitted").toLowerCase()!=="approved"){
    alert("Work ON se pehle SP approval complete karein. Selfie + Work Location + 1 Category submit karke Admin approval required hai.");
    location.href="index.html?open=sp-profile&v=20260930-worktoggle1";
+   return;
+ }
+ if(next&&Number(S.wallet||0)<200){
+   alert("Work ON ke liye minimum wallet ₹200 required hai. Current wallet ₹"+Number(S.wallet||0).toFixed(2)+". Pehle wallet recharge karein.");
+   openProviderWalletQuick();
    return;
  }
  try{
@@ -4036,7 +4041,7 @@ if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice">No incoming request.
 if(S.status==="REQUESTED"){
  const skillMatch=providerMatchesCurrentBooking();
  const walletLow=Number(S.wallet)<200;
- const canReceive=S.available&&!S.adminPaused&&S.jobAccess&&S.providerProfileAvailable&&S.providerRequestForThisProfile&&skillMatch;
+ const walletEligible=Number(S.wallet||0)>=200;\n const canReceive=S.available&&!S.adminPaused&&S.jobAccess&&walletEligible&&S.providerProfileAvailable&&S.providerRequestForThisProfile&&skillMatch;
  const readyInfo=S.bookingReadiness||{};
  const distanceInfo=Number(S.oneWayDistanceKm||0)>0?(" • "+Number(S.oneWayDistanceKm).toFixed(1)+" km away"):"";
  if(!S.providerProfileAvailable){
@@ -4046,7 +4051,7 @@ if(S.status==="REQUESTED"){
  }else if(canReceive){
    h=`
 <div class="card"><h3>Incoming Request</h3>
-${walletLow?'<div class="notice"><b>Wallet Reminder</b><br>Current wallet: ₹'+Number(S.wallet||0).toFixed(2)+'. Recommended ₹200 maintain karein. Job request/Accept block nahi hai; OCS Admin control alag hai.</div>':''}
+${walletLow?'<div class="notice"><b>Wallet Reminder</b><br>Current wallet: ₹'+Number(S.wallet||0).toFixed(2)+'. Minimum ₹200 required hai. New job receive/Accept block rahega jab tak wallet ₹200 ya usse zyada na ho.</div>':''}
 <b>${S.service}</b><div class="muted">Customer area${distanceInfo} • Exact address Accept ke baad unlock hoga</div>
 ${readyInfo.material_status?'<div class="muted">Material: '+ocsSafe(readyInfo.material_status==="READY"?"Ready":"Inspection / Not clear")+'</div>':''}
 ${readyInfo.power_point?'<div class="muted">Nearby power point: '+ocsSafe(String(readyInfo.power_point).replace("_"," "))+'</div>':''}
@@ -4055,6 +4060,8 @@ ${readyInfo.power_point?'<div class="muted">Nearby power point: '+ocsSafe(String
 <button class="btn ok" onclick="providerDecision('accept')">Accept</button>
 <button class="btn red" onclick="providerDecision('reject')">Reject</button>
 </div></div>`;
+ }else if(Number(S.wallet||0)<200){
+   h=`<div class="card"><h3>Wallet Recharge Required</h3><div class="notice bad">New jobs ke liye minimum wallet ₹200 required hai. Current wallet: ₹${Number(S.wallet||0).toFixed(2)}.</div><button class="btn" onclick="openProviderWalletQuick()">Recharge Wallet</button></div>`;
  }else if(S.adminPaused||!S.jobAccess){
    h=`<div class="card"><h3>New Jobs Paused by OCS Admin</h3><div class="notice">OCS Admin ne new jobs pause kiye hain.</div></div>`;
  }else{
@@ -4751,8 +4758,9 @@ const pvl=$("providerVerificationLine");if(pvl)pvl.textContent=(S.providerVerifi
 const prl=$("providerRatingLine");if(prl)prl.innerHTML=providerRatingSummary();
 const prv=$("providerReviews");if(prv)prv.innerHTML=providerRatingCommentsHTML();
 const onboardingApproved=String(S.providerOnboardingStatus||"not_submitted").toLowerCase()==="approved";
-$("availabilityBtn").textContent=onboardingApproved?("Available: "+(S.available?"ON":"OFF")):"Approval Required";
-$("availabilityBtn").style.background=onboardingApproved?(S.available?"#16a34a":"#64748b"):"#b7791f";
+const walletReady=Number(S.wallet||0)>=200;
+$("availabilityBtn").textContent=!onboardingApproved?"Approval Required":(!walletReady?"Wallet < ₹200":("Available: "+(S.available?"ON":"OFF")));
+$("availabilityBtn").style.background=!onboardingApproved?"#b7791f":(!walletReady?"#b7791f":(S.available?"#16a34a":"#64748b"));
 if($("walletBalance"))$("walletBalance").textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 const walletQuick=$("providerWalletQuick");if(walletQuick)walletQuick.textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 $("currentJob").textContent=S.currentJob||((["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","WORKING","ON_WAY","REACHED","ASSIGNED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?(S.service||S.serviceName||"Current Booking"):"None");
