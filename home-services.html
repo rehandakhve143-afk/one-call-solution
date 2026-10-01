@@ -1386,8 +1386,15 @@ function ocsPowerReadinessHTML(){
 }
 function ocsBookingReadinessPayload(){return {material_status:String(S.materialReadiness||""),power_point:String(S.powerReadiness||"")};}
 function ocsCustomerContactDigits(){
-  const d=String(S.customerMobile||"").replace(/\D/g,"");
-  return d.length>=10?d.slice(-10):"";
+  const live=document.getElementById("ocsBookingContactMobile");
+  const raw=live&&live.value!==undefined?live.value:(S.customerMobile||"");
+  const d=String(raw||"").replace(/\D/g,"");
+  if(d.length>=10){
+    const last=d.slice(-10);
+    S.customerMobile=last;
+    return last;
+  }
+  return "";
 }
 function ocsSetBookingContact(v){
   const d=String(v||"").replace(/\D/g,"").slice(-10);
@@ -1399,7 +1406,7 @@ function ocsBookingContactHTML(){
   return '<div class="notice '+(d?"good":"")+'" style="margin:10px 0">'+
     '<b>Contact Mobile '+(d?"✓":"Required for booking")+'</b><br>'+
     '<span>'+(d?"Service Provider can contact you for this booking.":"Login email se ho sakta hai; booking ke liye 10-digit contact mobile add karein.")+'</span>'+
-    '<input inputmode="tel" maxlength="10" value="'+ocsSafe(d)+'" placeholder="10-digit mobile number" oninput="ocsSetBookingContact(this.value)" style="margin-top:9px">'+
+    '<input id="ocsBookingContactMobile" inputmode="tel" maxlength="10" value="'+ocsSafe(d)+'" placeholder="10-digit mobile number" oninput="ocsSetBookingContact(this.value)" onchange="ocsSetBookingContact(this.value)" style="margin-top:9px">'+
   '</div>';
 }
 async function ocsSyncBookingCustomerContact(){
