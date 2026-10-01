@@ -2490,6 +2490,7 @@ function openMyOcs(tab){
 }
 function closeMyOcs(){document.getElementById('myOcsModal').classList.remove('show')}
 function myOcsOpenModule(name,role){closeMyOcs();openModule(name,role)}
+function ocsEsc(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function ocsSavedText(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function getOcsSavedItems(){let a=[];try{a=JSON.parse(localStorage.getItem('ocsSavedItems')||'[]')}catch(e){}return Array.isArray(a)?a:[]}
 function myOcsOpenSaved(i){const x=getOcsSavedItems()[Number(i)];if(!x)return;myOcsOpenModule(x.category||x.module||'Property')}
