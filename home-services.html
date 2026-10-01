@@ -392,6 +392,37 @@ body.customer-locked-ui #customer>details.card{display:none!important}
  .admin-kpi b{font-size:16px}
 }
 </style>
+<style id="ocs-admin-mobile-cleanup">
+.admin-route-only .top{
+  position:static!important;
+  padding:9px 12px 8px!important;
+  border-radius:0 0 18px 18px!important;
+  box-shadow:0 5px 14px rgba(6,47,62,.12)!important;
+}
+.admin-route-only .brand-row{gap:8px!important}
+.admin-route-only .ocs-hs-brandlogo{width:34px!important;height:34px!important;flex-basis:34px!important}
+.admin-route-only .brand{font-size:17px!important;line-height:1.05!important}
+.admin-route-only .tagline{font-size:9.5px!important}
+.admin-route-only .tabs{margin-top:7px!important}
+.admin-route-only .tabs #atab{min-height:27px!important;padding:4px 10px!important;font-size:10px!important}
+.admin-route-only .ocs-page-nav{margin-top:7px!important;gap:6px!important}
+.admin-route-only .ocs-page-nav button{min-height:31px!important;padding:5px 9px!important;font-size:10.5px!important}
+.admin-route-only .ocs-page-nav button:nth-child(2){min-width:82px!important}
+.admin-route-only #ocsPageBack{display:none!important}
+.admin-dashboard{padding-top:10px!important}
+.admin-titlebar{padding-top:4px!important;padding-bottom:9px!important}
+.admin-titlebar h2{font-size:20px!important}
+.admin-overview{margin-bottom:9px!important}
+.admin-records-card{max-height:520px;overflow:auto}
+.admin-records-card .admin-collection-list,
+.admin-records-card .admin-recent-list{max-height:310px;overflow:auto;padding-right:2px}
+@media(max-width:420px){
+ .admin-route-only .top{padding:8px 10px 7px!important}
+ .admin-route-only .brand{font-size:16px!important}
+ .admin-route-only .ocs-page-nav button{min-height:30px!important}
+ .admin-dashboard{padding-left:10px!important;padding-right:10px!important}
+}
+</style>
 <style id="ocs-customer-final-design">
 .ocs-payment-policy{display:flex;align-items:flex-start;gap:10px;margin:11px 0;padding:12px 13px;border:1px solid #d8ebe5;border-radius:15px;background:linear-gradient(145deg,#f0faf6,#fff);color:#365b61}
 .ocs-payment-policy .pp-icon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:10px;background:#dff4ed;color:#087a70;font-size:15px;font-weight:950}
@@ -552,14 +583,6 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
 
   <div class="admin-overview" id="adminOverview"></div>
 
-  <section class="admin-records-card">
-    <div class="admin-records-head">
-      <div><span>RECORDS & MONEY</span><h3>Joins & Category Collection</h3></div>
-      <button type="button" onclick="loadAdminPlatformRecords()">↻ Refresh</button>
-    </div>
-    <div id="adminPlatformRecords"><div class="admin-records-empty">Loading records…</div></div>
-  </section>
-
   <section class="admin-panel-card">
     <div class="admin-panel-head">
       <div><span>SP APPROVAL</span><h3>Pending Service Providers</h3></div>
@@ -567,6 +590,14 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
     </div>
     <div class="muted" style="margin-bottom:8px">Profile + one category + work location + selfie complete hone ke baad hi Approve karein. Bank/Payout Details later add ho sakti hain.</div>
     <div id="adminProviderOnboarding"><div class="notice">Loading pending SP approvals...</div></div>
+  </section>
+
+  <section class="admin-records-card">
+    <div class="admin-records-head">
+      <div><span>RECORDS & MONEY</span><h3>Joins & Category Collection</h3></div>
+      <button type="button" onclick="loadAdminPlatformRecords()">↻ Refresh</button>
+    </div>
+    <div id="adminPlatformRecords"><div class="admin-records-empty">Loading records…</div></div>
   </section>
 
   <section class="admin-panel-card admin-live-card" id="adminLiveCard">
