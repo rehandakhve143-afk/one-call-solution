@@ -565,7 +565,7 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
       <div><span>SP APPROVAL</span><h3>Pending Service Providers</h3></div>
       <button type="button" class="admin-refresh-btn" onclick="adminLoadProviderOnboarding()">↻ Refresh</button>
     </div>
-    <div class="muted" style="margin-bottom:8px">Profile + one category + work location + bank + selfie complete hone ke baad hi Approve karein.</div>
+    <div class="muted" style="margin-bottom:8px">Profile + one category + work location + selfie complete hone ke baad hi Approve karein. Bank/Payout Details later add ho sakti hain.</div>
     <div id="adminProviderOnboarding"><div class="notice">Loading pending SP approvals...</div></div>
   </section>
 
@@ -2415,7 +2415,7 @@ async function saveProviderPayoutDetails(){
 async function toggleAvailability(){
  const next=!S.available;
  if(next&&String(S.providerOnboardingStatus||"not_submitted").toLowerCase()!=="approved"){
-   alert("Work ON se pehle SP approval complete karein. Bank + Selfie + Work Location + 1 Category submit karke Admin approval required hai.");
+   alert("Work ON se pehle SP approval complete karein. Selfie + Work Location + 1 Category submit karke Admin approval required hai.");
    location.href="index.html?open=sp-profile&v=20260930-worktoggle1";
    return;
  }
