@@ -2746,6 +2746,8 @@ function settleVisitChargePayment(){
 async function booking(){
  if(!ocsRequireStage(["BOOKING_DETAILS","READY"],"Create booking"))return;
  if(!ocsGuardAction("create-booking",1600))return;
+ const contactMobile=ocsCustomerContactDigits();
+ if(!contactMobile){alert("Booking ke liye 10-digit contact mobile enter karein.");return}
  const fullAddress=String(S.address||"").trim();
  if(!fullAddress||/^(customer address|customer service address)$/i.test(fullAddress)){alert("Full service address enter karein.");return}
  if(S.customerBookingLat===null||S.customerBookingLng===null||!Number.isFinite(Number(S.customerBookingLat))||!Number.isFinite(Number(S.customerBookingLng))){alert("Use Current Location se booking location pin set karein.");return}
