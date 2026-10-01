@@ -2337,9 +2337,9 @@ async function openSettings(){
  if(loc)loc.textContent=savedLoc?(savedLoc.source==='gps'?'Current location':(savedLoc.label||'Area selected')):(x.locationAllowed?'Allowed':'Not set');
  const cp=getCustomerProfile(),sp=getProviderProfile(),w=getOcsWalletSnapshot();
  const cs=document.getElementById('settingsCustomerProfileState'),ps=document.getElementById('settingsProviderProfileState');
- const cpComplete=!!(cp&&cp.name&&cp.mobile&&cp.email);
+ const cpComplete=!!(cp&&(cp.email||cp.mobile));
  const spComplete=!!(sp&&sp.name&&sp.mobile&&sp.area&&Array.isArray(sp.skills)&&sp.skills.length);
- if(cs)cs.textContent=cpComplete?'✓ Basic profile complete • tap to edit':(cp?'Profile saved • pending details / verification':'Pending • create Customer profile');
+ if(cs)cs.textContent=cpComplete?'✓ Customer account ready • tap to edit':(cp?'Account ready • optional details can be added later':'Login to create Customer account');
  if(ps)ps.textContent=spComplete?('Basic profile complete • '+(sp.status||sp.kycStatus||'verification pending')):(sp?'Profile saved • pending skills/area/verification':'Pending • create Service Provider profile');
  const ws=document.getElementById('settingsWalletState');
  if(ws)ws.textContent='Customer ₹'+Number(w.customer).toLocaleString('en-IN')+' • SP ₹'+Number(w.sp).toLocaleString('en-IN');
@@ -2350,7 +2350,7 @@ async function openSettings(){
    const pending=[];
    if(!cpComplete)pending.push('Customer Profile');
    if(!spComplete)pending.push('SP Profile');
-   if(!(cp&&cp.mobileVerified))pending.push('Mobile Verification');
+   if(cp&&cp.mobile&&!(cp&&cp.mobileVerified))pending.push('Mobile Verification');
    overview.innerHTML='<b>'+ocsSavedText(id)+'</b><small>'+(pending.length?'Pending: '+pending.join(' • '):'Account & basic profiles complete')+'</small>';
  }
  document.getElementById('settingsModal').classList.add('show');
