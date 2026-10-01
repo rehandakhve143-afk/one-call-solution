@@ -420,15 +420,7 @@ setTimeout(function(){
     <div class="ocs-sp-location-status" id="paWorkLocationStatus">Work location not set</div>
   </div>
 
-  <h3 style="margin:16px 0 8px">Bank Details *</h3>
-  <div id="paBankSavedNote" class="notice good" style="display:none;margin-bottom:9px"></div>
-  <label>Account Holder Name *</label><input id="paBankHolder" autocomplete="name" placeholder="Name as per bank account">
-  <label>Bank Name *</label><input id="paBankName" placeholder="Bank name">
-  <label>Account Number *</label><input id="paBankAccount" inputmode="numeric" placeholder="Bank account number">
-  <label>Confirm Account Number *</label><input id="paBankAccountConfirm" inputmode="numeric" placeholder="Re-enter account number">
-  <label>Account Type *</label><select id="paBankType"><option value="savings">Savings</option><option value="current">Current</option></select>
-  <label>IFSC *</label><input id="paBankIfsc" autocapitalize="characters" placeholder="e.g. HDFC0001234">
-  <label>UPI ID <span class="muted">(optional)</span></label><input id="paBankUpi" placeholder="name@bank">
+  <div class="notice" style="margin:16px 0 8px"><b>Payout Details</b><br>Bank account abhi optional hai. SP Dashboard → Payout Details me later add karein. Payout/withdrawal release se pehle verified bank details required hongi.</div>
 
   <h3 style="margin:16px 0 8px">Selfie Verification *</h3>
   <div class="help">Clear face selfie upload karein. Ye private verification ke liye hai; public profile photo nahi hai.</div>
@@ -1403,7 +1395,7 @@ async function openAccount(role,forceProviderSetup){
        if(setup)setup.style.display='block';
        if(document.getElementById('providerProfileSummaryBack'))document.getElementById('providerProfileSummaryBack').style.display='block';
        document.getElementById('accountTitle').textContent='Complete Service Provider Approval';
-       document.getElementById('accountSub').textContent='Profile + category + work location + bank + selfie submit karein';
+       document.getElementById('accountSub').textContent='Profile + one category + work location + selfie submit karein';
        setTimeout(lockApprovedProviderSkills,0);
      }else{
        await showProviderProfileSummary();
@@ -1413,7 +1405,7 @@ async function openAccount(role,forceProviderSetup){
      if(auth)auth.style.display='none';
      if(setup)setup.style.display='block';
      document.getElementById('accountTitle').textContent='Complete Service Provider Profile';
-     document.getElementById('accountSub').textContent='Profile, one category, work location, bank aur selfie submit karein';
+     document.getElementById('accountSub').textContent='Profile, one category, work location aur selfie submit karein';
    }else{
      if(sum)sum.style.display='none';
      if(auth)auth.style.display='block';
@@ -1500,7 +1492,7 @@ async function showProviderProfileSummary(){
       '<div class="ocs-sp-summary-row"><span>Work Category</span><b>'+ocsEsc(category)+'</b></div>'+
       '<div class="ocs-sp-summary-row"><span>Service Area</span><b>'+ocsEsc(area)+(area!=='Not added'?' • '+radius+' km':'')+'</b></div>'+
       '<div class="ocs-sp-summary-row"><span>Work Location</span><b class="'+(locationOk?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+(locationOk?'✓ Saved':'Required')+'</b></div>'+
-      '<div class="ocs-sp-summary-row"><span>Bank Details</span><b class="'+(bankOk?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+ocsEsc(bankText)+'</b></div>'+
+      '<div class="ocs-sp-summary-row"><span>Payout Details</span><b class="'+(bankOk?'ocs-sp-summary-check':'')+'">'+(bankOk?ocsEsc(bankText):'Add later')+'</b></div>'+
       '<div class="ocs-sp-summary-row"><span>Selfie Verification</span><b class="'+(selfieOk?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+(selfieOk?'✓ Submitted':'Required')+'</b></div>'+
     '</div>'+
     '<div class="ocs-sp-summary-actions">'+
@@ -1522,7 +1514,7 @@ function editProviderProfileSkills(){
  if(back)back.style.display='block';
  const t=document.getElementById('accountTitle'),s=document.getElementById('accountSub');
  if(t)t.textContent='Complete Service Provider Approval';
- if(s)s.textContent='Profile + category + work location + bank + selfie submit karein';
+ if(s)s.textContent='Profile + one category + work location + selfie submit karein';
  const ob=window.__ocsProviderOnboarding||{};
  const locSt=document.getElementById('paWorkLocationStatus');
  if(locSt&&ob.location_added){locSt.textContent='✓ Work location already saved';locSt.style.color='#16815d';locSt.classList.add('ok')}
@@ -1715,7 +1707,6 @@ async function saveProviderAccount(){
    if(!snap.error&&snap.data)ob=snap.data||{};
  }catch(_){}
  const locationAlready=!!ob.location_added;
- const bankAlready=!!ob.bank_added;
  const selfieAlready=!!ob.selfie_added;
 
  if(!locationAlready&&(providerWorkLat===null||providerWorkLng===null)){
@@ -1723,33 +1714,9 @@ async function saveProviderAccount(){
  }
  if(!selfieAlready&&!providerSelfieFile){alert('Selfie verification required hai.');return}
 
- const holder=(document.getElementById('paBankHolder')?.value||'').trim();
- const bank=(document.getElementById('paBankName')?.value||'').trim();
- const account=(document.getElementById('paBankAccount')?.value||'').replace(/\D/g,'');
- const confirmAccount=(document.getElementById('paBankAccountConfirm')?.value||'').replace(/\D/g,'');
- const accountType=(document.getElementById('paBankType')?.value||'savings').trim();
- const ifsc=(document.getElementById('paBankIfsc')?.value||'').trim().toUpperCase();
- const upi=(document.getElementById('paBankUpi')?.value||'').trim();
-
- if(!bankAlready){
-   if(!holder||!bank||!account||!confirmAccount||!ifsc){alert('Bank details complete karein.');return}
-   if(account!==confirmAccount){alert('Account Number aur Confirm Account Number match nahi karte.');return}
- }
 
  try{
    const sync=await syncProviderRegistrationToBackend(name,mobile,skills);
-
-   if(!bankAlready){
-     const payout=await ocsSupabase.rpc('save_provider_payout_v2',{
-       p_account_holder_name:holder,
-       p_bank_name:bank,
-       p_account_number:account,
-       p_ifsc:ifsc,
-       p_account_type:accountType,
-       p_upi_id:upi||null
-     });
-     if(payout.error)throw payout.error;
-   }
 
    if(!locationAlready){
      const loc=await ocsSupabase.rpc('set_provider_service_location_v1',{
@@ -1783,7 +1750,7 @@ async function saveProviderAccount(){
      backendProviderId:(sync&&sync.provider_id)||session.user.id,
      mobileVerified:!!accountVerified.providerMobile,
      kycStatus:'Pending',
-     payoutStatus:'Pending',
+     payoutStatus:'Not Added',
      status:'Submitted • Admin Approval Pending'
    }));
 
