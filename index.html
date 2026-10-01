@@ -334,6 +334,7 @@ setTimeout(function(){
 </style>
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">OCS ACCOUNT</span><h2 id="accountTitle">Login to One Call Solution</h2><p class="muted" id="accountSub">Email ID ya Mobile Number se simple login</p>
 <div id="customerAccountForm">
+  <div id="customerProfileSummary" style="display:none"></div>
   <div id="customerAuthBox">
   <label>Mobile Number or Email ID *</label><input id="caEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
   <button id="customerLoginContinue" class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('customer')">Continue</button>
@@ -651,9 +652,9 @@ async function refreshOcsEmailStatus(){
     accountVerified[isProvider?'providerEmail':'customerEmail']=ok;
     const setup=document.getElementById(isProvider?'providerProfileSetup':'customerProfileSetup');
     const authBox=document.getElementById(isProvider?'providerAuthBox':'customerAuthBox');
-    const providerSummary=isProvider?document.getElementById('providerProfileSummary'):null;
-    const providerSummaryOpen=!!(providerSummary&&providerSummary.style.display==='block');
-    if(setup)setup.style.display=(ok&&!providerSummaryOpen)?'block':'none';
+    const profileSummary=isProvider?document.getElementById('providerProfileSummary'):document.getElementById('customerProfileSummary');
+    const profileSummaryOpen=!!(profileSummary&&profileSummary.style.display==='block');
+    if(setup)setup.style.display=(ok&&!profileSummaryOpen)?'block':'none';
     if(authBox)authBox.style.display=ok?'none':'block';
     if(status){
       if(ok){
@@ -1340,15 +1341,19 @@ async function openAccount(role,forceProviderSetup){
  await refreshOcsEmailStatus();
  if(!isProvider){
    const p=getCustomerProfile();
+   const session=await getOcsSession();
    if(p){
      const n=document.getElementById('caName'),m=document.getElementById('caMobile'),e=document.getElementById('caEmail'),st=document.getElementById('customerMobileStatus');
-     if(n&&!n.value)n.value=p.name||'';
-     if(m&&!m.value)m.value=p.mobile||'';
-     if(e&&!e.value)e.value=p.email||'';
+     if(n)n.value=p.name||'';
+     if(m)m.value=p.mobile||'';
+     if(e)e.value=p.email||session?.user?.email||session?.user?.phone||'';
      if(st){
        st.textContent=p.mobileVerified?'✓ Mobile verified':'Mobile verification: Verify later in Settings';
        st.style.color=p.mobileVerified?'#16815d':'#6f8188';
      }
+   }
+   if(session&&session.user){
+     showCustomerProfileSummary();
    }
  }
  if(isProvider){
@@ -1427,6 +1432,53 @@ function closeAccount(){
  document.getElementById('accountModal').classList.remove('show');
  document.body.classList.remove('ocs-account-open');
 }
+function showCustomerProfileSummary(){
+ const p=getCustomerProfile()||{};
+ const summary=document.getElementById('customerProfileSummary');
+ const auth=document.getElementById('customerAuthBox');
+ const setup=document.getElementById('customerProfileSetup');
+ if(auth)auth.style.display='none';
+ if(setup)setup.style.display='none';
+ if(!summary)return;
+ const name=p.name||'Customer';
+ const mobile=p.mobile||'Not added';
+ const email=p.email||'Not added';
+ const mobileState=p.mobileVerified?'✓ Verified':(p.mobile?'Verify later':'Add when needed');
+ summary.style.display='block';
+ summary.innerHTML=
+  '<div class="ocs-sp-summary-card">'+
+    '<div class="ocs-sp-summary-top">'+
+      '<div><div class="ocs-sp-summary-name">'+ocsEsc(name)+'</div><div class="ocs-sp-summary-mobile">OCS Customer</div></div>'+
+      '<span class="ocs-sp-summary-badge ok">ACTIVE</span>'+
+    '</div>'+
+    '<div class="ocs-sp-summary-rows">'+
+      '<div class="ocs-sp-summary-row"><span>Mobile</span><b>'+ocsEsc(mobile)+'</b></div>'+
+      '<div class="ocs-sp-summary-row"><span>Email</span><b>'+ocsEsc(email)+'</b></div>'+
+      '<div class="ocs-sp-summary-row"><span>Mobile Verification</span><b>' + ocsEsc(mobileState) + '</b></div>'+
+    '</div>'+
+    '<div class="ocs-sp-summary-actions">'+
+      '<button class="primary" onclick="editCustomerProfile()">Edit Profile</button>'+
+      '<button class="btn gray" onclick="closeAccount()">Close</button>'+
+    '</div>'+
+  '</div>';
+ document.getElementById('accountTitle').textContent='Customer Profile';
+ document.getElementById('accountSub').textContent='Your OCS account details';
+}
+function editCustomerProfile(){
+ const p=getCustomerProfile()||{};
+ const summary=document.getElementById('customerProfileSummary');
+ const auth=document.getElementById('customerAuthBox');
+ const setup=document.getElementById('customerProfileSetup');
+ if(summary)summary.style.display='none';
+ if(auth)auth.style.display='none';
+ if(setup)setup.style.display='block';
+ const n=document.getElementById('caName'),m=document.getElementById('caMobile');
+ if(n)n.value=p.name||'';
+ if(m)m.value=p.mobile||'';
+ document.getElementById('accountTitle').textContent='Edit Customer Profile';
+ document.getElementById('accountSub').textContent='Change only what you need';
+}
+
 async function showProviderProfileSummary(){
  const local=getProviderProfile()||{};
  const summary=document.getElementById('providerProfileSummary');
