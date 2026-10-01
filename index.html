@@ -1394,12 +1394,12 @@ async function openAccount(role,forceProviderSetup){
          onboardingStatus=String(ob.data.status||'not_submitted').toLowerCase();
        }
      }catch(_){}
-     if(forceProviderSetup&&onboardingStatus!=='approved'){
+     if(forceProviderSetup&&onboardingStatus==='not_submitted'){
        if(sum)sum.style.display='none';
        if(auth)auth.style.display='none';
        if(setup)setup.style.display='block';
        if(document.getElementById('providerProfileSummaryBack'))document.getElementById('providerProfileSummaryBack').style.display='block';
-       document.getElementById('accountTitle').textContent='Complete Service Provider Approval';
+       document.getElementById('accountTitle').textContent='Complete Service Provider Profile';
        document.getElementById('accountSub').textContent='Profile + one category + work location + selfie submit karein';
        setTimeout(lockApprovedProviderSkills,0);
      }else{
@@ -1534,6 +1534,16 @@ async function showProviderProfileSummary(){
  const selfieOk=!!ob.selfie_added;
  const bankText=bankOk?((pay.bank_name||'Bank')+(pay.masked_account_number?' • '+pay.masked_account_number:'')):'Not added';
 
+ const titleEl=document.getElementById('accountTitle'),subEl=document.getElementById('accountSub');
+ if(titleEl)titleEl.textContent='Service Provider Profile';
+ if(subEl)subEl.textContent=status==='approved'
+   ?'Approved • Ready for SP Dashboard'
+   :status==='pending'
+     ?'Submitted • Waiting for Admin Approval'
+     :status==='rejected'
+       ?'Admin correction required'
+       :'Complete required details and submit';
+
  summary.innerHTML=
   '<div class="ocs-sp-summary-card">'+
     '<div class="ocs-sp-summary-top">'+
@@ -1547,10 +1557,19 @@ async function showProviderProfileSummary(){
       '<div class="ocs-sp-summary-row"><span>Payout Details</span><b class="'+(bankOk?'ocs-sp-summary-check':'')+'">'+(bankOk?ocsEsc(bankText):'Add later')+'</b></div>'+
       '<div class="ocs-sp-summary-row"><span>Selfie Verification</span><b class="'+(selfieOk?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+(selfieOk?'✓ Submitted':'Required')+'</b></div>'+
     '</div>'+
+    (status==='pending'
+      ?'<div class="notice good" style="margin-top:12px"><b>✓ Submitted for Admin Approval</b><br>Your SP profile is complete. No need to submit again. Work ON will unlock after Admin approval.</div>'
+      :status==='rejected'
+        ?'<div class="notice" style="margin-top:12px"><b>Correction Required</b><br>Admin ne profile correction ke liye return kiya hai. Details update karke resubmit karein.</div>'
+        :'')+
     '<div class="ocs-sp-summary-actions">'+
       (status==='approved'
-       ?'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20260930-selfiefix2\'">Open SP Dashboard</button>'
-       :'<button class="primary" onclick="editProviderProfileSkills()">Complete Missing Details</button>')+
+       ?'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20261001-spflow1\'">Open SP Dashboard</button>'
+       :status==='pending'
+         ?'<button class="primary" onclick="closeAccount()">OK</button>'
+         :status==='rejected'
+           ?'<button class="primary" onclick="editProviderProfileSkills()">Fix Profile</button>'
+           :'<button class="primary" onclick="editProviderProfileSkills()">Complete Missing Details</button>')+
       '<button class="btn gray" onclick="closeAccount()">Close</button>'+
     '</div>'+
   '</div>';
