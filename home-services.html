@@ -4251,7 +4251,7 @@ async function adminLoadProviderOnboarding(){
      return '<div class="card" style="padding:12px;margin:10px 0">'+
        '<div style="display:flex;justify-content:space-between;gap:8px"><b>'+ocsSafe(x.provider_name||"Service Provider")+'</b><span class="status">PENDING</span></div>'+
        '<div class="muted" style="margin-top:5px">'+ocsSafe(x.phone||"")+'</div>'+
-       '<div class="row" style="margin-top:9px"><span>Category</span><b>'+ocsSafe(x.category||"Not set")+'</b></div>'+
+       '<div class="row" style="margin-top:9px"><span>Work Category</span><b>'+ocsSafe(x.service_name||x.category||"Not set")+'</b></div>'+
        '<div class="row"><span>Service Area</span><b>'+ocsSafe(x.service_area||"Not set")+' • '+Number(x.service_radius_km||12)+' km</b></div>'+
        '<div class="row"><span>Bank</span><b>'+ocsSafe(x.bank_name||"Not added")+' '+ocsSafe(x.masked_account||"")+'</b></div>'+
        '<div class="row"><span>IFSC</span><b>'+ocsSafe(x.ifsc||"—")+'</b></div>'+
