@@ -1385,6 +1385,41 @@ function ocsPowerReadinessHTML(){
     '<small style="display:block;margin-top:7px">No / Not sure hone par booking block nahi hogi; SP ko pehle se info milegi.</small></div>';
 }
 function ocsBookingReadinessPayload(){return {material_status:String(S.materialReadiness||""),power_point:String(S.powerReadiness||"")};}
+function ocsCustomerContactDigits(){
+  const d=String(S.customerMobile||"").replace(/\D/g,"");
+  return d.length>=10?d.slice(-10):"";
+}
+function ocsSetBookingContact(v){
+  const d=String(v||"").replace(/\D/g,"").slice(-10);
+  S.customerMobile=d||"";
+  saveHomeState();
+}
+function ocsBookingContactHTML(){
+  const d=ocsCustomerContactDigits();
+  return '<div class="notice '+(d?"good":"")+'" style="margin:10px 0">'+
+    '<b>Contact Mobile '+(d?"✓":"Required for booking")+'</b><br>'+
+    '<span>'+(d?"Service Provider can contact you for this booking.":"Login email se ho sakta hai; booking ke liye 10-digit contact mobile add karein.")+'</span>'+
+    '<input inputmode="tel" maxlength="10" value="'+ocsSafe(d)+'" placeholder="10-digit mobile number" oninput="ocsSetBookingContact(this.value)" style="margin-top:9px">'+
+  '</div>';
+}
+async function ocsSyncBookingCustomerContact(){
+  const d=ocsCustomerContactDigits();
+  if(!d)throw new Error("Valid 10-digit contact mobile required");
+  const session=await ocsSession();
+  if(!session||!session.user)return false;
+  const name=(S.customerName&&S.customerName!=="Customer 1")?S.customerName:"Customer";
+  const {data,error}=await ocsSupabase.rpc("complete_customer_registration",{p_full_name:name,p_phone:d});
+  if(error)throw error;
+  const existing=readSharedLocalJson("ocsCustomerProfile")||{};
+  const profile={...existing,name:existing.name||name,mobile:d,email:existing.email||session.user.email||"",verified:true,backendConnected:true,backendCustomerId:(data&&data.customer_id)||session.user.id};
+  try{localStorage.setItem("ocsCustomerProfile",JSON.stringify(profile))}catch(e){}
+  try{if(window.parent&&window.parent.localStorage)window.parent.localStorage.setItem("ocsCustomerProfile",JSON.stringify(profile))}catch(e){}
+  S.customerProfileAvailable=true;
+  S.customerName=profile.name||name;
+  S.customerMobile=d;
+  S.customerEmail=profile.email||S.customerEmail;
+  return true;
+}
 function ocsBookingLocationHTML(){
   const ready=S.customerBookingLat!==null&&S.customerBookingLng!==null&&Number.isFinite(Number(S.customerBookingLat))&&Number.isFinite(Number(S.customerBookingLng));
   return '<div class="notice '+(ready?"good":"")+'" style="margin:10px 0"><b>Location Pin '+(ready?"✓":"Required")+'</b><br><span>'+(ready?"Current booking location saved. Nearest matching SP search hoga.":"Nearest Service Provider ke liye current location pin set karein.")+'</span><button type="button" class="btn gray" style="margin-top:9px" onclick="ocsUseBookingLocation()">📍 Use Current Location</button></div>';
@@ -1744,6 +1779,8 @@ async function submitCustomRequest(){
  let d=$("customDesc")?.value.trim(); let sch=document.querySelector('input[name="customSchedule"]:checked')?.value;
  if(!workSkill){alert("Work / Skill Name mandatory hai.");return}
  if(!d){alert("Describe your work / problem mandatory hai.");return}
+ const contactMobile=ocsCustomerContactDigits();
+ if(!contactMobile){alert("Booking ke liye 10-digit contact mobile enter karein.");return}
  const fullAddress=String(S.address||"").trim();
  if(!fullAddress||/^(customer address|customer service address)$/i.test(fullAddress)){alert("Full service address enter karein.");return}
  if(S.customerBookingLat===null||S.customerBookingLng===null||!Number.isFinite(Number(S.customerBookingLat))||!Number.isFinite(Number(S.customerBookingLng))){alert("Use Current Location se booking location pin set karein.");return}
@@ -1764,6 +1801,7 @@ async function submitCustomRequest(){
      return;
    }
    try{const boot=await ocsSupabase.rpc("ensure_customer_account_v1");if(boot.error)throw boot.error}catch(e){console.error("Customer account bootstrap failed",e)}
+   await ocsSyncBookingCustomerContact();
    const {data,error}=await ocsSupabase.rpc("create_customer_quote_request_v2",{
      p_category:S.category,
      p_service_name:S.service,
@@ -2740,6 +2778,7 @@ async function booking(){
  prepareProfileMatching();
  ensureBookingAmount();
  try{
+   await ocsSyncBookingCustomerContact();
    const b=await ocsCreateLiveBooking();
    S.customerSnapshot={name:S.customerName,mobile:S.customerMobile,email:S.customerEmail,address:S.address};
    S.bookingClosedAt=0;S.paymentFinalized=false;S.startOtpVerifiedAt=0;S.workFinishedAt=0;S.customerCompletionAt=0;
@@ -3646,7 +3685,7 @@ if(S.status==="SELECT_ITEM"){
 }
 if(S.status==="CUSTOM_REQUEST"){
  const customPrefill=S.category==="Custom / Other"&&S.service==="New Service Request"?"":(S.service||"");
- h=`<button class="backbtn" onclick="S.status='SELECT_ITEM';render()">← ${ocsSafe((services[S.category]&&services[S.category].label)||S.category)}</button><div class="card"><h3>Get Quote • New Service Request</h3><div class="muted">Work / Skill Name clear likhein, phir details + photo/video bhejein. Provider reply ke baad isi booking me Chat rahega.</div><label>Work / Skill Name *</label><input id="customSkillName" value="${ocsSafe(customPrefill)}" placeholder="e.g. Glass Work / Door Repair / Custom Repair">${S.category==="Custom / Other"?'<div class="notice good"><b>Exact Skill Match</b><br>Example: Glass Work request sirf approved Glass Work Service Provider ko jayega.</div>':""}<label>Describe your work / problem *</label><textarea id="customDesc" rows="4" placeholder="Kaam ki poori detail likhiye"></textarea><label>Work Photos (up to 5)</label><input id="customPhoto" type="file" accept="image/*" multiple><label>Work Video (up to 1 minute)</label><input id="customVideo" type="file" accept="video/*"><div class="notice good"><b>Photo • Video • Chat</b><br>Ye sab isi OCS booking record ke saath rahega.</div><label>Full Service Address *</label><input value="${ocsSafe(S.address||"")}" placeholder="House/Flat, Building, Area, Landmark" onchange="S.address=this.value;saveHomeState()">${ocsBookingLocationHTML()}<label>Preferred Schedule *</label><div class="schedule-grid"><label><input type="radio" name="customSchedule" value="Morning 8 AM–12 PM">Morning • 8 AM–12 PM</label><label><input type="radio" name="customSchedule" value="Afternoon 12–4 PM">Afternoon • 12–4 PM</label><label><input type="radio" name="customSchedule" value="Evening 4–8 PM">Evening • 4–8 PM</label></div><button class="btn" onclick="submitCustomRequest()">Send Get Quote Request</button></div>`;return h
+ h=`<button class="backbtn" onclick="S.status='SELECT_ITEM';render()">← ${ocsSafe((services[S.category]&&services[S.category].label)||S.category)}</button><div class="card"><h3>Get Quote • New Service Request</h3><div class="muted">Work / Skill Name clear likhein, phir details + photo/video bhejein. Provider reply ke baad isi booking me Chat rahega.</div><label>Work / Skill Name *</label><input id="customSkillName" value="${ocsSafe(customPrefill)}" placeholder="e.g. Glass Work / Door Repair / Custom Repair">${S.category==="Custom / Other"?'<div class="notice good"><b>Exact Skill Match</b><br>Example: Glass Work request sirf approved Glass Work Service Provider ko jayega.</div>':""}<label>Describe your work / problem *</label><textarea id="customDesc" rows="4" placeholder="Kaam ki poori detail likhiye"></textarea><label>Work Photos (up to 5)</label><input id="customPhoto" type="file" accept="image/*" multiple><label>Work Video (up to 1 minute)</label><input id="customVideo" type="file" accept="video/*"><div class="notice good"><b>Photo • Video • Chat</b><br>Ye sab isi OCS booking record ke saath rahega.</div><label>Full Service Address *</label><input value="${ocsSafe(S.address||"")}" placeholder="House/Flat, Building, Area, Landmark" onchange="S.address=this.value;saveHomeState()">${ocsBookingContactHTML()}${ocsBookingLocationHTML()}<label>Preferred Schedule *</label><div class="schedule-grid"><label><input type="radio" name="customSchedule" value="Morning 8 AM–12 PM">Morning • 8 AM–12 PM</label><label><input type="radio" name="customSchedule" value="Afternoon 12–4 PM">Afternoon • 12–4 PM</label><label><input type="radio" name="customSchedule" value="Evening 4–8 PM">Evening • 4–8 PM</label></div><button class="btn" onclick="submitCustomRequest()">Send Get Quote Request</button></div>`;return h
 }
 if(S.status==="QUOTE_WAIT"){h=`<div class="notice good"><b>Get Quote Request Sent</b><br>Matching verified Service Provider ko work details + attachments bheje gaye. Quote isi OCS booking me aayega.</div>${quoteTimerHTML()}<div class="card"><b>${S.service||S.category}</b><p>${ocsSafe(S.customDescription||"")}</p><div class="muted">Preferred: ${ocsSafe(S.customSchedule||"")}</div><div class="notice"><b>OCS Rule:</b> Final rate/payment sirf app me accepted quote se official hoga. Call/Chat me bola amount official nahi hai.</div></div>${quoteMediaHTML()}${quoteChatHTML("customer")}`;return h}
 if(S.status==="QUOTE_EXPIRED"){h=`<div class="card"><h3>Quote Expired</h3><div class="notice">This quote was valid for 24 hours. Expired amount ab official/usable nahi hai.</div><button class="btn" onclick="customerRequestNewQuote()">Ask for Fresh Quote</button></div>${quoteHistoryHTML()}${quoteChatHTML("customer")}`;return h}
@@ -3660,7 +3699,7 @@ if(S.status==="BOOKING_DETAILS"){
  let itemLines=fixed&&selected.length
    ? '<div class="card" style="margin:10px 0;padding:10px">'+selected.map(x=>'<div class="row" style="align-items:flex-start"><div><b>'+ocsSafe(x.name)+'</b><div class="muted">'+money(Number(x.price||0))+' × '+Number(x.qty||1)+'</div></div><b>'+money(Number(x.price||0)*Number(x.qty||1))+'</b></div>').join('')+'</div>'
    : '';
- h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${ocsLabourOnlyWarning()}${ocsMaterialReadinessHTML()}${ocsPowerReadinessHTML()}${S.paymentHeld?secureHoldHTML():""}<label>Full Service Address *</label><input value="${ocsSafe(S.address||"")}" placeholder="House/Flat, Building, Area, Landmark" onchange="S.address=this.value;saveHomeState()">${ocsBookingLocationHTML()}<h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
+ h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${ocsLabourOnlyWarning()}${ocsMaterialReadinessHTML()}${ocsPowerReadinessHTML()}${S.paymentHeld?secureHoldHTML():""}<label>Full Service Address *</label><input value="${ocsSafe(S.address||"")}" placeholder="House/Flat, Building, Area, Landmark" onchange="S.address=this.value;saveHomeState()">${ocsBookingContactHTML()}${ocsBookingLocationHTML()}<h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
 }
 
 if(S.status==="READY")h=`
