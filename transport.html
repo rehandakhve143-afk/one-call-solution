@@ -145,6 +145,7 @@ async function submitQuote(){
   $('quoteBtn').textContent='Request Sent ✓';
  }catch(e){show(e&&e.message?e.message:'Request create nahi hui.',true);$('quoteBtn').disabled=false;$('quoteBtn').textContent='Get Quote';sending=false}
 }
+if(window.self!==window.top){const topBar=document.querySelector('.top');if(topBar)topBar.style.display='none';document.body.style.paddingTop='0'}
 setMode('GOODS_DELIVERY');
 try{const d=new Date();d.setDate(d.getDate()+1);$('date').min=new Date().toISOString().slice(0,10);$('date').value=d.toISOString().slice(0,10)}catch(e){}
 </script>
