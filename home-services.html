@@ -4879,6 +4879,7 @@ try{
  const rt=qp.get("tab");
  if(rt==="provider"||rt==="customer"||rt==="admin")OCS_ROUTE_TAB=rt;
  OCS_SP_ONLY=qp.get("sp")==="1";
+ if(OCS_SP_ONLY)OCS_ROUTE_TAB="provider";
 }catch(e){}
 if(OCS_SP_ONLY){
  document.body.classList.add("sp-only-route");
