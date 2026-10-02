@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="cache-control" content="no-store,no-cache,must-revalidate,max-age=0">
+<title>OCS Tempo / Goods Transport</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f8f7;color:#173f46;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}.top{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,#006b62,#079384);color:#fff;padding:16px 16px 18px;border-radius:0 0 24px 24px;box-shadow:0 10px 28px rgba(0,85,78,.16)}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:14px;background:#111;color:#fff;display:grid;place-items:center;font-weight:900}.brand h1{font-size:19px;margin:0}.brand p{margin:3px 0 0;font-size:11px;opacity:.85}.back{margin-top:12px;width:100%;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;border-radius:13px;padding:11px;font-weight:800}.wrap{max-width:720px;margin:auto;padding:14px 14px 36px}.hero{background:#fff;border:1px solid #dce9e6;border-radius:22px;padding:16px;box-shadow:0 8px 24px rgba(25,73,69,.07)}.eyebrow{font-size:10px;letter-spacing:.08em;font-weight:900;color:#078476}.hero h2{font-size:25px;line-height:1.08;margin:5px 0}.hero p{font-size:12px;line-height:1.5;color:#6c8083;margin:7px 0 13px}.quick{display:grid;grid-template-columns:1fr 1fr;gap:9px}.quick button{border:1px solid #d8e9e5;background:#f7fbfa;border-radius:15px;padding:13px 10px;text-align:left}.quick b{display:block;color:#17484c}.quick small{display:block;color:#718489;margin-top:3px}.card{margin-top:13px;background:#fff;border:1px solid #dce9e6;border-radius:21px;padding:15px;box-shadow:0 7px 22px rgba(25,73,69,.055)}.card h3{margin:0 0 4px;font-size:18px}.sub{color:#73868a;font-size:11px;margin-bottom:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field{margin-top:10px}.field label{display:block;font-size:11px;font-weight:850;margin:0 0 5px}.field input,.field select,.field textarea{width:100%;border:1px solid #cfe0dd;background:#fff;border-radius:12px;padding:11px;font:inherit;font-size:13px;color:#173f46;outline:none}.field textarea{min-height:78px;resize:vertical}.gps{display:flex;gap:7px}.gps input{flex:1}.gps button{border:0;border-radius:12px;padding:0 12px;background:#e6f7f3;color:#08796f;font-weight:850}.choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.choice button{border:1px solid #d5e5e2;background:#fff;border-radius:13px;padding:11px;font-weight:850;color:#31565b}.choice button.on{background:#e9faf5;border-color:#78cbb9;color:#08786d}.note{margin-top:11px;border-left:4px solid #f0a000;background:#fff7e9;padding:10px 11px;border-radius:11px;font-size:11px;line-height:1.45;color:#6c571e}.good{border-left-color:#0aa179;background:#edfbf7;color:#175b50}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.btn{border:0;border-radius:14px;padding:13px;font-weight:900;font-size:13px}.primary{background:#078f7f;color:#fff}.secondary{background:#e9f2f0;color:#315b5e}.disabled{opacity:.5}.status{display:none;margin-top:12px;padding:12px;border-radius:13px;background:#eefaf6;color:#17675b;font-size:12px;font-weight:750}.status.bad{background:#fff0f0;color:#9b2929}.vehicle-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.vehicle-list label{border:1px solid #d6e5e2;border-radius:12px;padding:10px;font-size:11px;font-weight:750}.vehicle-list input{margin-right:6px}.media-preview{font-size:10px;color:#6f8184;margin-top:5px}.future{font-size:10px;color:#718489;margin-top:8px}.foot{margin-top:14px;color:#708286;font-size:10px;text-align:center}@media(max-width:480px){.wrap{padding:12px 10px 30px}.grid2{grid-template-columns:1fr}.hero h2{font-size:22px}}
+</style>
+</head>
+<body>
+<header class="top">
+ <div class="brand"><div class="logo">OCS</div><div><h1>Tempo / Goods Transport</h1><p>Pickup • Delivery • Home Shifting • Get Quote</p></div></div>
+ <button class="back" onclick="history.length>1?history.back():location.href='index.html'">← Back to OCS Home</button>
+</header>
+<main class="wrap">
+ <section class="hero">
+  <div class="eyebrow">TRANSPORT SERVICE</div>
+  <h2>Book the right vehicle for your goods</h2>
+  <p>Nearby verified Transport Service Providers ko request jayegi. Quote accept hone ke baad accepted amount booking amount lock ho jayega.</p>
+  <div class="quick">
+   <button type="button" onclick="setMode('HOME_SHIFTING')"><b>🏠 Home Shifting</b><small>Floor • Lift • Helper</small></button>
+   <button type="button" onclick="setMode('GOODS_DELIVERY')"><b>📦 Goods Delivery</b><small>Weight • Vehicle • Parcel</small></button>
+  </div>
+ </section>
+
+ <section class="card">
+  <h3>Pickup & Drop</h3><div class="sub">Pickup location nearest matching ke liye use hogi.</div>
+  <div class="field"><label>Pickup Location *</label><div class="gps"><input id="pickup" placeholder="Pickup address / landmark"><button type="button" onclick="usePickupGps()">Use GPS</button></div></div>
+  <div class="field"><label>Drop Location *</label><input id="drop" placeholder="Drop address / landmark"></div>
+  <div id="gpsStatus" class="future">Pickup pin not set</div>
+ </section>
+
+ <section class="card">
+  <h3>Vehicle & Goods</h3><div class="sub">Vehicle select karein. Other ke liye detail box use karein.</div>
+  <div class="field"><label>Vehicle Type *</label><select id="vehicle">
+   <option value="">Select vehicle</option><option>Tata Ace</option><option>Pickup</option><option>Mini Tempo</option><option>14 ft Truck</option><option>17 ft Truck</option><option>20 ft Truck</option><option>Other</option>
+  </select></div>
+  <div class="field"><label>Goods Type *</label><select id="goods">
+   <option value="">Select goods</option><option>Furniture</option><option>Home Shifting</option><option>Shop Material</option><option>Construction Material</option><option>Parcel</option><option>Other</option>
+  </select></div>
+  <div class="grid2">
+   <div class="field"><label>Quantity / Items</label><input id="qty" placeholder="e.g. 12 boxes"></div>
+   <div class="field"><label>Approx. Weight</label><input id="weight" placeholder="e.g. 500 kg"></div>
+  </div>
+  <div id="shiftFields">
+   <div class="grid2">
+    <div class="field"><label>Pickup Floor</label><input id="floor" placeholder="e.g. 3rd floor"></div>
+    <div class="field"><label>Lift Available?</label><select id="lift"><option>Yes</option><option>No</option><option>Not Sure</option></select></div>
+   </div>
+  </div>
+  <div class="field"><label>Helper Required?</label><div class="choice"><button id="helperYes" type="button" onclick="setHelper(true)">Yes</button><button id="helperNo" class="on" type="button" onclick="setHelper(false)">No</button></div></div>
+  <div class="field"><label>Goods Details / Special Instructions</label><textarea id="details" placeholder="Size, fragile items, loading issue, gate timing, etc."></textarea></div>
+  <div class="field"><label>Photo / Video</label><input id="media" type="file" accept="image/*,video/*" multiple onchange="mediaChanged()"><div id="mediaPreview" class="media-preview">Optional • photos/videos help SP quote accurately.</div></div>
+ </section>
+
+ <section class="card">
+  <h3>Date & Time</h3>
+  <div class="grid2">
+   <div class="field"><label>Date *</label><input id="date" type="date"></div>
+   <div class="field"><label>Time *</label><input id="time" type="time"></div>
+  </div>
+  <div class="note good"><b>Get Quote flow</b><br>Nearby matching Transport SPs request dekhenge → quote bhejenge → customer compare karke accept karega → accepted amount official booking amount banega.</div>
+  <div class="note"><b>Fixed-rate future ready</b><br>City-wise fixed transport rates Admin set karne ke baad direct Book Now price show kar sakte hain.</div>
+  <div class="actions">
+   <button id="bookNow" class="btn secondary disabled" type="button" onclick="fixedRateInfo()">Book Now</button>
+   <button id="quoteBtn" class="btn primary" type="button" onclick="submitQuote()">Get Quote</button>
+  </div>
+  <div id="status" class="status"></div>
+ </section>
+
+ <section class="card">
+  <h3>How trip will work</h3>
+  <div class="sub">OCS same booking safety flow</div>
+  <div class="note good">Driver pickup par पहुंचे → Start OTP → Trip In Progress → Call / Chat / WhatsApp / Current Location → Extra charge only after customer acceptance → Complete Trip → Customer confirmation → Online/Cash payment → Rating + history.</div>
+  <div class="future">OCS platform charge default 9%. Transport commission Admin-configurable rakha jayega.</div>
+ </section>
+ <div class="foot">One Call Solution • One for All, All for One</div>
+</main>
+<script>
+const SUPA_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
+const SUPA_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
+const sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+let pickupLat=null,pickupLng=null,helper=false,mode='GOODS_DELIVERY',sending=false;
+function $(id){return document.getElementById(id)}
+function setMode(v){mode=v; $('goods').value=v==='HOME_SHIFTING'?'Home Shifting':'Parcel'; $('shiftFields').style.display=v==='HOME_SHIFTING'?'block':'none';}
+function setHelper(v){helper=!!v;$('helperYes').classList.toggle('on',helper);$('helperNo').classList.toggle('on',!helper)}
+function usePickupGps(){
+ if(!navigator.geolocation){show('GPS available nahi hai',true);return}
+ $('gpsStatus').textContent='Getting current pickup location...';
+ navigator.geolocation.getCurrentPosition(p=>{pickupLat=p.coords.latitude;pickupLng=p.coords.longitude;$('gpsStatus').textContent='✓ Pickup pin saved for nearby matching';},()=>{$('gpsStatus').textContent='Location permission allow karein.'},{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
+}
+function mediaChanged(){const n=$('media').files.length;$('mediaPreview').textContent=n?n+' file(s) selected':'Optional • photos/videos help SP quote accurately.'}
+function show(msg,bad){const x=$('status');x.style.display='block';x.classList.toggle('bad',!!bad);x.textContent=msg}
+function fixedRateInfo(){show('Fixed-rate city pricing abhi OFF hai. Abhi Get Quote use karein.',false)}
+async function uploadMedia(uid){
+ const files=[...$('media').files].slice(0,5),out=[];
+ for(let i=0;i<files.length;i++){
+  const f=files[i],safe=String(f.name||'file').replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path=uid+'/transport/'+Date.now()+'-'+i+'-'+safe;
+  const up=await sb.storage.from('ocs-public-media').upload(path,f,{upsert:false,contentType:f.type||undefined});
+  if(up.error)throw up.error;
+  const pub=sb.storage.from('ocs-public-media').getPublicUrl(path);
+  out.push({url:pub.data.publicUrl,type:f.type||'',name:f.name||'media'});
+ }
+ return out;
+}
+async function submitQuote(){
+ if(sending)return;
+ const pickup=$('pickup').value.trim(),drop=$('drop').value.trim(),vehicle=$('vehicle').value,goods=$('goods').value,date=$('date').value,time=$('time').value;
+ if(!pickup||!drop||!vehicle||!goods||!date||!time){show('Pickup, Drop, Vehicle, Goods, Date aur Time required hain.',true);return}
+ if(pickupLat===null||pickupLng===null){show('Nearby matching ke liye Pickup ka Use GPS press karein.',true);return}
+ sending=true;$('quoteBtn').disabled=true;$('quoteBtn').textContent='Sending...';
+ try{
+  const sess=await sb.auth.getSession();const session=sess.data&&sess.data.session;
+  if(!session||!session.user)throw new Error('Pehle OCS login karein, phir Transport window dobara open karein.');
+  const ensure=await sb.rpc('ensure_customer_account_v1');if(ensure.error)throw ensure.error;
+  const media=await uploadMedia(session.user.id);
+  const desc=[
+   'Transport Type: '+(mode==='HOME_SHIFTING'?'Home Shifting':'Goods Delivery'),
+   'Pickup: '+pickup,'Drop: '+drop,'Vehicle: '+vehicle,'Goods: '+goods,
+   'Quantity: '+($('qty').value.trim()||'Not specified'),
+   'Approx Weight: '+($('weight').value.trim()||'Not specified'),
+   'Floor: '+($('floor').value.trim()||'Not applicable'),
+   'Lift: '+($('lift').value||'Not applicable'),
+   'Helper Required: '+(helper?'Yes':'No'),
+   'Details: '+($('details').value.trim()||'None')
+  ].join('\n');
+  const readiness={module:'transport',transport_mode:mode,pickup_address:pickup,drop_address:drop,vehicle_type:vehicle,goods_type:goods,quantity:$('qty').value.trim(),approx_weight:$('weight').value.trim(),floor:$('floor').value.trim(),lift_available:$('lift').value,helper_required:helper,commission_percent:9,fixed_rate_enabled:false};
+  const q=await sb.rpc('create_customer_quote_request_v2',{
+   p_category:'Tempo / Goods Transport',
+   p_service_name:'Tempo / Goods Transport • '+vehicle,
+   p_description:desc,
+   p_schedule:date+' '+time,
+   p_address:pickup,
+   p_media:media,
+   p_readiness:readiness,
+   p_latitude:pickupLat,
+   p_longitude:pickupLng
+  });
+  if(q.error)throw q.error;
+  show('✓ Transport Get Quote request created. Nearby matching Transport SPs ko request jayegi.',false);
+  $('quoteBtn').textContent='Request Sent ✓';
+ }catch(e){show(e&&e.message?e.message:'Request create nahi hui.',true);$('quoteBtn').disabled=false;$('quoteBtn').textContent='Get Quote';sending=false}
+}
+setMode('GOODS_DELIVERY');
+try{const d=new Date();d.setDate(d.getDate()+1);$('date').min=new Date().toISOString().slice(0,10);$('date').value=d.toISOString().slice(0,10)}catch(e){}
+</script>
+</body>
+</html>
