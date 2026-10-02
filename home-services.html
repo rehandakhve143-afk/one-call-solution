@@ -4041,7 +4041,8 @@ if(S.status==="PROVIDER_CHANGE_HOLD")h=`<div class="notice">No incoming request.
 if(S.status==="REQUESTED"){
  const skillMatch=providerMatchesCurrentBooking();
  const walletLow=Number(S.wallet)<200;
- const walletEligible=Number(S.wallet||0)>=200;\n const canReceive=S.available&&!S.adminPaused&&S.jobAccess&&walletEligible&&S.providerProfileAvailable&&S.providerRequestForThisProfile&&skillMatch;
+ const walletEligible=Number(S.wallet||0)>=200;
+ const canReceive=S.available&&!S.adminPaused&&S.jobAccess&&walletEligible&&S.providerProfileAvailable&&S.providerRequestForThisProfile&&skillMatch;
  const readyInfo=S.bookingReadiness||{};
  const distanceInfo=Number(S.oneWayDistanceKm||0)>0?(" • "+Number(S.oneWayDistanceKm).toFixed(1)+" km away"):"";
  if(!S.providerProfileAvailable){
