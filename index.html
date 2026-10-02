@@ -86,6 +86,7 @@ setTimeout(function(){
 
     <div class="ocs-super-head"><h2>Explore One Call Solution</h2><button onclick="document.getElementById('ocsMarketGrid').scrollIntoView({behavior:'smooth'})">View All</button></div>
     <div class="ocs-super-market" id="ocsMarketGrid">
+      <button class="ocs-market-card" onclick="openModule('Tempo / Goods Transport')"><span class="photo" style="background-image:url('https://images.unsplash.com/photo-1592838064575-70ed626d3a0e?auto=format&fit=crop&w=900&q=82')"></span><span class="ocs-market-badge">TRANSPORT</span><span class="ocs-market-copy"><b>Tempo / Goods Transport</b><small>Home Shifting • Delivery • Truck</small></span></button>
       
       <button class="ocs-market-card" onclick="openModule('Local Shop')"><span class="photo" style="background-image:url('https://www.dolarlc.com/_next/image?q=75&url=%2Fimages%2Fassets%2Felectricidad-3.webp&w=3840')"></span><span class="ocs-market-badge">NEARBY</span><span class="ocs-market-copy"><b>Local Shop</b><small>Electrical • Hardware</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Modular Kitchen')"><span class="photo" style="background-image:url('https://indiframe-cms-media.s3.ap-south-1.amazonaws.com/blog122_26d5a6b6f3.jpg')"></span><span class="ocs-market-copy"><b>Modular Kitchen</b><small>Design • Measurement • Quote</small></span></button>
@@ -396,6 +397,7 @@ setTimeout(function(){
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Gas Stove">Gas Stove</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Wi-Fi / TV Setup">Wi-Fi / TV Setup</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Packers & Movers">Packers & Movers</label>
+    <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Tempo / Goods Transport">Tempo / Goods Transport</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Painter">Painter</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Tiles / Stone Work">Tiles / Stone Work</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Waterproofing">Waterproofing</label>
@@ -986,6 +988,7 @@ function providerUiSkillMatchesBackend(label,s){
   if(label==='Gas Stove')return cat==='Gas Stove';
   if(label==='Wi-Fi / TV Setup')return cat==='Wi-Fi / TV Installation & Setup';
   if(label==='Packers & Movers')return cat==='Packers & Movers';
+  if(label==='Tempo / Goods Transport')return cat==='Tempo / Goods Transport';
   if(label==='Painter')return cat==='Painter';
   if(label==='Tiles / Stone Work')return cat==='Tiles / Stone';
   if(label==='Waterproofing')return cat==='Waterproofing';
@@ -3346,7 +3349,7 @@ async function injectLiveCategoryAds(cat){
  });
 }
 
-const OCS_MODULE_NAMES=["Home Services","Property","Local Shop","Sliding / Aluminium","Welding / Fabrication","Beauty / Make-up","Used Vehicle","New Vehicle","Medical Store","Diagnostic Lab","Modular Kitchen","Hotel / Restaurant / Lodging"];
+const OCS_MODULE_NAMES=["Home Services","Property","Tempo / Goods Transport","Local Shop","Sliding / Aluminium","Welding / Fabrication","Beauty / Make-up","Used Vehicle","New Vehicle","Medical Store","Diagnostic Lab","Modular Kitchen","Hotel / Restaurant / Lodging"];
 
 const OCS_XYZ_DEMO_ENABLED=true;
 const OCS_XYZ_DEMO={
@@ -3562,6 +3565,7 @@ let currentModuleName="",pendingWindowSearch="",pendingPropertyPost="";
 const OCS_SEARCH_ALIASES={
  "Home Services":"electrician electrical fan switch socket plumber plumbing ac cleaning carpenter appliance pest maid painter cctv gas stove wifi tv packers movers tiles stone waterproofing false ceiling pop gypsum pvc home repair service provider",
  "Property":"property flat rent buy sale builder bungalow row house land plot xyz builder xyz residency sample builder project",
+ "Tempo / Goods Transport":"tempo goods transport truck pickup tata ace mini tempo home shifting delivery parcel logistics helper 14 ft 17 ft 20 ft",
  "Local Shop":"local shop electrical shop hardware shop product material",
  "Sliding / Aluminium":"sliding aluminium aluminum window door glass",
  "Welding / Fabrication":"welding fabrication grill gate metal",
@@ -3645,7 +3649,7 @@ async function openModule(n,role,serviceCat){
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
- const manageBtn=document.getElementById('windowManageBtn');if(manageBtn){manageBtn.style.display=n==='Home Services'?'none':'block';manageBtn.textContent=n==='Property'?'+ Post Property':(n==='Local Shop'?'+ Post Shop':'+ Post Ad')};
+ const manageBtn=document.getElementById('windowManageBtn');if(manageBtn){manageBtn.style.display=(n==='Home Services'||n==='Tempo / Goods Transport')?'none':'block';manageBtn.textContent=n==='Property'?'+ Post Property':(n==='Local Shop'?'+ Post Shop':'+ Post Ad')};
  document.body.classList.add("module-open");
  const gs=document.getElementById("globalSearch");if(gs){gs.placeholder="Search in "+n+"...";if(pendingWindowSearch)gs.value=pendingWindowSearch}
  const ws=document.getElementById("windowSearch");if(ws){ws.placeholder="Search in "+n+"...";ws.value=pendingWindowSearch||""}
@@ -3663,6 +3667,9 @@ async function openModule(n,role,serviceCat){
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
    frame.src='property.html?v=20260930-selfiefix2';
+ }else if(n==='Tempo / Goods Transport'){
+   frame.removeAttribute('srcdoc');
+   frame.src='transport.html?v=20261003-transport1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
    frame.src='home-services.html?v=20260930-selfiefix2'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
