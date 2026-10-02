@@ -3657,11 +3657,12 @@ async function openModule(n,role,serviceCat){
  frame.onload=function(){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role);if(role==='customer'&&serviceCat)frame.contentWindow.selectCategory(serviceCat)}catch(e){}}
    if(n==='Property'&&pendingPropertyPost){const postType=pendingPropertyPost;pendingPropertyPost='';setTimeout(()=>{try{if(typeof frame.contentWindow.openPostWithType==='function')frame.contentWindow.openPostWithType(postType);else frame.contentWindow.openPost()}catch(e){console.warn('Property post open',e)}},120)}
-   if(n!=='Home Services'){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS XYZ Demo',e)}}
-   if(n!=='Home Services'){injectLiveCategoryAds(n).then(()=>{if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch='';setTimeout(()=>runWindowSearch(q),120)}}).catch(e=>console.warn('OCS live feed',e))}
-   if(n!=='Home Services'){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
-   if(n!=='Home Services'&&n!=='Property'){try{injectBusinessContactBar(n)}catch(e){console.warn('OCS Business Contact UI',e)}}
-   if(n!=='Home Services'){try{injectUniversalWindowNav(n)}catch(e){console.warn('OCS Window Navigation',e)}}
+   const specialFlow=(n==='Home Services'||n==='Tempo / Goods Transport');
+   if(!specialFlow){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS XYZ Demo',e)}}
+   if(!specialFlow){injectLiveCategoryAds(n).then(()=>{if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch='';setTimeout(()=>runWindowSearch(q),120)}}).catch(e=>console.warn('OCS live feed',e))}
+   if(!specialFlow){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
+   if(!specialFlow&&n!=='Property'){try{injectBusinessContactBar(n)}catch(e){console.warn('OCS Business Contact UI',e)}}
+   if(!specialFlow){try{injectUniversalWindowNav(n)}catch(e){console.warn('OCS Window Navigation',e)}}
    if(n==='Home Services'&&pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch="";setTimeout(()=>runWindowSearch(q),180)}
  };
  if(n==='Property'){
