@@ -2195,7 +2195,7 @@ function renderProviderProfileSummaryPanel(pp){
       '<div class="ocs-profile-note">1 SP = 1 Work Category. Approved category locked hai; change/add ke liye OCS Support / Admin approval required hai.</div>'+
       '<div class="ocs-profile-note">'+(pp.service_location_set?'<b>Service Location ✓</b><br>Nearest-job matching active.':'<b>Service Location Required</b><br>Nearest matching ke liye ek baar current work location set karein.')+'</div>'+
       '<div class="ocs-profile-actions">'+
-        '<button class="btn" onclick="setProviderCurrentServiceLocation()">📍 Set Work Location</button>'+
+        '<button class="btn" onclick="setProviderCurrentServiceLocation()">📍 '+(pp.service_location_set?'Change Work Location':'Set Work Location')+'</button>'+
         '<button class="btn gray" onclick="closeProviderProfilePanel()">Close</button>'+
       '</div>'+
     '</div>';
@@ -4783,9 +4783,11 @@ $("pStatus").textContent=!S.providerProfileAvailable
  ?"PROFILE REQUIRED"
  :(onboardingState!=="approved"
    ?(onboardingState==="pending"?"APPROVAL PENDING":onboardingState==="rejected"?"APPROVAL REJECTED":"APPROVAL REQUIRED")
-   :(providerIdle&&!providerHasSkills
-     ?"SKILLS REQUIRED"
-     :(providerIdle?"WAITING FOR JOB":S.status)));
+   :(Number(S.wallet||0)<200
+     ?"WALLET RECHARGE REQUIRED"
+     :(providerIdle&&!providerHasSkills
+       ?"SKILLS REQUIRED"
+       :(providerIdle?"WAITING FOR JOB":S.status))));
 const pt=$("ptab");const normalBookingNew=S.status==="REQUESTED";const extraWorkNew=S.customerExtraStatus==="SENT_TO_PROVIDER"&&S.customerExtraRequest;const nextWorkNew=!!S.pendingNextRequest;if(pt)pt.textContent=(normalBookingNew||extraWorkNew||nextWorkNew)?"Service Provider • NEW":"Service Provider";
 $("cBody").innerHTML=customerHTML();
 const customerBrowseMode=["SELECT_SERVICE","SELECT_ITEM","CUSTOM_REQUEST"].includes(S.status);
