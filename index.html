@@ -3637,6 +3637,10 @@ function setSuperSlide(n){
 setTimeout(()=>{renderLivePaidBanners();renderXyzDemoBanner();refreshHomeLiveWindowPosters();setSuperSlide(0)},100);
 setInterval(()=>{refreshHomeLiveWindowPosters().catch(()=>{})},6000);
 async function openModule(n,role,serviceCat){
+ if(n==='Tempo / Goods Transport'){
+   location.href='transport.html?v=20261003-transport-direct2';
+   return;
+ }
  if(n==='Home Services'){
    if(role==='provider'){
      location.href='service-provider.html?v=20260930-selfiefix2';
