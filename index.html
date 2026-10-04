@@ -411,8 +411,8 @@ setTimeout(function(){
     <input id="paOtherSkill" placeholder="e.g. Glass work / Door repair / Custom service">
   </div>
   <div id="paTransportDetails" style="display:none;margin-top:12px">
-    <h3 style="margin:10px 0 6px">Transport Vehicle Details *</h3>
-    <div class="help">Transport request sirf same registered vehicle type ko milegi.</div>
+    <h3 style="margin:10px 0 6px">Transport Vehicle & KYC *</h3>
+    <div class="help">Transport request sirf same registered vehicle type ko milegi. Admin approval se pehle Licence, RC aur Insurance details required hain.</div>
     <label>Vehicle Type *</label>
     <select id="paTransportVehicleType">
       <option value="">Select vehicle</option>
@@ -427,6 +427,10 @@ setTimeout(function(){
     </select>
     <label>Vehicle Number *</label><input id="paTransportVehicleNumber" placeholder="e.g. MH 46 AB 1234">
     <label>Capacity</label><input id="paTransportCapacity" placeholder="e.g. 500 kg / 1 ton">
+    <label>Driving Licence No. *</label><input id="paTransportDrivingLicence" placeholder="Driving Licence number">
+    <label>Vehicle RC No. *</label><input id="paTransportRcNumber" placeholder="RC number">
+    <label>Insurance Policy / Ref. No. *</label><input id="paTransportInsuranceNumber" placeholder="Insurance number">
+    <div class="help" style="margin-top:8px"><b>Bank/Payout Details:</b> abhi optional. Real payout/withdrawal se pehle verified bank details required hongi.</div>
   </div>
   <div class="help" style="margin-top:12px"><b>1 SP = 1 Work Category.</b> Category change/add ke liye OCS Support/Admin approval required hoga.</div>
 
@@ -1327,14 +1331,16 @@ async function openAccountEntry(){
 async function prefillProviderApprovalFromBackend(){
   if(!ocsSupabase)return;
   try{
-    const [ppRes,obRes,payRes]=await Promise.all([
+    const [ppRes,obRes,payRes,tpRes]=await Promise.all([
       ocsSupabase.rpc('provider_profile_snapshot_v1'),
       ocsSupabase.rpc('provider_onboarding_snapshot_v1'),
-      ocsSupabase.rpc('provider_payout_snapshot_v1')
+      ocsSupabase.rpc('provider_payout_snapshot_v1'),
+      ocsSupabase.rpc('provider_transport_profile_snapshot_v1')
     ]);
     const pp=(!ppRes.error&&ppRes.data)||{};
     const ob=(!obRes.error&&obRes.data)||{};
     const pay=(!payRes.error&&payRes.data)||{};
+    const tp=(!tpRes.error&&tpRes.data)||{};
     window.__ocsProviderOnboarding=ob||{};
 
     const n=document.getElementById('paName');
@@ -1345,6 +1351,18 @@ async function prefillProviderApprovalFromBackend(){
     if(m&&pp.phone)m.value=String(pp.phone);
     if(a&&ob.service_area)a.value=ob.service_area;
     if(r)r.value=String(ob.service_radius_km||pp.service_radius_km||12);
+    const tv=document.getElementById('paTransportVehicleType');
+    const vn=document.getElementById('paTransportVehicleNumber');
+    const tc=document.getElementById('paTransportCapacity');
+    const dl=document.getElementById('paTransportDrivingLicence');
+    const rc=document.getElementById('paTransportRcNumber');
+    const ins=document.getElementById('paTransportInsuranceNumber');
+    if(tv&&tp.vehicle_type)tv.value=tp.vehicle_type;
+    if(vn&&tp.vehicle_number)vn.value=tp.vehicle_number;
+    if(tc&&tp.capacity)tc.value=tp.capacity;
+    if(dl&&tp.driving_licence)dl.value=tp.driving_licence;
+    if(rc&&tp.rc_number)rc.value=tp.rc_number;
+    if(ins&&tp.insurance_number)ins.value=tp.insurance_number;
 
     const locSt=document.getElementById('paWorkLocationStatus');
     if(locSt&&ob.location_added){
@@ -1533,18 +1551,20 @@ async function showProviderProfileSummary(){
  if(!summary)return;
  summary.style.display='block';
 
- let pp={},ob={},pay={},rows=[];
+ let pp={},ob={},pay={},tp={},rows=[];
  try{
    const session=await getOcsSession();
    if(session&&session.user&&ocsSupabase){
-     const [pr,or,br]=await Promise.all([
+     const [pr,or,br,tr]=await Promise.all([
        ocsSupabase.rpc('provider_profile_snapshot_v1'),
        ocsSupabase.rpc('provider_onboarding_snapshot_v1'),
-       ocsSupabase.rpc('provider_payout_snapshot_v1')
+       ocsSupabase.rpc('provider_payout_snapshot_v1'),
+       ocsSupabase.rpc('provider_transport_profile_snapshot_v1')
      ]);
      if(!pr.error&&pr.data)pp=pr.data||{};
      if(!or.error&&or.data){ob=or.data||{};window.__ocsProviderOnboarding=ob}
      if(!br.error&&br.data)pay=br.data||{};
+     if(!tr.error&&tr.data)tp=tr.data||{};
      rows=Array.isArray(pp.skills)?pp.skills.filter(x=>x&&x.enabled_by_provider!==false):[];
    }
  }catch(e){console.error('Provider summary load failed',e)}
@@ -1598,6 +1618,11 @@ async function showProviderProfileSummary(){
       '<div class="ocs-sp-summary-row"><span>Work Location</span><b class="'+(locationOk?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+(locationOk?'✓ Saved':'Required')+'</b></div>'+
       '<div class="ocs-sp-summary-row"><span>Payout Details</span><b class="'+(bankOk?'ocs-sp-summary-check':'')+'">'+(bankOk?ocsEsc(bankText):'Add later')+'</b></div>'+
       '<div class="ocs-sp-summary-row"><span>Selfie Verification</span><b class="'+(selfieOk?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+(selfieOk?'✓ Submitted':'Required')+'</b></div>'+
+      (category==='Tempo / Goods Transport'
+        ?'<div class="ocs-sp-summary-row"><span>Transport Vehicle</span><b>'+ocsEsc(tp.vehicle_type||local.transportVehicleType||'Required')+'</b></div>'+
+         '<div class="ocs-sp-summary-row"><span>Vehicle No.</span><b>'+ocsEsc(tp.vehicle_number||local.transportVehicleNumber||'Required')+'</b></div>'+
+         '<div class="ocs-sp-summary-row"><span>Transport KYC</span><b class="'+((tp.kyc_complete)?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+(tp.kyc_complete?'✓ Licence + RC + Insurance':'Required')+'</b></div>'
+        :'')+
     '</div>'+
     (status==='pending'
       ?'<div class="notice good" style="margin-top:12px"><b>✓ Submitted for Admin Approval</b><br>Your SP profile is complete. No need to submit again. Work ON will unlock after Admin approval.</div>'
@@ -1633,6 +1658,9 @@ function editProviderProfileSkills(){
  if(locSt&&ob.location_added){locSt.textContent='✓ Work location already saved';locSt.style.color='#16815d';locSt.classList.add('ok')}
  const selfieSt=document.getElementById('paSelfieStatus');
  if(selfieSt&&ob.selfie_added){selfieSt.textContent='✓ Selfie already submitted';selfieSt.style.color='#16815d'}
+ const transportSelected=[...document.querySelectorAll('input[name="paSkill"]:checked')].some(x=>x.value==='Tempo / Goods Transport');
+ const transportWrap=document.getElementById('paTransportDetails');
+ if(transportWrap)transportWrap.style.display=transportSelected?'block':'none';
  setTimeout(lockApprovedProviderSkills,0);
 }
 
@@ -1809,8 +1837,11 @@ async function saveProviderAccount(){
  const transportVehicleType=(document.getElementById('paTransportVehicleType')?.value||'').trim();
  const transportVehicleNumber=(document.getElementById('paTransportVehicleNumber')?.value||'').trim();
  const transportCapacity=(document.getElementById('paTransportCapacity')?.value||'').trim();
- if(transportSelected&&(!transportVehicleType||!transportVehicleNumber)){
-   alert('Transport SP ke liye Vehicle Type aur Vehicle Number required hai.');return
+ const transportDrivingLicence=(document.getElementById('paTransportDrivingLicence')?.value||'').trim();
+ const transportRcNumber=(document.getElementById('paTransportRcNumber')?.value||'').trim();
+ const transportInsuranceNumber=(document.getElementById('paTransportInsuranceNumber')?.value||'').trim();
+ if(transportSelected&&(!transportVehicleType||!transportVehicleNumber||!transportDrivingLicence||!transportRcNumber||!transportInsuranceNumber)){
+   alert('Transport SP ke liye Vehicle Type, Vehicle Number, Driving Licence, RC aur Insurance required hain.');return
  }
  if(!name){
    alert('Full Name required hai.');
@@ -1846,7 +1877,10 @@ async function saveProviderAccount(){
      const tp=await ocsSupabase.rpc('upsert_provider_transport_profile_v1',{
        p_vehicle_type:transportVehicleType,
        p_vehicle_number:transportVehicleNumber,
-       p_capacity:transportCapacity||null
+       p_capacity:transportCapacity||null,
+       p_driving_licence:transportDrivingLicence,
+       p_rc_number:transportRcNumber,
+       p_insurance_number:transportInsuranceNumber
      });
      if(tp.error)throw tp.error;
    }
@@ -1878,7 +1912,7 @@ async function saveProviderAccount(){
    if(submit.error)throw submit.error;
 
    localStorage.setItem('ocsProviderProfile',JSON.stringify({
-     name,mobile,email,area,radius,skills,transportVehicleType,transportVehicleNumber,transportCapacity,
+     name,mobile,email,area,radius,skills,transportVehicleType,transportVehicleNumber,transportCapacity,transportDrivingLicence,transportRcNumber,transportInsuranceNumber,
      backendConnected:true,
      backendProviderId:(sync&&sync.provider_id)||session.user.id,
      mobileVerified:!!accountVerified.providerMobile,
