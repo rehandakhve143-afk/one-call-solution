@@ -410,6 +410,24 @@ setTimeout(function(){
     <label>Other Skill / Service Name *</label>
     <input id="paOtherSkill" placeholder="e.g. Glass work / Door repair / Custom service">
   </div>
+  <div id="paTransportDetails" style="display:none;margin-top:12px">
+    <h3 style="margin:10px 0 6px">Transport Vehicle Details *</h3>
+    <div class="help">Transport request sirf same registered vehicle type ko milegi.</div>
+    <label>Vehicle Type *</label>
+    <select id="paTransportVehicleType">
+      <option value="">Select vehicle</option>
+      <option>3 Wheeler Goods Rickshaw</option>
+      <option>Tata Ace</option>
+      <option>Pickup</option>
+      <option>Mini Tempo</option>
+      <option>14 ft Truck</option>
+      <option>17 ft Truck</option>
+      <option>20 ft Truck</option>
+      <option>Other</option>
+    </select>
+    <label>Vehicle Number *</label><input id="paTransportVehicleNumber" placeholder="e.g. MH 46 AB 1234">
+    <label>Capacity</label><input id="paTransportCapacity" placeholder="e.g. 500 kg / 1 ton">
+  </div>
   <div class="help" style="margin-top:12px"><b>1 SP = 1 Work Category.</b> Category change/add ke liye OCS Support/Admin approval required hoga.</div>
 
   <h3 style="margin:18px 0 8px">Work Location *</h3>
@@ -954,6 +972,9 @@ function ocsProviderSingleCategory(el){
   const other=document.querySelector('input[name="paSkill"][value="Other"]');
   const wrap=document.getElementById('paOtherSkillWrap');
   if(wrap)wrap.style.display=(other&&other.checked)?'block':'none';
+  const transport=document.querySelector('input[name="paSkill"][value="Tempo / Goods Transport"]');
+  const transportWrap=document.getElementById('paTransportDetails');
+  if(transportWrap)transportWrap.style.display=(transport&&transport.checked)?'block':'none';
   if(!(other&&other.checked)){
     const input=document.getElementById('paOtherSkill');
     if(input)input.value='';
@@ -1784,6 +1805,13 @@ async function saveProviderAccount(){
  const otherChecked=[...document.querySelectorAll('input[name="paSkill"]:checked')].some(x=>x.value==='Other');
  const otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
  if(otherChecked&&!otherSkill){alert('Other select kiya hai to apni skill / service ka naam likhein.');return}
+ const transportSelected=skills.includes('Tempo / Goods Transport');
+ const transportVehicleType=(document.getElementById('paTransportVehicleType')?.value||'').trim();
+ const transportVehicleNumber=(document.getElementById('paTransportVehicleNumber')?.value||'').trim();
+ const transportCapacity=(document.getElementById('paTransportCapacity')?.value||'').trim();
+ if(transportSelected&&(!transportVehicleType||!transportVehicleNumber)){
+   alert('Transport SP ke liye Vehicle Type aur Vehicle Number required hai.');return
+ }
  if(!name){
    alert('Full Name required hai.');
    paName.scrollIntoView({behavior:'smooth',block:'center'});paName.focus();return
@@ -1814,6 +1842,15 @@ async function saveProviderAccount(){
  try{
    const sync=await syncProviderRegistrationToBackend(name,mobile,skills);
 
+   if(transportSelected){
+     const tp=await ocsSupabase.rpc('upsert_provider_transport_profile_v1',{
+       p_vehicle_type:transportVehicleType,
+       p_vehicle_number:transportVehicleNumber,
+       p_capacity:transportCapacity||null
+     });
+     if(tp.error)throw tp.error;
+   }
+
    if(!locationAlready){
      const loc=await ocsSupabase.rpc('set_provider_service_location_v1',{
        p_latitude:providerWorkLat,
@@ -1841,7 +1878,7 @@ async function saveProviderAccount(){
    if(submit.error)throw submit.error;
 
    localStorage.setItem('ocsProviderProfile',JSON.stringify({
-     name,mobile,email,area,radius,skills,
+     name,mobile,email,area,radius,skills,transportVehicleType,transportVehicleNumber,transportCapacity,
      backendConnected:true,
      backendProviderId:(sync&&sync.provider_id)||session.user.id,
      mobileVerified:!!accountVerified.providerMobile,
