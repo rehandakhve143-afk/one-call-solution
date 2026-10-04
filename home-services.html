@@ -4760,8 +4760,10 @@ const prl=$("providerRatingLine");if(prl)prl.innerHTML=providerRatingSummary();
 const prv=$("providerReviews");if(prv)prv.innerHTML=providerRatingCommentsHTML();
 const onboardingApproved=String(S.providerOnboardingStatus||"not_submitted").toLowerCase()==="approved";
 const walletReady=Number(S.wallet||0)>=200;
-$("availabilityBtn").textContent=!onboardingApproved?"Approval Required":(!walletReady?"Wallet < ₹200":("Available: "+(S.available?"ON":"OFF")));
-$("availabilityBtn").style.background=!onboardingApproved?"#b7791f":(!walletReady?"#b7791f":(S.available?"#16a34a":"#64748b"));
+const transportBusy=String(S.category||"").trim()==="Tempo / Goods Transport" &&
+ ["ASSIGNED","ON_WAY","REACHED","WORKING","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(String(S.status||"").toUpperCase());
+$("availabilityBtn").textContent=!onboardingApproved?"Approval Required":(!walletReady?"Wallet < ₹200":(transportBusy?("BUSY • Work "+(S.available?"ON":"OFF")):("Available: "+(S.available?"ON":"OFF"))));
+$("availabilityBtn").style.background=!onboardingApproved?"#b7791f":(!walletReady?"#b7791f":(transportBusy?"#0f766e":(S.available?"#16a34a":"#64748b")));
 if($("walletBalance"))$("walletBalance").textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 const walletQuick=$("providerWalletQuick");if(walletQuick)walletQuick.textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 $("currentJob").textContent=S.currentJob||((["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","WORKING","ON_WAY","REACHED","ASSIGNED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?(S.service||S.serviceName||"Current Booking"):"None");
@@ -4785,9 +4787,11 @@ $("pStatus").textContent=!S.providerProfileAvailable
    ?(onboardingState==="pending"?"APPROVAL PENDING":onboardingState==="rejected"?"APPROVAL REJECTED":"APPROVAL REQUIRED")
    :(Number(S.wallet||0)<200
      ?"WALLET RECHARGE REQUIRED"
-     :(providerIdle&&!providerHasSkills
-       ?"SKILLS REQUIRED"
-       :(providerIdle?"WAITING FOR JOB":S.status))));
+     :(transportBusy
+       ?"BUSY • TRANSPORT TRIP"
+       :(providerIdle&&!providerHasSkills
+         ?"SKILLS REQUIRED"
+         :(providerIdle?"WAITING FOR JOB":S.status)))));
 const pt=$("ptab");const normalBookingNew=S.status==="REQUESTED";const extraWorkNew=S.customerExtraStatus==="SENT_TO_PROVIDER"&&S.customerExtraRequest;const nextWorkNew=!!S.pendingNextRequest;if(pt)pt.textContent=(normalBookingNew||extraWorkNew||nextWorkNew)?"Service Provider • NEW":"Service Provider";
 $("cBody").innerHTML=customerHTML();
 const customerBrowseMode=["SELECT_SERVICE","SELECT_ITEM","CUSTOM_REQUEST"].includes(S.status);
