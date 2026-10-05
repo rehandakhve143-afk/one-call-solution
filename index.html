@@ -411,8 +411,8 @@ setTimeout(function(){
     <input id="paOtherSkill" placeholder="e.g. Glass work / Door repair / Custom service">
   </div>
   <div id="paTransportDetails" style="display:none;margin-top:12px">
-    <h3 style="margin:10px 0 6px">Transport Vehicle & KYC *</h3>
-    <div class="help">Transport request sirf same registered vehicle type ko milegi. Admin approval se pehle Licence, RC aur Insurance details required hain.</div>
+    <h3 style="margin:10px 0 6px">Transport Vehicle Details *</h3>
+    <div class="help">Join karte waqt sirf basic vehicle details. KYC baad me complete kar sakte hain.</div>
     <label>Vehicle Type *</label>
     <select id="paTransportVehicleType">
       <option value="">Select vehicle</option>
@@ -427,12 +427,18 @@ setTimeout(function(){
     </select>
     <label>Vehicle Number *</label><input id="paTransportVehicleNumber" placeholder="e.g. MH 46 AB 1234">
     <label>Capacity</label><input id="paTransportCapacity" placeholder="e.g. 500 kg / 1 ton">
+    <div class="notice" style="margin-top:10px"><b>Transport KYC later</b><br>Driving Licence + RC + Insurance baad me “Complete Transport KYC” se add karein. KYC complete hone ke baad Admin approval / Work ON milega.</div>
+  </div>
+  <div id="paTransportKycLater" style="display:none;margin-top:12px">
+    <h3 style="margin:10px 0 6px">Complete Transport KYC</h3>
+    <div class="help">Basic profile save hone ke baad ye step complete karein.</div>
     <label>Driving Licence No. *</label><input id="paTransportDrivingLicence" placeholder="Driving Licence number">
     <label>Vehicle RC No. *</label><input id="paTransportRcNumber" placeholder="RC number">
     <label>Insurance Policy / Ref. No. *</label><input id="paTransportInsuranceNumber" placeholder="Insurance number">
-    <div class="help" style="margin-top:8px"><b>Bank/Payout Details:</b> abhi optional. Real payout/withdrawal se pehle verified bank details required hongi.</div>
+    <button type="button" class="btn gray" style="margin-top:10px" onclick="saveTransportKycLater()">Save Transport KYC</button>
+    <div id="paTransportKycStatus" class="help" style="margin-top:8px"></div>
   </div>
-  <div class="help" style="margin-top:12px"><b>1 SP = 1 Work Category.</b> Category change/add ke liye OCS Support/Admin approval required hoga.</div>
+    <div class="help" style="margin-top:12px"><b>1 SP = 1 Work Category.</b> Category change/add ke liye OCS Support/Admin approval required hoga.</div>
 
   <h3 style="margin:18px 0 8px">Work Location *</h3>
   <div class="help">Nearest matching jobs ke liye ek baar apni normal work/service location set karein.</div>
@@ -979,6 +985,8 @@ function ocsProviderSingleCategory(el){
   const transport=document.querySelector('input[name="paSkill"][value="Tempo / Goods Transport"]');
   const transportWrap=document.getElementById('paTransportDetails');
   if(transportWrap)transportWrap.style.display=(transport&&transport.checked)?'block':'none';
+  const kycLater=document.getElementById('paTransportKycLater');
+  if(kycLater&&!(transport&&transport.checked))kycLater.style.display='none';
   if(!(other&&other.checked)){
     const input=document.getElementById('paOtherSkill');
     if(input)input.value='';
@@ -1363,6 +1371,10 @@ async function prefillProviderApprovalFromBackend(){
     if(dl&&tp.driving_licence)dl.value=tp.driving_licence;
     if(rc&&tp.rc_number)rc.value=tp.rc_number;
     if(ins&&tp.insurance_number)ins.value=tp.insurance_number;
+    const kycLater=document.getElementById('paTransportKycLater');
+    if(kycLater&&tp.has_profile)kycLater.style.display='block';
+    const kycStatus=document.getElementById('paTransportKycStatus');
+    if(kycStatus&&tp.kyc_complete){kycStatus.textContent='✓ Transport KYC complete';kycStatus.style.color='#16815d'}
 
     const locSt=document.getElementById('paWorkLocationStatus');
     if(locSt&&ob.location_added){
@@ -1625,7 +1637,9 @@ async function showProviderProfileSummary(){
         :'')+
     '</div>'+
     (status==='pending'
-      ?'<div class="notice good" style="margin-top:12px"><b>✓ Submitted for Admin Approval</b><br>Your SP profile is complete. No need to submit again. Work ON will unlock after Admin approval.</div>'
+      ?(category==='Tempo / Goods Transport'&&!tp.kyc_complete
+        ?'<div class="notice" style="margin-top:12px"><b>Transport KYC Pending</b><br>Basic profile save ho gaya. Driving Licence + RC + Insurance complete karein, phir Admin approval hoga.</div>'
+        :'<div class="notice good" style="margin-top:12px"><b>✓ Submitted for Admin Approval</b><br>Your SP profile is complete. No need to submit again. Work ON will unlock after Admin approval.</div>')
       :status==='rejected'
         ?'<div class="notice" style="margin-top:12px"><b>Correction Required</b><br>Admin ne profile correction ke liye return kiya hai. Details update karke resubmit karein.</div>'
         :'')+
@@ -1633,7 +1647,9 @@ async function showProviderProfileSummary(){
       (status==='approved'
        ?'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20261001-spflow1\'">Open SP Dashboard</button>'
        :status==='pending'
-         ?'<button class="primary" onclick="closeAccount()">OK</button>'
+         ?(category==='Tempo / Goods Transport'&&!tp.kyc_complete
+           ?'<button class="primary" onclick="editProviderProfileSkills();setTimeout(()=>{const x=document.getElementById(\'paTransportKycLater\');if(x){x.style.display=\'block\';x.scrollIntoView({behavior:\'smooth\',block:\'center\'})}},80)">Complete Transport KYC</button>'
+           :'<button class="primary" onclick="closeAccount()">OK</button>')
          :status==='rejected'
            ?'<button class="primary" onclick="editProviderProfileSkills()">Fix Profile</button>'
            :'<button class="primary" onclick="editProviderProfileSkills()">Complete Missing Details</button>')+
@@ -1823,6 +1839,27 @@ function handleProviderSelfie(input){
    box.innerHTML='<div style="display:flex;align-items:center;gap:12px;max-width:100%;overflow:hidden"><img alt="Service Provider selfie preview" src="'+url+'" style="display:block!important;width:96px!important;height:96px!important;max-width:96px!important;max-height:96px!important;min-width:96px!important;min-height:96px!important;object-fit:cover!important;border-radius:18px!important;border:2px solid #d7e9e4!important"><div><b style="font-size:12px;color:#173f46">Selfie selected</b><div style="font-size:10.5px;color:#718185;margin-top:3px">Private verification only</div></div></div>';
  }
 }
+async function saveTransportKycLater(){
+ const st=document.getElementById('paTransportKycStatus');
+ const dl=(document.getElementById('paTransportDrivingLicence')?.value||'').trim();
+ const rc=(document.getElementById('paTransportRcNumber')?.value||'').trim();
+ const ins=(document.getElementById('paTransportInsuranceNumber')?.value||'').trim();
+ if(!dl||!rc||!ins){alert('Driving Licence, RC aur Insurance tino required hain.');return}
+ try{
+   const {data,error}=await ocsSupabase.rpc('save_provider_transport_kyc_v1',{
+     p_driving_licence:dl,
+     p_rc_number:rc,
+     p_insurance_number:ins
+   });
+   if(error)throw error;
+   if(st){st.textContent='✓ Transport KYC saved • Admin approval ke liye ready';st.style.color='#16815d'}
+   alert('Transport KYC save ho gaya. Ab Admin approval ke baad Work ON hoga.');
+   await showProviderProfileSummary();
+ }catch(e){
+   if(st){st.textContent='KYC save nahi hua: '+(e&&e.message?e.message:'Unknown error');st.style.color='#a33'}
+   alert('Transport KYC save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
+ }
+}
 async function saveProviderAccount(){
  const name=paName.value.trim(),mobile=paMobile.value.trim(),area=paArea.value.trim(),radius=Number(paRadius.value||12);
  const session=await refreshOcsEmailStatus();
@@ -1837,11 +1874,8 @@ async function saveProviderAccount(){
  const transportVehicleType=(document.getElementById('paTransportVehicleType')?.value||'').trim();
  const transportVehicleNumber=(document.getElementById('paTransportVehicleNumber')?.value||'').trim();
  const transportCapacity=(document.getElementById('paTransportCapacity')?.value||'').trim();
- const transportDrivingLicence=(document.getElementById('paTransportDrivingLicence')?.value||'').trim();
- const transportRcNumber=(document.getElementById('paTransportRcNumber')?.value||'').trim();
- const transportInsuranceNumber=(document.getElementById('paTransportInsuranceNumber')?.value||'').trim();
- if(transportSelected&&(!transportVehicleType||!transportVehicleNumber||!transportDrivingLicence||!transportRcNumber||!transportInsuranceNumber)){
-   alert('Transport SP ke liye Vehicle Type, Vehicle Number, Driving Licence, RC aur Insurance required hain.');return
+ if(transportSelected&&(!transportVehicleType||!transportVehicleNumber)){
+   alert('Transport SP ke liye Vehicle Type aur Vehicle Number required hain.');return
  }
  if(!name){
    alert('Full Name required hai.');
@@ -1877,10 +1911,7 @@ async function saveProviderAccount(){
      const tp=await ocsSupabase.rpc('upsert_provider_transport_profile_v1',{
        p_vehicle_type:transportVehicleType,
        p_vehicle_number:transportVehicleNumber,
-       p_capacity:transportCapacity||null,
-       p_driving_licence:transportDrivingLicence,
-       p_rc_number:transportRcNumber,
-       p_insurance_number:transportInsuranceNumber
+       p_capacity:transportCapacity||null
      });
      if(tp.error)throw tp.error;
    }
@@ -1912,7 +1943,7 @@ async function saveProviderAccount(){
    if(submit.error)throw submit.error;
 
    localStorage.setItem('ocsProviderProfile',JSON.stringify({
-     name,mobile,email,area,radius,skills,transportVehicleType,transportVehicleNumber,transportCapacity,transportDrivingLicence,transportRcNumber,transportInsuranceNumber,
+     name,mobile,email,area,radius,skills,transportVehicleType,transportVehicleNumber,transportCapacity,
      backendConnected:true,
      backendProviderId:(sync&&sync.provider_id)||session.user.id,
      mobileVerified:!!accountVerified.providerMobile,
@@ -1921,7 +1952,7 @@ async function saveProviderAccount(){
      status:'Submitted • Admin Approval Pending'
    }));
 
-   alert('Service Provider profile Admin approval ke liye submit ho gaya. Approval ke baad Work ON hoga.');
+   alert(transportSelected?'Transport basic profile save ho gaya. Ab Complete Transport KYC karke Admin approval lein.':'Service Provider profile Admin approval ke liye submit ho gaya. Approval ke baad Work ON hoga.');
    await showProviderProfileSummary();
  }catch(e){
    console.error('Provider onboarding submit failed',e);
