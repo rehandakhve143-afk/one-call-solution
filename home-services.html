@@ -5422,5 +5422,56 @@ bootHomeServices();
  }
 })();
 </script>
-</body>
-</html>
+
+<style id="ocs-role-bottom-driver-ui">
+.ocs-role-bottom{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(480px,100%);z-index:2147482000;display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:#064d59;border-top:0;box-shadow:0 -6px 22px rgba(4,45,55,.18);padding:7px 5px max(7px,env(safe-area-inset-bottom))}
+.ocs-role-bottom button{min-height:54px;border:0!important;border-radius:12px!important;background:transparent!important;color:#dcebed!important;box-shadow:none!important;padding:5px 2px!important;font-size:9.5px!important;font-weight:850!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.ocs-role-bottom button b{font-size:20px;line-height:1;font-weight:800}.ocs-role-bottom button span{font-size:9.5px;line-height:1.1}.ocs-role-bottom button.on{color:#f3ef00!important;background:#ffffff0b!important}
+body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs-role-bottom{display:none!important}
+.customer-route-only #selectionTray{bottom:76px!important}
+.sp-only-route .provider-availability{background:#f3ef00!important;color:#17343c!important;border:0!important}
+.sp-only-route .provider-dashboard-card{border-radius:22px!important}
+.sp-only-route .provider-metric{background:#fff!important;border-color:#e5e9ed!important;border-radius:17px!important;box-shadow:0 4px 14px rgba(8,45,55,.045)}
+.sp-only-route .provider-quick-tools button{background:#fff!important;border-color:#e5e9ed!important;border-radius:17px!important;box-shadow:0 4px 14px rgba(8,45,55,.045)}
+.sp-only-route .provider-quick-tools button>span{background:#e6f4f3!important;color:#064d59!important}
+.customer-route-only .customer-dashboard-card,.customer-route-only .customer-history-card{border-radius:21px!important}
+@media(min-width:481px){.ocs-role-bottom{border-radius:18px 18px 0 0}}
+</style>
+<nav class="ocs-role-bottom" id="ocsRoleBottomNav" aria-label="OCS quick navigation">
+ <button id="ocsRoleNav1" type="button" onclick="ocsRoleBottomGo(1)"><b>⌂</b><span>Home</span></button>
+ <button id="ocsRoleNav2" type="button" onclick="ocsRoleBottomGo(2)"><b>▤</b><span>Booking</span></button>
+ <button id="ocsRoleNav3" type="button" onclick="ocsRoleBottomGo(3)"><b>▣</b><span>History</span></button>
+ <button id="ocsRoleNav4" type="button" onclick="ocsRoleBottomGo(4)"><b>♙</b><span>Support</span></button>
+</nav>
+<script id="ocs-role-bottom-driver-ui-js">
+(function(){
+ function el(id){return document.getElementById(id)}
+ function setOn(n){for(let i=1;i<=4;i++){const b=el('ocsRoleNav'+i);if(b)b.classList.toggle('on',i===n)}}
+ window.ocsRoleBottomGo=function(n){
+   const sp=document.body.classList.contains('sp-only-route')||(typeof OCS_ROUTE_TAB!=='undefined'&&OCS_ROUTE_TAB==='provider');
+   if(sp){
+     if(n===1){setOn(1);if(typeof showTab==='function')showTab('provider');window.scrollTo({top:0,behavior:'smooth'});return}
+     if(n===2){setOn(2);if(typeof openProviderHistoryQuick==='function')openProviderHistoryQuick();return}
+     if(n===3){setOn(3);if(typeof openProviderWalletQuick==='function')openProviderWalletQuick();return}
+     if(n===4){setOn(4);if(typeof openProviderProfileSafe==='function')openProviderProfileSafe();return}
+   }else{
+     if(n===1){location.href='index.html?v=20261005-driver3';return}
+     if(n===2){setOn(2);if(typeof showTab==='function')showTab('customer');window.scrollTo({top:0,behavior:'smooth'});return}
+     if(n===3){setOn(3);const h=document.querySelector('.customer-history-card');if(h){h.open=true;h.scrollIntoView({behavior:'smooth',block:'start'})}return}
+     if(n===4){setOn(4);if(typeof openSupport==='function')openSupport('customer');return}
+   }
+ };
+ function configure(){
+   const nav=el('ocsRoleBottomNav');if(!nav)return;
+   if(document.body.classList.contains('admin-route-only')){nav.style.display='none';return}
+   const sp=document.body.classList.contains('sp-only-route')||(typeof OCS_ROUTE_TAB!=='undefined'&&OCS_ROUTE_TAB==='provider');
+   const labels=sp?['Home','Activity','Wallet','Account']:['Home','Booking','History','Support'];
+   const icons=sp?['⌂','▤','▣','♙']:['⌂','▤','↻','?'];
+   for(let i=1;i<=4;i++){const b=el('ocsRoleNav'+i);if(!b)continue;b.querySelector('b').textContent=icons[i-1];b.querySelector('span').textContent=labels[i-1]}
+   setOn(sp?1:2);
+ }
+ setTimeout(configure,0);setTimeout(configure,350);
+})();
+</script>
+
+</body></html>
