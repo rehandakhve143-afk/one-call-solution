@@ -129,7 +129,7 @@ setTimeout(function(){
 <div class="common-search module-only" id="windowCommonSearch" aria-label="Search current window"><span aria-hidden="true">⌕</span><input id="windowSearch" placeholder="Search in this window..." onkeydown="if(event.key==='Enter')runWindowSearch(this.value)"><button type="button" onclick="runWindowSearch(document.getElementById('windowSearch')?.value)">Search</button></div>
 <div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div><button id="windowManageBtn" class="window-manage" onclick="manageCurrentWindow()">+ Post Ad</button></div><iframe id="frame"></iframe></div>
 <div class="modal" id="bottomBookingsModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>Bookings</h2><div class="muted">Active, completed and cancelled Home Service bookings</div></div><button class="x" onclick="closeBottomHub('bottomBookingsModal')">×</button></div>
+  <div class="bottom-hub-head"><div><h2>Booking History</h2><div class="muted">Upcoming & past OCS bookings</div></div><button class="x" onclick="closeBottomHub('bottomBookingsModal')">×</button></div>
   <div class="support-role-row">
     <button id="bookingTabActive" class="on" onclick="setBottomBookingsTab('ACTIVE')">Active</button>
     <button id="bookingTabCompleted" onclick="setBottomBookingsTab('COMPLETED')">Completed</button>
@@ -225,7 +225,7 @@ setTimeout(function(){
 </div></div>
 
 <div class="modal" id="walletModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>OCS Rewards & SP Wallet</h2><div class="muted">Customer rewards + Service Provider wallet</div></div><button class="x" onclick="closeWalletHub()">×</button></div>
+  <div class="bottom-hub-head"><div><h2>Wallet</h2><div class="muted">OCS Rewards & payment benefits</div></div><button class="x" onclick="closeWalletHub()">×</button></div>
   <div id="walletHubBody"></div>
   <div class="bottom-hub-actions"><button onclick="closeWalletHub();openWorkHistory('PROVIDER')">SP Work History</button><button onclick="closeWalletHub()">Close</button></div>
 </div></div>
@@ -2161,7 +2161,7 @@ function openBottomProfile(){
  '</div>'+
  '<div class="ocs-account-list">'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openLocationPicker()"><span class="ar-ico">⌖</span><span class="ar-copy"><b>Saved Location</b><small>Home / service location</small></span><span class="ar-go">›</span></button>'+
-   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openShareEarn()"><span class="ar-ico">↗</span><span class="ar-copy"><b>Refer a Friend</b><small>Share & Earn ₹50 wallet reward</small></span><span class="ar-go">›</span></button>'+
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');shareOcsWhatsApp()"><span class="ar-ico">↗</span><span class="ar-copy"><b>Refer a Friend</b><small>Share & Earn ₹50 wallet reward</small></span><span class="ar-go">›</span></button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openMyAds()"><span class="ar-ico">▣</span><span class="ar-copy"><b>My Ads & Listings</b><small>Edit • Pause • Renew</small></span><span class="ar-go">›</span></button>'+
    '<button class="ocs-account-row" onclick="openProviderProfileFromMenu()"><span class="ar-ico">SP</span><span class="ar-copy"><b>Service Provider Profile</b><small>'+ocsSavedText(providerText)+'</small></span><span class="ar-go">›</span></button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()"><span class="ar-ico">?</span><span class="ar-copy"><b>OCS Care & Support</b><small>Help, booking or payment issue</small></span><span class="ar-go">›</span></button>'+
@@ -2264,12 +2264,13 @@ function getOcsWalletSnapshot(){
 }
 async function renderWalletHub(){
  const body=document.getElementById('walletHubBody');if(!body)return;
- const w=getOcsWalletSnapshot(),cp=getCustomerProfile(),sp=getProviderProfile();
+ const w=getOcsWalletSnapshot(),sp=getProviderProfile();
  const paint=()=>{
    body.innerHTML=
-   '<div class="bottom-hub-card"><b>OCS Rewards</b><small>Referral reward balance</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.customer).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">Unlimited genuine referrals allowed. Har referred new user ki first successful paid service booking ke baad ₹50 reward credit hoga. Available balance eligible OCS service payment me poora use kar sakte hain; cash withdrawal nahi.</div></div>'+
-   '<div class="bottom-hub-card"><b>Service Provider Wallet</b><small>'+(sp?(sp.name||'Service Provider'):'SP profile not created')+'</small><div style="font-size:28px;font-weight:900;margin-top:8px">₹'+Number(w.sp).toLocaleString('en-IN')+'</div><div class="muted" style="margin-top:6px">No fixed minimum wallet balance. Cash jobs ka 9% OCS commission wallet se debit hoga; wallet ₹0 ya negative ho sakta hai. Warning/email rahega, aur new jobs pause karna OCS Admin ke control me hoga.</div>'+(w.spPaused?'<div class="notice" style="margin-top:8px">New jobs temporarily paused by Admin.</div>':'')+'</div>'+
-   '<div class="bottom-hub-card"><b>Wallet Safety</b><small>Wallet balance, transactions and reward history final backend records se sync honge. Customer payment history Bookings / Work History me alag rahegi.</small></div>';
+   '<div class="bottom-hub-card ocs-wallet-hero"><b>OCS Rewards</b><small>Available reward balance</small><div class="ocs-wallet-balance">₹'+Number(w.customer).toLocaleString('en-IN')+'</div><div class="ocs-wallet-note">Referral rewards eligible OCS service payments me poore use kar sakte hain. Cash withdrawal nahi.</div><button class="ocs-wallet-action" onclick="shareOcsWhatsApp()">Share & Earn ₹50</button></div>'+
+   '<div class="bottom-hub-card"><button class="ocs-wallet-simple-row" onclick="closeWalletHub();openBottomBookings()"><span>₹</span><div><b>Payment History</b><small>Completed bookings & payments</small></div><div style="margin-left:auto;font-size:24px;color:#9aa6aa">›</div></button></div>'+
+   (sp?'<div class="bottom-hub-card"><button class="ocs-wallet-simple-row" onclick="location.href=\'service-provider.html?v=20261005-driver4\'"><span>SP</span><div><b>Service Provider Wallet</b><small>Open SP Dashboard for jobs, wallet & earnings</small></div><div style="margin-left:auto;font-size:24px;color:#9aa6aa">›</div></button></div>':'')+
+   '<div class="bottom-hub-card"><b>Transactions</b><small>Reward credit and usage history will appear here after successful OCS transactions.</small></div>';
  };
  paint();
  try{
