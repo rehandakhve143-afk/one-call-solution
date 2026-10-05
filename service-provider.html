@@ -4,11 +4,35 @@
   <meta charset="utf-8">
   <meta http-equiv="cache-control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#064d59">
   <title>OCS Service Provider</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+  <link rel="stylesheet" href="assets/ocs-unified-ui.css?v=20261005-unified1">
+  <style>
+  body{margin:0;background:#f5f7f9;font-family:system-ui,Arial}.boot{min-height:100vh;display:grid;place-items:center;padding:24px}.box{width:min(390px,100%);background:#fff;border:1px solid #e5e9ed;border-radius:24px;padding:22px;text-align:center;box-shadow:0 10px 30px rgba(8,45,55,.08)}.logo{width:58px;height:58px;border-radius:18px;margin:auto;background:#064d59;color:#f3ef00;display:grid;place-items:center;font-weight:950;font-size:18px}.box b{display:block;font-size:20px;margin-top:12px}.box small{display:block;color:#667080;margin-top:5px}
+  </style>
 </head>
 <body>
+<div class="boot"><div class="box"><div class="logo">OCS</div><b>Opening Service Provider</b><small>Loading your OCS dashboard...</small></div></div>
 <script>
-  location.replace('home-services.html?tab=provider&sp=1&v=20261002-spdirect1');
+(async()=>{
+  try{
+    const sb=window.supabase.createClient(
+      'https://uipmkrsggpkupgbgoxkg.supabase.co',
+      'sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto',
+      {auth:{persistSession:true,autoRefreshToken:true}}
+    );
+    const ses=await sb.auth.getSession();
+    if(!(ses.data&&ses.data.session)){location.replace('index.html?login=1&open=sp-dashboard');return}
+    const {data,error}=await sb.rpc('provider_profile_snapshot_v1');
+    if(error)throw error;
+    const skills=Array.isArray(data&&data.skills)?data.skills:[];
+    const isTransport=skills.some(x=>String(x.category||'').trim()==='Tempo / Goods Transport'&&x.enabled_by_provider!==false);
+    location.replace(isTransport?'transport-driver.html?v=20261005-driver1':'home-services.html?tab=provider&sp=1&v=20261005-unified1');
+  }catch(e){
+    location.replace('home-services.html?tab=provider&sp=1&v=20261005-unified1');
+  }
+})();
 </script>
 </body>
 </html>
