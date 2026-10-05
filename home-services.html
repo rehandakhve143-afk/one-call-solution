@@ -4360,7 +4360,7 @@ async function adminOpenRewardProfile(key){
 
 function renderAdminRewardProfile(data){
  const box=document.getElementById("adminRewardProfile");if(!box)return;
- const d=data||{},p=d.profile||{},st=d.stats||{},reviews=Array.isArray(d.reviews)?d.reviews:[];
+ const d=data||{},p=d.profile||{},st=d.stats||{},reviews=Array.isArray(d.reviews)?d.reviews:[],praise=Array.isArray(d.praise)?d.praise:[];
  const kyc=p.transport_kyc_complete===null||p.transport_kyc_complete===undefined?"N/A":(p.transport_kyc_complete?"Complete":"Pending");
  const recent=reviews.length?reviews.map(r=>
    '<div style="padding:7px 0;border-top:1px solid #edf2f1"><b>'+ocsSafe(String(r.decision||"").toUpperCase())+'</b>'+
@@ -4377,10 +4377,16 @@ function renderAdminRewardProfile(data){
    '<div class="row"><span>Completed Jobs</span><b>'+Number(st.completed_jobs||0)+'</b></div>'+
    '<div class="row"><span>Total Jobs</span><b>'+Number(st.total_jobs||0)+'</b></div>'+
    '<div class="row"><span>Rating</span><b>⭐ '+Number(st.rating_average||0).toFixed(2)+' ('+Number(st.rating_count||0)+')</b></div>'+
+   '<div class="row"><span>5-Star Ratings</span><b>'+Number(st.five_star_count||0)+'</b></div>'+
+   '<div class="row"><span>Positive Comments</span><b>'+Number(st.positive_comment_count||0)+'</b></div>'+
+   '<div class="row"><span>Completion Rate</span><b>'+Number(st.completion_rate||0).toFixed(1)+'%</b></div>'+
+   '<div class="row"><span>Repeat Customers</span><b>'+Number(st.repeat_customer_count||0)+'</b></div>'+
+   '<div class="row"><span>Avg. Accept Time</span><b>'+Number(st.average_accept_minutes||0).toFixed(1)+' min</b></div>'+
    '<div class="row"><span>Cancelled</span><b>'+Number(st.cancelled_jobs||0)+'</b></div>'+
    '<div class="row"><span>Rejected Requests</span><b>'+Number(st.rejections||0)+'</b></div>'+
    '<div class="row"><span>Work Not Completed</span><b>'+Number(st.wnc_cases||0)+'</b></div>'+
-   '<div class="row"><span>Customer Support Cases</span><b>'+Number(st.customer_support_cases||0)+'</b></div>'+
+   '<div class="row"><span>Support</span><b>'+Number(st.support_resolved||0)+' resolved • '+Number(st.support_open||0)+' open</b></div>'+
+   '<div class="row"><span>Reward History</span><b>'+Number(st.reward_count||0)+' Reward • '+Number(st.warning_count||0)+' Warning • '+Number(st.review_count||0)+' Review</b></div>'+
    '<div class="row"><span>Wallet</span><b>'+money(Number(p.wallet_balance||0))+'</b></div>'+
    (p.admin_paused?'<div class="notice bad" style="margin-top:8px"><b>Admin Paused</b><br>'+ocsSafe(p.admin_pause_reason||"No reason")+'</div>':'')+
    '<label style="margin-top:11px">Admin Note</label><textarea id="adminRewardNote" rows="3" placeholder="Reward / warning / review reason"></textarea>'+
@@ -4389,6 +4395,7 @@ function renderAdminRewardProfile(data){
      '<button class="btn gray" onclick="adminSaveRewardDecision(\'review\')">Review</button>'+
      '<button class="btn red" onclick="adminSaveRewardDecision(\'warning\')">Warning</button>'+
    '</div>'+
+   (praise.length?'<div style="margin-top:12px"><b style="font-size:11px;color:#35575d">Recent Customer Praise</b>'+praise.map(x=>'<div style="padding:7px 0;border-top:1px solid #edf2f1"><b>⭐ '+Number(x.stars||0)+'</b><small style="display:block;color:#718488;margin-top:2px">'+ocsSafe(x.comment||"")+'</small></div>').join("")+'</div>':'')+
    '<div style="margin-top:12px"><b style="font-size:11px;color:#35575d">Previous Admin Reviews</b>'+recent+'</div>'+
   '</div>';
 }
