@@ -1285,7 +1285,15 @@ async function openHomeProviderDashboard(){
   if(!session||!session.user){ocsProviderProfileMenuIntent=true;openLogin();return}
   const hasSp=await ocsUserHasRole('service_provider');
   if(!hasSp){await openAccount('provider',true);return}
-  location.href='home-services.html?tab=provider&sp=1&v=20260930-selfiefix2';
+  try{
+    const {data,error}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
+    if(error)throw error;
+    const skills=Array.isArray(data&&data.skills)?data.skills:[];
+    const isTransport=skills.some(x=>String(x.category||'').trim()==='Tempo / Goods Transport'&&x.enabled_by_provider!==false);
+    location.href=isTransport?'transport-driver.html?v=20261005-driver1':'home-services.html?tab=provider&sp=1&v=20261005-unified1';
+  }catch(e){
+    location.href='home-services.html?tab=provider&sp=1&v=20261005-unified1';
+  }
 }
 async function openHomeAdminDashboard(){
   const adminUrl='home-services.html?tab=admin&v=20260930-selfiefix2';
