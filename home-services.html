@@ -840,6 +840,14 @@ async function ocsLoadLive(role){
             if(x.category==="Custom / Other")return x.service_name||x.skill||"Other";
             return x.category||x.service_name||x.skill;
           }).filter(Boolean);
+          try{
+            const q=new URLSearchParams(location.search||"");
+            const transportDriver=skills.some(x=>String(x.category||"").trim()==="Tempo / Goods Transport");
+            if(transportDriver&&q.get("sp")==="1"&&q.get("full")!=="1"){
+              location.replace("transport-driver.html?v=20261005-driver1");
+              return true;
+            }
+          }catch(e){}
           const approved=skills.some(x=>x.approved===true&&x.verification_status==="approved");
           const pending=skills.some(x=>x.verification_status==="pending");
           S.providerVerificationStatus=approved?"Approved":(pending?"Verification Pending":"Profile Saved");
