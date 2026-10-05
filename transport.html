@@ -7,7 +7,7 @@
 <title>OCS Tempo / Goods Transport</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f4f8f7;color:#173f46;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}.top{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,#006b62,#079384);color:#fff;padding:16px 16px 18px;border-radius:0 0 24px 24px;box-shadow:0 10px 28px rgba(0,85,78,.16)}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:14px;background:#111;color:#fff;display:grid;place-items:center;font-weight:900}.brand h1{font-size:19px;margin:0}.brand p{margin:3px 0 0;font-size:11px;opacity:.85}.back{margin-top:12px;width:100%;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;border-radius:13px;padding:11px;font-weight:800}.wrap{max-width:720px;margin:auto;padding:14px 14px 36px}.hero{background:#fff;border:1px solid #dce9e6;border-radius:22px;padding:16px;box-shadow:0 8px 24px rgba(25,73,69,.07)}.eyebrow{font-size:10px;letter-spacing:.08em;font-weight:900;color:#078476}.hero h2{font-size:25px;line-height:1.08;margin:5px 0}.hero p{font-size:12px;line-height:1.5;color:#6c8083;margin:7px 0 13px}.quick{display:grid;grid-template-columns:1fr 1fr;gap:9px}.quick button{border:1px solid #d8e9e5;background:#f7fbfa;border-radius:15px;padding:13px 10px;text-align:left}.quick b{display:block;color:#17484c}.quick small{display:block;color:#718489;margin-top:3px}.card{margin-top:13px;background:#fff;border:1px solid #dce9e6;border-radius:21px;padding:15px;box-shadow:0 7px 22px rgba(25,73,69,.055)}.card h3{margin:0 0 4px;font-size:18px}.sub{color:#73868a;font-size:11px;margin-bottom:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field{margin-top:10px}.field label{display:block;font-size:11px;font-weight:850;margin:0 0 5px}.field input,.field select,.field textarea{width:100%;border:1px solid #cfe0dd;background:#fff;border-radius:12px;padding:11px;font:inherit;font-size:13px;color:#173f46;outline:none}.field textarea{min-height:78px;resize:vertical}.gps{display:flex;gap:7px}.gps input{flex:1}.gps button{border:0;border-radius:12px;padding:0 12px;background:#e6f7f3;color:#08796f;font-weight:850}.choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.choice button{border:1px solid #d5e5e2;background:#fff;border-radius:13px;padding:11px;font-weight:850;color:#31565b}.choice button.on{background:#e9faf5;border-color:#78cbb9;color:#08786d}.note{margin-top:11px;border-left:4px solid #f0a000;background:#fff7e9;padding:10px 11px;border-radius:11px;font-size:11px;line-height:1.45;color:#6c571e}.good{border-left-color:#0aa179;background:#edfbf7;color:#175b50}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.btn{border:0;border-radius:14px;padding:13px;font-weight:900;font-size:13px}.primary{background:#078f7f;color:#fff}.secondary{background:#e9f2f0;color:#315b5e}.disabled{opacity:.5}.status{display:none;margin-top:12px;padding:12px;border-radius:13px;background:#eefaf6;color:#17675b;font-size:12px;font-weight:750}.status.bad{background:#fff0f0;color:#9b2929}.vehicle-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.vehicle-list label{border:1px solid #d6e5e2;border-radius:12px;padding:10px;font-size:11px;font-weight:750}.vehicle-list input{margin-right:6px}.media-preview{font-size:10px;color:#6f8184;margin-top:5px}.future{font-size:10px;color:#718489;margin-top:8px}.contact-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.contact-grid button{border:1px solid #cfe2de;background:#fff;border-radius:12px;padding:11px;font-weight:850}.trip-panel{display:none}.trip-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #edf2f1;font-size:11px}.trip-row:last-child{border-bottom:0}.trip-row span{color:#6f8184}.chatbox{display:none;margin-top:10px}.chatlog{max-height:220px;overflow:auto;border:1px solid #e3ece9;border-radius:12px;padding:9px;background:#fbfdfc;font-size:11px}.chatmsg{padding:7px 8px;border-radius:10px;background:#eef7f5;margin:5px 0}.foot{margin-top:14px;color:#708286;font-size:10px;text-align:center}@media(max-width:480px){.wrap{padding:12px 10px 30px}.grid2{grid-template-columns:1fr}.hero h2{font-size:22px}}
+*{box-sizing:border-box}body{margin:0;background:#f4f8f7;color:#173f46;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}.top{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,#006b62,#079384);color:#fff;padding:16px 16px 18px;border-radius:0 0 24px 24px;box-shadow:0 10px 28px rgba(0,85,78,.16)}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:14px;background:#111;color:#fff;display:grid;place-items:center;font-weight:900}.brand h1{font-size:19px;margin:0}.brand p{margin:3px 0 0;font-size:11px;opacity:.85}.back{margin-top:12px;width:100%;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;border-radius:13px;padding:11px;font-weight:800}.wrap{max-width:720px;margin:auto;padding:14px 14px 36px}.hero{background:#fff;border:1px solid #dce9e6;border-radius:22px;padding:16px;box-shadow:0 8px 24px rgba(25,73,69,.07)}.eyebrow{font-size:10px;letter-spacing:.08em;font-weight:900;color:#078476}.hero h2{font-size:25px;line-height:1.08;margin:5px 0}.hero p{font-size:12px;line-height:1.5;color:#6c8083;margin:7px 0 13px}.quick{display:grid;grid-template-columns:1fr 1fr;gap:9px}.quick button{border:1px solid #d8e9e5;background:#f7fbfa;border-radius:15px;padding:13px 10px;text-align:left}.quick b{display:block;color:#17484c}.quick small{display:block;color:#718489;margin-top:3px}.card{margin-top:13px;background:#fff;border:1px solid #dce9e6;border-radius:21px;padding:15px;box-shadow:0 7px 22px rgba(25,73,69,.055)}.card h3{margin:0 0 4px;font-size:18px}.sub{color:#73868a;font-size:11px;margin-bottom:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field{margin-top:10px}.field label{display:block;font-size:11px;font-weight:850;margin:0 0 5px}.field input,.field select,.field textarea{width:100%;border:1px solid #cfe0dd;background:#fff;border-radius:12px;padding:11px;font:inherit;font-size:13px;color:#173f46;outline:none}.field textarea{min-height:78px;resize:vertical}.gps{display:flex;gap:7px}.gps input{flex:1}.gps button{border:0;border-radius:12px;padding:0 12px;background:#e6f7f3;color:#08796f;font-weight:850}.choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.choice button{border:1px solid #d5e5e2;background:#fff;border-radius:13px;padding:11px;font-weight:850;color:#31565b}.choice button.on{background:#e9faf5;border-color:#78cbb9;color:#08786d}.note{margin-top:11px;border-left:4px solid #f0a000;background:#fff7e9;padding:10px 11px;border-radius:11px;font-size:11px;line-height:1.45;color:#6c571e}.good{border-left-color:#0aa179;background:#edfbf7;color:#175b50}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.btn{border:0;border-radius:14px;padding:13px;font-weight:900;font-size:13px}.primary{background:#078f7f;color:#fff}.secondary{background:#e9f2f0;color:#315b5e}.disabled{opacity:.5}.status{display:none;margin-top:12px;padding:12px;border-radius:13px;background:#eefaf6;color:#17675b;font-size:12px;font-weight:750}.status.bad{background:#fff0f0;color:#9b2929}.vehicle-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.vehicle-list label{border:1px solid #d6e5e2;border-radius:12px;padding:10px;font-size:11px;font-weight:750}.vehicle-list input{margin-right:6px}.media-preview{font-size:10px;color:#6f8184;margin-top:5px}.future{font-size:10px;color:#718489;margin-top:8px}.contact-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.contact-grid button{border:1px solid #cfe2de;background:#fff;border-radius:12px;padding:11px;font-weight:850}.trip-panel{display:none}.trip-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #edf2f1;font-size:11px}.trip-row:last-child{border-bottom:0}.trip-row span{color:#6f8184}.chatbox{display:none;margin-top:10px}.chatlog{max-height:220px;overflow:auto;border:1px solid #e3ece9;border-radius:12px;padding:9px;background:#fbfdfc;font-size:11px}.chatmsg{padding:7px 8px;border-radius:10px;background:#eef7f5;margin:5px 0}.offer{border:1px solid #dce9e6;border-radius:14px;padding:11px;margin:8px 0;background:#fff}.offer-top{display:flex;justify-content:space-between;gap:8px}.offer small{display:block;color:#708286;margin-top:4px}.offer .amt{font-size:18px;font-weight:900;color:#087a70}.offer button{margin-top:8px;width:100%;border:0;border-radius:11px;padding:10px;background:#087a70;color:#fff;font-weight:850}.foot{margin-top:14px;color:#708286;font-size:10px;text-align:center}@media(max-width:480px){.wrap{padding:12px 10px 30px}.grid2{grid-template-columns:1fr}.hero h2{font-size:22px}}
 </style>
 </head>
 <body>
@@ -78,6 +78,12 @@
    <button id="quoteBtn" class="btn primary" type="button" onclick="submitQuote()">Get Quote</button>
   </div>
   <div id="status" class="status"></div>
+ </section>
+
+ <section class="card" id="quoteOffersPanel" style="display:none">
+  <h3>Transport Quotes</h3>
+  <div class="sub">Matching drivers ke quotes compare karke ek select karein.</div>
+  <div id="quoteOffersList"></div>
  </section>
 
  <section class="card trip-panel" id="tripPanel">
@@ -172,6 +178,39 @@ async function submitQuote(){
   $('quoteBtn').textContent='Request Sent ✓';
  }catch(e){show(e&&e.message?e.message:'Request create nahi hui.',true);$('quoteBtn').disabled=false;$('quoteBtn').textContent='Get Quote';sending=false}
 }
+async function loadTransportOffers(){
+ try{
+   const sess=await sb.auth.getSession();const session=sess.data&&sess.data.session;if(!session)return;
+   const {data:trip,error:te}=await sb.rpc('transport_customer_trip_snapshot_v1');if(te)throw te;
+   currentTrip=trip||null;
+   if(!currentTrip||!currentTrip.has_booking)return;
+   const bookingId=currentTrip.booking_id;
+   const {data,error}=await sb.rpc('customer_transport_offers_v1',{p_booking_id:bookingId});if(error)throw error;
+   const rows=Array.isArray(data)?data:[];
+   const panel=$('quoteOffersPanel'),list=$('quoteOffersList');
+   if(!panel||!list)return;
+   const waiting=!currentTrip.provider_assigned && rows.some(x=>x.status==='pending');
+   panel.style.display=waiting?'block':'none';
+   if(!waiting){list.innerHTML='';return}
+   list.innerHTML=rows.filter(x=>x.status==='pending').map(x=>
+     '<div class="offer">'+
+       '<div class="offer-top"><div><b>'+esc(x.provider_name||'Transport SP')+'</b><small>'+esc(x.vehicle_type||'')+(x.vehicle_number_masked?' • '+esc(x.vehicle_number_masked):'')+(x.capacity?' • '+esc(x.capacity):'')+'</small><small>⭐ '+Number(x.rating_average||0).toFixed(2)+' ('+Number(x.rating_count||0)+')</small></div><div class="amt">₹'+Number(x.amount||0).toFixed(0)+'</div></div>'+
+       (x.note?'<small>'+esc(x.note)+'</small>':'')+
+       '<button type="button" onclick="acceptTransportOffer(\''+x.offer_id+'\')">Accept Quote</button>'+
+     '</div>'
+   ).join('') || '<div class="future">Quotes ka wait hai.</div>';
+ }catch(e){console.error('Transport offers load failed',e)}
+}
+async function acceptTransportOffer(id){
+ if(!id)return;
+ if(!confirm('Ye Transport quote accept karna hai? Accepted amount official booking amount banega.'))return;
+ try{
+  const {data,error}=await sb.rpc('customer_accept_transport_offer_v1',{p_offer_id:id});if(error)throw error;
+  show('✓ Quote accepted. Driver assign ho gaya.',false);
+  await loadTransportOffers();await loadTransportTrip();
+ }catch(e){show(e&&e.message?e.message:'Quote accept nahi hua.',true)}
+}
+
 async function loadTransportTrip(){
  try{
   const sess=await sb.auth.getSession();const session=sess.data&&sess.data.session;if(!session)return;
@@ -201,7 +240,7 @@ async function toggleTripChat(){const box=$('tripChatBox');box.style.display=box
 async function loadTripChat(){if(!currentTrip?.booking_id)return;try{const {data,error}=await sb.rpc('get_booking_messages_v1',{p_booking_id:currentTrip.booking_id});if(error)throw error;const rows=Array.isArray(data)?data:[];$('tripChatLog').innerHTML=rows.length?rows.map(x=>'<div class="chatmsg">'+esc(x.message)+'</div>').join(''):'No messages yet.';}catch(e){$('tripChatLog').textContent='Chat load nahi hua.'}}
 async function sendTripChat(){const inp=$('tripChatInput'),msg=(inp.value||'').trim();if(!msg||!currentTrip?.booking_id)return;try{const {error}=await sb.rpc('send_booking_message_v1',{p_booking_id:currentTrip.booking_id,p_message:msg});if(error)throw error;inp.value='';await loadTripChat()}catch(e){show(e&&e.message?e.message:'Message send nahi hua.',true)}}
 if(window.self!==window.top){const topBar=document.querySelector('.top');if(topBar)topBar.style.display='none';document.body.style.paddingTop='0'}
-setMode('GOODS_DELIVERY');loadTransportTrip();setInterval(loadTransportTrip,8000);
+setMode('GOODS_DELIVERY');loadTransportTrip();loadTransportOffers();setInterval(()=>{loadTransportTrip();loadTransportOffers()},8000);
 try{const d=new Date();d.setDate(d.getDate()+1);$('date').min=new Date().toISOString().slice(0,10);$('date').value=d.toISOString().slice(0,10)}catch(e){}
 </script>
 </body>
