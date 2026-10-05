@@ -939,6 +939,12 @@ async function ocsLoadLive(role){
       if(!S.registeredProviderName)S.registeredProviderName=S.provider||"Service Provider";
     }
     await ocsSyncQuoteAndChat(role,booking);
+    if(role==="provider"&&String(booking.category||"")==="Tempo / Goods Transport"&&String(booking.request_type||"")==="quote"){
+      try{
+        const {data:to,error:toe}=await ocsSupabase.rpc("provider_transport_offer_snapshot_v1",{p_booking_id:booking.id});
+        if(!toe&&to)S.transportOffer=to||null;
+      }catch(e){console.error("Transport offer snapshot failed",e)}
+    }
     try{
       const {data:caseData,error:caseErr}=await ocsSupabase.rpc("booking_case_snapshot_v1",{p_booking_id:booking.id});
       if(caseErr)throw caseErr;
@@ -2852,6 +2858,26 @@ async function booking(){
  }
 }
 
+async function providerSendTransportOffer(){
+ if(S.category!=="Tempo / Goods Transport"||S.requestType!=="quote"||!S.activeBookingId)return;
+ if(!ocsGuardAction("transport-offer",1200))return;
+ const oldAmt=S.transportOffer&&Number(S.transportOffer.amount||0)>0?Number(S.transportOffer.amount||0):0;
+ const a=Number(prompt("Transport final quote ₹",oldAmt?String(oldAmt):""));
+ if(!a||a<=0)return;
+ const note=(prompt("Quote note (optional) • loading/unloading, toll etc.")||"").trim();
+ try{
+   const {data,error}=await ocsSupabase.rpc("provider_send_transport_offer_v1",{
+     p_booking_id:S.activeBookingId,
+     p_amount:a,
+     p_note:note||null
+   });
+   if(error)throw error;
+   S.transportOffer={has_offer:true,id:data.id,amount:Number(data.amount||a),note:data.note||note,status:data.status||"pending"};
+   hist("Transport quote sent • "+money(a)+" • Waiting for Customer");
+   render();
+ }catch(e){alert("Transport quote send nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
+}
+
 async function providerDecision(d){
  if(!ocsRequireStage("REQUESTED",d==="accept"?"Accept booking":"Reject booking"))return;
  if(!ocsGuardAction("provider-"+d,1200))return;
@@ -4070,10 +4096,12 @@ ${walletLow?'<div class="notice"><b>Wallet Reminder</b><br>Current wallet: ₹'+
 ${readyInfo.material_status?'<div class="muted">Material: '+ocsSafe(readyInfo.material_status==="READY"?"Ready":"Inspection / Not clear")+'</div>':''}
 ${readyInfo.power_point?'<div class="muted">Nearby power point: '+ocsSafe(String(readyInfo.power_point).replace("_"," "))+'</div>':''}
 <div class="money">${S.requestType==="quote"?"Get Quote":"₹"+S.base}</div>
-<div class="row">
-<button class="btn ok" onclick="providerDecision('accept')">Accept</button>
-<button class="btn red" onclick="providerDecision('reject')">Reject</button>
-</div></div>`;
+${S.category==="Tempo / Goods Transport"&&S.requestType==="quote"
+ ?((S.transportOffer&&Number(S.transportOffer.amount||0)>0)
+   ?'<div class="notice good"><b>Quote Sent: '+money(Number(S.transportOffer.amount||0))+'</b><br>Status: '+ocsSafe(String(S.transportOffer.status||"pending").toUpperCase())+'</div><div class="row"><button class="btn ok" onclick="providerSendTransportOffer()">Update Quote</button><button class="btn red" onclick="providerDecision(\'reject\')">Reject</button></div>'
+   :'<div class="notice"><b>Transport Quote</b><br>Apna final trip quote bhejein. Customer multiple matching driver quotes compare karega.</div><div class="row"><button class="btn ok" onclick="providerSendTransportOffer()">Send Quote</button><button class="btn red" onclick="providerDecision(\'reject\')">Reject</button></div>')
+ :'<div class="row"><button class="btn ok" onclick="providerDecision(\'accept\')">Accept</button><button class="btn red" onclick="providerDecision(\'reject\')">Reject</button></div>'}
+</div>`;
  }else if(Number(S.wallet||0)<200){
    h=`<div class="card"><h3>Wallet Recharge Required</h3><div class="notice bad">New jobs ke liye minimum wallet ₹200 required hai. Current wallet: ₹${Number(S.wallet||0).toFixed(2)}.</div><button class="btn" onclick="openProviderWalletQuick()">Recharge Wallet</button></div>`;
  }else if(S.adminPaused||!S.jobAccess){
