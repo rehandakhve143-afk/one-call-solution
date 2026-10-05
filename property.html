@@ -9,8 +9,8 @@ button,input,select,textarea{font:inherit}.app{max-width:720px;margin:auto;min-h
 .top{background:linear-gradient(135deg,#064b78,#006e82);color:#fff;padding:20px 18px 14px;border-radius:0 0 24px 24px;position:sticky;top:0;z-index:5}
 .brand{display:flex;align-items:center;gap:12px}.logo{width:52px;height:52px;border:5px solid #27d7d0;background:#fff;color:#075071;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:19px}
 .brand h1{font-size:25px;margin:0}.tag{opacity:.85;font-size:14px;margin-top:2px}
-.hero{margin:14px;background:linear-gradient(110deg,#e9fbff,#fff4e7);border-radius:20px;padding:20px;box-shadow:0 7px 25px #0b456014}
-.hero h2{font-size:27px;margin:0 0 7px}.hero p{margin:0 0 14px;color:#52697a}.orange{background:#ff6517;color:white;border:0;border-radius:13px;padding:13px 17px;font-weight:800}
+.hero{margin:14px;background:linear-gradient(90deg,rgba(6,77,89,.94),rgba(6,77,89,.55)),url("https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1000&q=84") center/cover no-repeat;border-radius:20px;padding:20px;box-shadow:0 7px 25px #0b456014;color:#fff}
+.hero h2{font-size:27px;margin:0 0 7px}.hero p{margin:0 0 14px;color:#e6f1f2}.orange{background:#ff6517;color:white;border:0;border-radius:13px;padding:13px 17px;font-weight:800}
 .section{padding:0 14px}.headrow{display:flex;justify-content:space-between;align-items:end;gap:8px}.headrow h2{margin:9px 0 2px;font-size:26px}.muted{color:#6d7f8d;font-size:14px}
 .tabs,.filters{display:flex;gap:8px;overflow:auto;padding:12px 0 8px}.pill{white-space:nowrap;border:1px solid #d6e2e8;background:#fff;color:#173a53;border-radius:22px;padding:10px 15px;font-weight:700}.pill.on{background:#006a8b;color:#fff}
 .card{background:white;border:1px solid #e0e9ed;border-radius:18px;margin:12px 0;overflow:hidden;box-shadow:0 6px 18px #1234}
@@ -65,7 +65,7 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
   box-shadow:0 14px 30px rgba(18,50,71,.18)!important;color:#fff!important
 }
 .hero:before{content:"";position:absolute;right:-36px;top:-38px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.12);box-shadow:0 0 0 26px rgba(255,255,255,.05)}
-.hero:after{content:"🏡";position:absolute;right:24px;top:50%;transform:translateY(-50%);font-size:66px;line-height:1;filter:drop-shadow(0 10px 16px rgba(0,0,0,.22));z-index:2}
+.hero:after{content:"";display:none!important}
 .hero h1,.hero h2,.hero h3,.hero p,.hero .muted,.hero .sub,.hero .tag,.hero .heroText h2,.hero .heroText span{color:#fff!important;position:relative;z-index:3;text-shadow:0 2px 10px rgba(0,0,0,.18)}
 .hero h1,.hero h2{margin-top:0!important;line-height:1.06!important}
 .hero p{line-height:1.45!important;opacity:.94!important}
@@ -105,9 +105,9 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <div class="filters"><button class="pill">Flat</button><button class="pill">Bungalow</button><button class="pill">Row House</button><button class="pill">Land</button><button class="pill">BHK ▾</button><button class="pill">Budget ▾</button><button class="pill">City / Locality ▾</button></div>
 
 <div id="liveArea">
-<div class="card"><div class="photo">🏠<span class="badge">OWNER POST</span></div><div class="body"><div class="title">2 BHK Flat for Rent</div><div class="loc">📍 Sample Locality • Sample City</div><div class="price">₹28,000 / month</div><div class="chips"><span class="chip">2 BHK</span><span class="chip">1,050 sq ft</span><span class="chip">Semi Furnished</span></div><div class="actions"><button class="call">Call</button><button>Chat</button><button class="wa">WhatsApp</button><button>Directions</button></div></div></div>
+<div class="card"><div class="photo" style="background:url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=900&q=82') center/cover no-repeat"><span class="badge">OWNER POST</span></div><div class="body"><div class="title">2 BHK Flat for Rent</div><div class="loc">📍 Sample Locality • Sample City</div><div class="price">₹28,000 / month</div><div class="chips"><span class="chip">2 BHK</span><span class="chip">1,050 sq ft</span><span class="chip">Semi Furnished</span></div><div class="actions"><button class="call">Call</button><button>Chat</button><button class="wa">WhatsApp</button><button>Directions</button></div></div></div>
 
-<div class="card" data-demo-builder="xyz"><div class="photo">🏢<span class="badge">SAMPLE BUILDER PROJECT</span></div><div class="body">
+<div class="card" data-demo-builder="xyz"><div class="photo" style="background:url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=900&q=82') center/cover no-repeat"><span class="badge">SAMPLE BUILDER PROJECT</span></div><div class="body">
 <div class="title">XYZ Residency</div>
 <div class="loc">By XYZ Builder • New Panvel • Navi Mumbai</div>
 <div class="price">₹72 Lakhs onwards</div>
