@@ -592,6 +592,19 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
     <div id="adminProviderOnboarding"><div class="notice">Loading pending SP approvals...</div></div>
   </section>
 
+  <section class="admin-panel-card" id="adminRewardCenter">
+    <div class="admin-panel-head">
+      <div><span>SAFETY & REWARD</span><h3>Service Provider / Driver Review</h3></div>
+    </div>
+    <div class="muted" style="margin-bottom:9px">Name, Mobile ya Vehicle Number se exact SP/driver search karein. Reward decision actual OCS work record dekhkar manually karein.</div>
+    <div style="display:flex;gap:7px;align-items:center">
+      <input id="adminRewardSearchInput" placeholder="Name / Mobile / Vehicle No." style="flex:1;min-width:0;margin:0">
+      <button type="button" class="admin-refresh-btn" onclick="adminRewardSearch()">Search</button>
+    </div>
+    <div id="adminRewardSearchResults" style="margin-top:9px"></div>
+    <div id="adminRewardProfile" style="margin-top:9px"></div>
+  </section>
+
   <section class="admin-records-card">
     <div class="admin-records-head">
       <div><span>RECORDS & MONEY</span><h3>Joins & Category Collection</h3></div>
@@ -4292,6 +4305,113 @@ async function adminReviewProviderOnboarding(key,decision){
  }catch(e){alert("SP review failed: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
+
+let OCS_ADMIN_REWARD_ROWS={};
+let OCS_ADMIN_REWARD_CURRENT=null;
+
+async function adminRewardSearch(){
+ const q=(document.getElementById("adminRewardSearchInput")?.value||"").trim();
+ const box=document.getElementById("adminRewardSearchResults");
+ const profile=document.getElementById("adminRewardProfile");
+ if(profile)profile.innerHTML="";
+ if(!box)return;
+ if(q.length<2){box.innerHTML='<div class="notice">Kam se kam 2 characters enter karein.</div>';return}
+ box.innerHTML='<div class="muted">Searching...</div>';
+ try{
+   const {data,error}=await ocsSupabase.rpc("admin_reward_search_v1",{p_query:q});
+   if(error)throw error;
+   const rows=Array.isArray(data)?data:[];
+   OCS_ADMIN_REWARD_ROWS={};
+   if(!rows.length){
+     box.innerHTML='<div class="notice">Koi matching Service Provider / driver nahi mila.</div>';
+     return;
+   }
+   box.innerHTML=rows.map((x,i)=>{
+     const k="reward_sp_"+i;OCS_ADMIN_REWARD_ROWS[k]=x;
+     const extra=[
+       x.category||"",
+       x.service_area||"",
+       x.vehicle_type||"",
+       x.vehicle_number||""
+     ].filter(Boolean).join(" • ");
+     return '<button type="button" onclick="adminOpenRewardProfile(\''+k+'\')" style="display:block;width:100%;text-align:left;border:1px solid #dce9e6;border-radius:13px;background:#fff;padding:11px;margin:7px 0">'+
+       '<b style="display:block;color:#173f46;font-size:12px">'+ocsSafe(x.provider_name||"Service Provider")+'</b>'+
+       '<small style="display:block;margin-top:3px;color:#728589">'+ocsSafe(x.phone||"")+(extra?'<br>'+ocsSafe(extra):'')+'<br>Status: '+ocsSafe(String(x.onboarding_status||"").toUpperCase())+'</small>'+
+     '</button>';
+   }).join("");
+ }catch(e){
+   box.innerHTML='<div class="notice bad">Search failed: '+ocsSafe(e&&e.message?e.message:"Unknown error")+'</div>';
+ }
+}
+
+async function adminOpenRewardProfile(key){
+ const x=OCS_ADMIN_REWARD_ROWS[key];
+ const box=document.getElementById("adminRewardProfile");if(!x||!box)return;
+ box.innerHTML='<div class="muted">Loading work record...</div>';
+ try{
+   const {data,error}=await ocsSupabase.rpc("admin_reward_profile_v1",{p_provider_id:x.provider_id});
+   if(error)throw error;
+   OCS_ADMIN_REWARD_CURRENT=data||{};
+   renderAdminRewardProfile(OCS_ADMIN_REWARD_CURRENT);
+ }catch(e){
+   box.innerHTML='<div class="notice bad">Profile load failed: '+ocsSafe(e&&e.message?e.message:"Unknown error")+'</div>';
+ }
+}
+
+function renderAdminRewardProfile(data){
+ const box=document.getElementById("adminRewardProfile");if(!box)return;
+ const d=data||{},p=d.profile||{},st=d.stats||{},reviews=Array.isArray(d.reviews)?d.reviews:[];
+ const kyc=p.transport_kyc_complete===null||p.transport_kyc_complete===undefined?"N/A":(p.transport_kyc_complete?"Complete":"Pending");
+ const recent=reviews.length?reviews.map(r=>
+   '<div style="padding:7px 0;border-top:1px solid #edf2f1"><b>'+ocsSafe(String(r.decision||"").toUpperCase())+'</b>'+
+   (r.note?'<small style="display:block;color:#718488;margin-top:2px">'+ocsSafe(r.note)+'</small>':'')+
+   '<small style="display:block;color:#8a999b;margin-top:2px">'+ocsSafe(new Date(r.created_at).toLocaleString("en-IN"))+'</small></div>'
+ ).join(""):'<div class="muted">No previous Admin reward review.</div>';
+ box.innerHTML=
+  '<div style="border:1px solid #dce9e6;border-radius:15px;background:#f9fbfa;padding:12px">'+
+   '<div style="display:flex;justify-content:space-between;gap:9px;align-items:flex-start"><div><b style="font-size:14px;color:#173f46">'+ocsSafe(p.name||"Service Provider")+'</b><small style="display:block;color:#728589;margin-top:3px">'+ocsSafe(p.phone||"")+'</small></div><span class="status">'+ocsSafe(String(p.approval_status||"").toUpperCase())+'</span></div>'+
+   '<div class="row" style="margin-top:9px"><span>Category</span><b>'+ocsSafe(p.service_name||p.category||"—")+'</b></div>'+
+   (p.vehicle_type?'<div class="row"><span>Vehicle</span><b>'+ocsSafe(p.vehicle_type)+(p.vehicle_number?' • '+ocsSafe(p.vehicle_number):'')+'</b></div>':'')+
+   (p.vehicle_type?'<div class="row"><span>Transport KYC</span><b>'+ocsSafe(kyc)+'</b></div>':'')+
+   '<div class="row"><span>Service Area</span><b>'+ocsSafe(p.service_area||"—")+'</b></div>'+
+   '<div class="row"><span>Completed Jobs</span><b>'+Number(st.completed_jobs||0)+'</b></div>'+
+   '<div class="row"><span>Total Jobs</span><b>'+Number(st.total_jobs||0)+'</b></div>'+
+   '<div class="row"><span>Rating</span><b>⭐ '+Number(st.rating_average||0).toFixed(2)+' ('+Number(st.rating_count||0)+')</b></div>'+
+   '<div class="row"><span>Cancelled</span><b>'+Number(st.cancelled_jobs||0)+'</b></div>'+
+   '<div class="row"><span>Rejected Requests</span><b>'+Number(st.rejections||0)+'</b></div>'+
+   '<div class="row"><span>Work Not Completed</span><b>'+Number(st.wnc_cases||0)+'</b></div>'+
+   '<div class="row"><span>Customer Support Cases</span><b>'+Number(st.customer_support_cases||0)+'</b></div>'+
+   '<div class="row"><span>Wallet</span><b>'+money(Number(p.wallet_balance||0))+'</b></div>'+
+   (p.admin_paused?'<div class="notice bad" style="margin-top:8px"><b>Admin Paused</b><br>'+ocsSafe(p.admin_pause_reason||"No reason")+'</div>':'')+
+   '<label style="margin-top:11px">Admin Note</label><textarea id="adminRewardNote" rows="3" placeholder="Reward / warning / review reason"></textarea>'+
+   '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px">'+
+     '<button class="btn ok" onclick="adminSaveRewardDecision(\'reward\')">Reward</button>'+
+     '<button class="btn gray" onclick="adminSaveRewardDecision(\'review\')">Review</button>'+
+     '<button class="btn red" onclick="adminSaveRewardDecision(\'warning\')">Warning</button>'+
+   '</div>'+
+   '<div style="margin-top:12px"><b style="font-size:11px;color:#35575d">Previous Admin Reviews</b>'+recent+'</div>'+
+  '</div>';
+}
+
+async function adminSaveRewardDecision(decision){
+ const p=OCS_ADMIN_REWARD_CURRENT&&OCS_ADMIN_REWARD_CURRENT.profile;
+ if(!p||!p.provider_id){alert("Service Provider select karein.");return}
+ const note=(document.getElementById("adminRewardNote")?.value||"").trim();
+ try{
+   const {error}=await ocsSupabase.rpc("admin_save_reward_review_v1",{
+     p_provider_id:p.provider_id,
+     p_decision:decision,
+     p_note:note||null
+   });
+   if(error)throw error;
+   alert("Admin "+decision+" review saved.");
+   const {data,error:re}=await ocsSupabase.rpc("admin_reward_profile_v1",{p_provider_id:p.provider_id});
+   if(re)throw re;
+   OCS_ADMIN_REWARD_CURRENT=data||{};
+   renderAdminRewardProfile(OCS_ADMIN_REWARD_CURRENT);
+ }catch(e){alert("Review save failed: "+(e&&e.message?e.message:"Unknown error"))}
+}
+
 async function adminLoadSkillQueue(){
  const box=document.getElementById("adminSkillQueue");if(!box)return;
  const bulk=document.getElementById("adminSkillBulkActions");
@@ -4479,6 +4599,9 @@ function startAdminLiveRefresh(){
     if(admin&&!admin.classList.contains("hide"))refreshAdminLiveSnapshot();
   },5000);
 }
+document.addEventListener("keydown",e=>{
+ if(e.key==="Enter"&&e.target&&e.target.id==="adminRewardSearchInput"){e.preventDefault();adminRewardSearch()}
+});
 document.addEventListener("visibilitychange",()=>{
   if(document.visibilityState==="visible"){
     const admin=document.getElementById("admin");
