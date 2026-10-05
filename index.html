@@ -22,7 +22,7 @@ try{
   if(q.get("admin")==="1"){
     location.replace("home-services.html?tab=admin&v=20260930-selfiefix2");
   }else if(q.get("sp")==="1"){
-    location.replace("home-services.html?tab=provider&sp=1&v=20260930-selfiefix2");
+    location.replace("service-provider.html?v=20261005-driver2");
   }
 }catch(e){}
 </script><script>
@@ -122,10 +122,10 @@ setTimeout(function(){
 
 <nav class="ocs-super-nav">
   <button class="on" onclick="bottomHome()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3Z"/></svg>Home</button>
-  <button onclick="openBottomBookings()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>Bookings</button>
+  <button onclick="openBottomBookings()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>Activity</button>
   <button onclick="openMyOcs('inbox')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4V5Z"/><path d="M8 9h8M8 12h5"/></svg>Chat</button>
   <button onclick="openWalletHub()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h15a2 2 0 0 1 2 2v9H4V7Z"/><path d="M4 7V5h13M16 12h5"/></svg>Wallet</button>
-  <button onclick="openAccountEntry()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>Profile</button>
+  <button onclick="openAccountEntry()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>Account</button>
 </nav>
 <div class="common-search module-only" id="windowCommonSearch" aria-label="Search current window"><span aria-hidden="true">⌕</span><input id="windowSearch" placeholder="Search in this window..." onkeydown="if(event.key==='Enter')runWindowSearch(this.value)"><button type="button" onclick="runWindowSearch(document.getElementById('windowSearch')?.value)">Search</button></div>
 <div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div><button id="windowManageBtn" class="window-manage" onclick="manageCurrentWindow()">+ Post Ad</button></div><iframe id="frame"></iframe></div>
@@ -1144,7 +1144,7 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('home-services.html?tab=provider&sp=1&v=20260930-selfiefix2');
+      location.replace('service-provider.html?v=20261005-driver2');
       return;
     }
     await openAccount('provider',true);
@@ -1258,7 +1258,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('home-services.html?tab=provider&sp=1&v=20260930-selfiefix2');
+          location.replace('service-provider.html?v=20261005-driver2');
           return;
         }
         await openAccount('provider',true);
@@ -1329,7 +1329,7 @@ async function renderHomeDashboardShortcuts(){
 
 function openProviderDashboardFromMenu(){
   closeAllBottomHubs();
-  location.href='home-services.html?tab=provider&sp=1&v=20260930-selfiefix2';
+  location.href='service-provider.html?v=20261005-driver2';
 }
 
 function openProviderProfileFromMenu(){
@@ -1654,7 +1654,9 @@ async function showProviderProfileSummary(){
         :'')+
     '<div class="ocs-sp-summary-actions">'+
       (status==='approved'
-       ?'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20261001-spflow1\'">Open SP Dashboard</button>'
+       ?(category==='Tempo / Goods Transport'
+         ?'<button class="primary" onclick="closeAccount();location.href=\'transport-driver.html?v=20261005-driver2\'">Open Driver Dashboard</button>'
+         :'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20261005-unified1\'">Open SP Dashboard</button>')
        :status==='pending'
          ?(category==='Tempo / Goods Transport'&&!tp.kyc_complete
            ?'<button class="primary" onclick="editProviderProfileSkills();setTimeout(()=>{const x=document.getElementById(\'paTransportKycLater\');if(x){x.style.display=\'block\';x.scrollIntoView({behavior:\'smooth\',block:\'center\'})}},80)">Complete Transport KYC</button>'
