@@ -4956,8 +4956,9 @@ function ocsEnhanceProviderDriverWork(){
   const active=["REQUESTED","QUOTE_WAIT","INITIAL_QUOTE","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT","WNC_PROVIDER_REASON","WNC_PROVIDER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","HELD_WNC_SETTLEMENT","VISIT_CASH_WAIT"];
   if(!active.includes(st))return;
   if(st==="REQUESTED"&&(!S.providerProfileAvailable||!S.providerRequestForThisProfile||!providerMatchesCurrentBooking()))return;
-  const stageIndex=st==="REQUESTED"||st==="QUOTE_WAIT"||st==="INITIAL_QUOTE"||st.indexOf("QUOTE_")===0?0:st==="ASSIGNED"?0:st==="ON_WAY"?1:st==="REACHED"?2:3;
-  const labels=["Accepted","On Way","Reached","Working"];
+  const quoteFlow=st==="REQUESTED"||st==="QUOTE_WAIT"||st==="INITIAL_QUOTE"||st.indexOf("QUOTE_")===0;
+  const stageIndex=quoteFlow?(st==="INITIAL_QUOTE"||st==="QUOTE_SECURE_PAYMENT"||st==="QUOTE_REVISION_PENDING"||st==="QUOTE_REVISION_TOPUP"?2:(st==="QUOTE_WAIT"&&S.quoteProviderAccepted?1:0)):(st==="ASSIGNED"?0:st==="ON_WAY"?1:st==="REACHED"?2:3);
+  const labels=quoteFlow?["Request","Accepted","Quote","Booked"]:["Accepted","On Way","Reached","Working"];
   const title=ocsSafe(S.service||S.serviceName||S.category||"Home Service");
   const quoteMode=S.requestType==="quote"||S.isQuoteBooking;
   const amt=quoteMode&&(!Number(S.total||0)&&!Number(S.base||0))?"Get Quote":money(Number(S.total||S.base||0));
@@ -4979,6 +4980,11 @@ function ocsEnhanceProviderDriverWork(){
 }
 
 function renderCore(){
+/* SP driver layout order */
+try{
+  const card=document.querySelector(".provider-dashboard-card"),work=document.getElementById("pBody"),tools=document.getElementById("providerQuickTools");
+  if(card&&work&&tools&&work.nextElementSibling!==tools)card.insertBefore(work,tools);
+}catch(e){}
 $("providerName").textContent=S.registeredProviderName||S.provider||"Service Provider";
 const pvl=$("providerVerificationLine");if(pvl)pvl.textContent=(S.providerVerificationStatus||"Verification Pending")+(S.providerArea?(" • "+S.providerArea+" • "+(S.providerRadius||0)+" km"):"");
 const prl=$("providerRatingLine");if(prl)prl.innerHTML=providerRatingSummary();
