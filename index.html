@@ -121,11 +121,10 @@ setTimeout(function(){
 </section>
 
 <nav class="ocs-super-nav">
-  <button class="on" onclick="bottomHome()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3Z"/></svg>Home</button>
-  <button onclick="openBottomBookings()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>Activity</button>
-  <button onclick="openMyOcs('inbox')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4V5Z"/><path d="M8 9h8M8 12h5"/></svg>Chat</button>
-  <button onclick="openWalletHub()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h15a2 2 0 0 1 2 2v9H4V7Z"/><path d="M4 7V5h13M16 12h5"/></svg>Wallet</button>
-  <button onclick="openAccountEntry()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>Account</button>
+  <button id="bnHome" class="on active" onclick="bottomHome()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3Z"/></svg>Home</button>
+  <button id="bnBookings" onclick="openBottomBookings()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>Activity</button>
+  <button id="bnWallet" onclick="openWalletHub()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h15a2 2 0 0 1 2 2v9H4V7Z"/><path d="M4 7V5h13M16 12h5"/></svg>Wallet</button>
+  <button id="bnProfile" onclick="openAccountEntry()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>Account</button>
 </nav>
 <div class="common-search module-only" id="windowCommonSearch" aria-label="Search current window"><span aria-hidden="true">⌕</span><input id="windowSearch" placeholder="Search in this window..." onkeydown="if(event.key==='Enter')runWindowSearch(this.value)"><button type="button" onclick="runWindowSearch(document.getElementById('windowSearch')?.value)">Search</button></div>
 <div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div><button id="windowManageBtn" class="window-manage" onclick="manageCurrentWindow()">+ Post Ad</button></div><iframe id="frame"></iframe></div>
@@ -1990,8 +1989,8 @@ window.addEventListener('storage',e=>{refreshHomeBookingStatus();if(e&&(e.key===
 window.addEventListener('focus',refreshHomeBookingStatus);
 setTimeout(refreshHomeBookingStatus,0);
 function setBottomActive(id){
- document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.remove('active'));
- const x=document.getElementById(id);if(x)x.classList.add('active');
+ document.querySelectorAll('.bottom-nav button,.ocs-super-nav button').forEach(b=>{b.classList.remove('active');b.classList.remove('on')});
+ const x=document.getElementById(id);if(x){x.classList.add('active');x.classList.add('on')}
 }
 let ocsPendingModalParent="",ocsPendingModalParentTimer=null;
 function ocsQueueModalParent(id){
@@ -2144,34 +2143,32 @@ function openBottomProfile(){
  const body=document.getElementById('bottomProfileBody');
  if(!body)return;
 
- const customerText=customer
-   ? ((customer.name||'Customer')+(customer.mobile?' • '+customer.mobile:''))
-   : 'Create your Customer profile';
+ const name=customer?.name||'OCS Customer';
+ const mobile=customer?.mobile||customer?.email||'Profile & account';
  const providerText=provider
    ? ((provider.name||'Service Provider')+(provider.area?' • '+provider.area:''))
    : 'Join as Service Provider • ₹100 Welcome Bonus';
 
  body.innerHTML=
+ '<div class="ocs-account-profile-card">'+
+   '<div class="ocs-account-avatar">OCS</div>'+
+   '<div class="ocs-account-profile-copy"><small>ACCOUNT</small><b>'+ocsSavedText(name)+'</b><span>'+ocsSavedText(mobile)+'</span></div>'+
+   '<button class="ocs-account-edit" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">✎</button>'+
+ '</div>'+
+ '<div class="ocs-account-tiles">'+
+   '<button onclick="closeBottomHub(\'bottomProfileModal\');openMyOcs(\'saved\')"><span>♡</span><b>Saved</b><small>Liked listings</small></button>'+
+   '<button onclick="closeBottomHub(\'bottomProfileModal\');openWalletHub()"><span>₹</span><b>Rewards</b><small>Wallet & referral</small></button>'+
+ '</div>'+
  '<div class="ocs-account-list">'+
-
-   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">'+
-     '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span><span class="ar-copy"><b>Customer Profile</b><small>'+customerText+'</small></span><span class="ar-go">›</span>'+
-   '</button>'+
-   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openMyAds()">'+
-     '<span class="ar-ico">📣</span><span class="ar-copy"><b>My Ads & Listings</b><small>Edit • Pause • Resume • Renew • Remove</small></span><span class="ar-go">›</span>'+
-   '</button>'+
-
-   '<button class="ocs-account-row" onclick="openProviderProfileFromMenu()">'+
-     '<span class="ar-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5-5l2.1 2.1-2.4 2.4-2.1-2.1a4 4 0 0 0 5 5L20 16.4 16.4 20l-7.7-7.7a4 4 0 0 0-5-5l2.1 2.1-2.4 2.4-2.1-2.1a4 4 0 0 0 5 5l8-8Z"></path></svg></span><span class="ar-copy"><b>Service Provider Profile</b><small>'+providerText+'</small></span><span class="ar-go">›</span>'+
-   '</button>'+
-   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()">'+
-     '<span class="ar-ico">⚙️</span><span class="ar-copy"><b>Settings</b><small>Login, location, notifications & logout</small></span><span class="ar-go">›</span>'+
-   '</button>'+
-
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openLocationPicker()"><span class="ar-ico">⌖</span><span class="ar-copy"><b>Saved Location</b><small>Home / service location</small></span><span class="ar-go">›</span></button>'+
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openShareEarn()"><span class="ar-ico">↗</span><span class="ar-copy"><b>Refer a Friend</b><small>Share & Earn ₹50 wallet reward</small></span><span class="ar-go">›</span></button>'+
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openMyAds()"><span class="ar-ico">▣</span><span class="ar-copy"><b>My Ads & Listings</b><small>Edit • Pause • Renew</small></span><span class="ar-go">›</span></button>'+
+   '<button class="ocs-account-row" onclick="openProviderProfileFromMenu()"><span class="ar-ico">SP</span><span class="ar-copy"><b>Service Provider Profile</b><small>'+ocsSavedText(providerText)+'</small></span><span class="ar-go">›</span></button>'+
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()"><span class="ar-ico">?</span><span class="ar-copy"><b>OCS Care & Support</b><small>Help, booking or payment issue</small></span><span class="ar-go">›</span></button>'+
+   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()"><span class="ar-ico">⚙</span><span class="ar-copy"><b>Settings</b><small>Login, notifications & logout</small></span><span class="ar-go">›</span></button>'+
  '</div>';
  document.getElementById('bottomProfileModal').classList.add('show');
 }
-
 
 function myAdStatusLabel(x){
  const s=String(x&&x.status||'').toLowerCase();
@@ -2293,7 +2290,7 @@ async function renderWalletHub(){
  }catch(e){console.error('Customer wallet sync failed',e)}
 }
 function openWalletHub(){
- closeAllBottomHubs();
+ closeAllBottomHubs();setBottomActive('bnWallet');
  renderWalletHub();
  const m=document.getElementById('walletModal');if(m)m.classList.add('show');
 }
