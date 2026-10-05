@@ -494,6 +494,33 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
 </style>
 
 <link rel="stylesheet" href="assets/ocs-unified-ui.css?v=20261005-unified2">
+
+<style id="ocs-sp-driver-work-ui">
+.sp-only-route #pBody{margin-top:12px}
+.sp-only-route #pBody>.ocs-sp-driver-jobhead{margin:0 0 10px;padding:16px;border-radius:21px;background:#064d59;color:#fff;box-shadow:0 8px 24px rgba(8,45,55,.13);border:0}
+.ocs-sp-driver-jobhead .topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ocs-sp-driver-jobhead small{display:block;color:#cfe4e6;font-size:9px;font-weight:950;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.ocs-sp-driver-jobhead h3{margin:0!important;color:#fff!important;font-size:18px!important;line-height:1.2}
+.ocs-sp-driver-jobhead .amount{font-size:23px;font-weight:950;white-space:nowrap;color:#f3ef00}
+.ocs-sp-driver-jobhead .sub{margin-top:5px;color:#d7e9eb;font-size:10.5px;line-height:1.4}
+.ocs-sp-driver-jobhead .stage{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:13px}
+.ocs-sp-driver-jobhead .stage span{min-height:29px;display:grid;place-items:center;text-align:center;padding:4px 2px;border-radius:9px;background:#ffffff12;color:#bed5d7;font-size:8px;font-weight:850}
+.ocs-sp-driver-jobhead .stage span.on{background:#f3ef00;color:#17343c}
+.sp-only-route #pBody>.card,.sp-only-route #pBody>.ocs-route,.sp-only-route #pBody>.ocs-otp-provider{border:1px solid #e5e9ed!important;border-radius:20px!important;background:#fff!important;box-shadow:0 6px 18px rgba(8,45,55,.055)!important;padding:15px!important;margin:0 0 11px!important}
+.sp-only-route #pBody>.notice{border-radius:17px!important;padding:13px 14px!important;margin:0 0 10px!important}
+.sp-only-route #pBody .row{gap:8px!important}
+.sp-only-route #pBody .btn{min-height:48px!important;margin-top:8px!important;border-radius:13px!important;font-size:12px!important}
+.sp-only-route #pBody .row .btn{margin-top:0!important}
+.sp-only-route #pBody .btn.ok{background:#087887!important;color:#fff!important}
+.sp-only-route #pBody .btn.red{background:#fff0f0!important;color:#a23636!important;border:1px solid #f2d7d7!important}
+.sp-only-route #pBody .btn.gray,.sp-only-route #pBody .btn.alt{background:#edf1f3!important;color:#34444c!important;border:1px solid #dfe5e7!important}
+.sp-only-route #pBody .ocs-route-grid{display:grid!important;grid-template-columns:.85fr 1.15fr!important;gap:8px!important}
+.sp-only-route #pBody .ocs-address{background:#f7fafb!important;border:1px solid #e5e9ed!important;border-radius:14px!important;padding:12px!important}
+.sp-only-route #pBody .ocs-pill{background:#e6f4f3!important;color:#064d59!important}
+.sp-only-route #pBody .money{font-size:25px!important;color:#064d59!important}
+.sp-only-route #pBody .status{background:#e7f5f5!important;color:#064d59!important}
+@media(max-width:360px){.ocs-sp-driver-jobhead .amount{font-size:20px}.ocs-sp-driver-jobhead .stage span{font-size:7.5px}}
+</style>
 </head>
 <body>
 
@@ -4920,6 +4947,37 @@ function providerCustomerExtraHTML(){
  if(!fixed&&S.customerExtraStatus==="AMOUNT_SENT")return `<div class="card"><h3>Customer Add Work Request</h3>${rows}<div class="notice"><b>Quote sent to Customer: ${money(S.extraQuote?.amount||0)}</b></div></div>`;
  return `<div class="card"><div class="status" style="display:inline-block;margin-bottom:8px">NEW REQUEST</div><h3>Customer Add Work Request</h3>${rows}<div class="muted" style="margin:7px 0 10px">Customer ne running booking me extra work bheja hai.</div><div class="row"><button class="btn ok" onclick="providerProcessCustomerAddWork()">${fixed?"Accept & Add":"Enter Quote & Send"}</button><button class="btn gray" onclick="providerReturnCustomerAddWork()">Send Back / Change</button><button class="btn red" onclick="providerRejectCustomerAddWork()">Reject</button></div></div>`;
 }
+
+function ocsEnhanceProviderDriverWork(){
+  const box=document.getElementById("pBody");
+  if(!box)return;
+  const old=box.querySelector(":scope > .ocs-sp-driver-jobhead");if(old)old.remove();
+  const st=String(S.status||"").toUpperCase();
+  const active=["REQUESTED","QUOTE_WAIT","INITIAL_QUOTE","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT","WNC_PROVIDER_REASON","WNC_PROVIDER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","HELD_WNC_SETTLEMENT","VISIT_CASH_WAIT"];
+  if(!active.includes(st))return;
+  if(st==="REQUESTED"&&(!S.providerProfileAvailable||!S.providerRequestForThisProfile||!providerMatchesCurrentBooking()))return;
+  const stageIndex=st==="REQUESTED"||st==="QUOTE_WAIT"||st==="INITIAL_QUOTE"||st.indexOf("QUOTE_")===0?0:st==="ASSIGNED"?0:st==="ON_WAY"?1:st==="REACHED"?2:3;
+  const labels=["Accepted","On Way","Reached","Working"];
+  const title=ocsSafe(S.service||S.serviceName||S.category||"Home Service");
+  const quoteMode=S.requestType==="quote"||S.isQuoteBooking;
+  const amt=quoteMode&&(!Number(S.total||0)&&!Number(S.base||0))?"Get Quote":money(Number(S.total||S.base||0));
+  const eyebrow=st==="REQUESTED"||st==="QUOTE_WAIT"?"NEW JOB REQUEST":"CURRENT JOB";
+  const statusMap={
+    REQUESTED:"Waiting for your action",QUOTE_WAIT:"Get Quote request",INITIAL_QUOTE:"Quote sent",
+    QUOTE_SECURE_PAYMENT:"Quote accepted",QUOTE_REVISION_PENDING:"Revision pending",QUOTE_REVISION_TOPUP:"Payment top-up",
+    ASSIGNED:"Job accepted",ON_WAY:"On the way",REACHED:"Reached customer",WORKING:"Work in progress",
+    RESCHEDULE_PENDING:"Reschedule pending",RESCHEDULED:"Rescheduled",COMPLETION_CONFIRM:"Customer confirmation",
+    PAYMENT:"Payment pending",ONLINE_PAY:"Online payment",CASH_WAIT:"Cash confirmation",
+    WNC_PROVIDER_REASON:"Work not completed",WNC_PROVIDER_CONFIRM:"Confirmation required",
+    VISIT_PAYMENT:"Visit charge pending",SUPPORT_REVIEW:"OCS support review",HELD_WNC_SETTLEMENT:"Settlement on hold",VISIT_CASH_WAIT:"Visit cash confirmation"
+  };
+  const head=document.createElement("div");
+  head.className="ocs-sp-driver-jobhead";
+  head.innerHTML='<div class="topline"><div><small>'+eyebrow+'</small><h3>'+title+'</h3><div class="sub">'+ocsSafe(statusMap[st]||st.replaceAll("_"," "))+'</div></div><div class="amount">'+amt+'</div></div>'+
+    '<div class="stage">'+labels.map((x,i)=>'<span class="'+(i===stageIndex?'on':'')+'">'+x+'</span>').join("")+'</div>';
+  box.insertBefore(head,box.firstChild);
+}
+
 function renderCore(){
 $("providerName").textContent=S.registeredProviderName||S.provider||"Service Provider";
 const pvl=$("providerVerificationLine");if(pvl)pvl.textContent=(S.providerVerificationStatus||"Verification Pending")+(S.providerArea?(" • "+S.providerArea+" • "+(S.providerRadius||0)+" km"):"");
@@ -4985,6 +5043,7 @@ const customerHistoryCard=document.querySelector(".customer-history-card");
 if(customerHistoryCard)customerHistoryCard.style.display=customerBrowseMode?"none":"block";
 if($("homeFlowNav"))$("homeFlowNav").innerHTML=homeFlowNavHTML();
 $("pBody").innerHTML=providerHTML();
+try{ocsEnhanceProviderDriverWork();}catch(e){console.error("OCS SP driver work UI",e)}
 refreshProviderPayoutStatus();
 const askExpertBtn=$("providerAskExpertBtn");
 if(askExpertBtn){
