@@ -144,3 +144,47 @@ h3{font-weight:850!important}
   .screen,.ocs-super-main{padding-left:14px!important;padding-right:14px!important}
   .card{padding:15px!important}
 }
+
+
+/* Actual OCS home bottom navigation */
+.ocs-super-nav{
+  position:fixed!important;
+  left:50%!important;
+  bottom:0!important;
+  transform:translateX(-50%)!important;
+  width:min(480px,100%)!important;
+  display:grid!important;
+  grid-template-columns:repeat(5,1fr)!important;
+  background:var(--ocs-deep)!important;
+  border:0!important;
+  box-shadow:0 -5px 20px rgba(4,45,55,.16)!important;
+  padding:7px 5px max(7px,env(safe-area-inset-bottom))!important;
+  z-index:30000!important;
+}
+.ocs-super-nav button{
+  min-height:52px!important;
+  padding:6px 2px!important;
+  border:0!important;
+  border-radius:12px!important;
+  background:transparent!important;
+  color:#dcebed!important;
+  font-size:9.5px!important;
+  font-weight:850!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:3px!important;
+  box-shadow:none!important;
+}
+.ocs-super-nav button svg{stroke:currentColor!important;width:20px!important;height:20px!important}
+.ocs-super-nav button.on{color:var(--ocs-yellow)!important;background:#ffffff0b!important}
+body:has(.ocs-super-nav){padding-bottom:72px!important}
+
+/* Standalone module title bars */
+.tbar,.module-top,.module-header,.property-top{
+  background:var(--ocs-deep)!important;
+  color:#fff!important;
+  border:0!important;
+  border-radius:0 0 24px 24px!important;
+}
