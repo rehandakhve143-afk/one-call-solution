@@ -1,5 +1,5 @@
 {
-  "build": "20261006-join1",
+  "build": "20261006-join2",
   "updated_at": "2026-10-06",
-  "message": "Added Join OCS CTA for Service Provider, Driver and Transport Partner onboarding"
+  "message": "Join OCS now shows role chooser for Service Provider, Driver, Transport and Business before onboarding"
 }
