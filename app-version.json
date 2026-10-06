@@ -1,5 +1,5 @@
 {
-  "build": "20261006-homeclean2",
+  "build": "20261006-notifyclean1",
   "updated_at": "2026-10-06",
-  "message": "Removed My Dashboards from Home; customer/provider/driver/transport access now stays under Account"
+  "message": "Notifications now hide stale/test booking updates and show recent useful updates only"
 }
