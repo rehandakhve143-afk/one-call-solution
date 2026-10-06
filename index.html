@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-locationfix1"><style id="ocsCriticalBoot">
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-walletfix1"><style id="ocsCriticalBoot">
 html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7faf9;color:#173247}
 #ocsBootSplash{position:fixed;inset:0;z-index:99999;background:#f7faf9;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .2s ease}
 #ocsBootSplash .b{display:flex;align-items:center;gap:12px}
@@ -275,6 +275,82 @@ body:has(.ocs-super-nav){padding-bottom:0!important}
 body:has(#locationModal.show) .ocs-super-nav{visibility:hidden!important}
 </style>
 
+<style id="ocs-wallet-compact-v1">
+#walletModal .sheet{padding-bottom:96px!important}
+#walletModal .ocs-wallet-hero{
+  margin:0 0 12px!important;
+  padding:16px!important;
+  min-height:0!important;
+  border:0!important;
+  border-radius:20px!important;
+  background:#075460!important;
+  color:#fff!important;
+  box-shadow:0 8px 22px rgba(7,84,96,.14)!important
+}
+#walletModal .ocs-wallet-hero>b{
+  display:block!important;
+  font-size:11px!important;
+  letter-spacing:.7px!important;
+  text-transform:uppercase!important;
+  color:#bfe5e7!important
+}
+#walletModal .ocs-wallet-hero>small{
+  display:block!important;
+  margin-top:3px!important;
+  font-size:10px!important;
+  color:#d6ebed!important
+}
+#walletModal .ocs-wallet-balance{
+  margin-top:4px!important;
+  font-size:32px!important;
+  line-height:1.05!important;
+  font-weight:900!important;
+  color:#fff!important
+}
+#walletModal .ocs-wallet-note{
+  margin-top:8px!important;
+  max-width:330px!important;
+  font-size:10.5px!important;
+  line-height:1.45!important;
+  color:#e2f0f1!important
+}
+#walletModal .ocs-wallet-action{
+  width:100%!important;
+  min-height:42px!important;
+  margin-top:12px!important;
+  padding:10px 12px!important;
+  border:0!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:#075460!important;
+  font-size:12px!important;
+  font-weight:900!important
+}
+#walletModal .bottom-hub-card{
+  margin:0 0 10px!important;
+  padding:12px!important;
+  border:1px solid #e1e7ea!important;
+  border-radius:17px!important;
+  background:#fff!important;
+  box-shadow:none!important
+}
+#walletModal .bottom-hub-card.ocs-wallet-hero{background:#075460!important}
+#walletModal .bottom-hub-card>b{
+  display:block!important;
+  font-size:14px!important;
+  color:#243f46!important
+}
+#walletModal .bottom-hub-card>small{
+  display:block!important;
+  margin-top:5px!important;
+  font-size:10.5px!important;
+  line-height:1.45!important;
+  color:#6f8186!important
+}
+#walletModal .ocs-wallet-simple-row{padding:6px!important;min-height:64px!important}
+#walletModal .ocs-wallet-simple-row b{font-size:13.5px!important;color:#29464d!important}
+#walletModal .ocs-wallet-simple-row small{font-size:10px!important;color:#72858a!important}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
@@ -1505,7 +1581,7 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20261006-locationfix1');
+    clean.searchParams.set('v','20261006-walletfix1');
     clean.searchParams.set('login','1');
     if(joinRole){
       clean.searchParams.set('open','sp-profile');
@@ -1517,7 +1593,7 @@ async function ocsFreshLoginStart(){
     }
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20261006-locationfix1&login=1');
+    location.replace('index.html?v=20261006-walletfix1&login=1');
   }
   return true;
 }
@@ -1717,7 +1793,7 @@ function closeJoinConflict(){
 function useAnotherProviderAccount(){
   const role=String(window.__ocsJoinConflictRole||'home');
   closeJoinConflict();
-  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261006-locationfix1';
+  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261006-walletfix1';
 }
 
 function openProviderProfileFromMenu(){
@@ -4225,7 +4301,7 @@ async function openModule(n,role,serviceCat){
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20261006-locationfix1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20261006-walletfix1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -4253,7 +4329,7 @@ async function openModule(n,role,serviceCat){
    frame.src='transport.html?v=20261006-driver-e2e1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20261006-locationfix1&embed=1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20261006-walletfix1&embed=1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
@@ -4895,7 +4971,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-locationfix1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-walletfix1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4969,7 +5045,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20261006-locationfix1';
+const OCS_APP_BUILD='20261006-walletfix1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
