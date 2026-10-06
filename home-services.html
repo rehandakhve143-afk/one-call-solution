@@ -5618,8 +5618,8 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
  }
  window.ocsSpBackToAccount=function(){ocsSpShowAccount()};
  window.ocsSpShowAccount=function(){
-   const name=(window.S&&(S.registeredProviderName||S.provider))||'Service Provider';
-   const status=(window.S&&S.providerVerificationStatus)||'Profile';
+   const name=(typeof S!=='undefined'&&(S.registeredProviderName||S.provider))||'Service Provider';
+   const status=(typeof S!=='undefined'&&S.providerVerificationStatus)||'Profile';
    const html=
     '<div class="ocs-sp-account-hero"></div>'+
     '<div class="ocs-sp-account-wrap">'+
@@ -5706,7 +5706,7 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
      body.innerHTML='<div class="ocs-sp-notice good"><b>Completed & closed jobs</b><br>Payment aur earning records OCS history me safe rahenge.</div><div class="ocs-sp-history-list">'+rows.slice(0,30).map(function(r){const service=esc(r.service_name||r.service||r.category||'Home Service');const status=esc(String(r.status||'CLOSED').toUpperCase().replaceAll('_',' '));const amount=Number(r.provider_earning??r.booking_amount??r.amount??0);const dt=r.closed_at||r.completed_at||r.updated_at||r.created_at||'';let date='—';try{if(dt)date=new Date(dt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}catch(e){}const payment=esc(String(r.payment_status||r.payment_method||'—').toUpperCase());return '<div class="ocs-sp-job"><div class="ocs-sp-job-top"><b>'+service+'</b><span class="ocs-sp-job-status">'+status+'</span></div><div class="ocs-sp-job-meta">'+esc(date)+' • Payment: '+payment+'</div><div class="ocs-sp-job-money">₹'+amount.toFixed(2)+'</div></div>'}).join('')+'</div>';
      return;
    }
-   const logs=window.S&&Array.isArray(S.logs)?S.logs.slice(0,20):[];
+   const logs=(typeof S!=='undefined'&&Array.isArray(S.logs))?S.logs.slice(0,20):[];
    if(logs.length)body.innerHTML='<div class="ocs-sp-history-list">'+logs.map(function(x){return '<div class="ocs-sp-job"><div class="ocs-sp-job-meta" style="margin:0">'+esc(x)+'</div></div>'}).join('')+'</div>';
    else body.innerHTML='<div class="ocs-sp-empty"><b>No work history yet</b><span>Completed jobs yahan dikhengi.</span></div>';
  };
