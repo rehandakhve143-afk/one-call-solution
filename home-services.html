@@ -587,6 +587,14 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
 .sp-only-route .sp-home-quick small{display:block;margin-top:3px;color:#839195;font-size:9px;line-height:1.3}
 </style>
 
+
+<style id="ocs-customer-route-clean-v1">
+.customer-route-only .tabs{display:none!important}
+.customer-route-only .ocs-page-nav{display:none!important}
+.customer-route-only .top{padding-bottom:13px!important}
+.customer-route-only #ocsUniversalSearch{position:static!important;top:auto!important}
+</style>
+
 </head>
 <body>
 <script id="ocsPwaDirectSubpageGuard">
@@ -5638,20 +5646,20 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
      if(n===3){setOn(3);if(typeof openProviderWalletQuick==='function')openProviderWalletQuick();return}
      if(n===4){setOn(4);if(typeof openProviderProfileSafe==='function')openProviderProfileSafe();return}
    }else{
-     if(n===1){location.href='index.html?pwa=1&v=20261006-pwa2';return}
-     if(n===2){setOn(2);if(typeof showTab==='function')showTab('customer');window.scrollTo({top:0,behavior:'smooth'});return}
-     if(n===3){setOn(3);const h=document.querySelector('.customer-history-card');if(h){h.open=true;h.scrollIntoView({behavior:'smooth',block:'start'})}return}
-     if(n===4){setOn(4);if(typeof openSupport==='function')openSupport('customer');return}
+     if(n===1){location.href='index.html?pwa=1&v=20261006-e2e1';return}
+     if(n===2){location.href='index.html?open=activity&v=20261006-e2e1';return}
+     if(n===3){location.href='index.html?open=wallet&v=20261006-e2e1';return}
+     if(n===4){location.href='index.html?open=account&v=20261006-e2e1';return}
    }
  };
  function configure(){
    const nav=el('ocsRoleBottomNav');if(!nav)return;
    if(document.body.classList.contains('admin-route-only')){nav.style.display='none';return}
    const sp=document.body.classList.contains('sp-only-route')||(typeof OCS_ROUTE_TAB!=='undefined'&&OCS_ROUTE_TAB==='provider');
-   const labels=sp?['Home','Activity','Wallet','Account']:['Home','Booking','History','Support'];
-   const icons=sp?['⌂','▤','▣','♙']:['⌂','▤','↻','?'];
+   const labels=['Home','Activity','Wallet','Account'];
+   const icons=['⌂','▤','▣','♙'];
    for(let i=1;i<=4;i++){const b=el('ocsRoleNav'+i);if(!b)continue;b.querySelector('b').textContent=icons[i-1];b.querySelector('span').textContent=labels[i-1]}
-   setOn(sp?1:2);
+   setOn(1);
  }
  setTimeout(configure,0);setTimeout(configure,350);
 })();
