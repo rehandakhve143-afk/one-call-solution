@@ -588,14 +588,23 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
 </style>
 
 
-<style id="ocs-customer-route-clean-v2">
+<style id="ocs-customer-route-clean-v3">
+/* Customer Home Services must stay simple even if an older state/script fails before route classes finish. */
+body:not(.sp-only-route):not(.admin-route-only) .tabs,
+body:not(.sp-only-route):not(.admin-route-only) .ocs-page-nav,
+body:not(.sp-only-route):not(.admin-route-only) .customer-history-card,
+body:not(.sp-only-route):not(.admin-route-only) .top{display:none!important}
 .customer-route-only .tabs,
 .customer-route-only .ocs-page-nav,
-.customer-route-only .customer-history-card{display:none!important}
-.customer-route-only .top{padding:12px 14px 13px!important}
-.customer-route-only #ocsUniversalSearch{position:static!important;top:auto!important}
-.customer-route-only #customer.screen{padding-top:10px!important}
-.customer-route-only .customer-dashboard-card{margin-top:0!important}
+.customer-route-only .customer-history-card,
+.customer-route-only .top{display:none!important}
+.customer-route-only #ocsUniversalSearch,
+body:not(.sp-only-route):not(.admin-route-only) #ocsUniversalSearch{position:static!important;top:auto!important}
+.customer-route-only #customer.screen,
+body:not(.sp-only-route):not(.admin-route-only) #customer.screen{padding-top:8px!important}
+.customer-route-only .customer-dashboard-card,
+body:not(.sp-only-route):not(.admin-route-only) .customer-dashboard-card{margin-top:0!important}
+.customer-dashboard-card:has(.ocs-hs-page){padding:0!important;margin:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
 </style>
 
 </head>
@@ -609,7 +618,7 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
     const explicit=q.get('embed')==='1'||q.get('sp')==='1'||q.get('admin')==='1'||['provider','admin'].includes(String(q.get('tab')||'').toLowerCase());
     const cameFromOcs=String(document.referrer||'').includes(location.origin);
     if(standalone&&topLevel&&!explicit&&!cameFromOcs){
-      location.replace('index.html?pwa=1&v=20261006-clean1');
+      location.replace('index.html?pwa=1&v=20261006-hsfix1');
     }
   }catch(e){}
 })();
@@ -1363,6 +1372,16 @@ function saveHomeState(){
  }catch(e){console.error("OCS booking save failed",e)}
 }
 loadSavedHomeState();
+// Old test builds could leave READY without a real selected service.
+// That produces the empty READY card seen on mobile. Return such stale state to the category list.
+if(S.status==="READY"&&!S.activeBookingId&&(!String(S.category||"").trim()||!String(S.service||"").trim())){
+  S.status="SELECT_SERVICE";
+  S.category="";
+  S.service="";
+  S.serviceName="";
+  S.selectedItems=[];
+  S.base=0;S.total=0;
+}
 S.requestMedia=Array.isArray(S.requestMedia)?S.requestMedia:[];
 S.chatMessages=Array.isArray(S.chatMessages)?S.chatMessages:[];
 S.heldAmount=Number(S.heldAmount||0);
@@ -5620,6 +5639,32 @@ bootHomeServices();
 })();
 </script>
 
+<script id="ocsCustomerHomeRecoveryV1">
+(function(){
+  function recover(){
+    try{
+      const q=new URLSearchParams(location.search||"");
+      const isSp=q.get("sp")==="1"||q.get("tab")==="provider";
+      const isAdmin=q.get("admin")==="1"||q.get("tab")==="admin";
+      if(isSp||isAdmin)return;
+      document.body.classList.add("customer-route-only");
+      const body=document.getElementById("cBody");
+      if(!body)return;
+      if(typeof S!=="undefined"&&S.status==="READY"&&!S.activeBookingId&&(!String(S.category||"").trim()||!String(S.service||"").trim())){
+        S.status="SELECT_SERVICE";S.category="";S.service="";S.serviceName="";S.selectedItems=[];S.base=0;S.total=0;
+      }
+      if(!String(body.innerHTML||"").trim()&&typeof customerHTML==="function"){
+        body.innerHTML=customerHTML();
+      }
+      if(!String(body.innerHTML||"").trim()&&typeof render==="function"){
+        try{render()}catch(e){}
+      }
+    }catch(e){console.warn("OCS customer recovery",e)}
+  }
+  setTimeout(recover,80);
+  setTimeout(recover,600);
+})();
+</script>
 <style id="ocs-role-bottom-driver-ui">
 .ocs-role-bottom{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(480px,100%);z-index:2147482000;display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:#064d59;border-top:0;box-shadow:0 -6px 22px rgba(4,45,55,.18);padding:7px 5px max(7px,env(safe-area-inset-bottom))}
 .ocs-role-bottom button{min-height:54px;border:0!important;border-radius:12px!important;background:transparent!important;color:#dcebed!important;box-shadow:none!important;padding:5px 2px!important;font-size:9.5px!important;font-weight:850!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
@@ -5652,10 +5697,10 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
      if(n===3){setOn(3);if(typeof openProviderWalletQuick==='function')openProviderWalletQuick();return}
      if(n===4){setOn(4);if(typeof openProviderProfileSafe==='function')openProviderProfileSafe();return}
    }else{
-     if(n===1){location.href='index.html?pwa=1&v=20261006-clean1';return}
-     if(n===2){location.href='index.html?open=activity&v=20261006-clean1';return}
-     if(n===3){location.href='index.html?open=wallet&v=20261006-clean1';return}
-     if(n===4){location.href='index.html?open=account&v=20261006-clean1';return}
+     if(n===1){location.href='index.html?pwa=1&v=20261006-hsfix1';return}
+     if(n===2){location.href='index.html?open=activity&v=20261006-hsfix1';return}
+     if(n===3){location.href='index.html?open=wallet&v=20261006-hsfix1';return}
+     if(n===4){location.href='index.html?open=account&v=20261006-hsfix1';return}
    }
  };
  function configure(){
