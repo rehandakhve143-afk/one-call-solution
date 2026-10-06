@@ -33,9 +33,10 @@
     </div>
     <div class="grid2">
       <div class="field"><label>Car Type</label><select id="carType"><option>Hatchback</option><option>Sedan</option><option>SUV</option><option>MUV</option><option>Luxury Car</option><option>Other</option></select></div>
-      <div class="field"><label>Transmission</label><select id="transmission"><option>Manual</option><option>Automatic</option></select></div>
+      <div class="field"><label>Transmission</label><select id="transmission"><option>Manual</option><option>Automatic</option><option>EV</option></select></div>
     </div>
     <div class="field"><label>Trip Type</label><select id="tripType"><option>One Way Pickup & Drop</option><option>Round Trip</option><option>Local Hourly Driver</option><option>Outstation Driver</option></select></div>
+    <div class="field"><label>Estimated Duration</label><select id="duration"><option>2 Hrs</option><option>2.5 Hrs</option><option>3 Hrs</option><option>3.5 Hrs</option><option>4 Hrs</option><option>4.5 Hrs</option><option>5 Hrs</option><option>6 Hrs</option><option>8 Hrs</option><option>Full Day</option></select></div>
     <div class="field"><label>Note (Optional)</label><textarea id="note" placeholder="Parking, society gate, car details, etc."></textarea></div>
     <button class="btn primary" id="bookBtn" onclick="bookDriver()">Request Driver</button>
     <div id="status" class="status"></div>
@@ -68,8 +69,8 @@ async function bookDriver(){
  $('bookBtn').disabled=true;$('bookBtn').textContent='Sending...';
  try{
    const boot=await sb.rpc('ensure_customer_account_v1');if(boot.error)throw boot.error;
-   const readiness={module:'driver_service',pickup_address:pickup,drop_address:drop,car_type:$('carType').value,transmission:$('transmission').value,trip_type:$('tripType').value};
-   const desc=['Driver Service','Pickup: '+pickup,'Drop: '+drop,'Car: '+$('carType').value,'Transmission: '+$('transmission').value,'Trip: '+$('tripType').value,'Note: '+($('note').value.trim()||'None')].join('\n');
+   const readiness={module:'driver_service',pickup_address:pickup,drop_address:drop,car_type:$('carType').value,transmission:$('transmission').value,trip_type:$('tripType').value,estimated_duration:$('duration').value,note:$('note').value.trim()};
+   const desc=['Driver Service','Pickup: '+pickup,'Drop: '+drop,'Car: '+$('carType').value,'Transmission: '+$('transmission').value,'Trip: '+$('tripType').value,'Duration: '+$('duration').value,'Note: '+($('note').value.trim()||'None')].join('\n');
    const {data,error}=await sb.rpc('create_customer_quote_request_v2',{
      p_category:'Driver Service',p_service_name:'4-Wheeler Driver',
      p_description:desc,p_schedule:date+' '+time,p_address:pickup,
@@ -95,6 +96,8 @@ async function loadBooking(){
     '<div class="row"><span>Pickup</span><b>'+esc(r.pickup_address||b.address||'')+'</b></div>'+
     '<div class="row"><span>Drop</span><b>'+esc(r.drop_address||'')+'</b></div>'+
     '<div class="row"><span>Car</span><b>'+esc(r.car_type||'')+' • '+esc(r.transmission||'')+'</b></div>'+
+    '<div class="row"><span>Trip</span><b>'+esc(r.trip_type||'')+'</b></div>'+
+    '<div class="row"><span>Duration</span><b>'+esc(r.estimated_duration||'')+'</b></div>'+
     '<div class="row"><span>Schedule</span><b>'+esc(b.request_schedule||'')+'</b></div>'+
     (Number(b.booking_amount||0)>0?'<div class="row"><span>Amount</span><b>₹'+Number(b.booking_amount).toFixed(0)+'</b></div>':'');
    const s=String(b.status||'').toLowerCase();
