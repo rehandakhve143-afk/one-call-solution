@@ -4635,4 +4635,22 @@ async function ocsCheckForNewBuild(){
   return false;
 }
 </script>
-<script>setTimeout(()=>document.documentElement.classList.add('ocs-css-ready'),12000)</script></body></html>
+<script>setTimeout(()=>document.documentElement.classList.add('ocs-css-ready'),12000)</script>
+<script id="ocsEndToEndOpenRoute">
+(function(){
+  async function openRequested(){
+    try{
+      const q=new URLSearchParams(location.search||'');
+      const x=String(q.get('open')||'').toLowerCase();
+      if(x==='activity'&&typeof openBottomBookings==='function'){openBottomBookings();return}
+      if(x==='wallet'&&typeof openWalletHub==='function'){openWalletHub();return}
+      if(x==='account'&&typeof openAccountEntry==='function'){await openAccountEntry();return}
+      if(x==='driver'&&typeof openHomeProviderDashboard==='function'){await openHomeProviderDashboard();return}
+      if(x==='transport'&&typeof openModule==='function'){openModule('Tempo / Goods Transport');return}
+    }catch(e){console.warn('OCS route open',e)}
+  }
+  setTimeout(openRequested,450);
+})();
+</script>
+
+</body></html>
