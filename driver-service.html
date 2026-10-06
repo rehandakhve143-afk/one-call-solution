@@ -41,11 +41,29 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 .timeTitle{padding:12px 16px 4px;font-size:11px;font-weight:900;color:#59686e}.timeGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 14px 100px}.timeGrid button{min-height:47px;border:1px solid #dfe5e7;border-radius:13px;background:#fff;color:#33474e;font-size:11px;font-weight:850}.timeGrid button.on{background:var(--teal);border-color:var(--teal);color:#fff}.sheetConfirm{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(492px,calc(100% - 28px));background:#fff;padding:9px;border-radius:28px;box-shadow:0 8px 30px rgba(0,0,0,.12)}.sheetConfirm button{width:100%;min-height:54px;border:0;border-radius:27px;background:var(--teal);color:#fff;font-size:16px;font-weight:900}
 .bottom{position:fixed;left:0;right:0;bottom:0;height:68px;background:#075460;color:#fff;display:grid;grid-template-columns:repeat(4,1fr);z-index:50}.bottom button{border:0;background:transparent;color:#fff;font-size:10px}.bottom b{display:block;font-size:19px;margin-bottom:2px}.bottom .on{color:var(--yellow)}
 @media(max-width:390px){.cargrid{grid-template-columns:repeat(2,1fr)}.timeGrid{grid-template-columns:repeat(3,1fr)}}
+
+.wheelPicker{padding:8px 14px 112px}
+.wheelBox{position:relative;height:286px;margin-top:18px;border-radius:22px;background:#fff;overflow:hidden;border:1px solid #e5eaec}
+.wheelFadeTop,.wheelFadeBottom{position:absolute;left:0;right:0;height:92px;z-index:4;pointer-events:none}
+.wheelFadeTop{top:0;background:linear-gradient(#fff,rgba(255,255,255,.72),rgba(255,255,255,0))}
+.wheelFadeBottom{bottom:0;background:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,.72),#fff)}
+.wheelBand{position:absolute;left:10px;right:10px;top:116px;height:54px;border-radius:14px;background:#eef1f2;z-index:1;pointer-events:none}
+.wheelCols{position:absolute;inset:0;display:grid;grid-template-columns:1.8fr .75fr .75fr .85fr;gap:0;z-index:2}
+.wheelCol{height:286px;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;padding:116px 0}
+.wheelCol::-webkit-scrollbar{display:none}
+.wheelItem{height:54px;width:100%;border:0;background:transparent;color:#8d9598;display:flex;align-items:center;justify-content:center;flex-direction:column;scroll-snap-align:center;font-size:17px;line-height:1.1;padding:0 4px}
+.wheelItem small{font-size:9px;margin-top:3px;color:#a1aaad}
+.wheelItem.active{color:#111;font-weight:900;font-size:21px}
+.wheelItem.active small{color:#5d696d;font-weight:700}
+.wheelPreview{text-align:center;margin-top:20px}.wheelPreview b{display:block;font-size:21px;color:#111}.wheelPreview small{display:block;margin-top:5px;color:#315a61;font-size:11px}
+.sheetConfirm{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(492px,calc(100% - 28px));background:#fff;padding:9px;border-radius:30px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:10}
+.sheetConfirm button{width:100%;min-height:56px;border:0;border-radius:28px;background:var(--teal);color:#fff;font-size:16px;font-weight:900}
+@media(max-width:390px){.wheelBox,.wheelCol{height:270px}.wheelBand{top:108px}.wheelCol{padding:108px 0}.wheelItem{height:54px}.wheelCols{grid-template-columns:1.65fr .72fr .72fr .82fr}}
 </style>
 </head>
 <body>
 <div class="app">
-<header class="topbar"><button onclick="location.href='index.html?pwa=1&v=20261006-driver-ui3'">‹</button><b>Driver Service</b></header>
+<header class="topbar"><button onclick="location.href='index.html?pwa=1&v=20261006-driver-ui4'">‹</button><b>Driver Service</b></header>
 <main class="wrap">
 <section class="hero">
   <small>OCS VERIFIED DRIVER</small>
@@ -133,9 +151,20 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 
 <div class="sheet" id="scheduleSheet">
   <div class="sheetHead"><button onclick="closeSchedule()">‹</button><b>Choose a Time</b></div>
-  <div class="dateStrip" id="dateStrip"></div>
-  <div class="timeTitle">AVAILABLE TIME • 15 MIN SLOTS</div>
-  <div class="timeGrid" id="timeGrid"></div>
+  <div class="wheelPicker">
+    <div class="wheelBox">
+      <div class="wheelBand"></div>
+      <div class="wheelFadeTop"></div>
+      <div class="wheelFadeBottom"></div>
+      <div class="wheelCols">
+        <div class="wheelCol" id="dateWheel" onscroll="wheelScroll(this,'date')"></div>
+        <div class="wheelCol" id="hourWheel" onscroll="wheelScroll(this,'hour')"></div>
+        <div class="wheelCol" id="minuteWheel" onscroll="wheelScroll(this,'minute')"></div>
+        <div class="wheelCol" id="ampmWheel" onscroll="wheelScroll(this,'ampm')"></div>
+      </div>
+    </div>
+    <div class="wheelPreview"><b id="wheelSelectedText">Today 6:00 PM</b><small id="wheelRemainText">Choose your trip time</small></div>
+  </div>
   <div class="sheetConfirm"><button onclick="confirmSchedule()">Confirm</button></div>
 </div>
 
@@ -145,7 +174,8 @@ const SB_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 const $=id=>document.getElementById(id);
 let current=null,mode='PLAN',tripType='One Way',carType='Hatchback',transmission='Manual',duration='2 Hrs',payment='ONLINE';
-let pickupLat=null,pickupLng=null,selectedDate='',selectedTime='',tempDate='',tempTime='';
+let pickupLat=null,pickupLng=null,selectedDate='',selectedTime='',tempDate='',tempTime='',tempHour='6',tempMinute='00',tempAmpm='PM';
+const wheelTimers={};
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function show(msg,bad){const x=$('status');x.style.display='block';x.classList.toggle('bad',!!bad);x.textContent=msg}
 function setMode(x){
@@ -165,21 +195,78 @@ function isoDate(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0
 function hhmm(d){return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
 function fmtTime(v){const [h,m]=v.split(':').map(Number);const ap=h>=12?'PM':'AM',hh=h%12||12;return hh+':'+String(m).padStart(2,'0')+' '+ap}
 function prettyDateTime(d,t){const dt=new Date(d+'T'+t+':00');return dt.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+' • '+fmtTime(t)}
-function openSchedule(){tempDate=selectedDate||isoDate(new Date());tempTime=selectedTime||hhmm(roundToQuarter(new Date()));renderDates();renderTimes();$('scheduleSheet').classList.add('show')}
+function openSchedule(){
+ tempDate=selectedDate||isoDate(new Date());
+ tempTime=selectedTime||hhmm(roundToQuarter(new Date()));
+ const parts=time12Parts(tempTime);tempHour=String(parts.hour);tempMinute=parts.minute;tempAmpm=parts.ampm;
+ renderWheelPicker();
+ $('scheduleSheet').classList.add('show');
+ setTimeout(()=>syncAllWheels(false),80);
+}
 function closeSchedule(){$('scheduleSheet').classList.remove('show')}
-function renderDates(){
- const box=$('dateStrip'),today=new Date();let h='';
- for(let i=0;i<7;i++){const d=new Date(today);d.setDate(today.getDate()+i);const iso=isoDate(d),label=i===0?'Today':d.toLocaleDateString('en-IN',{weekday:'short'}),sub=d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});h+='<button class="'+(iso===tempDate?'on':'')+'" onclick="chooseDate(\''+iso+'\')"><b>'+label+'</b><small>'+sub+'</small></button>'}
- box.innerHTML=h
+function time12Parts(v){
+ const a=String(v||'18:00').split(':').map(Number),h=a[0]||0,m=a[1]||0;
+ return {hour:(h%12)||12,minute:String(m).padStart(2,'0'),ampm:h>=12?'PM':'AM'}
 }
-function chooseDate(v){tempDate=v;renderDates();renderTimes()}
-function renderTimes(){
- const box=$('timeGrid'),now=new Date(),today=isoDate(now);let h='';
- for(let mins=360;mins<=1410;mins+=15){const hr=Math.floor(mins/60),mi=mins%60,v=String(hr).padStart(2,'0')+':'+String(mi).padStart(2,'0');let disabled=false;if(tempDate===today){const dt=new Date(tempDate+'T'+v+':00');disabled=dt<now}if(disabled)continue;h+='<button class="'+(v===tempTime?'on':'')+'" onclick="chooseTime(\''+v+'\')">'+fmtTime(v)+'</button>'}
- box.innerHTML=h||'<div class="sub">Aaj ke liye slot available nahi.</div>'
+function to24Time(h,m,ap){
+ let x=Number(h)||12;if(ap==='AM'&&x===12)x=0;if(ap==='PM'&&x!==12)x+=12;
+ return String(x).padStart(2,'0')+':'+String(m).padStart(2,'0')
 }
-function chooseTime(v){tempTime=v;renderTimes()}
-function confirmSchedule(){selectedDate=tempDate;selectedTime=tempTime;updateScheduleLabel();closeSchedule()}
+function wheelDateItems(){
+ const out=[],today=new Date();
+ for(let i=0;i<7;i++){
+   const d=new Date(today);d.setDate(today.getDate()+i);
+   out.push({value:isoDate(d),label:i===0?'Today':d.toLocaleDateString('en-IN',{weekday:'short',month:'short',day:'numeric'}),sub:i===0?d.toLocaleDateString('en-IN',{month:'short',day:'numeric'}):''})
+ }
+ return out
+}
+function renderWheelPicker(){
+ renderWheelColumn('dateWheel',wheelDateItems(),tempDate,'date');
+ renderWheelColumn('hourWheel',Array.from({length:12},(_,i)=>({value:String(i+1),label:String(i+1)})),tempHour,'hour');
+ renderWheelColumn('minuteWheel',['00','15','30','45'].map(x=>({value:x,label:x})),tempMinute,'minute');
+ renderWheelColumn('ampmWheel',['AM','PM'].map(x=>({value:x,label:x})),tempAmpm,'ampm');
+ updateWheelPreview()
+}
+function renderWheelColumn(id,items,selected,type){
+ const box=$(id);if(!box)return;
+ box.innerHTML=items.map(x=>'<button type="button" class="wheelItem '+(String(x.value)===String(selected)?'active':'')+'" data-value="'+esc(x.value)+'" onclick="pickWheel(\''+type+'\',\''+String(x.value).replace(/'/g,"\\'")+'\')"><span>'+esc(x.label)+'</span>'+(x.sub?'<small>'+esc(x.sub)+'</small>':'')+'</button>').join('')
+}
+function wheelBoxId(type){return type==='date'?'dateWheel':type==='hour'?'hourWheel':type==='minute'?'minuteWheel':'ampmWheel'}
+function wheelValue(type){return type==='date'?tempDate:type==='hour'?tempHour:type==='minute'?tempMinute:tempAmpm}
+function setWheelValue(type,v){
+ if(type==='date')tempDate=v;else if(type==='hour')tempHour=v;else if(type==='minute')tempMinute=v;else tempAmpm=v;
+}
+function pickWheel(type,v){
+ setWheelValue(type,v);markWheelActive(type);scrollWheelTo(type,v,true);updateWheelPreview()
+}
+function markWheelActive(type){
+ const box=$(wheelBoxId(type)),v=wheelValue(type);if(!box)return;
+ [...box.querySelectorAll('.wheelItem')].forEach(x=>x.classList.toggle('active',x.dataset.value===String(v)))
+}
+function scrollWheelTo(type,v,smooth){
+ const box=$(wheelBoxId(type));if(!box)return;const item=[...box.querySelectorAll('.wheelItem')].find(x=>x.dataset.value===String(v));if(!item)return;
+ const top=item.offsetTop-(box.clientHeight-item.offsetHeight)/2;box.scrollTo({top,behavior:smooth?'smooth':'auto'})
+}
+function syncAllWheels(smooth){['date','hour','minute','ampm'].forEach(t=>scrollWheelTo(t,wheelValue(t),smooth))}
+function wheelScroll(box,type){
+ clearTimeout(wheelTimers[type]);wheelTimers[type]=setTimeout(()=>{
+   const center=box.scrollTop+box.clientHeight/2,items=[...box.querySelectorAll('.wheelItem')];let best=null,dist=Infinity;
+   items.forEach(x=>{const d=Math.abs((x.offsetTop+x.offsetHeight/2)-center);if(d<dist){dist=d;best=x}});
+   if(best){setWheelValue(type,best.dataset.value);markWheelActive(type);updateWheelPreview()}
+ },70)
+}
+function updateWheelPreview(){
+ const t=to24Time(tempHour,tempMinute,tempAmpm),today=isoDate(new Date()),label=tempDate===today?'Today':new Date(tempDate+'T12:00:00').toLocaleDateString('en-IN',{weekday:'short',month:'short',day:'numeric'});
+ $('wheelSelectedText').textContent=label+' '+fmtTime(t);
+ const dt=new Date(tempDate+'T'+t+':00'),diff=dt-Date.now(),mins=Math.max(0,Math.round(diff/60000));
+ $('wheelRemainText').textContent=diff<0?'Please choose a future time':(mins<60?'Starts in '+mins+' min':'Starts in '+Math.floor(mins/60)+' hr '+(mins%60)+' min')
+}
+function confirmSchedule(){
+ tempTime=to24Time(tempHour,tempMinute,tempAmpm);
+ const dt=new Date(tempDate+'T'+tempTime+':00');
+ if(dt<Date.now()-60000){alert('Future time select karein.');return}
+ selectedDate=tempDate;selectedTime=tempTime;updateScheduleLabel();closeSchedule()
+}
 function updateScheduleLabel(){
  if(!selectedDate||!selectedTime)return;$('scheduleMain').textContent=prettyDateTime(selectedDate,selectedTime);
  const dt=new Date(selectedDate+'T'+selectedTime+':00'),diff=Math.max(0,dt-Date.now()),mins=Math.round(diff/60000);$('scheduleSub').textContent=mins<60?'Starts in '+mins+' min':'Starts in '+Math.floor(mins/60)+' hr '+(mins%60)+' min';updateSummary()
@@ -192,7 +279,7 @@ async function bookDriver(){
  const pickup=$('pickup').value.trim(),drop=$('drop').value.trim();
  if(!pickup||!drop){show('Pickup aur Drop required hain.',true);return}
  if(!selectedDate||!selectedTime){show('Date & Time choose karein.',true);openSchedule();return}
- const sess=await sb.auth.getSession(),session=sess.data&&sess.data.session;if(!session){try{localStorage.setItem('ocsPostLoginReturn','driver-service.html?v=20261006-driver-ui3')}catch(e){}location.href='index.html?login=1';return}
+ const sess=await sb.auth.getSession(),session=sess.data&&sess.data.session;if(!session){try{localStorage.setItem('ocsPostLoginReturn','driver-service.html?v=20261006-driver-ui4')}catch(e){}location.href='index.html?login=1';return}
  $('bookBtn').disabled=true;$('bookBtn').textContent='Sending...';
  try{
    const boot=await sb.rpc('ensure_customer_account_v1');if(boot.error)throw boot.error;
@@ -224,7 +311,7 @@ async function loadBooking(){
 async function decideQuote(id,d){const {error}=await sb.rpc('customer_decide_quote_v1',{p_quote_id:id,p_decision:d});if(error){show(error.message,true);return}await loadBooking()}
 async function confirmDone(){if(!current)return;const {error}=await sb.rpc('customer_confirm_completion_v2',{p_booking_id:current.id});if(error){show(error.message,true);return}await loadBooking()}
 function support(){alert('OCS Support se Driver booking issue raise kiya jayega.')}
-function goTab(x){if(x==='home'){location.href='index.html?pwa=1&v=20261006-driver-ui3';return}if(x==='activity'){location.href='index.html?open=activity&v=20261006-driver-ui3';return}if(x==='wallet'){location.href='index.html?open=wallet&v=20261006-driver-ui3';return}if(x==='account'){location.href='index.html?open=account&v=20261006-driver-ui3'}}
+function goTab(x){if(x==='home'){location.href='index.html?pwa=1&v=20261006-driver-ui4';return}if(x==='activity'){location.href='index.html?open=activity&v=20261006-driver-ui4';return}if(x==='wallet'){location.href='index.html?open=wallet&v=20261006-driver-ui4';return}if(x==='account'){location.href='index.html?open=account&v=20261006-driver-ui4'}}
 const first=roundToQuarter(new Date());selectedDate=isoDate(first);selectedTime=hhmm(first);updateScheduleLabel();updateSummary();loadBooking();setInterval(loadBooking,7000);
 </script>
 </body>
