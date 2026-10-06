@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-join3"><style id="ocsCriticalBoot">
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-settings1"><style id="ocsCriticalBoot">
 html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7faf9;color:#173247}
 #ocsBootSplash{position:fixed;inset:0;z-index:99999;background:#f7faf9;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .2s ease}
 #ocsBootSplash .b{display:flex;align-items:center;gap:12px}
@@ -1451,7 +1451,7 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20261006-join3');
+    clean.searchParams.set('v','20261006-settings1');
     clean.searchParams.set('login','1');
     if(joinRole){
       clean.searchParams.set('open','sp-profile');
@@ -1463,7 +1463,7 @@ async function ocsFreshLoginStart(){
     }
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20261006-join3&login=1');
+    location.replace('index.html?v=20261006-settings1&login=1');
   }
   return true;
 }
@@ -1663,7 +1663,7 @@ function closeJoinConflict(){
 function useAnotherProviderAccount(){
   const role=String(window.__ocsJoinConflictRole||'home');
   closeJoinConflict();
-  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261006-join3';
+  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261006-settings1';
 }
 
 function openProviderProfileFromMenu(){
@@ -2903,23 +2903,58 @@ async function openSettings(){
  document.getElementById('setLanguage').value=x.language||'EN';
  const loc=document.getElementById('setLocationState'),savedLoc=getOcsLocation();
  if(loc)loc.textContent=savedLoc?(savedLoc.source==='gps'?'Current location':(savedLoc.label||'Area selected')):(x.locationAllowed?'Allowed':'Not set');
+
  const cp=getCustomerProfile(),sp=getProviderProfile(),w=getOcsWalletSnapshot();
  const cs=document.getElementById('settingsCustomerProfileState'),ps=document.getElementById('settingsProviderProfileState');
  const cpComplete=!!(cp&&(cp.email||cp.mobile));
- const spComplete=!!(sp&&sp.name&&sp.mobile&&sp.area&&Array.isArray(sp.skills)&&sp.skills.length);
+
+ let spComplete=false,spLabel='',spState='Pending • create Service Provider profile';
+ try{
+   const session=await getOcsSession();
+   if(session&&session.user&&await ocsUserHasRole('service_provider')){
+     const {data,error}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
+     if(!error&&data&&data.registered){
+       spComplete=true;
+       const skills=Array.isArray(data.skills)?data.skills:[];
+       const active=skills.find(x=>x&&x.enabled_by_provider!==false);
+       const cat=String(active&&active.category||'').trim();
+       const svc=String(active&&active.service_name||'').trim();
+       if(cat==='Driver Service')spLabel='Driver Service';
+       else if(cat==='Tempo / Goods Transport')spLabel='Transport Partner';
+       else if(cat==='Appliance Repair'&&svc){
+         if(/refrigerator/i.test(svc))spLabel='Refrigerator';
+         else if(/washing/i.test(svc))spLabel='Washing Machine';
+         else if(/chimney/i.test(svc))spLabel='Chimney';
+         else if(/water purifier|RO/i.test(svc))spLabel='RO / Water Purifier';
+         else spLabel=svc||cat;
+       }else spLabel=cat||svc||'Service Provider';
+       spState='Active • '+spLabel;
+     }
+   }
+ }catch(e){}
+
+ if(!spComplete){
+   spComplete=!!(sp&&sp.name&&sp.mobile&&sp.area&&Array.isArray(sp.skills)&&sp.skills.length);
+   if(spComplete)spState='Basic profile complete • '+(sp.status||sp.kycStatus||'verification pending');
+   else if(sp)spState='Profile saved • pending skills/area/verification';
+ }
+
  if(cs)cs.textContent=cpComplete?'✓ Customer account ready • tap to edit':(cp?'Account ready • optional details can be added later':'Login to create Customer account');
- if(ps)ps.textContent=spComplete?('Basic profile complete • '+(sp.status||sp.kycStatus||'verification pending')):(sp?'Profile saved • pending skills/area/verification':'Pending • create Service Provider profile');
+ if(ps)ps.textContent=spState;
+
  const ws=document.getElementById('settingsWalletState');
  if(ws)ws.textContent='Customer ₹'+Number(w.customer).toLocaleString('en-IN')+' • SP ₹'+Number(w.sp).toLocaleString('en-IN');
+
  const session=await getOcsSession();
  const overview=document.getElementById('settingsAccountOverview');
  if(overview){
    const id=session&&session.user?(session.user.email||session.user.phone||'Logged in'):'Not logged in';
    const pending=[];
    if(!cpComplete)pending.push('Customer Profile');
-   if(!spComplete)pending.push('SP Profile');
+   if(!spComplete&&sp)pending.push('SP Profile');
    if(cp&&cp.mobile&&!(cp&&cp.mobileVerified))pending.push('Mobile Verification');
-   overview.innerHTML='<b>'+ocsSavedText(id)+'</b><small>'+(pending.length?'Pending: '+pending.join(' • '):'Account & basic profiles complete')+'</small>';
+   const summary=spComplete?(spLabel?'Active: '+spLabel:'Provider profile active'):(pending.length?'Pending: '+pending.join(' • '):'Account ready');
+   overview.innerHTML='<b>'+ocsSavedText(id)+'</b><small>'+ocsSavedText(summary)+'</small>';
  }
  document.getElementById('settingsModal').classList.add('show');
  await updateSettingsLoginState();
@@ -4808,7 +4843,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-join3',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-settings1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4882,7 +4917,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20261006-join3';
+const OCS_APP_BUILD='20261006-settings1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
