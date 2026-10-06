@@ -632,7 +632,7 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
       <div class="muted" id="providerVerificationLine">Service Provider Profile</div>
       <div class="muted" id="providerRatingLine">No ratings yet</div>
     </div>
-    <button class="btn gray provider-availability" id="availabilityBtn" onclick="toggleAvailability()">Available: ON</button>
+    <button class="btn gray provider-availability" id="availabilityBtn" onclick="providerHomeToggleWork()">Work ON</button>
   </div>
 
   <div class="provider-status-row">
@@ -4145,6 +4145,53 @@ if(["ASSIGNED","ON_WAY","REACHED","WORKING"].includes(S.status))h+=customerProvi
 return h;
 }
 
+
+function providerHomeDashboardHTML(){
+ const lowWallet=Number(S.wallet||0)<200;
+ const adminHold=!!S.adminPaused||!S.jobAccess;
+ const workOn=!lowWallet&&!adminHold&&!!S.available;
+ const buttonLabel=workOn?"Turn Work OFF":"Turn Work ON";
+ const note=lowWallet
+   ?"Wallet ₹"+Number(S.wallet||0).toFixed(2)+" hai. Work ON ke liye minimum ₹200 required hai."
+   :(adminHold
+     ?"OCS Admin ne new jobs temporarily pause kiye hain."
+     :(workOn?"Matching jobs aate hi yahan request dikhegi.":"Work ON karoge to matching requests receive hongi."));
+ return ''+
+ '<div class="sp-home-panel">'+
+   '<div class="sp-home-title"><b>Work Dashboard</b><small>Jobs • availability • support</small></div>'+
+   '<div class="sp-home-work">'+
+     '<div class="state">'+
+       '<div class="copy"><small>SERVICE PROVIDER STATUS</small>'+
+         '<b>'+(workOn?'You are ready for new jobs':'Work is OFF')+'</b>'+
+         '<span>'+note+'</span>'+
+       '</div>'+
+       '<span class="statepill '+(workOn?'':'off')+'">'+(workOn?'WORK ON':'WORK OFF')+'</span>'+
+     '</div>'+
+     '<button class="mainaction '+(lowWallet?'yellow':'')+'" type="button" onclick="providerHomeToggleWork()">'+buttonLabel+'</button>'+
+   '</div>'+
+   '<div class="sp-home-title" style="margin-top:15px"><b>Quick Actions</b><small>Common tools</small></div>'+
+   '<div class="sp-home-quick">'+
+     '<button type="button" onclick="openProviderHistoryQuick()"><span class="qi">▤</span><b>Jobs & Earnings</b><small>Completed work history</small></button>'+
+     '<button type="button" onclick="openProviderWalletQuick()"><span class="qi">₹</span><b>Wallet</b><small>Balance & transactions</small></button>'+
+     '<button type="button" onclick="askExpert()"><span class="qi">?</span><b>Ask Expert</b><small>Rate or work help</small></button>'+
+     '<button type="button" onclick="openSupport(&quot;provider&quot;)"><span class="qi">☎</span><b>Support</b><small>OCS help & tickets</small></button>'+
+   '</div>'+
+ '</div>';
+}
+async function providerHomeToggleWork(){
+ const turningOn=!S.available;
+ if(turningOn&&Number(S.wallet||0)<200){
+   alert("Work ON ke liye minimum wallet ₹200 required hai. Current wallet ₹"+Number(S.wallet||0).toFixed(2)+". Wallet recharge karein.");
+   if(typeof openProviderWalletQuick==="function")openProviderWalletQuick();
+   return;
+ }
+ if(turningOn&&(S.adminPaused||!S.jobAccess)){
+   alert("New jobs abhi OCS Admin ne pause kiye hain.");
+   return;
+ }
+ await toggleAvailability();
+}
+
 function providerHTML(){
 let h="";
 
@@ -4344,6 +4391,10 @@ if(S.isQuoteBooking&&S.quoteDecision==="APPROVED"&&["REQUESTED","ASSIGNED","ON_W
 }
 if(["ASSIGNED","ON_WAY","REACHED","WORKING"].includes(S.status))h+=providerCustomerContactHTML();
 if(S.paymentHeld&&Number(S.heldAmount||0)>0&&["REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","COMPLETION_CONFIRM","SUPPORT_REVIEW"].includes(S.status))h=secureHoldHTML()+h;
+
+if(!String(h||"").trim()&&S.providerProfileAvailable){
+ h=providerHomeDashboardHTML();
+}
 return h;
 }
 
@@ -5081,8 +5132,8 @@ const onboardingApproved=String(S.providerOnboardingStatus||"not_submitted").toL
 const walletReady=Number(S.wallet||0)>=200;
 const transportBusy=String(S.category||"").trim()==="Tempo / Goods Transport" &&
  ["ASSIGNED","ON_WAY","REACHED","WORKING","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(String(S.status||"").toUpperCase());
-$("availabilityBtn").textContent=!onboardingApproved?"Approval Required":(!walletReady?"Wallet < ₹200":(transportBusy?("BUSY • Work "+(S.available?"ON":"OFF")):("Available: "+(S.available?"ON":"OFF"))));
-$("availabilityBtn").style.background=!onboardingApproved?"#b7791f":(!walletReady?"#b7791f":(transportBusy?"#0f766e":(S.available?"#16a34a":"#64748b")));
+$("availabilityBtn").textContent=!onboardingApproved?"Approval Required":(transportBusy?("BUSY • Work "+(S.available?"ON":"OFF")):("Work "+(S.available&&walletReady?"ON":"OFF")));
+$("availabilityBtn").style.background=!onboardingApproved?"#b7791f":(transportBusy?"#0f766e":((S.available&&walletReady)?"#16a34a":"#f3ef00"));$("availabilityBtn").style.color=(!onboardingApproved||transportBusy||(S.available&&walletReady))?"#fff":"#17343c";
 if($("walletBalance"))$("walletBalance").textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 const walletQuick=$("providerWalletQuick");if(walletQuick)walletQuick.textContent=S.wallet<0?"−₹"+Math.abs(S.wallet).toFixed(2):"₹"+S.wallet.toFixed(2);
 $("currentJob").textContent=S.currentJob||((["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_SECURE_PAYMENT","QUOTE_REVISION_PENDING","QUOTE_REVISION_TOPUP","WORKING","ON_WAY","REACHED","ASSIGNED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","SUPPORT_REVIEW","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","CASH_WAIT"].includes(S.status))?(S.service||S.serviceName||"Current Booking"):"None");
@@ -5861,11 +5912,27 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
    else body.innerHTML='<div class="ocs-sp-empty"><b>No work history yet</b><span>Completed jobs yahan dikhengi.</span></div>';
  };
 
+
+ window.ocsSpGoHome=async function(){
+   window.ocsSpCloseStandalone();
+   navOn(1);
+   try{if(typeof closeProviderPayoutPanel==='function')closeProviderPayoutPanel()}catch(e){}
+   try{if(typeof closeProviderProfilePanel==='function')closeProviderProfilePanel()}catch(e){}
+   try{if(typeof closeProviderActionModal==='function')closeProviderActionModal()}catch(e){}
+   try{
+     if(typeof showTab==='function')await showTab('provider');
+     if(typeof render==='function')render();
+   }catch(e){
+     try{if(typeof renderCore==='function')renderCore()}catch(_){}
+   }
+   window.scrollTo({top:0,behavior:'smooth'});
+ };
+
  const originalGo=window.ocsRoleBottomGo;
  window.ocsRoleBottomGo=function(n){
    const sp=document.body.classList.contains('sp-only-route')||(typeof OCS_ROUTE_TAB!=='undefined'&&OCS_ROUTE_TAB==='provider');
    if(!sp){if(typeof originalGo==='function')return originalGo(n);return}
-   if(n===1){window.ocsSpCloseStandalone();navOn(1);if(typeof closeProviderPayoutPanel==='function')closeProviderPayoutPanel();if(typeof closeProviderProfilePanel==='function')closeProviderProfilePanel();if(typeof closeProviderActionModal==='function')closeProviderActionModal();if(typeof showTab==='function')showTab('provider');try{if(typeof render==='function')render()}catch(e){}window.scrollTo({top:0,behavior:'smooth'});return}
+   if(n===1){return window.ocsSpGoHome()}
    if(n===2){navOn(2);return window.openProviderHistoryQuick()}
    if(n===3){navOn(3);return window.openProviderWalletQuick()}
    if(n===4){navOn(4);return window.ocsSpShowAccount()}
