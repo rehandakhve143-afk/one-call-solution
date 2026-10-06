@@ -22,7 +22,7 @@ try{
   if(q.get("admin")==="1"){
     location.replace("home-services.html?tab=admin&v=20260930-selfiefix2");
   }else if(q.get("sp")==="1"){
-    location.replace("service-provider.html?v=20261006-home3");
+    location.replace("service-provider.html?v=20261006-walletfree1");
   }
 }catch(e){}
 </script><script>
@@ -1143,7 +1143,7 @@ async function routeAfterOcsLogin(){
       if(m)m.classList.remove('show');
       document.body.classList.remove('ocs-account-open');
       try{localStorage.removeItem('ocsLoginIntentRole')}catch(e){}
-      location.replace('service-provider.html?v=20261006-home3');
+      location.replace('service-provider.html?v=20261006-walletfree1');
       return;
     }
     await openAccount('provider',true);
@@ -1257,7 +1257,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('service-provider.html?v=20261006-home3');
+          location.replace('service-provider.html?v=20261006-walletfree1');
           return;
         }
         await openAccount('provider',true);
@@ -1289,9 +1289,9 @@ async function openHomeProviderDashboard(){
     if(error)throw error;
     const skills=Array.isArray(data&&data.skills)?data.skills:[];
     const isTransport=skills.some(x=>String(x.category||'').trim()==='Tempo / Goods Transport'&&x.enabled_by_provider!==false);
-    location.href=isTransport?'transport-driver.html?v=20261005-driver1':'home-services.html?tab=provider&sp=1&v=20261006-home3';
+    location.href=isTransport?'transport-driver.html?v=20261005-driver1':'home-services.html?tab=provider&sp=1&v=20261006-walletfree1';
   }catch(e){
-    location.href='home-services.html?tab=provider&sp=1&v=20261006-home3';
+    location.href='home-services.html?tab=provider&sp=1&v=20261006-walletfree1';
   }
 }
 async function openHomeAdminDashboard(){
@@ -1328,7 +1328,7 @@ async function renderHomeDashboardShortcuts(){
 
 function openProviderDashboardFromMenu(){
   closeAllBottomHubs();
-  location.href='service-provider.html?v=20261006-home3';
+  location.href='service-provider.html?v=20261006-walletfree1';
 }
 
 function openProviderProfileFromMenu(){
@@ -1655,7 +1655,7 @@ async function showProviderProfileSummary(){
       (status==='approved'
        ?(category==='Tempo / Goods Transport'
          ?'<button class="primary" onclick="closeAccount();location.href=\'transport-driver.html?v=20261005-driver2\'">Open Driver Dashboard</button>'
-         :'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20261006-home3\'">Open SP Dashboard</button>')
+         :'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20261006-walletfree1\'">Open SP Dashboard</button>')
        :status==='pending'
          ?(category==='Tempo / Goods Transport'&&!tp.kyc_complete
            ?'<button class="primary" onclick="editProviderProfileSkills();setTimeout(()=>{const x=document.getElementById(\'paTransportKycLater\');if(x){x.style.display=\'block\';x.scrollIntoView({behavior:\'smooth\',block:\'center\'})}},80)">Complete Transport KYC</button>'
