@@ -1,5 +1,5 @@
 {
-  "build": "20261006-join3",
+  "build": "20261006-settings1",
   "updated_at": "2026-10-06",
-  "message": "Replaced browser provider conflict alert with OCS UI, protected active SP category, added another-provider-login flow, and corrected Account provider label"
+  "message": "Settings now shows live provider role/status instead of stale Pending SP Profile"
 }
