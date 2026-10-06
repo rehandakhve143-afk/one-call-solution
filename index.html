@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-join2"><style id="ocsCriticalBoot">
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-join3"><style id="ocsCriticalBoot">
 html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7faf9;color:#173247}
 #ocsBootSplash{position:fixed;inset:0;z-index:99999;background:#f7faf9;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .2s ease}
 #ocsBootSplash .b{display:flex;align-items:center;gap:12px}
@@ -205,6 +205,13 @@ body:has(.ocs-super-nav){padding-bottom:0!important}
 .ocs-join-options button>small{display:block!important;margin-top:2px!important;color:#74878b!important;font-size:9.5px!important;line-height:1.35!important}
 .ocs-join-options button>i{grid-row:1/3!important;grid-column:3!important;font-style:normal!important;font-size:24px!important;color:#93a3a6!important}
 .ocs-join-note{margin-top:12px;padding:11px 12px;border-radius:13px;background:#f2f7f6;color:#60767b;font-size:9.5px;line-height:1.45}
+#joinConflictModal{z-index:42000!important}
+.ocs-join-conflict-sheet{padding:18px 16px max(24px,env(safe-area-inset-bottom))!important}
+.ocs-join-conflict-card{margin:12px 0 14px;padding:16px;border:1px solid #dfe8e8;border-radius:18px;background:#f8fbfa;text-align:center}
+.ocs-join-conflict-icon{width:44px;height:44px;margin:0 auto 9px;border-radius:50%;display:grid;place-items:center;background:#fff3d6;color:#8b6514;font-size:24px;font-weight:900}
+.ocs-join-conflict-card>b{display:block;color:#173f46;font-size:15px}
+.ocs-join-conflict-card p{margin:7px 0 0;color:#6f8186;font-size:11px;line-height:1.5}
+
 
 @media(max-width:390px){
   .ocs-super-top{padding:9px 14px 12px!important}
@@ -331,6 +338,17 @@ setTimeout(function(){
     <button type="button" onclick="joinOcsRole('business')"><span>🏪</span><b>Business / Listing</b><small>Shop, Property ya business ad OCS par post karein.</small><i>›</i></button>
   </div>
   <div class="ocs-join-note">One Service Provider account = one active Work Category. Category change ke liye OCS Support/Admin approval required hoga.</div>
+</div></div>
+
+<div class="modal" id="joinConflictModal"><div class="sheet ocs-join-conflict-sheet">
+  <div class="ocs-join-head"><div><h2>Provider Profile Already Active</h2><div class="muted">Existing profile safe rahega</div></div><button class="x" onclick="closeJoinConflict()">×</button></div>
+  <div class="ocs-join-conflict-card">
+    <div class="ocs-join-conflict-icon">!</div>
+    <b id="joinConflictHeading">One provider role per login</b>
+    <p id="joinConflictText">Another provider role join karne ke liye alag provider login use karein.</p>
+  </div>
+  <button class="primary account-submit" type="button" onclick="useAnotherProviderAccount()">Use Another Provider Account</button>
+  <button class="btn gray" type="button" onclick="closeJoinConflict()">Cancel</button>
 </div></div>
 
 <div class="modal" id="bottomBookingsModal"><div class="sheet">
@@ -1370,6 +1388,7 @@ async function routeAfterOcsLogin(role){
     // Direct SP Profile route must never be redirected to Customer Home.
     if(ocsRequestedSpProfile()){
       await openAccount('provider',true);
+      setTimeout(applyOcsJoinProviderSelection,140);
       return;
     }
 
@@ -1403,8 +1422,12 @@ async function routeAfterOcsLogin(role){
   }
 }
 async function ocsFreshLoginStart(){
-  let fresh=false;
-  try{fresh=new URLSearchParams(location.search||'').get('fresh')==='1'}catch(e){}
+  let fresh=false,joinRole='';
+  try{
+    const q=new URLSearchParams(location.search||'');
+    fresh=q.get('fresh')==='1';
+    joinRole=String(q.get('join')||'').toLowerCase();
+  }catch(e){}
   if(!fresh)return false;
 
   try{
@@ -1420,25 +1443,27 @@ async function ocsFreshLoginStart(){
       const k=localStorage.key(i);
       if(k&&(/^ocs/i.test(k)||k==='sb-uipmkrsggpkupgbgoxkg-auth-token'))removeKeys.push(k);
     }
-    [
-      'ocsPostLoginReturn','ocsLoginIntentRole','ocsLoginOtpTarget',
-      'ocsPendingSignupEmail','ocsResumeBookingAfterLogin',
-      'ocsHomeServiceFullState','ocsCurrentBooking',
-      'ocsCustomerProfile','ocsProviderProfile'
-    ].forEach(k=>removeKeys.push(k));
+    ['ocsPostLoginReturn','ocsLoginIntentRole','ocsLoginOtpTarget','ocsPendingSignupEmail','ocsResumeBookingAfterLogin','ocsHomeServiceFullState','ocsCurrentBooking','ocsCustomerProfile','ocsProviderProfile'].forEach(k=>removeKeys.push(k));
     [...new Set(removeKeys)].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
   }catch(e){console.warn('Fresh login local state clear',e)}
-
   try{sessionStorage.clear()}catch(e){}
 
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20260930-selfiefix2');
+    clean.searchParams.set('v','20261006-join3');
     clean.searchParams.set('login','1');
+    if(joinRole){
+      clean.searchParams.set('open','sp-profile');
+      clean.searchParams.set('join',joinRole);
+      try{
+        localStorage.setItem('ocsLoginIntentRole','provider');
+        localStorage.setItem('ocsJoinProviderCategory',joinRole==='driver'?'Driver Service':joinRole==='transport'?'Tempo / Goods Transport':'');
+      }catch(e){}
+    }
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20261006-step1&login=1');
+    location.replace('index.html?v=20261006-join3&login=1');
   }
   return true;
 }
@@ -1564,28 +1589,40 @@ function closeJoinOcs(){
 }
 async function joinOcsRole(role){
   role=String(role||'home').toLowerCase();
-  if(role==='business'){
-    closeJoinOcs();
-    openBiz();
-    return;
-  }
+  if(role==='business'){closeJoinOcs();openBiz();return}
   const target=role==='driver'?'Driver Service':(role==='transport'?'Tempo / Goods Transport':'');
   try{
     const session=await getOcsSession();
     if(session&&session.user&&await ocsUserHasRole('service_provider')){
-      let current='';
+      let current='',currentType='home';
       try{
         const {data,error}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
         if(!error){
           const skills=Array.isArray(data&&data.skills)?data.skills:[];
           const active=skills.find(x=>x&&x.enabled_by_provider!==false);
-          current=String(active&&active.category||active&&active.service_name||'').trim();
+          const cat=String(active&&active.category||'').trim();
+          const svc=String(active&&active.service_name||'').trim();
+          if(cat==='Driver Service'){current='Driver Service';currentType='driver'}
+          else if(cat==='Tempo / Goods Transport'){current='Transport Partner';currentType='transport'}
+          else{
+            current=cat||svc||'Home Service Provider';
+            if(cat==='Appliance Repair'&&svc){
+              if(/refrigerator/i.test(svc))current='Refrigerator';
+              else if(/washing/i.test(svc))current='Washing Machine';
+              else if(/chimney/i.test(svc))current='Chimney';
+              else if(/water purifier|RO/i.test(svc))current='RO / Water Purifier';
+            }
+          }
         }
       }catch(e){}
-      const same=(role==='driver'&&current==='Driver Service')||(role==='transport'&&current==='Tempo / Goods Transport')||(role==='home'&&current&&current!=='Driver Service'&&current!=='Tempo / Goods Transport');
       closeJoinOcs();
-      if(same){await openHomeProviderDashboard();return}
-      alert('Is OCS account me '+(current||'Service Provider category')+' already active hai. 1 SP = 1 Work Category. Category change ke liye OCS Support/Admin approval required hai.');
+      if(currentType===role){await openHomeProviderDashboard();return}
+      window.__ocsJoinConflictRole=role;
+      const wanted=role==='driver'?'Driver Service':role==='transport'?'Transport Partner':'Home Service Provider';
+      const h=document.getElementById('joinConflictHeading'),t=document.getElementById('joinConflictText');
+      if(h)h.textContent=(current||'Provider profile')+' already active hai';
+      if(t)t.textContent=wanted+' join karne ke liye another provider account se login karein. Existing '+(current||'provider')+' profile bilkul change nahi hoga.';
+      const m=document.getElementById('joinConflictModal');if(m)m.classList.add('show');
       return;
     }
     try{localStorage.setItem('ocsJoinProviderCategory',target)}catch(e){}
@@ -1599,7 +1636,11 @@ async function joinOcsRole(role){
     await openAccount('provider',true);
     setTimeout(applyOcsJoinProviderSelection,120);
   }catch(e){
-    alert('Join OCS open nahi hua. Please try again.');
+    window.__ocsJoinConflictRole=role;
+    const h=document.getElementById('joinConflictHeading'),t=document.getElementById('joinConflictText');
+    if(h)h.textContent='Join OCS open nahi hua';
+    if(t)t.textContent='Please try again.';
+    const m=document.getElementById('joinConflictModal');if(m)m.classList.add('show');
   }
 }
 function applyOcsJoinProviderSelection(){
@@ -1614,6 +1655,15 @@ function applyOcsJoinProviderSelection(){
     if(row)row.scrollIntoView({behavior:'smooth',block:'center'});
   }
   try{localStorage.removeItem('ocsJoinProviderCategory')}catch(e){}
+}
+
+function closeJoinConflict(){
+  const m=document.getElementById('joinConflictModal');if(m)m.classList.remove('show');
+}
+function useAnotherProviderAccount(){
+  const role=String(window.__ocsJoinConflictRole||'home');
+  closeJoinConflict();
+  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261006-join3';
 }
 
 function openProviderProfileFromMenu(){
@@ -2431,7 +2481,7 @@ async function submitBottomSupport(){
  }
 }
 
-function openBottomProfile(){
+async function openBottomProfile(){
  closeAllBottomHubs();setBottomActive('bnProfile');
  const customer=getCustomerProfile(),provider=getProviderProfile();
  const body=document.getElementById('bottomProfileBody');
@@ -2439,9 +2489,32 @@ function openBottomProfile(){
 
  const name=customer?.name||'OCS Customer';
  const mobile=customer?.mobile||customer?.email||'Profile & account';
- const providerText=provider
-   ? ((provider.name||'Service Provider')+(provider.area?' • '+provider.area:''))
-   : 'Join as Service Provider';
+ let providerText=provider?((provider.name||'Service Provider')+(provider.area?' • '+provider.area:'')):'Join One Call Solution';
+ let providerLabel='Service Provider',providerIcon='SP';
+ try{
+   const session=await getOcsSession();
+   if(session&&session.user&&await ocsUserHasRole('service_provider')){
+     const {data,error}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
+     if(!error&&data&&data.registered){
+       const skills=Array.isArray(data.skills)?data.skills:[];
+       const active=skills.find(x=>x&&x.enabled_by_provider!==false);
+       const cat=String(active&&active.category||'').trim();
+       const svc=String(active&&active.service_name||'').trim();
+       if(cat==='Driver Service'){providerLabel='Driver Service';providerIcon='🚘';providerText='Open Driver Profile & Dashboard'}
+       else if(cat==='Tempo / Goods Transport'){providerLabel='Transport Partner';providerIcon='🚚';providerText='Open Transport Profile & Dashboard'}
+       else{
+         let shown=cat||svc||'Home Service Provider';
+         if(cat==='Appliance Repair'&&svc){
+           if(/refrigerator/i.test(svc))shown='Refrigerator';
+           else if(/washing/i.test(svc))shown='Washing Machine';
+           else if(/chimney/i.test(svc))shown='Chimney';
+           else if(/water purifier|RO/i.test(svc))shown='RO / Water Purifier';
+         }
+         providerText='Active • '+shown;
+       }
+     }
+   }
+ }catch(e){}
 
  body.innerHTML=
  '<div class="ocs-account-edit-card">'+
@@ -2457,7 +2530,7 @@ function openBottomProfile(){
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openLocationPicker()"><span class="ar-ico">⌖</span><span class="ar-copy"><b>Saved Location</b><small>Home / service location</small></span><span class="ar-go">›</span></button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');shareOcsWhatsApp()"><span class="ar-ico">↗</span><span class="ar-copy"><b>Refer a Friend</b><small>Share & Earn ₹50 wallet reward</small></span><span class="ar-go">›</span></button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openMyAds()"><span class="ar-ico">▣</span><span class="ar-copy"><b>My Ads & Listings</b><small>Edit • Pause • Renew</small></span><span class="ar-go">›</span></button>'+
-   '<button class="ocs-account-row" onclick="openProviderDashboardFromMenu()"><span class="ar-ico">SP</span><span class="ar-copy"><b>Service Provider</b><small>'+ocsSavedText(providerText)+'</small></span><span class="ar-go">›</span></button>'+
+   '<button class="ocs-account-row" onclick="openProviderDashboardFromMenu()"><span class="ar-ico">'+ocsSavedText(providerIcon)+'</span><span class="ar-copy"><b>'+ocsSavedText(providerLabel)+'</b><small>'+ocsSavedText(providerText)+'</small></span><span class="ar-go">›</span></button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()"><span class="ar-ico">☎</span><span class="ar-copy"><b>Support</b><small>Booking, payment or account help</small></span><span class="ar-go">›</span></button>'+
    '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()"><span class="ar-ico">⚙</span><span class="ar-copy"><b>Settings</b><small>Login, notifications & logout</small></span><span class="ar-go">›</span></button>'+
  '</div>';
@@ -4735,7 +4808,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-join2',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-join3',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4809,7 +4882,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20261006-join2';
+const OCS_APP_BUILD='20261006-join3';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
