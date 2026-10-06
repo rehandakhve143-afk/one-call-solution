@@ -521,6 +521,50 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
 .sp-only-route #pBody .status{background:#e7f5f5!important;color:#064d59!important}
 @media(max-width:360px){.ocs-sp-driver-jobhead .amount{font-size:20px}.ocs-sp-driver-jobhead .stage span{font-size:7.5px}}
 </style>
+
+<style id="ocs-sp-home-clean-v1">
+/* Dedicated SP Home: remove website-like duplicate chrome */
+.sp-only-route #ocsUniversalSearch{display:none!important}
+.sp-only-route .ocs-page-nav{display:none!important}
+.sp-only-route .top{
+  position:static!important;
+  padding:14px 16px 13px!important;
+  border-radius:0 0 22px 22px!important;
+  box-shadow:0 7px 18px rgba(6,47,62,.13)!important
+}
+.sp-only-route .brand-row{gap:10px!important}
+.sp-only-route .ocs-top-logo{width:38px!important;height:38px!important;border-radius:11px!important}
+.sp-only-route .brand{font-size:18px!important;letter-spacing:0!important}
+.sp-only-route .tagline{font-size:9.5px!important}
+.sp-only-route .tabs{margin-top:8px!important}
+.sp-only-route .tabs #ptab{min-height:28px!important;padding:5px 10px!important;font-size:10px!important}
+.sp-only-route #provider.screen{padding:12px 14px 18px!important}
+.sp-only-route .provider-dashboard-card{
+  margin:0!important;
+  padding:16px!important;
+  border-radius:20px!important;
+  box-shadow:0 6px 18px rgba(8,45,55,.055)!important
+}
+.sp-only-route .provider-headline h2{font-size:18px!important}
+.sp-only-route .provider-headline #providerName{font-size:15px!important}
+.sp-only-route .provider-headline .muted{font-size:11px!important}
+.sp-only-route .provider-availability{
+  min-width:112px!important;
+  min-height:46px!important;
+  padding:9px 11px!important;
+  border-radius:14px!important;
+  font-size:11px!important
+}
+.sp-only-route .provider-status-row{
+  margin:12px 0 10px!important;
+  padding:9px 0!important;
+  font-size:11px!important
+}
+.sp-only-route .provider-status-row .status{font-size:10px!important;padding:5px 8px!important}
+.sp-only-route .provider-profile-link{font-size:11px!important}
+.sp-only-route .provider-metric{padding:10px 7px!important;border-radius:15px!important}
+</style>
+
 </head>
 <body>
 
@@ -5017,7 +5061,7 @@ $("pStatus").textContent=!S.providerProfileAvailable
  :(onboardingState!=="approved"
    ?(onboardingState==="pending"?"APPROVAL PENDING":onboardingState==="rejected"?"APPROVAL REJECTED":"APPROVAL REQUIRED")
    :(Number(S.wallet||0)<200
-     ?"WALLET RECHARGE REQUIRED"
+     ?"WORK OFF"
      :(transportBusy
        ?"BUSY • TRANSPORT TRIP"
        :(providerIdle&&!providerHasSkills
@@ -5702,8 +5746,23 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
    show(simpleShell('SERVICE PROVIDER','Rewards',body,4),4);
  };
  window.ocsSpShowSettings=function(){
-   const body='<div class="ocs-sp-info-card"><b>App Settings</b>Profile, bank, work location aur support options Account page se manage hote hain.</div><button class="ocs-sp-row" type="button" onclick="location.reload()"><span class="ico">↻</span><span class="txt"><b>Refresh App</b><small>Latest OCS screen reload karein</small></span><span class="arr">›</span></button>';
+   const body=
+     '<div class="ocs-sp-menu">'+
+       '<button class="ocs-sp-row" type="button" onclick="openSupport(\'provider\')"><span class="ico">☎</span><span class="txt"><b>Help & Support</b><small>OCS support ticket / work help</small></span><span class="arr">›</span></button>'+
+       '<button class="ocs-sp-row" type="button" onclick="ocsSpShowAbout()"><span class="ico">i</span><span class="txt"><b>About OCS</b><small>One Call Solution • Service Provider app</small></span><span class="arr">›</span></button>'+
+       '<button class="ocs-sp-row" type="button" onclick="location.reload()"><span class="ico">↻</span><span class="txt"><b>Refresh App</b><small>Latest OCS screen reload karein</small></span><span class="arr">›</span></button>'+
+       '<button class="ocs-sp-row" type="button" onclick="ocsSpLogout()"><span class="ico">↪</span><span class="txt"><b>Logout</b><small>Sign out from this device</small></span><span class="arr">›</span></button>'+
+     '</div>';
    show(simpleShell('SERVICE PROVIDER','Settings',body,4),4);
+ };
+ window.ocsSpShowAbout=function(){
+   const body='<div class="ocs-sp-info-card"><b>One Call Solution</b>One for All • All for One<br><br>Service Provider jobs, wallet, payouts, work history, support aur rewards ek hi OCS account me manage hote hain.</div>';
+   show(simpleShell('SERVICE PROVIDER','About OCS',body,4),4);
+ };
+ window.ocsSpLogout=async function(){
+   if(!confirm('OCS se logout karna hai?'))return;
+   try{if(ocsSupabase&&ocsSupabase.auth)await ocsSupabase.auth.signOut()}catch(e){}
+   location.replace('index.html?v=20261006-spclean1');
  };
  window.ocsSpReferral=async function(){
    const shareUrl=location.origin+location.pathname.replace(/home-services\.html.*$/,'index.html');
