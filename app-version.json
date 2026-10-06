@@ -1,5 +1,5 @@
 {
-  "build": "20261006-notifyclean1",
+  "build": "20261006-frontclean1",
   "updated_at": "2026-10-06",
-  "message": "Notifications now hide stale/test booking updates and show recent useful updates only"
+  "message": "Front Home cleaned: readable location, compact header, public rating block removed, business CTAs clarified"
 }
