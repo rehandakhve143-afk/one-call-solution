@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-settings1"><style id="ocsCriticalBoot">
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-cleanhome1"><style id="ocsCriticalBoot">
 html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7faf9;color:#173247}
 #ocsBootSplash{position:fixed;inset:0;z-index:99999;background:#f7faf9;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .2s ease}
 #ocsBootSplash .b{display:flex;align-items:center;gap:12px}
@@ -165,6 +165,7 @@ body:has(.ocs-super-nav){padding-bottom:0!important}
   box-shadow:0 7px 18px rgba(7,84,96,.10)!important;
 }
 .ocs-share-earn-strip{margin-bottom:8px!important}
+.ocs-super-trust{display:none!important}
 .ocs-join-strip{
   display:flex!important;align-items:center!important;gap:11px!important;
   margin:10px 0 6px!important;padding:14px!important;
@@ -285,7 +286,7 @@ setTimeout(function(){
       <div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 16 0v5a2 2 0 0 1-2 2h-2v-6h4M4 13h4v6H6a2 2 0 0 1-2-2Z"/></svg><b>OCS Support</b><small>When needed</small></div>
     </div>
 
-    <div class="ocs-super-head"><h2>Explore One Call Solution</h2><button onclick="document.getElementById('ocsMarketGrid').scrollIntoView({behavior:'smooth'})">View All</button></div>
+    <div class="ocs-super-head"><h2>More on OCS</h2></div>
     <div class="ocs-super-market" id="ocsMarketGrid">
       <button class="ocs-market-card" onclick="openModule('Driver Service')"><span class="photo" style="background-image:linear-gradient(135deg,#dff6f3,#edf5f6)"></span><span class="ocs-market-badge">DRIVER</span><span class="ocs-market-copy"><b>Driver Service</b><small>4-Wheeler Driver • Pickup & Drop</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Tempo / Goods Transport')"><span class="photo" style="background-image:url('https://images.unsplash.com/photo-1592838064575-70ed626d3a0e?auto=format&fit=crop&w=900&q=82')"></span><span class="ocs-market-badge">TRANSPORT</span><span class="ocs-market-copy"><b>Tempo / Goods Transport</b><small>Home Shifting • Delivery • Truck</small></span></button>
@@ -1451,7 +1452,7 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20261006-settings1');
+    clean.searchParams.set('v','20261006-cleanhome1');
     clean.searchParams.set('login','1');
     if(joinRole){
       clean.searchParams.set('open','sp-profile');
@@ -1463,7 +1464,7 @@ async function ocsFreshLoginStart(){
     }
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20261006-settings1&login=1');
+    location.replace('index.html?v=20261006-cleanhome1&login=1');
   }
   return true;
 }
@@ -1663,7 +1664,7 @@ function closeJoinConflict(){
 function useAnotherProviderAccount(){
   const role=String(window.__ocsJoinConflictRole||'home');
   closeJoinConflict();
-  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261006-settings1';
+  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261006-cleanhome1';
 }
 
 function openProviderProfileFromMenu(){
@@ -3086,13 +3087,11 @@ function openClearPricingInfo(){document.getElementById('clearPricingModal').cla
 function closeClearPricingInfo(){document.getElementById('clearPricingModal').classList.remove('show')}
 
 function openBookingsHub(){
- const b=getCurrentBooking();
- const s=String(b?.status||b?.state||'').toUpperCase();
- const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'];
- if(b&&!inactive.includes(s)){openCustomerDashboard();return}
- openCustomerHub();
+ openBottomBookings();
 }
-function openCustomerHub(){getCustomerProfile()?openCustomerDashboard():openAccount('customer')}
+function openCustomerHub(){
+ openAccountEntry();
+}
 function openCustomerDashboard(){renderCustomerDashboard();document.getElementById('customerDashModal').classList.add('show')}
 function closeCustomerDashboard(){document.getElementById('customerDashModal').classList.remove('show')}
 function dashOpen(name,role){closeCustomerDashboard();openModule(name,role)}
@@ -4843,7 +4842,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-settings1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-cleanhome1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4917,7 +4916,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20261006-settings1';
+const OCS_APP_BUILD='20261006-cleanhome1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
