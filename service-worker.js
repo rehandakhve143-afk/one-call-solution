@@ -1,4 +1,4 @@
-const OCS_CACHE='ocs-shell-v27';
+const OCS_CACHE='ocs-shell-v28';
 const OCS_SHELL=[
   './',
   './index.html',
@@ -7,6 +7,8 @@ const OCS_SHELL=[
   './service-provider.html',
   './transport.html',
   './transport-driver.html',
+  './driver-service.html',
+  './driver-provider.html',
   './app-version.json',
   './assets/ocs-home.css',
   './assets/ocs-logo-mark.svg',
