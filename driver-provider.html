@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="cache-control" content="no-store,no-cache,must-revalidate,max-age=0">
+<title>OCS Driver Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f7f8;color:#173a42;font-family:system-ui,-apple-system,Segoe UI,Arial}.app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:84px}.top{background:#064d59;color:#fff;padding:18px 16px 22px;border-radius:0 0 26px 26px}.brand{display:flex;gap:12px;align-items:center}.logo{width:46px;height:46px;border-radius:14px;background:#111;display:grid;place-items:center;font-weight:900}.brand h1{margin:0;font-size:21px}.brand p{margin:3px 0 0;font-size:11px;opacity:.82}.wrap{padding:14px}.card{background:#fff;border:1px solid #e1e7e9;border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 7px 18px rgba(8,45,55,.05)}h2{font-size:22px;margin:0}h3{font-size:17px;margin:0 0 5px}.sub{font-size:11px;color:#78878c}.statuspill{display:inline-block;margin-top:8px;padding:6px 9px;border-radius:999px;background:#eaf7f4;color:#08786e;font-size:10px;font-weight:900}.job{border:1px solid #e3e9eb;border-radius:16px;padding:13px;margin-top:10px}.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #eef2f3;font-size:11px}.row:last-child{border-bottom:0}.row span{color:#78878c}.btn{border:0;border-radius:13px;padding:12px;font-weight:900}.primary{background:#078b81;color:#fff}.gray{background:#eaf0f1;color:#34515a}.yellow{background:#f3ef00;color:#17343c}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.full{width:100%;margin-top:10px}.bottom{position:fixed;left:0;right:0;bottom:0;height:68px;background:#075460;color:#fff;display:grid;grid-template-columns:repeat(4,1fr);z-index:20}.bottom button{border:0;background:transparent;color:#fff;font-size:10px}.bottom b{display:block;font-size:19px;margin-bottom:2px}.bottom button.on{color:#f3ef00}.empty{text-align:center;padding:24px 8px;color:#7b898d}.money{font-size:24px;font-weight:950;color:#064d59}.field{margin-top:10px}.field input,.field textarea{width:100%;padding:11px;border:1px solid #cfdcde;border-radius:12px;font:inherit}.field textarea{min-height:70px}
+</style></head><body>
+<div class="app">
+<header class="top"><div class="brand"><div class="logo">OCS</div><div><h1>Driver Dashboard</h1><p>4-Wheeler Driver • Pickup & Drop</p></div></div></header>
+<main class="wrap">
+<section class="card"><h2 id="driverName">Driver</h2><div class="sub" id="driverMeta">OCS Driver Service</div><span class="statuspill" id="workState">Work OFF</span><button class="btn yellow full" id="workBtn" onclick="toggleWork()">Turn Work ON</button></section>
+<section class="card" id="currentCard"><h3>Current Trip</h3><div id="currentBody" class="empty">No active trip</div></section>
+<section class="card" id="openCard"><h3>Driver Requests</h3><div class="sub">Nearby pickup & drop requests</div><div id="openJobs" class="empty">Checking requests…</div></section>
+</main>
+<nav class="bottom"><button class="on" onclick="tab('home')"><b>⌂</b>Home</button><button onclick="tab('activity')"><b>▤</b>Activity</button><button onclick="tab('wallet')"><b>₹</b>Wallet</button><button onclick="tab('account')"><b>♙</b>Account</button></nav>
+</div>
+<script>
+const SB_URL='https://uipmkrsggpkupgbgoxkg.supabase.co',SB_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+let workOn=false,current=null;
+const $=id=>document.getElementById(id);
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function load(){
+ const sess=await sb.auth.getSession();const session=sess.data&&sess.data.session;if(!session){location.href='index.html?login=1&open=sp-profile';return}
+ try{
+   const {data:snap,error:pe}=await sb.rpc('provider_profile_snapshot_v1');if(pe)throw pe;
+   const skills=Array.isArray(snap&&snap.skills)?snap.skills:[];
+   if(!skills.some(s=>String(s.category||'')==='Driver Service'&&s.enabled_by_provider!==false)){
+     $('openJobs').innerHTML='<div class="empty">Driver Service category profile me select/approve karein.</div>';return;
+   }
+   $('driverName').textContent=(snap.profile&&snap.profile.full_name)||'Driver';
+ }catch(e){}
+ try{
+   const {data:ps}=await sb.from('provider_status').select('available_for_work,wallet_balance,admin_paused').maybeSingle();
+   workOn=!!(ps&&ps.available_for_work);$('workState').textContent=(ps&&ps.admin_paused)?'ADMIN HOLD':(workOn?'WORK ON':'WORK OFF');$('workBtn').textContent=workOn?'Turn Work OFF':'Turn Work ON';
+   $('driverMeta').textContent='Wallet ₹'+Number(ps&&ps.wallet_balance||0).toFixed(2)+' • Jobs wallet low/negative hone se auto-block nahi hongi';
+ }catch(e){}
+ await loadCurrent();await loadOpenJobs();
+}
+async function toggleWork(){
+ try{const {error}=await sb.rpc('set_provider_available',{p_available:!workOn});if(error)throw error;await load()}catch(e){alert(e.message||'Work status update failed')}
+}
+async function loadOpenJobs(){
+ try{
+   const {data,error}=await sb.rpc('provider_open_jobs_v4');if(error)throw error;
+   const rows=(Array.isArray(data)?data:[]).filter(x=>String(x.category||'')==='Driver Service');
+   $('openJobs').innerHTML=rows.length?rows.map(jobCard).join(''):'<div class="empty">Abhi koi nearby Driver request nahi hai.</div>';
+ }catch(e){$('openJobs').innerHTML='<div class="empty">'+esc(e.message||'Requests load failed')+'</div>'}
+}
+function jobCard(j){
+ const r=j.booking_readiness||{};
+ return '<div class="job"><div class="row"><span>Pickup</span><b>'+esc(r.pickup_address||'')+'</b></div><div class="row"><span>Drop</span><b>'+esc(r.drop_address||'')+'</b></div><div class="row"><span>Car</span><b>'+esc(r.car_type||'')+' • '+esc(r.transmission||'')+'</b></div><div class="row"><span>Schedule</span><b>'+esc(j.request_schedule||'')+'</b></div><div class="grid2"><button class="btn primary" onclick="acceptJob(\''+j.id+'\')">Accept</button><button class="btn gray" onclick="rejectJob(\''+j.id+'\')">Reject</button></div></div>';
+}
+async function acceptJob(id){try{const {error}=await sb.rpc('accept_booking_v3',{p_booking_id:id});if(error)throw error;await load();setTimeout(()=>promptQuote(id),100)}catch(e){alert(e.message||'Accept failed')}}
+async function rejectJob(id){try{const {error}=await sb.rpc('reject_booking_v2',{p_booking_id:id,p_reason:'Driver unavailable'});if(error)throw error;await loadOpenJobs()}catch(e){alert(e.message||'Reject failed')}}
+async function promptQuote(id){const amt=Number(prompt('Pickup & Drop Driver charge ₹')||0);if(amt<=0)return;const note=(prompt('Quote note (optional)')||'Driver pickup & drop').trim();try{const {error}=await sb.rpc('provider_send_quote_v1',{p_booking_id:id,p_amount:amt,p_description:note,p_quote_kind:'initial',p_items:[]});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'Quote failed')}}
+async function loadCurrent(){
+ try{
+   const {data,error}=await sb.rpc('provider_current_booking');if(error)throw error;
+   const b=Array.isArray(data)?data[0]:data;current=(b&&String(b.category||'')==='Driver Service')?b:null;
+   if(!current){$('currentBody').innerHTML='<div class="empty">No active Driver trip</div>';return}
+   const r=current.booking_readiness||{},s=String(current.status||'').toLowerCase();
+   let action='';
+   if(s==='accepted')action='<button class="btn primary full" onclick="act(\'on_way\')">On the Way</button>';
+   if(s==='on_way')action='<button class="btn primary full" onclick="act(\'reached\')">Reached Pickup</button>';
+   if(s==='reached')action='<button class="btn yellow full" onclick="startOtp()">Enter Start OTP</button>';
+   if(s==='working')action='<button class="btn primary full" onclick="act(\'complete\')">Complete Trip</button>';
+   $('currentBody').innerHTML='<div class="row"><span>Status</span><b>'+esc(current.status)+'</b></div><div class="row"><span>Pickup</span><b>'+esc(r.pickup_address||current.address||'')+'</b></div><div class="row"><span>Drop</span><b>'+esc(r.drop_address||'')+'</b></div><div class="row"><span>Amount</span><b>₹'+Number(current.booking_amount||0).toFixed(0)+'</b></div>'+action;
+ }catch(e){$('currentBody').innerHTML='<div class="empty">'+esc(e.message||'Current trip load failed')+'</div>'}
+}
+async function act(a){try{const {error}=await sb.rpc('provider_booking_action',{p_booking_id:current.id,p_action:a,p_start_otp:null});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'Update failed')}}
+async function startOtp(){const otp=(prompt('Customer ka Start OTP enter karein')||'').trim();if(!otp)return;try{const {error}=await sb.rpc('provider_booking_action',{p_booking_id:current.id,p_action:'start',p_start_otp:otp});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'OTP invalid')}}
+function tab(x){if(x==='home'){load();return}if(x==='activity'){location.href='home-services.html?tab=provider&sp=1&v=20261006-walletfree2';return}if(x==='wallet'){location.href='home-services.html?tab=provider&sp=1&open=wallet&v=20261006-walletfree2';return}if(x==='account'){location.href='index.html?open=sp-profile&v=20261006-driver-service1';return}}
+load();setInterval(load,8000);
+</script></body></html>
