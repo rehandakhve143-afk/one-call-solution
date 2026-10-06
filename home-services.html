@@ -588,11 +588,14 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
 </style>
 
 
-<style id="ocs-customer-route-clean-v1">
-.customer-route-only .tabs{display:none!important}
-.customer-route-only .ocs-page-nav{display:none!important}
-.customer-route-only .top{padding-bottom:13px!important}
+<style id="ocs-customer-route-clean-v2">
+.customer-route-only .tabs,
+.customer-route-only .ocs-page-nav,
+.customer-route-only .customer-history-card{display:none!important}
+.customer-route-only .top{padding:12px 14px 13px!important}
 .customer-route-only #ocsUniversalSearch{position:static!important;top:auto!important}
+.customer-route-only #customer.screen{padding-top:10px!important}
+.customer-route-only .customer-dashboard-card{margin-top:0!important}
 </style>
 
 </head>
@@ -606,7 +609,7 @@ body.customer-locked-ui .ocs-hs-head{top:57px!important}
     const explicit=q.get('embed')==='1'||q.get('sp')==='1'||q.get('admin')==='1'||['provider','admin'].includes(String(q.get('tab')||'').toLowerCase());
     const cameFromOcs=String(document.referrer||'').includes(location.origin);
     if(standalone&&topLevel&&!explicit&&!cameFromOcs){
-      location.replace('index.html?pwa=1&v=20261006-pwa2');
+      location.replace('index.html?pwa=1&v=20261006-clean1');
     }
   }catch(e){}
 })();
@@ -5151,7 +5154,7 @@ $("pStatus").textContent=!S.providerProfileAvailable
        :(providerIdle?(S.adminPaused||!S.jobAccess?"ADMIN HOLD":(S.available?"WAITING FOR JOB":"WORK OFF")):S.status)));
 const pt=$("ptab");const normalBookingNew=S.status==="REQUESTED";const extraWorkNew=S.customerExtraStatus==="SENT_TO_PROVIDER"&&S.customerExtraRequest;const nextWorkNew=!!S.pendingNextRequest;if(pt)pt.textContent=(normalBookingNew||extraWorkNew||nextWorkNew)?"Service Provider • NEW":"Service Provider";
 $("cBody").innerHTML=customerHTML();
-const customerBrowseMode=["SELECT_SERVICE","SELECT_ITEM","CUSTOM_REQUEST"].includes(S.status);
+const customerBrowseMode=["SELECT_SERVICE","SELECT_ITEM","CUSTOM_REQUEST","READY"].includes(S.status);
 const customerContextHead=$("customerContextHead");
 if(customerContextHead)customerContextHead.style.display=customerBrowseMode?"none":"flex";
 const customerContextText=$("customerContextText");
@@ -5259,9 +5262,12 @@ if(OCS_SP_ONLY){
  if(at){at.style.display="inline-flex";at.textContent="Admin";}
 }else if(OCS_ROUTE_TAB==="customer"){
  document.body.classList.add("customer-route-only");
+ const tabs=document.querySelector(".tabs"),pageNav=document.getElementById("ocsPageNav");
  const pt=document.getElementById("ptab"),ct=document.getElementById("ctab");
+ if(tabs)tabs.style.setProperty("display","none","important");
+ if(pageNav)pageNav.style.setProperty("display","none","important");
  if(pt)pt.style.display="none";
- if(ct){ct.style.width="auto";ct.textContent="Customer";}
+ if(ct)ct.style.display="none";
 }
 setInterval(function(){
  if(["QUOTE_WAIT","INITIAL_QUOTE","QUOTE_REVISION_PENDING"].includes(S.status))render();
@@ -5646,10 +5652,10 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
      if(n===3){setOn(3);if(typeof openProviderWalletQuick==='function')openProviderWalletQuick();return}
      if(n===4){setOn(4);if(typeof openProviderProfileSafe==='function')openProviderProfileSafe();return}
    }else{
-     if(n===1){location.href='index.html?pwa=1&v=20261006-e2e1';return}
-     if(n===2){location.href='index.html?open=activity&v=20261006-e2e1';return}
-     if(n===3){location.href='index.html?open=wallet&v=20261006-e2e1';return}
-     if(n===4){location.href='index.html?open=account&v=20261006-e2e1';return}
+     if(n===1){location.href='index.html?pwa=1&v=20261006-clean1';return}
+     if(n===2){location.href='index.html?open=activity&v=20261006-clean1';return}
+     if(n===3){location.href='index.html?open=wallet&v=20261006-clean1';return}
+     if(n===4){location.href='index.html?open=account&v=20261006-clean1';return}
    }
  };
  function configure(){
