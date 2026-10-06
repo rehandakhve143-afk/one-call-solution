@@ -200,7 +200,7 @@ setTimeout(function(){
 
     <div class="ocs-super-head"><h2>Explore One Call Solution</h2><button onclick="document.getElementById('ocsMarketGrid').scrollIntoView({behavior:'smooth'})">View All</button></div>
     <div class="ocs-super-market" id="ocsMarketGrid">
-      <button class="ocs-market-card" onclick="openModule('Tempo / Goods Transport')"><span class="photo" style="background-image:url('https://images.unsplash.com/photo-1592838064575-70ed626d3a0e?auto=format&fit=crop&w=900&q=82')"></span><span class="ocs-market-badge">TRANSPORT</span><span class="ocs-market-copy"><b>Tempo / Goods Transport</b><small>Home Shifting • Delivery • Truck</small></span></button>
+      <button class="ocs-market-card" onclick="openModule('Tempo / Goods Transport')"><span class="photo" style="background-image:url('https://images.unsplash.com/photo-1592838064575-70ed626d3a0e?auto=format&fit=crop&w=900&q=82')"></span><span class="ocs-market-badge">DRIVER SERVICE</span><span class="ocs-market-copy"><b>Tempo / Goods Transport</b><small>Driver • Home Shifting • Delivery • Truck</small></span></button>
       
       <button class="ocs-market-card" onclick="openModule('Local Shop')"><span class="photo" style="background-image:url('https://www.dolarlc.com/_next/image?q=75&url=%2Fimages%2Fassets%2Felectricidad-3.webp&w=3840')"></span><span class="ocs-market-badge">NEARBY</span><span class="ocs-market-copy"><b>Local Shop</b><small>Electrical • Hardware</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Modular Kitchen')"><span class="photo" style="background-image:url('https://indiframe-cms-media.s3.ap-south-1.amazonaws.com/blog122_26d5a6b6f3.jpg')"></span><span class="ocs-market-copy"><b>Modular Kitchen</b><small>Design • Measurement • Quote</small></span></button>
@@ -1402,9 +1402,9 @@ async function openHomeProviderDashboard(){
     if(error)throw error;
     const skills=Array.isArray(data&&data.skills)?data.skills:[];
     const isTransport=skills.some(x=>String(x.category||'').trim()==='Tempo / Goods Transport'&&x.enabled_by_provider!==false);
-    location.href=isTransport?'transport-driver.html?v=20261005-driver1':'home-services.html?tab=provider&sp=1&v=20261006-walletfree1';
+    location.href=isTransport?'transport-driver.html?v=20261006-driver-e2e1':'home-services.html?tab=provider&sp=1&v=20261006-walletfree2';
   }catch(e){
-    location.href='home-services.html?tab=provider&sp=1&v=20261006-walletfree1';
+    location.href='home-services.html?tab=provider&sp=1&v=20261006-walletfree2';
   }
 }
 async function openHomeAdminDashboard(){
@@ -1424,13 +1424,24 @@ async function renderHomeDashboardShortcuts(){
   const grid=document.getElementById('ocsHomeDashboardGrid');
   if(!wrap||!grid)return;
   const session=await getOcsSession();
-  let hasAdmin=false;
+  let hasAdmin=false,hasTransport=false;
   if(session&&session.user){
     hasAdmin=await ocsUserHasRole('admin');
+    try{
+      const hasSp=await ocsUserHasRole('service_provider');
+      if(hasSp){
+        const {data,error}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
+        if(!error){
+          const skills=Array.isArray(data&&data.skills)?data.skills:[];
+          hasTransport=skills.some(x=>String(x.category||'').trim()==='Tempo / Goods Transport'&&x.enabled_by_provider!==false);
+        }
+      }
+    }catch(e){}
   }
   let html=
     '<button class="ocs-home-dash-btn" onclick="openHomeCustomerDashboard()"><span class="ico">C</span><b>Customer Dashboard</b><small>Bookings • rewards • support</small></button>'+
-    '<button class="ocs-home-dash-btn" onclick="openHomeProviderDashboard()"><span class="ico">SP</span><b>SP Dashboard</b><small>Jobs • wallet • earnings</small></button>';
+    '<button class="ocs-home-dash-btn" onclick="openHomeProviderDashboard()"><span class="ico">SP</span><b>SP Dashboard</b><small>Jobs • wallet • earnings</small></button>'+
+    (hasTransport?'<button class="ocs-home-dash-btn" onclick="location.href=\'transport-driver.html?v=20261006-driver-e2e1\'"><span class="ico">🚚</span><b>Driver Dashboard</b><small>Trips • wallet • activity</small></button>':'');
   if(hasAdmin){
     html+='<button class="ocs-home-dash-btn admin" onclick="openHomeAdminDashboard()"><span class="ico">A</span><b>Admin Dashboard</b><small>Admin control</small></button>'+
           '<button class="ocs-home-dash-btn admin" onclick="openPricingAdmin()"><span class="ico">₹</span><b>Pricing / GST</b><small>Public rates • GST settings</small></button>';
@@ -1439,9 +1450,9 @@ async function renderHomeDashboardShortcuts(){
   wrap.hidden=false;
 }
 
-function openProviderDashboardFromMenu(){
+async function openProviderDashboardFromMenu(){
   closeAllBottomHubs();
-  location.href='service-provider.html?v=20261006-walletfree2';
+  await openHomeProviderDashboard();
 }
 
 function openProviderProfileFromMenu(){
@@ -1767,8 +1778,8 @@ async function showProviderProfileSummary(){
     '<div class="ocs-sp-summary-actions">'+
       (status==='approved'
        ?(category==='Tempo / Goods Transport'
-         ?'<button class="primary" onclick="closeAccount();location.href=\'transport-driver.html?v=20261005-driver2\'">Open Driver Dashboard</button>'
-         :'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20261006-walletfree1\'">Open SP Dashboard</button>')
+         ?'<button class="primary" onclick="closeAccount();location.href=\'transport-driver.html?v=20261006-driver-e2e1\'">Open Driver Dashboard</button>'
+         :'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20261006-walletfree2\'">Open SP Dashboard</button>')
        :status==='pending'
          ?(category==='Tempo / Goods Transport'&&!tp.kyc_complete
            ?'<button class="primary" onclick="editProviderProfileSkills();setTimeout(()=>{const x=document.getElementById(\'paTransportKycLater\');if(x){x.style.display=\'block\';x.scrollIntoView({behavior:\'smooth\',block:\'center\'})}},80)">Complete Transport KYC</button>'
@@ -3860,7 +3871,7 @@ setTimeout(()=>{renderLivePaidBanners();renderXyzDemoBanner();refreshHomeLiveWin
 setInterval(()=>{refreshHomeLiveWindowPosters().catch(()=>{})},6000);
 async function openModule(n,role,serviceCat){
  if(n==='Tempo / Goods Transport'){
-   location.href='transport.html?v=20261003-transport-direct2';
+   location.href='transport.html?v=20261006-driver-e2e1';
    return;
  }
  if(n==='Home Services'){
