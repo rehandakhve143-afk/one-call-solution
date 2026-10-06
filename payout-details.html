@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store,no-cache,must-revalidate,max-age=0">
+<meta name="theme-color" content="#075460">
+<title>Bank & Payout • One Call Solution</title>
+<link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#173940;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+.app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:32px}
+.top{background:#075460;color:#fff;padding:17px 17px 25px;border-radius:0 0 24px 24px}
+.header{display:flex;align-items:center;gap:12px}
+.back{width:39px;height:39px;border:1px solid #ffffff50;border-radius:12px;background:#ffffff1a;color:#fff;font-size:23px}
+.kicker{font-size:10px;letter-spacing:1.4px;opacity:.8;font-weight:850}
+.header h1{margin:3px 0 0;font-size:22px;line-height:1.1}
+.top p{margin:13px 0 0;font-size:12px;opacity:.9}
+.wrap{padding:14px 14px 26px}.card{background:#fff;border:1px solid #e1e9eb;box-shadow:0 6px 17px #0b343a09;border-radius:20px;padding:17px;margin-bottom:12px}
+.status{display:inline-flex;align-items:center;border-radius:999px;padding:6px 10px;background:#fff4db;color:#855b10;font-size:11px;font-weight:850}
+.status.verified{background:#e6f7ef;color:#087552}.status.rejected{background:#fff0ef;color:#ae3e3e}.status.not_added{background:#edf2f3;color:#556c73}
+h2{margin:0;font-size:16px}.muted{color:#73858a;font-size:12px;margin:6px 0 0;line-height:1.55}
+.info{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;padding-top:11px;border-top:1px solid #eef1f2}
+.info span{font-size:12px;color:#73858a}.info strong{font-size:13px;text-align:right;overflow-wrap:anywhere}
+label{display:block;margin:12px 0 5px;font-size:12px;font-weight:800;color:#36585e}
+input,select{display:block;width:100%;height:45px;border:1px solid #cad9dc;border-radius:12px;padding:11px;background:#fff;color:#173940;font:inherit;outline-color:#087d72}
+input:focus,select:focus{border-color:#087d72;box-shadow:0 0 0 3px #087d721b}
+button{cursor:pointer}button:disabled{opacity:.55;cursor:wait}
+.button{display:block;width:100%;border:0;border-radius:13px;padding:13px 15px;font-weight:850;font-size:13px;margin-top:12px}
+.primary{background:#087d72;color:#fff}.secondary{background:#eef4f3;color:#245b61}
+.note{background:#f0f8f6;border-radius:13px;padding:12px;font-size:11px;line-height:1.55;color:#4c6970;margin-top:13px}
+.error{color:#b03333!important}.success{color:#087552!important}
+#message{font-size:12px;min-height:1.4em;margin-top:10px}
+#loading{padding:22px;text-align:center;color:#678087}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+ <header class="top">
+  <div class="header"><button class="back" type="button" onclick="goBack()" aria-label="Back">‹</button><div><div class="kicker">ONE CALL SOLUTION</div><h1>Bank & Payout</h1></div></div>
+  <p id="context">Service Provider • Your payout account</p>
+ </header>
+ <main class="wrap">
+  <div class="card">
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Account verification</h2><span class="status not_added" id="verifyBadge">Checking…</span></div>
+   <p class="muted">Profile banate waqt bank details optional hain. OCS payout release ke liye approved bank account required hai.</p>
+   <div id="walletRows" class="hidden"><div class="info"><span>SP Wallet</span><strong id="wallet">₹0</strong></div><div class="info"><span>Withdrawable*</span><strong id="withdrawable">₹0</strong></div></div>
+  </div>
+  <div id="loading" class="card">Loading saved bank account…</div>
+  <div id="saved" class="card hidden">
+   <h2>Saved bank account</h2>
+   <div class="info"><span>Account Holder</span><strong id="savedHolder">—</strong></div>
+   <div class="info"><span>Bank</span><strong id="savedBank">—</strong></div>
+   <div class="info"><span>Account Number</span><strong id="savedNumber">—</strong></div>
+   <div class="info"><span>IFSC</span><strong id="savedIfsc">—</strong></div>
+   <div class="info"><span>Account Type</span><strong id="savedType">—</strong></div>
+   <div class="info"><span>UPI (optional)</span><strong id="savedUpi">—</strong></div>
+   <div class="note">Account number is masked. Bank details change karne par verification dobara Pending rahegi.</div>
+   <button type="button" class="button secondary" onclick="showForm()">Update Bank Details</button>
+  </div>
+  <form id="form" class="card hidden" autocomplete="off">
+   <h2 id="formTitle">Add Bank Details</h2>
+   <p class="muted">Sirf apne asli payout bank account ki details dalein. Fake/test account mat dalein.</p>
+   <label for="holder">Account Holder Name *</label><input id="holder" maxlength="100" autocomplete="off" required placeholder="Name as per bank">
+   <label for="bank">Bank Name *</label><input id="bank" maxlength="100" autocomplete="off" required placeholder="Your bank name">
+   <label for="number">Account Number *</label><input id="number" inputmode="numeric" maxlength="20" autocomplete="off" required placeholder="8–20 digit account number">
+   <label for="confirm">Confirm Account Number *</label><input id="confirm" inputmode="numeric" maxlength="20" autocomplete="off" required placeholder="Re-enter account number">
+   <label for="type">Account Type *</label><select id="type"><option value="savings">Savings</option><option value="current">Current</option></select>
+   <label for="ifsc">IFSC Code *</label><input id="ifsc" maxlength="11" autocomplete="off" autocapitalize="characters" required placeholder="ABCD0123456">
+   <label for="upi">UPI ID (optional)</label><input id="upi" maxlength="100" autocomplete="off" placeholder="yourname@bank">
+   <div class="note">Details securely account se link hongi. Save karne ke baad status Pending Verification hoga. Ye payout enable hone ki guarantee nahi hai.</div>
+   <p id="message" role="status"></p>
+   <button id="save" type="submit" class="button primary">Save Bank Details</button>
+   <button type="button" class="button secondary" id="cancel" onclick="cancelForm()">Cancel</button>
+  </form>
+  <div class="card"><h2>OCS Payment Rule</h2><p class="muted">Online jobs: 9% OCS charge, remaining 91% SP settlement. Cash jobs: 9% SP wallet se debit. Negative wallet jobs automatically block nahi karta. *Withdrawal reserve and verification rules apply.</p></div>
+ </main>
+</div>
+<script>
+const projectUrl='https://uipmkrsggpkupgbgoxkg.supabase.co';
+const publishableKey='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
+const sb=window.supabase?window.supabase.createClient(projectUrl,publishableKey,{auth:{persistSession:true,autoRefreshToken:true}}):null;
+const $=id=>document.getElementById(id);
+const allowed={driver:{label:'Driver Service',back:'driver-provider.html?view=account&v=20261006-bank1'},transport:{label:'Tempo / Goods Transport',back:'transport-driver.html?view=account&v=20261006-bank1'},sp:{label:'Home Service Provider',back:'home-services.html?tab=provider&sp=1&v=20261006-bank1'}};
+const source=new URLSearchParams(location.search).get('from')||'sp';
+const selected=allowed[source]||allowed.sp;
+let saved=null;let saving=false;
+$('context').textContent=selected.label+' • Payout Account';
+function goBack(){location.href=selected.back}
+function setStatus(txt,cls){$('verifyBadge').textContent=txt;$('verifyBadge').className='status '+cls}
+function fill(id,value){$(id).textContent=String(value??'—')}
+function money(v){return '₹'+Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function render(d){
+ saved=d||{has_details:false,verification_status:'not_added'};
+ $('loading').classList.add('hidden');
+ $('walletRows').classList.remove('hidden');
+ fill('wallet',money(saved.wallet_balance));fill('withdrawable',money(saved.withdrawable_amount));
+ const status=String(saved.verification_status||'not_added').toLowerCase();
+ setStatus(status==='approved'?'Verified ✓':status==='rejected'?'Rejected':status==='pending'?'Pending Verification':'Not Added',status==='approved'?'verified':status==='rejected'?'rejected':status==='pending'?'pending':'not_added');
+ $('form').classList.add('hidden');
+ if(saved.has_details){
+   $('saved').classList.remove('hidden');
+   fill('savedHolder',saved.account_holder_name);fill('savedBank',saved.bank_name);
+   fill('savedNumber',saved.masked_account_number);fill('savedIfsc',saved.ifsc);
+   fill('savedType',(saved.account_type||'savings').toUpperCase());fill('savedUpi',saved.upi_id||'—');
+ }else{ $('saved').classList.add('hidden');showForm() }
+}
+function showForm(){
+ $('saved').classList.add('hidden');$('form').classList.remove('hidden');
+ $('formTitle').textContent=saved&&saved.has_details?'Update Bank Details':'Add Bank Details';
+ fill('message','');
+ $('holder').value=(saved&&saved.account_holder_name)||'';
+ $('bank').value=(saved&&saved.bank_name)||'';
+ $('ifsc').value=(saved&&saved.ifsc)||'';
+ $('type').value=(saved&&saved.account_type)||'savings';
+ $('upi').value=(saved&&saved.upi_id)||'';
+ $('number').value='';$('confirm').value='';
+ $('cancel').style.display=saved&&saved.has_details?'block':'none';
+}
+function cancelForm(){if(saved&&saved.has_details)render(saved)}
+async function start(){
+ if(!sb){$('loading').textContent='Login service load nahi hua. Internet check karein.';return}
+ try{
+  const {data:sessionData,error:authError}=await sb.auth.getSession();
+  if(authError)throw authError;
+  if(!sessionData||!sessionData.session){$('loading').innerHTML='Login required. <a href="index.html?login=1&open=sp-profile">Login to OCS</a>';return}
+  const {data,error}=await sb.rpc('provider_payout_snapshot_v1');
+  if(error)throw error;
+  render(data);
+ }catch(e){$('loading').textContent='Bank account load nahi hua: '+String(e.message||'Please try again')}
+}
+$('form').addEventListener('submit',async function(ev){
+ ev.preventDefault();
+ if(saving||!sb)return;
+ const holder=$('holder').value.trim(),bank=$('bank').value.trim();
+ const number=$('number').value.trim(),confirm=$('confirm').value.trim();
+ const ifsc=$('ifsc').value.trim().toUpperCase(),accountType=$('type').value;
+ const upi=$('upi').value.trim();
+ const msg=$('message');msg.className='error';
+ if(!holder||!bank){msg.textContent='Account Holder aur Bank Name required hain.';return}
+ if(!/^[0-9]{8,20}$/.test(number)){msg.textContent='Valid 8–20 digit account number enter karein.';return}
+ if(number!==confirm){msg.textContent='Account number aur confirmation match nahi kar rahe.';return}
+ if(!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)){msg.textContent='Valid 11-character IFSC required.';return}
+ saving=true;$('save').disabled=true;$('save').textContent='Saving…';msg.textContent='';
+ try{
+  const {data,error}=await sb.rpc('save_provider_payout_v2',{p_account_holder_name:holder,p_bank_name:bank,p_account_number:number,p_ifsc:ifsc,p_account_type:accountType,p_upi_id:upi||null});
+  if(error)throw error;
+  $('number').value='';$('confirm').value='';
+  render(data);
+ }catch(e){msg.textContent='Save failed: '+String(e.message||'Please try again')}
+ finally{saving=false;$('save').disabled=false;$('save').textContent='Save Bank Details'}
+});
+start();
+</script>
+</body>
+</html>
