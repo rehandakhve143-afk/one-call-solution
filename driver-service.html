@@ -7,92 +7,208 @@
 <title>OCS Driver Service</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f4f7f8;color:#173a42;font-family:system-ui,-apple-system,Segoe UI,Arial}.app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:28px}.top{background:#064d59;color:#fff;padding:18px 16px 22px;border-radius:0 0 26px 26px}.brand{display:flex;gap:12px;align-items:center}.logo{width:46px;height:46px;border-radius:14px;background:#111;display:grid;place-items:center;font-weight:900}.brand h1{margin:0;font-size:21px}.brand p{margin:3px 0 0;font-size:11px;opacity:.82}.back{width:100%;margin-top:14px;border:1px solid #ffffff2f;background:#ffffff12;color:#fff;border-radius:13px;padding:11px;font-weight:850}.wrap{padding:14px}.card{background:#fff;border:1px solid #e1e7e9;border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 7px 18px rgba(8,45,55,.05)}h2{font-size:23px;margin:0 0 4px}h3{font-size:17px;margin:0 0 5px}.sub{font-size:11px;color:#78878c;line-height:1.45}.field{margin-top:11px}.field label{display:block;font-size:11px;font-weight:850;margin-bottom:5px}.field input,.field select,.field textarea{width:100%;border:1px solid #ccdadd;border-radius:12px;padding:12px;font:inherit;color:#173a42;background:#fff}.field textarea{min-height:76px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}.btn{width:100%;border:0;border-radius:14px;padding:14px;font-weight:900;margin-top:14px}.primary{background:#078b81;color:#fff}.gray{background:#eaf0f1;color:#34515a}.info{margin-top:10px;padding:11px;border-radius:13px;background:#eef7f7;color:#315a61;font-size:11px;line-height:1.5}.status{display:none;margin-top:11px;padding:11px;border-radius:13px;background:#ecfaf5;color:#176756;font-size:12px;font-weight:750}.bad{background:#fff1f1;color:#9a2d2d}.trip{display:none}.row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #edf1f2;font-size:11px}.row:last-child{border-bottom:0}.row span{color:#78878c}.otp{margin-top:11px;background:#064d59;color:#fff;border-radius:15px;padding:14px;text-align:center}.otp small{display:block;color:#cfe3e6;font-size:9px}.otp b{display:block;font-size:30px;letter-spacing:5px;margin-top:4px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.actions button{border:0;border-radius:12px;padding:11px;font-weight:850}.foot{text-align:center;color:#889499;font-size:10px;margin-top:12px}@media(max-width:420px){.grid2{grid-template-columns:1fr}}
+*{box-sizing:border-box}
+:root{--teal:#0a7886;--deep:#064d59;--yellow:#f3ef00;--bg:#f5f7f8;--line:#e3e8ea;--muted:#748388;--text:#18252e}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:84px}
+.topbar{position:sticky;top:0;z-index:30;background:rgba(245,247,248,.96);backdrop-filter:blur(12px);display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid #edf0f1}
+.topbar button{width:42px;height:42px;border:0;border-radius:13px;background:#fff;color:var(--deep);font-size:24px}
+.topbar b{font-size:20px}.wrap{padding:14px}
+.hero{border-radius:24px;padding:18px;background:linear-gradient(135deg,#063f4b,#0a7886);color:#fff;box-shadow:0 14px 32px rgba(6,77,89,.16)}
+.hero small{display:block;font-size:10px;font-weight:850;letter-spacing:.06em;color:#cce5e8}.hero h1{font-size:27px;line-height:1.05;margin:5px 0 7px}.hero p{font-size:12px;line-height:1.45;margin:0;color:#d7e9eb}
+.mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;padding:5px;background:#ffffff18;border:1px solid #ffffff21;border-radius:17px}
+.mode button{min-height:47px;border:0;border-radius:13px;background:transparent;color:#d8e8ea;font-weight:900}.mode button.on{background:#fff;color:var(--deep)}
+.card{margin-top:13px;background:#fff;border:1px solid var(--line);border-radius:21px;padding:16px;box-shadow:0 7px 22px rgba(8,45,55,.045)}
+.card h2{font-size:19px;margin:0 0 4px}.card h3{font-size:16px;margin:0 0 4px}.sub{color:var(--muted);font-size:10.5px;line-height:1.45}
+.stephead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.stephead span{font-size:9px;font-weight:900;color:var(--teal);background:#eaf7f7;padding:5px 8px;border-radius:999px}
+.way{display:grid;grid-template-columns:1fr 1fr;gap:9px}.way button{min-height:74px;border:1px solid #dbe4e6;border-radius:17px;background:#fff;text-align:left;padding:13px;color:#344b52}.way b{display:block;font-size:14px}.way small{display:block;margin-top:3px;color:#839095;font-size:9.5px}.way button.on{border:2px solid var(--teal);background:#eaf9fb;color:var(--deep)}
+.field{margin-top:11px}.field label{display:block;font-size:10.5px;font-weight:850;margin-bottom:5px}.field input,.field textarea{width:100%;border:1px solid #d6dfe2;background:#fff;border-radius:13px;padding:12px;color:#213941;outline:none}.field textarea{min-height:72px;resize:vertical}
+.locrow{display:grid;grid-template-columns:1fr auto;gap:7px}.locrow button{border:0;border-radius:13px;padding:0 13px;background:#eaf7f7;color:var(--teal);font-weight:900}
+.cargrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}
+.carcard{position:relative;border:1px solid #dce3e5;border-radius:17px;background:#fafbfc;padding:8px 7px 10px;text-align:center;color:#243b43;overflow:hidden}
+.carcard img{display:block;width:100%;height:68px;border-radius:12px;object-fit:cover;background:#eef2f3}.carcard b{display:block;margin-top:7px;font-size:11px}.carcard.on{border:2px solid var(--teal);background:#dff6fb}.carcard.on:after{content:"✓";position:absolute;top:7px;right:7px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--teal);color:#fff;font-size:12px;font-weight:900}
+.choice3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}.choice3 button{min-height:58px;border:1px solid #cfe1e4;border-radius:15px;background:#fff;color:#617076;font-weight:900}.choice3 button b{display:block;font-size:14px;color:inherit}.choice3 button small{display:block;font-size:9px;margin-top:2px}.choice3 button.on{background:#dff6fb;border:2px solid var(--teal);color:var(--deep)}
+.duration{display:flex;gap:8px;overflow:auto;padding:2px 0 3px;margin-top:9px;scrollbar-width:none}.duration::-webkit-scrollbar{display:none}.duration button{flex:0 0 70px;min-height:65px;border:1px solid #e1e5e7;border-radius:15px;background:#fff;font-size:12px;font-weight:900;color:#273941}.duration button.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.scheduleBox{margin-top:10px;border:1px solid #e0e5e7;border-radius:15px;padding:13px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff}.scheduleBox b{display:block;font-size:14px;color:#21464f}.scheduleBox small{display:block;margin-top:3px;font-size:9.5px;color:#829095}.scheduleBox button{width:42px;height:42px;border:0;border-radius:50%;background:#e9f6f7;color:var(--teal);font-size:20px}
+.summary{margin-top:13px;border:1px solid #dce4e6;border-radius:18px;background:#fff;padding:14px}.sumrow{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #edf0f1;font-size:10.5px}.sumrow:last-child{border-bottom:0}.sumrow span{color:#7e8b90}.sumrow b{text-align:right;color:#253d45}.fare{margin-top:12px;border-radius:17px;padding:14px;background:#f7fafb;border:1px solid #e1e7e8;display:flex;align-items:center;justify-content:space-between}.fare b{font-size:15px}.fare strong{font-size:18px;color:var(--deep)}
+.payrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.payrow button{min-height:48px;border:1px solid #d6e1e3;border-radius:14px;background:#fff;color:#344d54;font-weight:900}.payrow button.on{border:2px solid var(--teal);background:#eaf9fb;color:var(--deep)}
+.cta{position:sticky;bottom:78px;z-index:12;margin:14px 0 0}.cta button{width:100%;min-height:58px;border:0;border-radius:30px;background:var(--teal);color:#fff;font-size:16px;font-weight:900;box-shadow:0 9px 24px rgba(10,120,134,.18)}.cta button:after{content:"↗";float:right;width:40px;height:40px;margin-top:-9px;border-radius:50%;display:grid;place-items:center;background:var(--yellow);color:#17343c;font-size:22px}
+.status{display:none;margin-top:10px;padding:11px;border-radius:13px;background:#eaf8f3;color:#176756;font-size:11px;font-weight:800}.status.bad{background:#fff0f0;color:#9a2d2d}
+.trip{display:none}.row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #edf1f2;font-size:10.5px}.row span{color:#7c898e}.otp{margin-top:10px;border-radius:16px;padding:14px;background:var(--deep);color:#fff;text-align:center}.otp small{display:block;color:#cfe3e6;font-size:9px}.otp b{display:block;font-size:30px;letter-spacing:5px;margin-top:4px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.actions button{border:0;border-radius:12px;padding:11px;font-weight:900}.primary{background:var(--teal);color:#fff}.gray{background:#eaf0f1;color:#34515a}.info{margin-top:10px;padding:11px;border-radius:13px;background:#eef7f7;color:#315a61;font-size:11px;line-height:1.45}
+.sheet{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;overflow:auto}.sheet.show{display:block}.sheetHead{position:sticky;top:0;z-index:2;background:rgba(245,247,248,.97);backdrop-filter:blur(10px);display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid #edf0f1}.sheetHead button{width:42px;height:42px;border:0;border-radius:13px;background:#fff;font-size:24px}.sheetHead b{font-size:21px}
+.dateStrip{display:flex;gap:8px;overflow:auto;padding:14px 14px 6px;scrollbar-width:none}.dateStrip::-webkit-scrollbar{display:none}.dateStrip button{flex:0 0 86px;border:1px solid #dce3e5;border-radius:16px;background:#fff;padding:10px 7px;color:#5b686d}.dateStrip b{display:block;font-size:13px}.dateStrip small{display:block;margin-top:2px;font-size:9px}.dateStrip button.on{background:#dff6fb;border:2px solid var(--teal);color:var(--deep)}
+.timeTitle{padding:12px 16px 4px;font-size:11px;font-weight:900;color:#59686e}.timeGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 14px 100px}.timeGrid button{min-height:47px;border:1px solid #dfe5e7;border-radius:13px;background:#fff;color:#33474e;font-size:11px;font-weight:850}.timeGrid button.on{background:var(--teal);border-color:var(--teal);color:#fff}.sheetConfirm{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(492px,calc(100% - 28px));background:#fff;padding:9px;border-radius:28px;box-shadow:0 8px 30px rgba(0,0,0,.12)}.sheetConfirm button{width:100%;min-height:54px;border:0;border-radius:27px;background:var(--teal);color:#fff;font-size:16px;font-weight:900}
+.bottom{position:fixed;left:0;right:0;bottom:0;height:68px;background:#075460;color:#fff;display:grid;grid-template-columns:repeat(4,1fr);z-index:50}.bottom button{border:0;background:transparent;color:#fff;font-size:10px}.bottom b{display:block;font-size:19px;margin-bottom:2px}.bottom .on{color:var(--yellow)}
+@media(max-width:390px){.cargrid{grid-template-columns:repeat(2,1fr)}.timeGrid{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
 <div class="app">
-<header class="top">
-  <div class="brand"><div class="logo">OCS</div><div><h1>Driver Service</h1><p>4-Wheeler Driver • Pickup & Drop</p></div></div>
-  <button class="back" onclick="location.href='index.html?pwa=1&v=20261006-driver-service1'">← Back to OCS Home</button>
-</header>
+<header class="topbar"><button onclick="location.href='index.html?pwa=1&v=20261006-driver-ui3'">‹</button><b>Driver Service</b></header>
 <main class="wrap">
-  <section class="card">
-    <h2>Need a Driver?</h2>
-    <div class="sub">Aapki apni car ke liye verified Driver book karein. Ye Tempo / Goods Transport nahi hai.</div>
-    <div class="info"><b>Only Driver Service:</b> Driver aapki car chalane ke liye aayega. Pickup → Drop. Vehicle OCS provide nahi karega.</div>
-  </section>
+<section class="hero">
+  <small>OCS VERIFIED DRIVER</small>
+  <h1>Plan your trip</h1>
+  <p>Aapki apni 4-wheeler ke liye Driver book karein. OCS vehicle provide nahi karta.</p>
+  <div class="mode"><button id="planMode" class="on" onclick="setMode('PLAN')">Plan your trip</button><button id="nowMode" onclick="setMode('NOW')">Go Now</button></div>
+</section>
 
-  <section class="card" id="bookCard">
-    <h3>Pickup & Drop</h3>
-    <div class="field"><label>Pickup Location *</label><input id="pickup" placeholder="Pickup address / landmark"></div>
-    <div class="field"><label>Drop Location *</label><input id="drop" placeholder="Drop address / landmark"></div>
-    <div class="grid2">
-      <div class="field"><label>Date *</label><input id="date" type="date"></div>
-      <div class="field"><label>Time *</label><input id="time" type="time"></div>
-    </div>
-    <div class="grid2">
-      <div class="field"><label>Car Type</label><select id="carType"><option>Hatchback</option><option>Sedan</option><option>SUV</option><option>MUV</option><option>Luxury Car</option><option>Other</option></select></div>
-      <div class="field"><label>Transmission</label><select id="transmission"><option>Manual</option><option>Automatic</option><option>EV</option></select></div>
-    </div>
-    <div class="field"><label>Trip Type</label><select id="tripType"><option>One Way Pickup & Drop</option><option>Round Trip</option><option>Local Hourly Driver</option><option>Outstation Driver</option></select></div>
-    <div class="field"><label>Estimated Duration</label><select id="duration"><option>2 Hrs</option><option>2.5 Hrs</option><option>3 Hrs</option><option>3.5 Hrs</option><option>4 Hrs</option><option>4.5 Hrs</option><option>5 Hrs</option><option>6 Hrs</option><option>8 Hrs</option><option>Full Day</option></select></div>
-    <div class="field"><label>Note (Optional)</label><textarea id="note" placeholder="Parking, society gate, car details, etc."></textarea></div>
-    <button class="btn primary" id="bookBtn" onclick="bookDriver()">Request Driver</button>
-    <div id="status" class="status"></div>
-  </section>
+<section class="card">
+  <div class="stephead"><div><h2>Select Way</h2><div class="sub">Trip ka type choose karein</div></div><span>STEP 1</span></div>
+  <div class="way">
+    <button id="roundBtn" onclick="setTripType('Round Trip')"><b>↔ Round Trip</b><small>Pickup par wapas return</small></button>
+    <button id="oneBtn" class="on" onclick="setTripType('One Way')"><b>⌁ One Way</b><small>Pickup se Drop</small></button>
+  </div>
+</section>
 
-  <section class="card trip" id="tripCard">
-    <h3>Your Driver Booking</h3>
-    <div class="sub" id="tripSub">Live status</div>
-    <div id="tripRows"></div>
-    <div id="otpBox"></div>
-    <div id="tripActions"></div>
-  </section>
+<section class="card">
+  <div class="stephead"><div><h2>Pickup & Drop</h2><div class="sub">Driver kaha se aur kaha tak chahiye</div></div><span>STEP 2</span></div>
+  <div class="field"><label>Pickup Location *</label><div class="locrow"><input id="pickup" placeholder="Pickup address / landmark"><button onclick="useCurrentLocation()">⌖</button></div></div>
+  <div class="field"><label>Drop Location *</label><input id="drop" placeholder="Drop address / landmark"></div>
+</section>
 
-  <div class="foot">One Call Solution • One for All, All for One</div>
+<section class="card">
+  <div class="stephead"><div><h2>Car Type</h2><div class="sub">Photo par tap karke select karein</div></div><span>STEP 3</span></div>
+  <div class="cargrid" id="carGrid">
+    <button class="carcard on" data-car="Hatchback" onclick="selectCar(this)"><img src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=420&q=80" alt="Hatchback"><b>Hatchback</b></button>
+    <button class="carcard" data-car="Sedan" onclick="selectCar(this)"><img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=420&q=80" alt="Sedan"><b>Sedan</b></button>
+    <button class="carcard" data-car="MUV" onclick="selectCar(this)"><img src="https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=420&q=80" alt="MUV"><b>MUV</b></button>
+    <button class="carcard" data-car="SUV" onclick="selectCar(this)"><img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=420&q=80" alt="SUV"><b>SUV</b></button>
+    <button class="carcard" data-car="Luxury" onclick="selectCar(this)"><img src="https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=420&q=80" alt="Luxury"><b>Luxury</b></button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Transmission Type</h2>
+  <div class="choice3" id="transmissionChoices">
+    <button class="on" data-value="Manual" onclick="selectTransmission(this)"><b>⚙ Manual</b><small>Gear</small></button>
+    <button data-value="Automatic" onclick="selectTransmission(this)"><b>◫ Auto</b><small>Automatic</small></button>
+    <button data-value="EV" onclick="selectTransmission(this)"><b>↯ EV</b><small>Electric</small></button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Estimated Duration</h2>
+  <div class="duration" id="durationChoices">
+    <button class="on" data-value="2 Hrs" onclick="selectDuration(this)">2<br>Hrs</button>
+    <button data-value="2.5 Hrs" onclick="selectDuration(this)">2.5<br>Hrs</button>
+    <button data-value="3 Hrs" onclick="selectDuration(this)">3<br>Hrs</button>
+    <button data-value="3.5 Hrs" onclick="selectDuration(this)">3.5<br>Hrs</button>
+    <button data-value="4 Hrs" onclick="selectDuration(this)">4<br>Hrs</button>
+    <button data-value="4.5 Hrs" onclick="selectDuration(this)">4.5<br>Hrs</button>
+    <button data-value="5 Hrs" onclick="selectDuration(this)">5<br>Hrs</button>
+    <button data-value="6 Hrs" onclick="selectDuration(this)">6<br>Hrs</button>
+    <button data-value="8 Hrs" onclick="selectDuration(this)">8<br>Hrs</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Start date and time</h2>
+  <div class="scheduleBox" onclick="openSchedule()"><div><b id="scheduleMain">Choose date & time</b><small id="scheduleSub">15-minute slots</small></div><button type="button">◷</button></div>
+</section>
+
+<section class="card">
+  <h2>Trip Summary</h2>
+  <div class="summary">
+    <div class="sumrow"><span>Way</span><b id="sumWay">One Way</b></div>
+    <div class="sumrow"><span>Car</span><b id="sumCar">Hatchback • Manual</b></div>
+    <div class="sumrow"><span>Duration</span><b id="sumDuration">2 Hrs</b></div>
+    <div class="sumrow"><span>Schedule</span><b id="sumSchedule">Not selected</b></div>
+  </div>
+  <div class="field"><label>Note (Optional)</label><textarea id="note" placeholder="Parking, society gate, car details, etc."></textarea></div>
+  <div class="fare"><b>Estimated</b><strong>Driver Quote</strong></div>
+  <div class="payrow"><button id="onlinePay" class="on" onclick="setPay('ONLINE')">Online</button><button id="cashPay" onclick="setPay('CASH')">Cash</button></div>
+  <div class="cta"><button id="bookBtn" onclick="bookDriver()">Confirm Driver Request</button></div>
+  <div id="status" class="status"></div>
+</section>
+
+<section class="card trip" id="tripCard">
+  <h2>Your Driver Booking</h2><div class="sub" id="tripSub">Live status</div>
+  <div id="tripRows"></div><div id="otpBox"></div><div id="tripActions"></div>
+</section>
 </main>
+<nav class="bottom"><button class="on" onclick="goTab('home')"><b>⌂</b>Home</button><button onclick="goTab('activity')"><b>▤</b>Activity</button><button onclick="goTab('wallet')"><b>₹</b>Wallet</button><button onclick="goTab('account')"><b>♙</b>Account</button></nav>
 </div>
+
+<div class="sheet" id="scheduleSheet">
+  <div class="sheetHead"><button onclick="closeSchedule()">‹</button><b>Choose a Time</b></div>
+  <div class="dateStrip" id="dateStrip"></div>
+  <div class="timeTitle">AVAILABLE TIME • 15 MIN SLOTS</div>
+  <div class="timeGrid" id="timeGrid"></div>
+  <div class="sheetConfirm"><button onclick="confirmSchedule()">Confirm</button></div>
+</div>
+
 <script>
 const SB_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
 const SB_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let current=null;
 const $=id=>document.getElementById(id);
+let current=null,mode='PLAN',tripType='One Way',carType='Hatchback',transmission='Manual',duration='2 Hrs',payment='ONLINE';
+let pickupLat=null,pickupLng=null,selectedDate='',selectedTime='',tempDate='',tempTime='';
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function show(msg,bad){const x=$('status');x.style.display='block';x.classList.toggle('bad',!!bad);x.textContent=msg}
+function setMode(x){
+ mode=x;$('planMode').classList.toggle('on',x==='PLAN');$('nowMode').classList.toggle('on',x==='NOW');
+ if(x==='NOW'){const d=roundToQuarter(new Date());selectedDate=isoDate(d);selectedTime=hhmm(d);updateScheduleLabel()}
+}
+function setTripType(v){tripType=v;$('oneBtn').classList.toggle('on',v==='One Way');$('roundBtn').classList.toggle('on',v==='Round Trip');updateSummary()}
+function selectCar(btn){carType=btn.dataset.car;document.querySelectorAll('.carcard').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
+function selectTransmission(btn){transmission=btn.dataset.value;document.querySelectorAll('#transmissionChoices button').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
+function selectDuration(btn){duration=btn.dataset.value;document.querySelectorAll('#durationChoices button').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
+function setPay(v){payment=v;$('onlinePay').classList.toggle('on',v==='ONLINE');$('cashPay').classList.toggle('on',v==='CASH')}
+function updateSummary(){
+ $('sumWay').textContent=tripType;$('sumCar').textContent=carType+' • '+transmission;$('sumDuration').textContent=duration;$('sumSchedule').textContent=selectedDate&&selectedTime?prettyDateTime(selectedDate,selectedTime):'Not selected';
+}
+function roundToQuarter(d){const x=new Date(d);x.setSeconds(0,0);const m=x.getMinutes(),next=Math.ceil(m/15)*15;if(next===60){x.setHours(x.getHours()+1);x.setMinutes(0)}else x.setMinutes(next);return x}
+function isoDate(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function hhmm(d){return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+function fmtTime(v){const [h,m]=v.split(':').map(Number);const ap=h>=12?'PM':'AM',hh=h%12||12;return hh+':'+String(m).padStart(2,'0')+' '+ap}
+function prettyDateTime(d,t){const dt=new Date(d+'T'+t+':00');return dt.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+' • '+fmtTime(t)}
+function openSchedule(){tempDate=selectedDate||isoDate(new Date());tempTime=selectedTime||hhmm(roundToQuarter(new Date()));renderDates();renderTimes();$('scheduleSheet').classList.add('show')}
+function closeSchedule(){$('scheduleSheet').classList.remove('show')}
+function renderDates(){
+ const box=$('dateStrip'),today=new Date();let h='';
+ for(let i=0;i<7;i++){const d=new Date(today);d.setDate(today.getDate()+i);const iso=isoDate(d),label=i===0?'Today':d.toLocaleDateString('en-IN',{weekday:'short'}),sub=d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});h+='<button class="'+(iso===tempDate?'on':'')+'" onclick="chooseDate(\''+iso+'\')"><b>'+label+'</b><small>'+sub+'</small></button>'}
+ box.innerHTML=h
+}
+function chooseDate(v){tempDate=v;renderDates();renderTimes()}
+function renderTimes(){
+ const box=$('timeGrid'),now=new Date(),today=isoDate(now);let h='';
+ for(let mins=360;mins<=1410;mins+=15){const hr=Math.floor(mins/60),mi=mins%60,v=String(hr).padStart(2,'0')+':'+String(mi).padStart(2,'0');let disabled=false;if(tempDate===today){const dt=new Date(tempDate+'T'+v+':00');disabled=dt<now}if(disabled)continue;h+='<button class="'+(v===tempTime?'on':'')+'" onclick="chooseTime(\''+v+'\')">'+fmtTime(v)+'</button>'}
+ box.innerHTML=h||'<div class="sub">Aaj ke liye slot available nahi.</div>'
+}
+function chooseTime(v){tempTime=v;renderTimes()}
+function confirmSchedule(){selectedDate=tempDate;selectedTime=tempTime;updateScheduleLabel();closeSchedule()}
+function updateScheduleLabel(){
+ if(!selectedDate||!selectedTime)return;$('scheduleMain').textContent=prettyDateTime(selectedDate,selectedTime);
+ const dt=new Date(selectedDate+'T'+selectedTime+':00'),diff=Math.max(0,dt-Date.now()),mins=Math.round(diff/60000);$('scheduleSub').textContent=mins<60?'Starts in '+mins+' min':'Starts in '+Math.floor(mins/60)+' hr '+(mins%60)+' min';updateSummary()
+}
+function useCurrentLocation(){
+ if(!navigator.geolocation){show('GPS available nahi hai.',true);return}
+ navigator.geolocation.getCurrentPosition(p=>{pickupLat=p.coords.latitude;pickupLng=p.coords.longitude;$('pickup').value='Current Location';show('✓ Pickup current GPS location set.',false)},()=>show('Location permission allow karein.',true),{enableHighAccuracy:true,timeout:8000,maximumAge:30000})
+}
 async function bookDriver(){
- const pickup=$('pickup').value.trim(),drop=$('drop').value.trim(),date=$('date').value,time=$('time').value;
- if(!pickup||!drop||!date||!time){show('Pickup, Drop, Date aur Time required hain.',true);return}
- const sess=await sb.auth.getSession();const session=sess.data&&sess.data.session;
- if(!session){location.href='index.html?login=1&open=driver-service';return}
+ const pickup=$('pickup').value.trim(),drop=$('drop').value.trim();
+ if(!pickup||!drop){show('Pickup aur Drop required hain.',true);return}
+ if(!selectedDate||!selectedTime){show('Date & Time choose karein.',true);openSchedule();return}
+ const sess=await sb.auth.getSession(),session=sess.data&&sess.data.session;if(!session){try{localStorage.setItem('ocsPostLoginReturn','driver-service.html?v=20261006-driver-ui3')}catch(e){}location.href='index.html?login=1';return}
  $('bookBtn').disabled=true;$('bookBtn').textContent='Sending...';
  try{
    const boot=await sb.rpc('ensure_customer_account_v1');if(boot.error)throw boot.error;
-   const readiness={module:'driver_service',pickup_address:pickup,drop_address:drop,car_type:$('carType').value,transmission:$('transmission').value,trip_type:$('tripType').value,estimated_duration:$('duration').value,note:$('note').value.trim()};
-   const desc=['Driver Service','Pickup: '+pickup,'Drop: '+drop,'Car: '+$('carType').value,'Transmission: '+$('transmission').value,'Trip: '+$('tripType').value,'Duration: '+$('duration').value,'Note: '+($('note').value.trim()||'None')].join('\n');
-   const {data,error}=await sb.rpc('create_customer_quote_request_v2',{
-     p_category:'Driver Service',p_service_name:'4-Wheeler Driver',
-     p_description:desc,p_schedule:date+' '+time,p_address:pickup,
-     p_media:[],p_readiness:readiness,p_latitude:null,p_longitude:null
-   });
-   if(error)throw error;
-   show('✓ Driver request sent. Matching Drivers ko request jayegi.',false);
-   $('bookBtn').textContent='Request Sent ✓';
-   await loadBooking();
- }catch(e){show(e&&e.message?e.message:'Driver request create nahi hui.',true);$('bookBtn').disabled=false;$('bookBtn').textContent='Request Driver'}
+   const readiness={module:'driver_service',pickup_address:pickup,drop_address:drop,car_type:carType,transmission,trip_type:tripType,estimated_duration:duration,booking_mode:mode,payment_preference:payment,note:$('note').value.trim()};
+   const desc=['Driver Service','Pickup: '+pickup,'Drop: '+drop,'Car: '+carType,'Transmission: '+transmission,'Trip: '+tripType,'Duration: '+duration,'Mode: '+mode,'Payment: '+payment,'Note: '+($('note').value.trim()||'None')].join('\n');
+   const {error}=await sb.rpc('create_customer_quote_request_v2',{p_category:'Driver Service',p_service_name:'4-Wheeler Driver',p_description:desc,p_schedule:selectedDate+' '+selectedTime,p_address:pickup,p_media:[],p_readiness:readiness,p_latitude:pickupLat,p_longitude:pickupLng});
+   if(error)throw error;show('✓ Driver request sent. Matching verified Drivers ko request jayegi.',false);$('bookBtn').textContent='Request Sent ✓';await loadBooking()
+ }catch(e){show(e&&e.message?e.message:'Driver request create nahi hui.',true);$('bookBtn').disabled=false;$('bookBtn').textContent='Confirm Driver Request'}
 }
 function statusLabel(s){const x=String(s||'').toLowerCase();return({searching:'Searching Driver',accepted:'Driver Assigned',on_way:'Driver On the Way',reached:'Driver Reached Pickup',working:'Trip In Progress',completion_requested:'Driver marked Complete',payment_pending:'Payment Pending',cash_wait:'Cash Confirmation',completed:'Completed'})[x]||String(s||'').replaceAll('_',' ')}
 async function loadBooking(){
  try{
-   const {data,error}=await sb.rpc('customer_active_booking');if(error)throw error;
-   const b=Array.isArray(data)?data[0]:data;
+   const {data,error}=await sb.rpc('customer_active_booking');if(error)throw error;const b=Array.isArray(data)?data[0]:data;
    if(!b||String(b.category||'').trim()!=='Driver Service'){current=null;return}
-   current=b;$('tripCard').style.display='block';
-   const r=b.booking_readiness||{};
-   $('tripSub').textContent=statusLabel(b.status);
-   $('tripRows').innerHTML=
-    '<div class="row"><span>Status</span><b>'+esc(statusLabel(b.status))+'</b></div>'+
+   current=b;$('tripCard').style.display='block';const r=b.booking_readiness||{};$('tripSub').textContent=statusLabel(b.status);
+   $('tripRows').innerHTML='<div class="row"><span>Status</span><b>'+esc(statusLabel(b.status))+'</b></div>'+
     '<div class="row"><span>Pickup</span><b>'+esc(r.pickup_address||b.address||'')+'</b></div>'+
     '<div class="row"><span>Drop</span><b>'+esc(r.drop_address||'')+'</b></div>'+
     '<div class="row"><span>Car</span><b>'+esc(r.car_type||'')+' • '+esc(r.transmission||'')+'</b></div>'+
@@ -100,24 +216,16 @@ async function loadBooking(){
     '<div class="row"><span>Duration</span><b>'+esc(r.estimated_duration||'')+'</b></div>'+
     '<div class="row"><span>Schedule</span><b>'+esc(b.request_schedule||'')+'</b></div>'+
     (Number(b.booking_amount||0)>0?'<div class="row"><span>Amount</span><b>₹'+Number(b.booking_amount).toFixed(0)+'</b></div>':'');
-   const s=String(b.status||'').toLowerCase();
-   $('otpBox').innerHTML=s==='reached'&&b.start_otp?'<div class="otp"><small>START TRIP OTP</small><b>'+esc(b.start_otp)+'</b></div>':'';
-   let a='';
-   if(s==='completion_requested')a='<div class="actions"><button class="primary" onclick="confirmDone()">Confirm Complete</button><button class="gray" onclick="support()">Need Help</button></div>';
-   $('tripActions').innerHTML=a;
-   if(b.provider_id){
-     const {data:q}=await sb.rpc('latest_booking_quote_v1',{p_booking_id:b.id});
-     const quote=Array.isArray(q)?q[0]:q;
-     if(quote&&quote.status==='pending'){
-       $('tripActions').innerHTML='<div class="info"><b>Driver Quote: ₹'+Number(quote.amount||0).toFixed(0)+'</b><br>'+esc(quote.description||'')+'</div><div class="actions"><button class="primary" onclick="decideQuote(\''+quote.id+'\',\'accepted\')">Accept</button><button class="gray" onclick="decideQuote(\''+quote.id+'\',\'rejected\')">Reject</button></div>';
-     }
-   }
+   const s=String(b.status||'').toLowerCase();$('otpBox').innerHTML=s==='reached'&&b.start_otp?'<div class="otp"><small>START TRIP OTP</small><b>'+esc(b.start_otp)+'</b></div>':'';
+   $('tripActions').innerHTML=s==='completion_requested'?'<div class="actions"><button class="primary" onclick="confirmDone()">Confirm Complete</button><button class="gray" onclick="support()">Need Help</button></div>':'';
+   if(b.provider_id){const {data:q}=await sb.rpc('latest_booking_quote_v1',{p_booking_id:b.id});const quote=Array.isArray(q)?q[0]:q;if(quote&&quote.status==='pending')$('tripActions').innerHTML='<div class="info"><b>Driver Quote: ₹'+Number(quote.amount||0).toFixed(0)+'</b><br>'+esc(quote.description||'')+'</div><div class="actions"><button class="primary" onclick="decideQuote(\''+quote.id+'\',\'accepted\')">Accept</button><button class="gray" onclick="decideQuote(\''+quote.id+'\',\'rejected\')">Reject</button></div>'}
  }catch(e){console.error(e)}
 }
 async function decideQuote(id,d){const {error}=await sb.rpc('customer_decide_quote_v1',{p_quote_id:id,p_decision:d});if(error){show(error.message,true);return}await loadBooking()}
 async function confirmDone(){if(!current)return;const {error}=await sb.rpc('customer_confirm_completion_v2',{p_booking_id:current.id});if(error){show(error.message,true);return}await loadBooking()}
 function support(){alert('OCS Support se Driver booking issue raise kiya jayega.')}
-try{const d=new Date();$('date').min=d.toISOString().slice(0,10);$('date').value=d.toISOString().slice(0,10)}catch(e){}
-loadBooking();setInterval(loadBooking,7000);
+function goTab(x){if(x==='home'){location.href='index.html?pwa=1&v=20261006-driver-ui3';return}if(x==='activity'){location.href='index.html?open=activity&v=20261006-driver-ui3';return}if(x==='wallet'){location.href='index.html?open=wallet&v=20261006-driver-ui3';return}if(x==='account'){location.href='index.html?open=account&v=20261006-driver-ui3'}}
+const first=roundToQuarter(new Date());selectedDate=isoDate(first);selectedTime=hhmm(first);updateScheduleLabel();updateSummary();loadBooking();setInterval(loadBooking,7000);
 </script>
-</body></html>
+</body>
+</html>
