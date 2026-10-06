@@ -5539,4 +5539,188 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
 })();
 </script>
 
+
+<style id="ocs-sp-account-reference-v1">
+/* SP Account/Activity/Wallet: clean app-style full screens */
+.sp-only-route .provider-mini-details,
+.sp-only-route #providerQuickTools{display:none!important}
+.ocs-sp-standalone{position:fixed;inset:0 0 70px 0;z-index:2147481000;background:#f3f5f8;overflow:auto;-webkit-overflow-scrolling:touch}
+.ocs-sp-standalone.hide{display:none!important}
+.ocs-sp-page{width:min(480px,100%);min-height:100%;margin:0 auto;background:#f3f5f8;color:#17343c}
+.ocs-sp-account-hero{height:105px;background:#064d59;border-radius:0 0 28px 28px}
+.ocs-sp-account-wrap{padding:0 18px 28px;margin-top:-64px}
+.ocs-sp-edit-card{display:flex;align-items:center;gap:13px;min-height:112px;padding:18px 18px;background:#fff;border:1px solid #e9edf0;border-radius:21px;box-shadow:0 10px 28px rgba(16,54,63,.09)}
+.ocs-sp-avatar{width:58px;height:58px;flex:0 0 58px;border-radius:50%;background:#edf8f8;display:grid;place-items:center;color:#0b7f8d;font-size:27px}
+.ocs-sp-edit-copy{flex:1;min-width:0}.ocs-sp-edit-copy b{display:block;font-size:22px;color:#17343c;letter-spacing:-.35px}.ocs-sp-edit-copy small{display:block;margin-top:4px;color:#899397;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ocs-sp-edit-fab{width:53px!important;height:53px!important;min-height:53px!important;flex:0 0 53px;border-radius:50%!important;border:0!important;background:#f3ef00!important;color:#17343c!important;font-size:24px!important;box-shadow:none!important;padding:0!important}
+.ocs-sp-two{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:24px 0}
+.ocs-sp-feature{min-height:154px;border:1px solid #edf0f2;border-radius:20px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#1d2939;box-shadow:0 4px 14px rgba(13,48,56,.035)}
+.ocs-sp-feature .art{height:60px;display:grid;place-items:center;font-size:48px;line-height:1}
+.ocs-sp-feature b{font-size:13px}
+.ocs-sp-menu{display:grid;gap:3px}
+.ocs-sp-row{width:100%;min-height:83px!important;margin:0!important;padding:0 21px!important;border:1px solid #edf0f2!important;border-radius:16px!important;background:#fff!important;display:flex!important;align-items:center!important;gap:14px!important;text-align:left!important;color:#5b5d61!important;box-shadow:none!important;font-size:16px!important;font-weight:600!important}
+.ocs-sp-row .ico{width:45px;height:45px;flex:0 0 45px;border-radius:50%;display:grid;place-items:center;background:#f2fbfc;color:#16879a;font-size:22px}
+.ocs-sp-row .txt{flex:1;min-width:0}.ocs-sp-row .txt b{display:block;color:#4d5155;font-size:16px;font-weight:650}.ocs-sp-row .txt small{display:block;margin-top:3px;color:#9aa1a5;font-size:10px;font-weight:500}
+.ocs-sp-row .arr{font-size:30px;line-height:1;color:#a3adb5;font-weight:300}
+.ocs-sp-version{text-align:center;color:#16879a;font-size:12px;padding:20px 0 8px}
+
+.ocs-sp-simple-head{position:sticky;top:0;z-index:3;min-height:70px;background:#fff;border-bottom:1px solid #edf0f2;display:flex;align-items:center;gap:12px;padding:12px 17px}
+.ocs-sp-simple-head button{width:44px!important;height:44px!important;min-height:44px!important;padding:0!important;border-radius:50%!important;background:#f3f6f7!important;color:#31525a!important;border:0!important;box-shadow:none!important;font-size:23px!important}
+.ocs-sp-simple-head .copy{flex:1}.ocs-sp-simple-head small{display:block;font-size:9px;color:#118174;font-weight:900;letter-spacing:.9px}.ocs-sp-simple-head h2{margin:2px 0 0!important;font-size:21px!important;color:#163d46!important}
+.ocs-sp-simple-body{padding:16px 17px 30px}
+.ocs-sp-balance{background:#064d59;color:#fff;border-radius:22px;padding:20px;margin-bottom:14px;box-shadow:0 10px 24px rgba(6,77,89,.16)}
+.ocs-sp-balance small{display:block;color:#cfe6e8;font-size:11px}.ocs-sp-balance strong{display:block;margin-top:6px;font-size:32px;letter-spacing:-.6px}.ocs-sp-balance .minirow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:17px}.ocs-sp-balance .mini{padding:10px 11px;border-radius:13px;background:#ffffff12}.ocs-sp-balance .mini b{display:block;font-size:13px}.ocs-sp-balance .mini small{font-size:9px}
+.ocs-sp-wallet-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 17px}.ocs-sp-wallet-actions button{min-height:49px!important;margin:0!important}
+.ocs-sp-section{background:#fff;border:1px solid #e8edef;border-radius:18px;padding:15px;margin-bottom:12px}.ocs-sp-section h3{margin:0 0 9px!important;font-size:15px!important}
+.ocs-sp-statline{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid #eff2f3}.ocs-sp-statline:first-of-type{border-top:0}.ocs-sp-statline span{color:#6f777b;font-size:12px}.ocs-sp-statline b{color:#203b42;font-size:12px}
+.ocs-sp-history-list{display:grid;gap:10px}.ocs-sp-job{background:#fff;border:1px solid #e7edef;border-radius:17px;padding:14px}.ocs-sp-job-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.ocs-sp-job-top b{font-size:13px;color:#21464e}.ocs-sp-job-status{padding:5px 8px;border-radius:999px;background:#e9f8f4;color:#087a70;font-size:8.5px;font-weight:900}.ocs-sp-job-meta{margin-top:7px;color:#7d898d;font-size:10px;line-height:1.5}.ocs-sp-job-money{margin-top:8px;color:#173f46;font-size:15px;font-weight:900}
+.ocs-sp-empty{padding:26px 16px;text-align:center;border:1px dashed #dce5e7;border-radius:17px;background:#fff;color:#7d888c}.ocs-sp-empty b{display:block;color:#36585f;font-size:14px;margin-bottom:4px}
+.ocs-sp-notice{padding:13px 14px;border-radius:15px;border-left:4px solid #f5a400;background:#fff7e9;color:#5a4c36;font-size:11px;line-height:1.5;margin-bottom:13px}
+.ocs-sp-notice.good{border-left-color:#169878;background:#eef9f5;color:#355b53}
+.ocs-sp-info-card{background:#fff;border:1px solid #e8edef;border-radius:18px;padding:16px;margin-bottom:12px;color:#5d7075;font-size:12px;line-height:1.55}.ocs-sp-info-card b{display:block;color:#24474e;font-size:14px;margin-bottom:5px}
+
+.sp-only-route .ocs-profile-panel{z-index:2147481500!important;background:#f3f5f8!important;backdrop-filter:none!important;padding:0 0 70px!important}
+.sp-only-route .ocs-profile-card{width:min(480px,100%)!important;max-width:480px!important;min-height:calc(100vh - 70px)!important;margin:0 auto!important;border-radius:0!important;box-shadow:none!important;padding:0 17px 28px!important;background:#f3f5f8!important}
+.sp-only-route .ocs-profile-top{position:sticky!important;top:0!important;z-index:4!important;margin:0 -17px 14px!important;padding:13px 17px!important;background:#fff!important;border-bottom:1px solid #edf0f2!important;align-items:center!important}
+.sp-only-route .ocs-profile-top h3{font-size:20px!important}
+.sp-only-route .ocs-profile-top small{font-size:9px!important}
+.sp-only-route .ocs-profile-close{width:43px!important;height:43px!important;min-height:43px!important;border-radius:50%!important;background:#f1f5f5!important}
+.sp-only-route .ocs-profile-summary,.sp-only-route .provider-payout-summary,.sp-only-route .provider-payout-form{background:#fff;border:1px solid #e8edef;border-radius:18px;padding:15px!important}
+.sp-only-route .ocs-action-modal{z-index:2147481600!important}
+@media(max-width:360px){
+ .ocs-sp-account-wrap{padding-left:12px;padding-right:12px}
+ .ocs-sp-two{gap:10px}.ocs-sp-feature{min-height:138px}.ocs-sp-row{padding:0 15px!important}
+}
+</style>
+
+<div id="ocsSpStandalone" class="ocs-sp-standalone hide" aria-hidden="true">
+ <div class="ocs-sp-page" id="ocsSpStandalonePage"></div>
+</div>
+
+<script id="ocs-sp-account-reference-v1-js">
+(function(){
+ const root=document.getElementById('ocsSpStandalone');
+ const page=document.getElementById('ocsSpStandalonePage');
+ function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
+ function navOn(n){for(let i=1;i<=4;i++){const b=document.getElementById('ocsRoleNav'+i);if(b)b.classList.toggle('on',i===n)}}
+ function show(html,navIndex){
+   if(!root||!page)return;
+   page.innerHTML=html;
+   root.classList.remove('hide');root.setAttribute('aria-hidden','false');
+   navOn(navIndex||4);
+   root.scrollTop=0;
+ }
+ window.ocsSpCloseStandalone=function(){
+   if(root){root.classList.add('hide');root.setAttribute('aria-hidden','true')}
+ };
+ function simpleShell(eyebrow,title,body,navIndex){
+   return '<div class="ocs-sp-simple-head"><button type="button" onclick="ocsSpBackToAccount()">‹</button><div class="copy"><small>'+esc(eyebrow||'SERVICE PROVIDER')+'</small><h2>'+esc(title)+'</h2></div></div><div class="ocs-sp-simple-body">'+body+'</div>';
+ }
+ window.ocsSpBackToAccount=function(){ocsSpShowAccount()};
+ window.ocsSpShowAccount=function(){
+   const name=(window.S&&(S.registeredProviderName||S.provider))||'Service Provider';
+   const status=(window.S&&S.providerVerificationStatus)||'Profile';
+   const html=
+    '<div class="ocs-sp-account-hero"></div>'+
+    '<div class="ocs-sp-account-wrap">'+
+      '<div class="ocs-sp-edit-card">'+
+        '<div class="ocs-sp-avatar">♙</div>'+
+        '<div class="ocs-sp-edit-copy"><b>Edit Profile</b><small>'+esc(name)+' • '+esc(status)+'</small></div>'+
+        '<button class="ocs-sp-edit-fab" type="button" onclick="openProviderProfileSafe()" aria-label="Edit profile">✎</button>'+
+      '</div>'+
+      '<div class="ocs-sp-two">'+
+        '<button class="ocs-sp-feature" type="button" onclick="ocsSpShowRatings()"><span class="art">⭐</span><b>Ratings & Reviews</b></button>'+
+        '<button class="ocs-sp-feature" type="button" onclick="ocsSpShowRewards()"><span class="art">🏆</span><b>Rewards</b></button>'+
+      '</div>'+
+      '<div class="ocs-sp-menu">'+
+        '<button class="ocs-sp-row" type="button" onclick="openProviderProfileSafe()"><span class="ico">👤</span><span class="txt"><b>Work Profile & Skills</b><small>Category, verification and profile</small></span><span class="arr">›</span></button>'+
+        '<button class="ocs-sp-row" type="button" onclick="setProviderCurrentServiceLocation()"><span class="ico">⌖</span><span class="txt"><b>Work Location</b><small>Current service area / matching location</small></span><span class="arr">›</span></button>'+
+        '<button class="ocs-sp-row" type="button" onclick="ocsSpReferral()"><span class="ico">♧</span><span class="txt"><b>Refer & Earn ₹50</b><small>Share OCS with a friend</small></span><span class="arr">›</span></button>'+
+        '<button class="ocs-sp-row" type="button" onclick="openProviderPayoutPanel()"><span class="ico">▣</span><span class="txt"><b>Bank & Payout</b><small>Settlement account and verification</small></span><span class="arr">›</span></button>'+
+        '<button class="ocs-sp-row" type="button" onclick="askExpert()"><span class="ico">?</span><span class="txt"><b>Ask Expert</b><small>Rate or work help</small></span><span class="arr">›</span></button>'+
+        '<button class="ocs-sp-row" type="button" onclick="openSupport(\'provider\')"><span class="ico">☎</span><span class="txt"><b>Support</b><small>OCS help and tickets</small></span><span class="arr">›</span></button>'+
+        '<button class="ocs-sp-row" type="button" onclick="ocsSpShowSettings()"><span class="ico">⚙</span><span class="txt"><b>Settings</b><small>App and account options</small></span><span class="arr">›</span></button>'+
+      '</div>'+
+      '<div class="ocs-sp-version">One Call Solution</div>'+
+    '</div>';
+   show(html,4);
+ };
+ window.ocsSpShowRatings=function(){
+   let body='';
+   try{body=(typeof providerRatingCommentsHTML==='function'?providerRatingCommentsHTML():'')||'<div class="ocs-sp-empty"><b>No ratings yet</b><span>Completed booking reviews yahan dikhengi.</span></div>'}catch(e){body='<div class="ocs-sp-empty"><b>No ratings yet</b></div>'}
+   show(simpleShell('SERVICE PROVIDER','Ratings & Reviews',body,4),4);
+ };
+ window.ocsSpShowRewards=function(){
+   const body='<div class="ocs-sp-info-card"><b>OCS Rewards</b>Good ratings, reliable completion aur quality work ke basis par OCS Admin rewards assign kar sakta hai.</div><div class="ocs-sp-empty"><b>No reward assigned yet</b><span>Reward milne par yahin show hoga.</span></div>';
+   show(simpleShell('SERVICE PROVIDER','Rewards',body,4),4);
+ };
+ window.ocsSpShowSettings=function(){
+   const body='<div class="ocs-sp-info-card"><b>App Settings</b>Profile, bank, work location aur support options Account page se manage hote hain.</div><button class="ocs-sp-row" type="button" onclick="location.reload()"><span class="ico">↻</span><span class="txt"><b>Refresh App</b><small>Latest OCS screen reload karein</small></span><span class="arr">›</span></button>';
+   show(simpleShell('SERVICE PROVIDER','Settings',body,4),4);
+ };
+ window.ocsSpReferral=async function(){
+   const shareUrl=location.origin+location.pathname.replace(/home-services\.html.*$/,'index.html');
+   const data={title:'One Call Solution',text:'One Call Solution app join karein. Successful referral par OCS wallet reward applicable hai.',url:shareUrl};
+   try{
+     if(navigator.share){await navigator.share(data);return}
+     await navigator.clipboard.writeText(data.text+' '+data.url);
+     alert('OCS referral link copied.');
+   }catch(e){}
+ };
+
+ window.openProviderWalletQuick=async function(){
+   show(simpleShell('SERVICE PROVIDER','Wallet','<div class="ocs-sp-empty"><b>Loading wallet…</b><span>Please wait</span></div>',3),3);
+   const body=page.querySelector('.ocs-sp-simple-body');if(!body)return;
+   try{
+     const res=await ocsSupabase.rpc('provider_wallet_statement_v1',{p_limit:50});
+     if(res.error)throw res.error;
+     const d=res.data||{},bal=Number(d.wallet_balance||0),credit=Number(d.today_credit||0),debit=Number(d.today_debit||0),tx=Array.isArray(d.transactions)?d.transactions:[];
+     function money(n){return (n<0?'−₹':'₹')+Math.abs(Number(n)||0).toFixed(2)}
+     function label(k){const x=String(k||'').toLowerCase();if(x==='topup')return 'Add Money';if(x==='commission')return 'Job Settlement';if(x==='online_settlement')return 'Online Job Settlement';if(x==='withdrawal')return 'Withdrawal';if(x==='withdrawal_reversal')return 'Withdrawal Reversal';if(x==='welcome_bonus')return 'Wallet Credit';return 'Wallet Transaction'}
+     const warning=(bal<200||d.wallet_warning)?'<div class="ocs-sp-notice"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. New job receive/Accept block rahega. ₹200 ya usse zyada hote hi Work ON karke jobs receive kar sakte hain.</div>':'';
+     const txHtml=tx.length?tx.map(function(x){const a=Number(x.amount||0);let dt='';try{dt=x.created_at?new Date(x.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):''}catch(e){}return '<div class="provider-tx"><div class="meta"><b>'+esc(label(x.kind))+'</b><small>'+esc(x.service_name||'OCS Wallet')+' • '+esc(dt)+'</small></div><div class="amt">'+(a>=0?'+':'')+money(a)+'</div></div>'}).join(''):'<div class="ocs-sp-empty"><b>No wallet transactions yet</b></div>';
+     body.innerHTML=
+       '<div class="ocs-sp-balance"><small>Wallet Balance</small><strong>'+money(bal)+'</strong><div class="minirow"><div class="mini"><small>OCS Commission</small><b>9%</b></div><div class="mini"><small>Job Access</small><b>'+(d.admin_paused?'Admin Hold':'Active')+'</b></div></div></div>'+
+       warning+
+       (d.admin_paused?'<div class="ocs-sp-notice"><b>Admin Hold</b><br>New jobs OCS Admin ne pause ki hain.</div>':'')+
+       '<div class="ocs-sp-wallet-actions"><button class="btn" onclick="rechargeWallet()">Add Money</button><button class="btn alt" onclick="openProviderPayoutPanel()">Bank & Payout</button></div>'+
+       '<div class="ocs-sp-section"><h3>Today</h3><div class="ocs-sp-statline"><span>Credit</span><b>₹'+credit.toFixed(2)+'</b></div><div class="ocs-sp-statline"><span>Debit</span><b>₹'+debit.toFixed(2)+'</b></div></div>'+
+       '<div class="ocs-sp-section"><h3>Transaction History</h3>'+txHtml+'</div>';
+   }catch(e){body.innerHTML='<div class="ocs-sp-empty"><b>Wallet details load nahi hui</b><span>'+esc(e&&e.message?e.message:'Please try again')+'</span></div>'}
+ };
+
+ window.openProviderHistoryQuick=async function(){
+   show(simpleShell('WORK HISTORY','Jobs & Earnings','<div class="ocs-sp-empty"><b>Loading work history…</b><span>Please wait</span></div>',2),2);
+   const body=page.querySelector('.ocs-sp-simple-body');if(!body)return;
+   let rows=[];
+   try{
+     if(ocsSupabase){
+       const session=await ocsSession();
+       if(session&&session.user){
+         const r=await ocsSupabase.rpc('booking_history_v2',{p_role:'service_provider'});
+         if(r.error)throw r.error;rows=Array.isArray(r.data)?r.data:[];
+       }
+     }
+   }catch(e){}
+   if(rows.length){
+     body.innerHTML='<div class="ocs-sp-notice good"><b>Completed & closed jobs</b><br>Payment aur earning records OCS history me safe rahenge.</div><div class="ocs-sp-history-list">'+rows.slice(0,30).map(function(r){const service=esc(r.service_name||r.service||r.category||'Home Service');const status=esc(String(r.status||'CLOSED').toUpperCase().replaceAll('_',' '));const amount=Number(r.provider_earning??r.booking_amount??r.amount??0);const dt=r.closed_at||r.completed_at||r.updated_at||r.created_at||'';let date='—';try{if(dt)date=new Date(dt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}catch(e){}const payment=esc(String(r.payment_status||r.payment_method||'—').toUpperCase());return '<div class="ocs-sp-job"><div class="ocs-sp-job-top"><b>'+service+'</b><span class="ocs-sp-job-status">'+status+'</span></div><div class="ocs-sp-job-meta">'+esc(date)+' • Payment: '+payment+'</div><div class="ocs-sp-job-money">₹'+amount.toFixed(2)+'</div></div>'}).join('')+'</div>';
+     return;
+   }
+   const logs=window.S&&Array.isArray(S.logs)?S.logs.slice(0,20):[];
+   if(logs.length)body.innerHTML='<div class="ocs-sp-history-list">'+logs.map(function(x){return '<div class="ocs-sp-job"><div class="ocs-sp-job-meta" style="margin:0">'+esc(x)+'</div></div>'}).join('')+'</div>';
+   else body.innerHTML='<div class="ocs-sp-empty"><b>No work history yet</b><span>Completed jobs yahan dikhengi.</span></div>';
+ };
+
+ const originalGo=window.ocsRoleBottomGo;
+ window.ocsRoleBottomGo=function(n){
+   const sp=document.body.classList.contains('sp-only-route')||(typeof OCS_ROUTE_TAB!=='undefined'&&OCS_ROUTE_TAB==='provider');
+   if(!sp){if(typeof originalGo==='function')return originalGo(n);return}
+   if(n===1){window.ocsSpCloseStandalone();navOn(1);if(typeof closeProviderPayoutPanel==='function')closeProviderPayoutPanel();if(typeof closeProviderProfilePanel==='function')closeProviderProfilePanel();if(typeof closeProviderActionModal==='function')closeProviderActionModal();if(typeof showTab==='function')showTab('provider');window.scrollTo({top:0,behavior:'smooth'});return}
+   if(n===2){navOn(2);return window.openProviderHistoryQuick()}
+   if(n===3){navOn(3);return window.openProviderWalletQuick()}
+   if(n===4){navOn(4);return window.ocsSpShowAccount()}
+ };
+})();
+</script>
+
 </body></html>
