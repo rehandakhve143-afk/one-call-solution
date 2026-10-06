@@ -1,5 +1,5 @@
 {
-  "build": "20261006-clean1",
+  "build": "20261006-homeclean2",
   "updated_at": "2026-10-06",
-  "message": "Removed duplicate Customer/SP switch, Back/Home/Next chrome and duplicate Booking History from Home Services customer screen"
+  "message": "Removed My Dashboards from Home; customer/provider/driver/transport access now stays under Account"
 }
