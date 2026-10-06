@@ -1693,7 +1693,6 @@ function showCustomerProfileSummary(){
     '</div>'+
     '<div class="ocs-sp-summary-actions">'+
       '<button class="primary" onclick="editCustomerProfile()">Edit Profile</button>'+
-      '<button class="btn gray" onclick="location.href=\'payout-details.html?from='+(category==='Driver Service'?'driver':category==='Tempo / Goods Transport'?'transport':'sp')+'&v=20261006-bank1\'">🏦 Bank &amp; Payout Details</button>'+
       '<button class="btn gray" onclick="closeAccount()">Close</button>'+
     '</div>'+
   '</div>';
@@ -1821,6 +1820,7 @@ async function showProviderProfileSummary(){
          :status==='rejected'
            ?'<button class="primary" onclick="editProviderProfileSkills()">Fix Profile</button>'
            :'<button class="primary" onclick="editProviderProfileSkills()">Complete Missing Details</button>')+
+      '<button class="btn gray" onclick="location.href=\'payout-details.html?from='+(category==='Driver Service'?'driver':category==='Tempo / Goods Transport'?'transport':'sp')+'&v=20261006-bank1\'">🏦 Bank &amp; Payout Details</button>'+
       '<button class="btn gray" onclick="closeAccount()">Close</button>'+
     '</div>'+
   '</div>';
