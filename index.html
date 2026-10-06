@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-homeclean2"><style id="ocsCriticalBoot">
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-notifyclean1"><style id="ocsCriticalBoot">
 html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7faf9;color:#173247}
 #ocsBootSplash{position:fixed;inset:0;z-index:99999;background:#f7faf9;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .2s ease}
 #ocsBootSplash .b{display:flex;align-items:center;gap:12px}
@@ -2784,7 +2784,16 @@ async function openNotifications(){
    try{
      const {data,error}=await ocsSupabase.rpc('list_notifications_v1',{p_limit:30});
      if(error)throw error;
-     (Array.isArray(data)?data:[]).forEach(n=>{
+     const cutoff=Date.now()-(7*24*60*60*1000);
+     (Array.isArray(data)?data:[])
+      .filter(n=>{
+        const ts=n.created_at?new Date(n.created_at).getTime():0;
+        const txt=(String(n.title||'')+' '+String(n.body||'')).toLowerCase();
+        if(ts&&ts<cutoff)return false;
+        if(/admin cleanup|stale searching|test booking|test notification/.test(txt))return false;
+        return true;
+      })
+      .forEach(n=>{
        const dt=n.created_at?new Date(n.created_at).toLocaleString('en-IN'):'';
        items.push('<div class="bottom-hub-card"><b>'+ocsSavedText(n.title||'OCS Update')+'</b><small>'+ocsSavedText(n.body||'')+(dt?'<br>'+ocsSavedText(dt):'')+'</small>'+(n.booking_id?'<div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomBookings()">View Booking</button></div>':'')+'</div>');
      });
@@ -4566,7 +4575,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-homeclean2',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-notifyclean1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4640,7 +4649,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20261006-homeclean2';
+const OCS_APP_BUILD='20261006-notifyclean1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
