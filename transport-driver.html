@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="no-store,no-cache,must-revalidate,max-age=0">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCS Transport Driver</title>
+<title>OCS Driver Service</title>
 <meta name="theme-color" content="#064d59">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
 <link rel="stylesheet" href="assets/ocs-unified-ui.css?v=20261005-unified2">
@@ -26,7 +26,7 @@ h3{font-size:18px;margin:17px 2px 9px}.request h4,.trip h4{margin:0 0 4px;font-s
 <body>
 <div class="app">
 <header class="hero">
- <div class="hero-top"><h1 id="title">Driver Home</h1><span class="badge" id="kycBadge">OCS Transport</span></div>
+ <div class="hero-top"><h1 id="title">Driver Home</h1><span class="badge" id="kycBadge">OCS Driver Service</span></div>
  <div class="profile"><div class="avatar">🚚</div><div><h2 id="name">Transport Driver</h2><small id="phone">Loading...</small><div class="rating" id="rating">⭐ 0.0</div></div></div>
 </header>
 <main class="main">
@@ -39,8 +39,8 @@ h3{font-size:18px;margin:17px 2px 9px}.request h4,.trip h4{margin:0 0 4px;font-s
   <h3>Statistics</h3><div class="stats"><div class="stat"><small>Completed Trips</small><b id="completed">0</b></div><div class="stat"><small>Rating</small><b id="ratingStat">⭐ 0.0</b></div><div class="stat"><small>Wallet</small><b id="walletStat">₹0</b></div><div class="stat"><small>Past Trips</small><b id="pastCount">0</b></div></div>
  </section>
  <section id="activity" class="view"><h3 style="margin-top:0">Ongoing</h3><div id="ongoing"></div><h3>Past</h3><div id="past"></div></section>
- <section id="walletView" class="view"><div class="wallet"><small>OCS Wallet Balance</small><b id="walletBal">₹0</b><div class="muted" style="color:#dcebed">₹200 minimum reserve for new jobs</div></div><div class="stats" style="margin-top:10px"><div class="stat"><small>Withdrawable</small><b id="withdraw">₹0</b></div><div class="stat"><small>Reserve</small><b>₹200</b></div></div><div class="card" style="margin-top:12px"><b>Wallet Rule</b><div class="muted">Cash job par OCS 9% wallet se deduct hota hai. Online job par 9% OCS retain karta hai; wallet dubara debit nahi hota.</div><button class="btn primary" style="width:100%;margin-top:10px" onclick="location.href='home-services.html?tab=provider&sp=1&open=wallet'">Recharge / Statement</button></div></section>
- <section id="account" class="view"><div style="text-align:center;padding:8px 0 14px"><div class="avatar" style="margin:auto;width:96px;height:96px;font-size:42px">🚚</div><h2 id="accountName" style="margin:10px 0 2px">Transport Driver</h2><div id="accountRating">⭐ 0.0</div></div><div class="menu"><button onclick="location.href='index.html?open=sp-profile'">Edit Profile<small>Vehicle, area and Transport KYC</small></button><button onclick="location.href='home-services.html?tab=provider&sp=1&full=1'">Full SP Dashboard<small>Advanced booking controls</small></button><button onclick="location.href='index.html'">Refer a Friend<small>Share & Earn ₹50</small></button><button onclick="location.href='index.html'">Support<small>OCS help & tickets</small></button></div></section>
+ <section id="walletView" class="view"><div class="wallet"><small>OCS Wallet Balance</small><b id="walletBal">₹0</b><div class="muted" style="color:#dcebed">Low / negative wallet se jobs auto-block nahi hongi</div></div><div class="stats" style="margin-top:10px"><div class="stat"><small>Withdrawable</small><b id="withdraw">₹0</b></div><div class="stat"><small>Platform Charge</small><b>9%</b></div></div><div class="card" style="margin-top:12px"><b>Wallet Rule</b><div class="muted">Cash trip par OCS 9% wallet se deduct hota hai. Online trip par OCS 9% retain karta hai; wallet dobara debit nahi hota. Wallet minus ho tab bhi Work ON ho to jobs continue rahenge; sirf Admin hold ya Work OFF par jobs rukengi.</div><button class="btn primary" style="width:100%;margin-top:10px" onclick="location.href='home-services.html?tab=provider&sp=1&open=wallet'">Recharge / Statement</button></div></section>
+ <section id="account" class="view"><div style="text-align:center;padding:8px 0 14px"><div class="avatar" style="margin:auto;width:96px;height:96px;font-size:42px">🚚</div><h2 id="accountName" style="margin:10px 0 2px">Transport Driver</h2><div id="accountRating">⭐ 0.0</div></div><div class="menu"><button onclick="location.href='index.html?open=sp-profile&v=20261006-driver-e2e1'">Edit Profile<small>Vehicle, area and Transport KYC</small></button><button onclick="location.href='index.html?pwa=1&v=20261006-driver-e2e1'">OCS Home<small>All OCS services in one place</small></button><button onclick="shareDriverOcs()">Refer a Friend<small>Share & Earn ₹50</small></button><button onclick="driverSupport()">Support<small>OCS help & tickets</small></button></div></section>
 </main>
 <div id="activeStrip" class="active-strip"><div><b id="stripStatus">Current Trip</b><div class="muted" id="stripSub">Tap View</div></div><button onclick="showTab('home')">VIEW</button></div>
 <nav class="bottom"><button id="navHome" class="active" onclick="showTab('home')"><b>⌂</b>Home</button><button id="navActivity" onclick="showTab('activity')"><b>▤</b>Activity</button><button id="navWallet" onclick="showTab('walletView')"><b>▣</b>Wallet</button><button id="navAccount" onclick="showTab('account')"><b>♙</b>Account</button></nav>
@@ -71,7 +71,7 @@ function render(){
  renderWork();renderActivity();
  if(c.has_booking){$('activeStrip').classList.add('show');$('stripStatus').textContent=statusLabel(c.status);$('stripSub').textContent=(c.booking_readiness&&c.booking_readiness.vehicle_type)||'Transport trip'}else $('activeStrip').classList.remove('show');
 }
-function statusLabel(s){const x=String(s||'').toLowerCase();return({accepted:'Assigned Trip',on_way:'On the Way',reached:'Reached • Start OTP',working:'Trip In Progress',completion_requested:'Waiting Customer',payment_pending:'Payment Pending',cash_wait:'Cash Confirmation'})[x]||String(s||'').replaceAll('_',' ').toUpperCase()}
+function statusLabel(s){const x=String(s||'').toLowerCase();return({accepted:'Assigned Trip',on_way:'On the Way',reached:'Reached Pickup • Start OTP',working:'Trip In Progress',completion_requested:'Trip Complete • Waiting Customer',payment_pending:'Customer Payment Pending',cash_wait:'Cash Confirmation',completed:'Completed'})[x]||String(s||'').replaceAll('_',' ').toUpperCase()}
 function readyText(b){const r=b.booking_readiness||{};return [r.vehicle_type,r.goods_type,r.loading_service,r.approx_weight].filter(Boolean).join(' • ')}
 function renderWork(){
  const box=$('work'),c=(D&&D.current)||{};
@@ -80,11 +80,14 @@ function renderWork(){
  box.innerHTML='<div class="card empty"><b>No active Transport request</b>Work ON rakhein. Matching vehicle request yahan dikhegi.</div>'
 }
 function currentCard(c){const r=c.booking_readiness||{};let actions='';const s=String(c.status||'').toLowerCase();
- if(s==='accepted')actions='<button class="btn primary" onclick="tripAction(\'on_way\')">On the Way</button>';
- if(s==='on_way')actions='<button class="btn primary" onclick="tripAction(\'reached\')">Reached</button>';
- if(s==='reached')actions='<button class="btn yellow" onclick="startTrip()">Enter Start OTP</button>';
- if(s==='working')actions='<button class="btn primary" onclick="location.href=\'home-services.html?tab=provider&sp=1\'">Open Trip Controls</button>';
- return '<div class="card trip"><h4>'+esc(statusLabel(c.status))+'</h4><div class="money">'+money(c.amount)+'</div><div class="muted">'+esc(readyText(c))+'</div><div class="tag">Pickup: '+esc(r.pickup_address||c.address||'')+'</div><div class="tag">Drop: '+esc(r.drop_address||'')+'</div><div class="grid2"><button class="btn gray" onclick="openMap()">Map</button>'+actions+'</div></div>'
+ if(s==='accepted')actions='<button class="btn primary" onclick="tripAction(\'on_way\')">Start Navigation / On the Way</button>';
+ if(s==='on_way')actions='<button class="btn primary" onclick="tripAction(\'reached\')">Reached Pickup</button>';
+ if(s==='reached')actions='<button class="btn yellow" onclick="startTrip()">Enter Customer Start OTP</button>';
+ if(s==='working')actions='<button class="btn primary" onclick="tripAction(\'complete\')">Complete Trip</button>';
+ if(s==='completion_requested')actions='<button class="btn gray" disabled>Waiting Customer Confirmation</button>';
+ if(s==='payment_pending')actions='<button class="btn gray" disabled>Waiting Customer Payment</button>';
+ if(s==='cash_wait')actions='<button class="btn yellow" onclick="confirmTransportCash()">Confirm Cash Received</button>';
+ return '<div class="card trip"><h4>'+esc(statusLabel(c.status))+'</h4><div class="money">'+money(c.amount)+'</div><div class="muted">'+esc(readyText(c))+'</div><div class="tag">Pickup: '+esc(r.pickup_address||c.address||'')+'</div><div class="tag">Drop: '+esc(r.drop_address||'')+'</div><div class="grid2"><button class="btn gray" onclick="openMap()">Map / Navigate</button>'+actions+'</div></div>'
 }
 function requestCard(b){const r=b.booking_readiness||{};return '<div class="card request"><h4>New Transport Request</h4><div class="muted">'+esc(readyText(b))+'</div><div class="tag">'+esc(r.pickup_address||b.address||'Pickup')+'</div><div class="tag">'+esc(r.drop_address||'Drop')+'</div><div class="grid2"><button class="btn primary" onclick="sendOffer()">Send Quote</button><button class="btn red" onclick="rejectOpen()">Reject</button></div></div>'}
 function renderActivity(){const c=(D&&D.current)||{},h=Array.isArray(D&&D.history)?D.history:[];$('ongoing').innerHTML=c.has_booking?currentCard(c):'<div class="card empty"><b>No Ongoing Trip</b></div>';$('past').innerHTML=h.length?h.map(x=>'<div class="history"><div class="r"><b>'+esc(x.service_name||x.category||'Transport')+'</b><b>'+money(x.booking_amount||x.visit_charge)+'</b></div><small>'+esc(statusLabel(x.status))+' • '+new Date(x.closed_at||x.updated_at||x.created_at).toLocaleDateString('en-IN')+'</small>'+(x.rating?'<small>⭐ '+x.rating+(x.rating_comment?' • '+esc(x.rating_comment):'')+'</small>':'')+'</div>').join(''):'<div class="card empty"><b>No Past Trips</b></div>'}
@@ -94,6 +97,33 @@ async function rejectOpen(){if(!OPEN)return;const {error}=await sb.rpc('reject_b
 async function tripAction(a){const c=D.current;if(!c||!c.id)return;const {error}=await sb.rpc('provider_booking_action',{p_booking_id:c.id,p_action:a,p_start_otp:null});if(error){alert(error.message);return}await load()}
 async function startTrip(){const c=D.current;if(!c||!c.id)return;const otp=(prompt('Customer Start OTP enter kare')||'').trim();if(!otp)return;const {error}=await sb.rpc('provider_booking_action',{p_booking_id:c.id,p_action:'start',p_start_otp:otp});if(error){alert(error.message);return}await load()}
 function openMap(){const c=D&&D.current||{},r=c.booking_readiness||{},q=r.pickup_address||c.address||'';if(q)window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q),'_blank','noopener')}
+
+async function confirmTransportCash(){
+ const c=D&&D.current;if(!c||!c.id)return;
+ try{
+   const {data:snap,error:se}=await sb.rpc('payment_snapshot_v1',{p_booking_id:c.id});if(se)throw se;
+   const p=snap&&snap.payment;if(!p||!p.id||String(p.method||'').toLowerCase()!=='cash')throw new Error('Cash payment record nahi mila.');
+   const {error}=await sb.rpc('confirm_cash_received_v1',{p_payment_id:p.id});if(error)throw error;
+   alert('Cash received confirmed. Trip completed.');
+   await load();
+ }catch(e){alert(e&&e.message?e.message:'Cash confirmation failed')}
+}
+function shareDriverOcs(){
+ const url=location.origin+location.pathname.replace(/transport-driver\.html.*$/,'index.html');
+ const text='One Call Solution join karein. OCS Driver / Transport aur Home Services ek hi app me.';
+ if(navigator.share){navigator.share({title:'One Call Solution',text,url}).catch(()=>{})}
+ else navigator.clipboard?.writeText(text+' '+url).then(()=>alert('OCS link copied')).catch(()=>alert(text+' '+url));
+}
+function driverSupport(){
+ const msg=prompt('OCS Support ke liye problem likhiye');
+ if(!msg)return;
+ (async()=>{try{
+   const c=D&&D.current||{};
+   const {data,error}=await sb.rpc('create_support_ticket_v1',{p_role:'service_provider',p_category:'Driver / Transport',p_message:msg,p_callback:false,p_booking_id:c.id||null});
+   if(error)throw error;alert('Support request submitted'+(data&&data.ticket_no?' • '+data.ticket_no:''));
+ }catch(e){alert(e&&e.message?e.message:'Support request failed')}})();
+}
+
 load();setInterval(()=>load(),10000);
 </script>
 </body>
