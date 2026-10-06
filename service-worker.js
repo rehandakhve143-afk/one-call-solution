@@ -5,6 +5,8 @@ const OCS_SHELL=[
   './property.html',
   './home-services.html',
   './service-provider.html',
+  './transport.html',
+  './transport-driver.html',
   './app-version.json',
   './assets/ocs-home.css',
   './assets/ocs-logo-mark.svg',
