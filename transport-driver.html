@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="no-store,no-cache,must-revalidate,max-age=0">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>OCS Driver Service</title>
+<title>OCS Tempo / Goods Transport</title>
 <meta name="theme-color" content="#064d59">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
 <link rel="stylesheet" href="assets/ocs-unified-ui.css?v=20261005-unified2">
@@ -26,7 +26,7 @@ h3{font-size:18px;margin:17px 2px 9px}.request h4,.trip h4{margin:0 0 4px;font-s
 <body>
 <div class="app">
 <header class="hero">
- <div class="hero-top"><h1 id="title">Driver Home</h1><span class="badge" id="kycBadge">OCS Driver Service</span></div>
+ <div class="hero-top"><h1 id="title">Transport Home</h1><span class="badge" id="kycBadge">OCS Transport</span></div>
  <div class="profile"><div class="avatar">🚚</div><div><h2 id="name">Transport Driver</h2><small id="phone">Loading...</small><div class="rating" id="rating">⭐ 0.0</div></div></div>
 </header>
 <main class="main">
@@ -40,7 +40,7 @@ h3{font-size:18px;margin:17px 2px 9px}.request h4,.trip h4{margin:0 0 4px;font-s
  </section>
  <section id="activity" class="view"><h3 style="margin-top:0">Ongoing</h3><div id="ongoing"></div><h3>Past</h3><div id="past"></div></section>
  <section id="walletView" class="view"><div class="wallet"><small>OCS Wallet Balance</small><b id="walletBal">₹0</b><div class="muted" style="color:#dcebed">Low / negative wallet se jobs auto-block nahi hongi</div></div><div class="stats" style="margin-top:10px"><div class="stat"><small>Withdrawable</small><b id="withdraw">₹0</b></div><div class="stat"><small>Platform Charge</small><b>9%</b></div></div><div class="card" style="margin-top:12px"><b>Wallet Rule</b><div class="muted">Cash trip par OCS 9% wallet se deduct hota hai. Online trip par OCS 9% retain karta hai; wallet dobara debit nahi hota. Wallet minus ho tab bhi Work ON ho to jobs continue rahenge; sirf Admin hold ya Work OFF par jobs rukengi.</div><button class="btn primary" style="width:100%;margin-top:10px" onclick="location.href='home-services.html?tab=provider&sp=1&open=wallet'">Recharge / Statement</button></div></section>
- <section id="account" class="view"><div style="text-align:center;padding:8px 0 14px"><div class="avatar" style="margin:auto;width:96px;height:96px;font-size:42px">🚚</div><h2 id="accountName" style="margin:10px 0 2px">Transport Driver</h2><div id="accountRating">⭐ 0.0</div></div><div class="menu"><button onclick="location.href='index.html?open=sp-profile&v=20261006-driver-e2e1'">Edit Profile<small>Vehicle, area and Transport KYC</small></button><button onclick="location.href='index.html?pwa=1&v=20261006-driver-e2e1'">OCS Home<small>All OCS services in one place</small></button><button onclick="shareDriverOcs()">Refer a Friend<small>Share & Earn ₹50</small></button><button onclick="driverSupport()">Support<small>OCS help & tickets</small></button></div></section>
+ <section id="account" class="view"><div style="text-align:center;padding:8px 0 14px"><div class="avatar" style="margin:auto;width:96px;height:96px;font-size:42px">🚚</div><h2 id="accountName" style="margin:10px 0 2px">Transport Driver</h2><div id="accountRating">⭐ 0.0</div></div><div class="menu"><button onclick="location.href='index.html?open=sp-profile&v=20261006-bank1'">Edit Transport Profile<small>Vehicle, area, Driving Licence, RC &amp; Insurance</small></button><button onclick="location.href='payout-details.html?from=transport&v=20261006-bank1'">🏦 Bank &amp; Payout Details<small>Optional now • verification required before payout</small></button><button onclick="location.href='index.html?pwa=1&v=20261006-driver-e2e1'">OCS Home<small>All OCS services in one place</small></button><button onclick="shareDriverOcs()">Refer a Friend<small>Share & Earn ₹50</small></button><button onclick="driverSupport()">Support<small>OCS help & tickets</small></button></div></section>
 </main>
 <div id="activeStrip" class="active-strip"><div><b id="stripStatus">Current Trip</b><div class="muted" id="stripSub">Tap View</div></div><button onclick="showTab('home')">VIEW</button></div>
 <nav class="bottom"><button id="navHome" class="active" onclick="showTab('home')"><b>⌂</b>Home</button><button id="navActivity" onclick="showTab('activity')"><b>▤</b>Activity</button><button id="navWallet" onclick="showTab('walletView')"><b>▣</b>Wallet</button><button id="navAccount" onclick="showTab('account')"><b>♙</b>Account</button></nav>
@@ -53,7 +53,7 @@ let D=null,OPEN=null;
 const $=id=>document.getElementById(id);
 const money=v=>'₹'+Number(v||0).toLocaleString('en-IN',{maximumFractionDigits:0});
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function showTab(id){['home','activity','walletView','account'].forEach(x=>$(x).classList.toggle('active',x===id));[['navHome','home'],['navActivity','activity'],['navWallet','walletView'],['navAccount','account']].forEach(x=>$(x[0]).classList.toggle('active',x[1]===id));$('title').textContent=id==='activity'?'Activity':id==='walletView'?'Wallet':id==='account'?'Account':'Driver Home';window.scrollTo(0,0)}
+function showTab(id){['home','activity','walletView','account'].forEach(x=>$(x).classList.toggle('active',x===id));[['navHome','home'],['navActivity','activity'],['navWallet','walletView'],['navAccount','account']].forEach(x=>$(x[0]).classList.toggle('active',x[1]===id));$('title').textContent=id==='activity'?'Activity':id==='walletView'?'Wallet':id==='account'?'Account':'Transport Home';window.scrollTo(0,0)}
 async function load(){
  const ses=await sb.auth.getSession();if(!(ses.data&&ses.data.session)){location.replace('index.html?login=1');return}
  const {data,error}=await sb.rpc('transport_driver_dashboard_v1');if(error){$('work').innerHTML='<div class="card">Driver dashboard load failed: '+esc(error.message)+'</div>';return}
@@ -124,7 +124,7 @@ function driverSupport(){
  }catch(e){alert(e&&e.message?e.message:'Support request failed')}})();
 }
 
-load();setInterval(()=>load(),10000);
+load();if(new URLSearchParams(location.search).get('view')==='account')showTab('account');setInterval(()=>load(),10000);
 </script>
 </body>
 </html>
