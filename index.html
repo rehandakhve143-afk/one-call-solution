@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-frontclean2"><style id="ocsCriticalBoot">
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261006-join1"><style id="ocsCriticalBoot">
 html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7faf9;color:#173247}
 #ocsBootSplash{position:fixed;inset:0;z-index:99999;background:#f7faf9;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .2s ease}
 #ocsBootSplash .b{display:flex;align-items:center;gap:12px}
@@ -165,6 +165,25 @@ body:has(.ocs-super-nav){padding-bottom:0!important}
   box-shadow:0 7px 18px rgba(7,84,96,.10)!important;
 }
 .ocs-share-earn-strip{margin-bottom:8px!important}
+.ocs-join-strip{
+  display:flex!important;align-items:center!important;gap:11px!important;
+  margin:10px 0 6px!important;padding:14px!important;
+  border:1px solid #d8e8e5!important;border-radius:18px!important;
+  background:#fff!important;box-shadow:0 6px 18px rgba(8,45,55,.055)!important
+}
+.ocs-join-icon{
+  width:44px!important;height:44px!important;flex:0 0 44px!important;
+  display:grid!important;place-items:center!important;border-radius:14px!important;
+  background:#e8f7f4!important;color:#087a70!important;font-size:25px!important;font-weight:900!important
+}
+.ocs-join-copy{flex:1!important;min-width:0!important}
+.ocs-join-copy b{display:block!important;color:#173f46!important;font-size:13px!important}
+.ocs-join-copy small{display:block!important;margin-top:4px!important;color:#6f8287!important;font-size:8.5px!important;line-height:1.4!important}
+.ocs-join-strip button{
+  flex:0 0 auto!important;border:0!important;border-radius:12px!important;
+  background:#075460!important;color:#fff!important;padding:10px 12px!important;
+  font-size:9px!important;font-weight:900!important
+}
 .ocs-public-feedback{display:none!important}
 @media(max-width:390px){
   .ocs-super-top{padding:9px 14px 12px!important}
@@ -265,6 +284,11 @@ setTimeout(function(){
       <div class="bi"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg></div>
       <div class="bc"><b>Share & Earn ₹50</b><small>Unlimited genuine referrals. ₹50 OCS Wallet reward after each referred new user completes their first successful paid service booking.</small></div>
       <button onclick="shareOcsWhatsApp()">Share Now</button>
+    </section>
+    <section class="ocs-join-strip">
+      <div class="ocs-join-icon">＋</div>
+      <div class="ocs-join-copy"><b>Join One Call Solution</b><small>Service Provider, Driver ya Transport Partner ke roop me OCS ke saath judkar apna kaam badhayein.</small></div>
+      <button type="button" onclick="openProviderProfileFromMenu()">Join OCS</button>
     </section>
   </main>
 </section>
@@ -4615,7 +4639,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-frontclean2',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261006-join1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -4689,7 +4713,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20261006-frontclean2';
+const OCS_APP_BUILD='20261006-join1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
