@@ -1693,6 +1693,7 @@ function showCustomerProfileSummary(){
     '</div>'+
     '<div class="ocs-sp-summary-actions">'+
       '<button class="primary" onclick="editCustomerProfile()">Edit Profile</button>'+
+      '<button class="btn gray" onclick="location.href=\'payout-details.html?from='+(category==='Driver Service'?'driver':category==='Tempo / Goods Transport'?'transport':'sp')+'&v=20261006-bank1\'">🏦 Bank &amp; Payout Details</button>'+
       '<button class="btn gray" onclick="closeAccount()">Close</button>'+
     '</div>'+
   '</div>';
@@ -1809,7 +1810,9 @@ async function showProviderProfileSummary(){
     '<div class="ocs-sp-summary-actions">'+
       (status==='approved'
        ?(category==='Tempo / Goods Transport'
-         ?'<button class="primary" onclick="closeAccount();location.href=\'transport-driver.html?v=20261006-driver-e2e1\'">Open Driver Dashboard</button>'
+         ?'<button class="primary" onclick="closeAccount();location.href=\'transport-driver.html?v=20261006-bank1\'">Open Transport Dashboard</button>'
+         :category==='Driver Service'
+         ?'<button class="primary" onclick="closeAccount();location.href=\'driver-provider.html?v=20261006-bank1\'">Open Driver Dashboard</button>'
          :'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20261006-walletfree2\'">Open SP Dashboard</button>')
        :status==='pending'
          ?(category==='Tempo / Goods Transport'&&!tp.kyc_complete
