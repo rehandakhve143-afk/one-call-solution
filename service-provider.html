@@ -28,9 +28,9 @@
     if(error)throw error;
     const skills=Array.isArray(data&&data.skills)?data.skills:[];
     const isTransport=skills.some(x=>String(x.category||'').trim()==='Tempo / Goods Transport'&&x.enabled_by_provider!==false);
-    location.replace(isTransport?'transport-driver.html?v=20261005-driver1':'home-services.html?tab=provider&sp=1&v=20261005-unified1');
+    location.replace(isTransport?'transport-driver.html?v=20261005-driver1':'home-services.html?tab=provider&sp=1&v=20261006-account1');
   }catch(e){
-    location.replace('home-services.html?tab=provider&sp=1&v=20261005-unified1');
+    location.replace('home-services.html?tab=provider&sp=1&v=20261006-account1');
   }
 })();
 </script>
