@@ -1,5 +1,5 @@
 {
-  "build": "20261006-join2",
+  "build": "20261006-join3",
   "updated_at": "2026-10-06",
-  "message": "Join OCS now shows role chooser for Service Provider, Driver, Transport and Business before onboarding"
+  "message": "Replaced browser provider conflict alert with OCS UI, protected active SP category, added another-provider-login flow, and corrected Account provider label"
 }
