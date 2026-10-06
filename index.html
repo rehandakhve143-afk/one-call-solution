@@ -200,6 +200,7 @@ setTimeout(function(){
 
     <div class="ocs-super-head"><h2>Explore One Call Solution</h2><button onclick="document.getElementById('ocsMarketGrid').scrollIntoView({behavior:'smooth'})">View All</button></div>
     <div class="ocs-super-market" id="ocsMarketGrid">
+      <button class="ocs-market-card" onclick="openModule('Driver Service')"><span class="photo" style="background-image:linear-gradient(135deg,#dff6f3,#edf5f6)"></span><span class="ocs-market-badge">DRIVER</span><span class="ocs-market-copy"><b>Driver Service</b><small>4-Wheeler Driver • Pickup & Drop</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Tempo / Goods Transport')"><span class="photo" style="background-image:url('https://images.unsplash.com/photo-1592838064575-70ed626d3a0e?auto=format&fit=crop&w=900&q=82')"></span><span class="ocs-market-badge">DRIVER SERVICE</span><span class="ocs-market-copy"><b>Tempo / Goods Transport</b><small>Driver • Home Shifting • Delivery • Truck</small></span></button>
       
       <button class="ocs-market-card" onclick="openModule('Local Shop')"><span class="photo" style="background-image:url('https://www.dolarlc.com/_next/image?q=75&url=%2Fimages%2Fassets%2Felectricidad-3.webp&w=3840')"></span><span class="ocs-market-badge">NEARBY</span><span class="ocs-market-copy"><b>Local Shop</b><small>Electrical • Hardware</small></span></button>
@@ -510,6 +511,7 @@ setTimeout(function(){
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Gas Stove">Gas Stove</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Wi-Fi / TV Setup">Wi-Fi / TV Setup</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Packers & Movers">Packers & Movers</label>
+    <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Driver Service">Driver Service</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Tempo / Goods Transport">Tempo / Goods Transport</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Painter">Painter</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Tiles / Stone Work">Tiles / Stone Work</label>
@@ -1134,6 +1136,7 @@ function providerUiSkillMatchesBackend(label,s){
   if(label==='Gas Stove')return cat==='Gas Stove';
   if(label==='Wi-Fi / TV Setup')return cat==='Wi-Fi / TV Installation & Setup';
   if(label==='Packers & Movers')return cat==='Packers & Movers';
+  if(label==='Driver Service')return cat==='Driver Service';
   if(label==='Tempo / Goods Transport')return cat==='Tempo / Goods Transport';
   if(label==='Painter')return cat==='Painter';
   if(label==='Tiles / Stone Work')return cat==='Tiles / Stone';
@@ -3870,6 +3873,10 @@ function setSuperSlide(n){
 setTimeout(()=>{renderLivePaidBanners();renderXyzDemoBanner();refreshHomeLiveWindowPosters();setSuperSlide(0)},100);
 setInterval(()=>{refreshHomeLiveWindowPosters().catch(()=>{})},6000);
 async function openModule(n,role,serviceCat){
+ if(n==='Driver Service'){
+   location.href='driver-service.html?v=20261006-driver-service1';
+   return;
+ }
  if(n==='Tempo / Goods Transport'){
    location.href='transport.html?v=20261006-driver-e2e1';
    return;
