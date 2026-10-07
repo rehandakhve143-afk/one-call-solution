@@ -618,7 +618,7 @@ body:not(.sp-only-route):not(.admin-route-only) .customer-dashboard-card{margin-
     const explicit=q.get('embed')==='1'||q.get('sp')==='1'||q.get('admin')==='1'||['provider','admin'].includes(String(q.get('tab')||'').toLowerCase());
     const cameFromOcs=String(document.referrer||'').includes(location.origin);
     if(standalone&&topLevel&&!explicit&&!cameFromOcs){
-      location.replace('index.html?pwa=1&v=20261007-ratefix1');
+      location.replace('index.html?pwa=1&v=20261007-readyfix1');
     }
   }catch(e){}
 })();
@@ -904,6 +904,7 @@ function ocsStatusFromBackend(v){
     provider_change_hold:"PROVIDER_CHANGE_HOLD",
     completion_requested:"COMPLETION_CONFIRM",payment_pending:"PAYMENT",
     support_review:"SUPPORT_REVIEW",
+    ready:"SELECT_SERVICE",
     completed:"DONE",done:"DONE",cancelled:"CANCELLED",cancelled_settled:"CANCELLED_SETTLED"
   };
   return m[x]||String(v||"").toUpperCase();
@@ -1026,8 +1027,13 @@ async function ocsLoadLive(role){
       if(error)throw error;
       if(data&&data.length)booking=data[0];
     }
+    // Older test data may contain a backend booking with status "ready".
+    // It is not a live job in the current flow, so customer browsing must ignore it.
+    if(role!=="provider"&&booking&&String(booking.status||"").toLowerCase()==="ready"){
+      booking=null;
+    }
     if(!booking){
-      const staleStages=["REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","VISIT_CASH_WAIT","CASH_WAIT","PROVIDER_CHANGE_HOLD","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","SUPPORT_REVIEW","DONE","COMPLETED","CANCELLED","CANCELLED_SETTLED"];
+      const staleStages=["READY","REQUESTED","ASSIGNED","ON_WAY","REACHED","WORKING","RESCHEDULE_PENDING","RESCHEDULED","WNC_PROVIDER_REASON","WNC_CUSTOMER_REASON","WNC_PROVIDER_CONFIRM","WNC_CUSTOMER_CONFIRM","VISIT_PAYMENT","VISIT_CASH_WAIT","CASH_WAIT","PROVIDER_CHANGE_HOLD","COMPLETION_CONFIRM","PAYMENT","ONLINE_PAY","SUPPORT_REVIEW","DONE","COMPLETED","CANCELLED","CANCELLED_SETTLED"];
       if(S.activeBookingId||staleStages.includes(String(S.status||"").toUpperCase())){
         S.lastClosedBookingId=S.activeBookingId||S.lastClosedBookingId||null;
         S.activeBookingId=null;
@@ -1150,10 +1156,24 @@ async function ocsLoadLive(role){
 }
 async function ocsStartLive(role){
   OCS_LIVE_ROLE=role;
-  if(OCS_LIVE_POLL)clearInterval(OCS_LIVE_POLL);
-  await ocsLoadLive(role);
+  if(OCS_LIVE_POLL){clearInterval(OCS_LIVE_POLL);OCS_LIVE_POLL=null}
+  const ok=await ocsLoadLive(role);
+  if(role==="customer"&&!ok){
+    if(String(S.status||"").toUpperCase()==="READY")S.status="SELECT_SERVICE";
+    renderCore();updateSelectionTray();
+    return false;
+  }
   renderCore();updateSelectionTray();
-  OCS_LIVE_POLL=setInterval(async()=>{const ok=await ocsLoadLive(OCS_LIVE_ROLE);if(ok){renderCore();updateSelectionTray();}},5000);
+  OCS_LIVE_POLL=setInterval(async()=>{
+    const live=await ocsLoadLive(OCS_LIVE_ROLE);
+    if(live){renderCore();updateSelectionTray()}
+    else if(OCS_LIVE_ROLE==="customer"){
+      clearInterval(OCS_LIVE_POLL);OCS_LIVE_POLL=null;
+      if(String(S.status||"").toUpperCase()==="READY")S.status="SELECT_SERVICE";
+      renderCore();updateSelectionTray();
+    }
+  },5000);
+  return ok;
 }
 async function ocsCreateLiveBooking(){
   if(!ocsSupabase)throw new Error("Online service not connected");
@@ -1383,15 +1403,24 @@ try{
     S.pendingNextRequest=null;
   }
 }catch(e){}
-// Old test builds could leave READY without a real selected service.
-// That produces the empty READY card seen on mobile. Return such stale state to the category list.
-if(S.status==="READY"&&!S.activeBookingId&&(!String(S.category||"").trim()||!String(S.service||"").trim())){
+// READY was an old pre-booking state. Current customer flow uses SELECT_SERVICE -> SELECT_ITEM -> BOOKING_DETAILS.
+// Always migrate legacy READY back to browsing so an old test record cannot block rate cards.
+if(String(S.status||"").toUpperCase()==="READY"){
   S.status="SELECT_SERVICE";
+  S.activeBookingId="";
   S.category="";
   S.service="";
   S.serviceName="";
+  S.serviceType="fixed";
   S.selectedItems=[];
-  S.base=0;S.total=0;
+  S.base=0;
+  S.total=0;
+  S.bookingAmount=0;
+  S.finalAmount=0;
+  S.amount=0;
+  S.currentJob=null;
+  S.nextJob=null;
+  S.pendingNextRequest=null;
 }
 S.requestMedia=Array.isArray(S.requestMedia)?S.requestMedia:[];
 S.chatMessages=Array.isArray(S.chatMessages)?S.chatMessages:[];
@@ -5676,8 +5705,8 @@ bootHomeServices();
       document.body.classList.add("customer-route-only");
       const body=document.getElementById("cBody");
       if(!body)return;
-      if(typeof S!=="undefined"&&S.status==="READY"&&!S.activeBookingId&&(!String(S.category||"").trim()||!String(S.service||"").trim())){
-        S.status="SELECT_SERVICE";S.category="";S.service="";S.serviceName="";S.selectedItems=[];S.base=0;S.total=0;
+      if(typeof S!=="undefined"&&String(S.status||"").toUpperCase()==="READY"){
+        S.status="SELECT_SERVICE";S.activeBookingId="";S.category="";S.service="";S.serviceName="";S.selectedItems=[];S.base=0;S.total=0;
       }
       if(!String(body.innerHTML||"").trim()&&typeof customerHTML==="function"){
         body.innerHTML=customerHTML();
@@ -5723,10 +5752,10 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
      if(n===3){setOn(3);if(typeof openProviderWalletQuick==='function')openProviderWalletQuick();return}
      if(n===4){setOn(4);if(typeof openProviderProfileSafe==='function')openProviderProfileSafe();return}
    }else{
-     if(n===1){location.href='index.html?pwa=1&v=20261007-ratefix1';return}
-     if(n===2){location.href='index.html?open=activity&v=20261007-ratefix1';return}
-     if(n===3){location.href='index.html?open=wallet&v=20261007-ratefix1';return}
-     if(n===4){location.href='index.html?open=account&v=20261007-ratefix1';return}
+     if(n===1){location.href='index.html?pwa=1&v=20261007-readyfix1';return}
+     if(n===2){location.href='index.html?open=activity&v=20261007-readyfix1';return}
+     if(n===3){location.href='index.html?open=wallet&v=20261007-readyfix1';return}
+     if(n===4){location.href='index.html?open=account&v=20261007-readyfix1';return}
    }
  };
  function configure(){
