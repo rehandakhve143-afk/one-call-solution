@@ -618,7 +618,7 @@ body:not(.sp-only-route):not(.admin-route-only) .customer-dashboard-card{margin-
     const explicit=q.get('embed')==='1'||q.get('sp')==='1'||q.get('admin')==='1'||['provider','admin'].includes(String(q.get('tab')||'').toLowerCase());
     const cameFromOcs=String(document.referrer||'').includes(location.origin);
     if(standalone&&topLevel&&!explicit&&!cameFromOcs){
-      location.replace('index.html?pwa=1&v=20261006-hsfix1');
+      location.replace('index.html?pwa=1&v=20261007-ratefix1');
     }
   }catch(e){}
 })();
@@ -1372,6 +1372,17 @@ function saveHomeState(){
  }catch(e){console.error("OCS booking save failed",e)}
 }
 loadSavedHomeState();
+// Clear stale booking identifiers left by older test builds when no live job is actually running.
+try{
+  const st=String(S.status||"").toUpperCase();
+  const inactive=["","SELECT_SERVICE","SELECT_ITEM","BOOKING_DETAILS","CUSTOM_REQUEST","CANCELLED","CANCELLED_SETTLED","WNC_CLOSED","DONE","COMPLETED"];
+  if(S.activeBookingId&&inactive.includes(st)){
+    S.activeBookingId="";
+    S.currentJob=null;
+    S.nextJob=null;
+    S.pendingNextRequest=null;
+  }
+}catch(e){}
 // Old test builds could leave READY without a real selected service.
 // That produces the empty READY card seen on mobile. Return such stale state to the category list.
 if(S.status==="READY"&&!S.activeBookingId&&(!String(S.category||"").trim()||!String(S.service||"").trim())){
@@ -1934,9 +1945,23 @@ function confirmHeldNoWorkSettlement(){
  hist("OCS hold settled • Provider visit charge "+money(charge)+" • Customer refund "+money(refund));
 }
 
+function ocsHasRealActiveBooking(){
+ const st=String(S.status||"").toUpperCase();
+ const inactive=new Set(["","SELECT_SERVICE","SELECT_ITEM","BOOKING_DETAILS","CUSTOM_REQUEST","CANCELLED","CANCELLED_SETTLED","WNC_CLOSED","DONE","COMPLETED"]);
+ return !!S.activeBookingId&&!S.bookingClosedAt&&!inactive.has(st);
+}
+function ocsClearStaleBookingLock(){
+ if(S.activeBookingId&&!ocsHasRealActiveBooking()){
+   S.activeBookingId="";
+   S.currentJob=null;
+   S.nextJob=null;
+   S.pendingNextRequest=null;
+ }
+}
 async function selectCategory(cat){
  if(!services[cat]){alert("Service category not found: "+cat);return}
- if(!OCS_BROWSE_MODE&&S.activeBookingId&&!S.bookingClosedAt){
+ ocsClearStaleBookingLock();
+ if(!OCS_BROWSE_MODE&&ocsHasRealActiveBooking()){
    await ocsStartLive("customer");
    try{window.scrollTo(0,0)}catch(e){}
    return;
@@ -5532,7 +5557,8 @@ async function bootHomeServices(){
    await booking();
    return;
  }
- if(!S.activeBookingId&&OCS_ROUTE_CAT&&services[OCS_ROUTE_CAT]){
+ ocsClearStaleBookingLock();
+ if(!ocsHasRealActiveBooking()&&OCS_ROUTE_CAT&&services[OCS_ROUTE_CAT]){
    S.category=OCS_ROUTE_CAT;
    S.selectedItems=[];
    S.service="";
@@ -5697,10 +5723,10 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
      if(n===3){setOn(3);if(typeof openProviderWalletQuick==='function')openProviderWalletQuick();return}
      if(n===4){setOn(4);if(typeof openProviderProfileSafe==='function')openProviderProfileSafe();return}
    }else{
-     if(n===1){location.href='index.html?pwa=1&v=20261006-hsfix1';return}
-     if(n===2){location.href='index.html?open=activity&v=20261006-hsfix1';return}
-     if(n===3){location.href='index.html?open=wallet&v=20261006-hsfix1';return}
-     if(n===4){location.href='index.html?open=account&v=20261006-hsfix1';return}
+     if(n===1){location.href='index.html?pwa=1&v=20261007-ratefix1';return}
+     if(n===2){location.href='index.html?open=activity&v=20261007-ratefix1';return}
+     if(n===3){location.href='index.html?open=wallet&v=20261007-ratefix1';return}
+     if(n===4){location.href='index.html?open=account&v=20261007-ratefix1';return}
    }
  };
  function configure(){
