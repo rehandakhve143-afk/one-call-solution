@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261007-walletfinal1"><style id="ocsCriticalBoot">
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261007-profile1"><style id="ocsCriticalBoot">
 html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7faf9;color:#173247}
 #ocsBootSplash{position:fixed;inset:0;z-index:99999;background:#f7faf9;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .2s ease}
 #ocsBootSplash .b{display:flex;align-items:center;gap:12px}
@@ -359,6 +359,80 @@ body:has(#locationModal.show) .ocs-super-nav{visibility:hidden!important}
 #walletModal .ocs-wallet-simple-row b{font-size:13.5px!important;color:#29464d!important}
 #walletModal .ocs-wallet-simple-row small{font-size:10px!important;color:#72858a!important}
 </style>
+<style id="ocs-uc-account-v1">
+#bottomProfileModal .sheet{
+  padding:20px 20px 105px!important;
+  background:#fff!important;
+}
+#bottomProfileModal .bottom-hub-head{display:none!important}
+#bottomProfileModal .ocs-uc-profile{padding:8px 0 20px!important}
+#bottomProfileModal .ocs-uc-profile-top{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important
+}
+#bottomProfileModal .ocs-uc-status{
+  display:inline-flex!important;align-items:center!important;min-height:31px!important;padding:7px 10px!important;
+  border-radius:999px!important;font-size:11px!important;font-weight:900!important
+}
+#bottomProfileModal .ocs-uc-status.ok{background:#e9f7f2!important;color:#08745f!important}
+#bottomProfileModal .ocs-uc-status.warn{background:#fff0ed!important;color:#b33424!important}
+#bottomProfileModal .ocs-uc-complete{
+  min-height:38px!important;padding:8px 14px!important;border:1.4px solid #23424a!important;border-radius:11px!important;
+  background:#fff!important;color:#183840!important;font-size:12px!important;font-weight:900!important;box-shadow:none!important
+}
+#bottomProfileModal .ocs-uc-profile h1{
+  margin:14px 0 3px!important;font-size:30px!important;line-height:1.05!important;letter-spacing:-.8px!important;color:#17343c!important
+}
+#bottomProfileModal .ocs-uc-contact{font-size:13px!important;color:#65787d!important}
+#bottomProfileModal .ocs-uc-quick{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important;margin:5px 0 20px!important
+}
+#bottomProfileModal .ocs-uc-quick button{
+  min-width:0!important;min-height:118px!important;padding:13px 10px!important;border:1px solid #e1e7e9!important;
+  border-radius:17px!important;background:#fff!important;color:#263d44!important;text-align:left!important;box-shadow:none!important
+}
+#bottomProfileModal .ocs-uc-quick button>span{
+  display:grid!important;place-items:center!important;width:38px!important;height:38px!important;margin-bottom:12px!important;
+  border-radius:12px!important;background:#edf8f7!important;color:#087d72!important;font-size:18px!important;font-weight:900!important
+}
+#bottomProfileModal .ocs-uc-quick b{display:block!important;font-size:13px!important;line-height:1.2!important;color:#223a41!important}
+#bottomProfileModal .ocs-uc-quick small{display:block!important;margin-top:4px!important;font-size:9px!important;line-height:1.3!important;color:#89969a!important}
+#bottomProfileModal .ocs-uc-list{
+  margin:0 -20px!important;padding:10px 20px!important;border-top:10px solid #f4f6f7!important
+}
+#bottomProfileModal .ocs-uc-list button{
+  width:100%!important;min-height:65px!important;display:flex!important;align-items:center!important;gap:13px!important;
+  padding:10px 0!important;border:0!important;border-bottom:1px solid #edf0f1!important;border-radius:0!important;
+  background:#fff!important;color:#253d44!important;text-align:left!important;box-shadow:none!important
+}
+#bottomProfileModal .ocs-uc-list button:last-child{border-bottom:0!important}
+#bottomProfileModal .ocs-uc-list .uli{
+  width:31px!important;flex:0 0 31px!important;text-align:center!important;color:#173f46!important;font-size:16px!important;font-weight:900!important
+}
+#bottomProfileModal .ocs-uc-list .ulc{flex:1!important;min-width:0!important}
+#bottomProfileModal .ocs-uc-list .ulc b{display:block!important;font-size:14px!important;color:#2b4147!important}
+#bottomProfileModal .ocs-uc-list .ulc small{display:block!important;margin-top:2px!important;font-size:9.5px!important;color:#88969a!important}
+#bottomProfileModal .ocs-uc-list .ulg{font-size:25px!important;color:#8c9a9e!important}
+#bottomProfileModal .ocs-uc-refer{
+  width:100%!important;min-height:74px!important;margin-top:16px!important;display:flex!important;align-items:center!important;gap:12px!important;
+  padding:12px 14px!important;border:1px solid #d9e8e5!important;border-radius:17px!important;background:#f5fbf9!important;
+  color:#173f46!important;text-align:left!important;box-shadow:none!important
+}
+#bottomProfileModal .ocs-uc-refer>span{
+  width:42px!important;height:42px!important;flex:0 0 42px!important;display:grid!important;place-items:center!important;
+  border-radius:13px!important;background:#e2f6f1!important;color:#087d72!important;font-size:21px!important;font-weight:900!important
+}
+#bottomProfileModal .ocs-uc-refer>div{flex:1!important;min-width:0!important}
+#bottomProfileModal .ocs-uc-refer b{display:block!important;font-size:14px!important}
+#bottomProfileModal .ocs-uc-refer small{display:block!important;margin-top:3px!important;font-size:9px!important;line-height:1.35!important;color:#71868a!important}
+#bottomProfileModal .ocs-uc-refer i{font-style:normal!important;font-size:24px!important;color:#8b999d!important}
+@media(max-width:370px){
+  #bottomProfileModal .sheet{padding-left:14px!important;padding-right:14px!important}
+  #bottomProfileModal .ocs-uc-list{margin-left:-14px!important;margin-right:-14px!important;padding-left:14px!important;padding-right:14px!important}
+  #bottomProfileModal .ocs-uc-quick{gap:6px!important}
+  #bottomProfileModal .ocs-uc-quick button{padding:10px 8px!important}
+  #bottomProfileModal .ocs-uc-quick b{font-size:12px!important}
+}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
@@ -512,6 +586,21 @@ setTimeout(function(){
 <div class="modal" id="bottomProfileModal"><div class="sheet">
   <div class="bottom-hub-head"><div><h2>Account</h2><div class="muted">Profile, rewards, support & settings</div></div><button class="x" onclick="closeBottomHub('bottomProfileModal')">×</button></div>
   <div id="bottomProfileBody"></div>
+</div></div>
+
+
+<div class="modal" id="paymentMethodsModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>Payment Methods</h2><div class="muted">OCS payment preferences</div></div><button class="x" onclick="closePaymentMethodsInfo()">×</button></div>
+  <div class="bottom-hub-card"><b>Online Payment</b><small>OCS booking record ke liye online payment preferred hai. Supported payment options booking ke payment step par dikhengi.</small></div>
+  <div class="bottom-hub-card"><b>Cash</b><small>Network ya online payment issue ho to eligible booking me Cash choose kar sakte hain.</small></div>
+  <div class="bottom-hub-card"><b>Saved Card / Bank Details</b><small>OCS customer profile me card ya bank details permanently store karna zaroori nahi hai.</small></div>
+</div></div>
+
+<div class="modal" id="aboutOcsModal"><div class="sheet">
+  <div class="bottom-hub-head"><div><h2>About OCS</h2><div class="muted">One Call Solution</div></div><button class="x" onclick="closeAboutOcs()">×</button></div>
+  <div class="bottom-hub-card"><b>One for All • All for One</b><small>Home Services, Property, Local Shops, Vehicles, Transport aur other local services ko ek simple platform par connect karna OCS ka goal hai.</small></div>
+  <div class="bottom-hub-card"><b>Customer Safety & Records</b><small>Booking, accepted quote, payment, support aur service history OCS record me rakhne ke liye flow design kiya gaya hai.</small></div>
+  <div class="bottom-hub-card"><b>Need Help?</b><small>Account, booking ya payment issue ke liye OCS Support use karein.</small><button class="primary" style="margin-top:10px" onclick="closeAboutOcs();openBottomSupport()">Open OCS Support</button></div>
 </div></div>
 
 <div class="modal" id="myAdsModal"><div class="sheet">
@@ -1589,7 +1678,7 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20261007-walletfinal1');
+    clean.searchParams.set('v','20261007-profile1');
     clean.searchParams.set('login','1');
     if(joinRole){
       clean.searchParams.set('open','sp-profile');
@@ -1601,7 +1690,7 @@ async function ocsFreshLoginStart(){
     }
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20261007-walletfinal1&login=1');
+    location.replace('index.html?v=20261007-profile1&login=1');
   }
   return true;
 }
@@ -1801,7 +1890,7 @@ function closeJoinConflict(){
 function useAnotherProviderAccount(){
   const role=String(window.__ocsJoinConflictRole||'home');
   closeJoinConflict();
-  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261007-walletfinal1';
+  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261007-profile1';
 }
 
 function openProviderProfileFromMenu(){
@@ -2487,7 +2576,7 @@ function closeBottomHub(id){
  if(m)m.classList.remove('show');
 }
 function closeAllBottomHubs(){
- const ids=['bottomBookingsModal','bottomSupportModal','bottomProfileModal','myAdsModal','workHistoryModal','serviceRatingModal','settingsModal','walletModal','locationModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'];
+ const ids=['bottomBookingsModal','bottomSupportModal','bottomProfileModal','paymentMethodsModal','aboutOcsModal','myAdsModal','workHistoryModal','serviceRatingModal','settingsModal','walletModal','locationModal','ocsFeedbackModal','myOcsModal','customerDashModal','accountModal'];
  const visible=ids.map(id=>document.getElementById(id)).find(m=>m&&m.classList.contains('show'));
  if(visible)ocsQueueModalParent(visible.id);
  ids.forEach(id=>{const m=document.getElementById(id);if(m)m.classList.remove('show')});
@@ -2621,59 +2710,64 @@ async function submitBottomSupport(){
 
 async function openBottomProfile(){
  closeAllBottomHubs();setBottomActive('bnProfile');
- const customer=getCustomerProfile(),provider=getProviderProfile();
+ const customer=getCustomerProfile();
  const body=document.getElementById('bottomProfileBody');
  if(!body)return;
 
- const name=customer?.name||'OCS Customer';
- const mobile=customer?.mobile||customer?.email||'Profile & account';
- let providerText=provider?((provider.name||'Service Provider')+(provider.area?' • '+provider.area:'')):'Join One Call Solution';
- let providerLabel='Service Provider',providerIcon='SP';
- try{
-   const session=await getOcsSession();
-   if(session&&session.user&&await ocsUserHasRole('service_provider')){
-     const {data,error}=await ocsSupabase.rpc('provider_profile_snapshot_v1');
-     if(!error&&data&&data.registered){
-       const skills=Array.isArray(data.skills)?data.skills:[];
-       const active=skills.find(x=>x&&x.enabled_by_provider!==false);
-       const cat=String(active&&active.category||'').trim();
-       const svc=String(active&&active.service_name||'').trim();
-       if(cat==='Driver Service'){providerLabel='Driver Service';providerIcon='🚘';providerText='Open Driver Profile & Dashboard'}
-       else if(cat==='Tempo / Goods Transport'){providerLabel='Transport Partner';providerIcon='🚚';providerText='Open Transport Profile & Dashboard'}
-       else{
-         let shown=cat||svc||'Home Service Provider';
-         if(cat==='Appliance Repair'&&svc){
-           if(/refrigerator/i.test(svc))shown='Refrigerator';
-           else if(/washing/i.test(svc))shown='Washing Machine';
-           else if(/chimney/i.test(svc))shown='Chimney';
-           else if(/water purifier|RO/i.test(svc))shown='RO / Water Purifier';
-         }
-         providerText='Active • '+shown;
-       }
-     }
-   }
- }catch(e){}
+ let session=null;
+ try{session=await getOcsSession()}catch(e){}
+ const accountId=String(customer?.mobile||customer?.email||session?.user?.phone||session?.user?.email||'').trim();
+ const name=String(customer?.name||'OCS Customer').trim()||'OCS Customer';
+ const verified=!!(customer?.verified||customer?.emailVerified||customer?.mobileVerified||session?.user);
+ const complete=!!(customer&&customer.name&&(customer.mobile||customer.email||session?.user?.email||session?.user?.phone));
+ const statusText=verified?(complete?'Verified Customer':'Verified • Complete profile'):'Complete your profile';
+ const statusClass=verified?'ok':'warn';
+ const contact=accountId||'Add mobile or email';
 
  body.innerHTML=
- '<div class="ocs-account-edit-card">'+
-   '<div class="ocs-account-avatar">👤</div>'+
-   '<div class="ocs-account-edit-copy"><b>Edit Profile</b><small>'+ocsSavedText(name)+' • '+ocsSavedText(mobile)+'</small></div>'+
-   '<button class="ocs-account-edit" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">✎</button>'+
+ '<div class="ocs-uc-profile">'+
+   '<div class="ocs-uc-profile-top">'+
+     '<div class="ocs-uc-status '+statusClass+'">'+(verified?'✓ ':'! ')+ocsSavedText(statusText)+'</div>'+
+     '<button class="ocs-uc-complete" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')">'+(complete?'Edit':'Complete')+'</button>'+
+   '</div>'+
+   '<h1>'+ocsSavedText(name)+'</h1>'+
+   '<div class="ocs-uc-contact">'+ocsSavedText(contact)+'</div>'+
  '</div>'+
- '<div class="ocs-account-tiles">'+
-   '<button onclick="closeBottomHub(\'bottomProfileModal\');openMyOcs(\'saved\')"><span>♡</span><b>Saved</b><small>Liked listings</small></button>'+
-   '<button onclick="closeBottomHub(\'bottomProfileModal\');openWalletHub()"><span>₹</span><b>Rewards</b><small>Wallet & referral</small></button>'+
+
+ '<div class="ocs-uc-quick">'+
+   '<button onclick="closeBottomHub(\'bottomProfileModal\');openBottomBookings()"><span>▤</span><b>My Bookings</b><small>Active & history</small></button>'+
+   '<button onclick="closeBottomHub(\'bottomProfileModal\');openWalletHub()"><span>₹</span><b>Wallet</b><small>Rewards & payments</small></button>'+
+   '<button onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()"><span>☎</span><b>Help & Support</b><small>OCS help</small></button>'+
  '</div>'+
- '<div class="ocs-account-list">'+
-   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openLocationPicker()"><span class="ar-ico">⌖</span><span class="ar-copy"><b>Saved Location</b><small>Home / service location</small></span><span class="ar-go">›</span></button>'+
-   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');shareOcsWhatsApp()"><span class="ar-ico">↗</span><span class="ar-copy"><b>Refer a Friend</b><small>Share & Earn ₹50 wallet reward</small></span><span class="ar-go">›</span></button>'+
-   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openMyAds()"><span class="ar-ico">▣</span><span class="ar-copy"><b>My Ads & Listings</b><small>Edit • Pause • Renew</small></span><span class="ar-go">›</span></button>'+
-   '<button class="ocs-account-row" onclick="openProviderDashboardFromMenu()"><span class="ar-ico">'+ocsSavedText(providerIcon)+'</span><span class="ar-copy"><b>'+ocsSavedText(providerLabel)+'</b><small>'+ocsSavedText(providerText)+'</small></span><span class="ar-go">›</span></button>'+
-   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()"><span class="ar-ico">☎</span><span class="ar-copy"><b>Support</b><small>Booking, payment or account help</small></span><span class="ar-go">›</span></button>'+
-   '<button class="ocs-account-row" onclick="closeBottomHub(\'bottomProfileModal\');openSettings()"><span class="ar-ico">⚙</span><span class="ar-copy"><b>Settings</b><small>Login, notifications & logout</small></span><span class="ar-go">›</span></button>'+
- '</div>';
+
+ '<div class="ocs-uc-list">'+
+   '<button onclick="openCustomerRatingsFromAccount()"><span class="uli">★</span><span class="ulc"><b>My Ratings</b><small>Completed services & ratings</small></span><span class="ulg">›</span></button>'+
+   '<button onclick="closeBottomHub(\'bottomProfileModal\');openLocationPicker()"><span class="uli">⌖</span><span class="ulc"><b>Manage Address</b><small>Home / service location</small></span><span class="ulg">›</span></button>'+
+   '<button onclick="openPaymentMethodsInfo()"><span class="uli">▣</span><span class="ulc"><b>Payment Methods</b><small>Online preferred • Cash if needed</small></span><span class="ulg">›</span></button>'+
+   '<button onclick="closeBottomHub(\'bottomProfileModal\');openSettings()"><span class="uli">⚙</span><span class="ulc"><b>Settings</b><small>Notifications, language & account</small></span><span class="ulg">›</span></button>'+
+   '<button onclick="openAboutOcs()"><span class="uli">OCS</span><span class="ulc"><b>About OCS</b><small>One Call Solution</small></span><span class="ulg">›</span></button>'+
+ '</div>'+
+
+ '<button class="ocs-uc-refer" onclick="closeBottomHub(\'bottomProfileModal\');shareOcsWhatsApp()"><span>↗</span><div><b>Share & Earn ₹50</b><small>Unlimited genuine referrals • OCS Wallet reward</small></div><i>›</i></button>';
+
  document.getElementById('bottomProfileModal').classList.add('show');
 }
+function openCustomerRatingsFromAccount(){
+ closeBottomHub('bottomProfileModal');
+ setBottomBookingsTab('COMPLETED');
+ openBottomBookings();
+}
+function openPaymentMethodsInfo(){
+ closeBottomHub('bottomProfileModal');
+ document.getElementById('paymentMethodsModal').classList.add('show');
+}
+function closePaymentMethodsInfo(){document.getElementById('paymentMethodsModal').classList.remove('show')}
+function openAboutOcs(){
+ closeBottomHub('bottomProfileModal');
+ document.getElementById('aboutOcsModal').classList.add('show');
+}
+function closeAboutOcs(){document.getElementById('aboutOcsModal').classList.remove('show')}
+
 function myAdStatusLabel(x){
  const s=String(x&&x.status||'').toLowerCase();
  if(s==='live'&&x.expires_at&&new Date(x.expires_at).getTime()<=Date.now())return 'EXPIRED';
@@ -4309,7 +4403,7 @@ async function openModule(n,role,serviceCat){
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20261007-walletfinal1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20261007-profile1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -4337,7 +4431,7 @@ async function openModule(n,role,serviceCat){
    frame.src='transport.html?v=20261006-driver-e2e1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20261007-walletfinal1&embed=1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20261007-profile1&embed=1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
@@ -4979,7 +5073,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261007-walletfinal1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261007-profile1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -5053,7 +5147,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20261007-walletfinal1';
+const OCS_APP_BUILD='20261007-profile1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
