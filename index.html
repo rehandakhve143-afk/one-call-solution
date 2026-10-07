@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261007-profile1"><style id="ocsCriticalBoot">
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261007-activity1"><style id="ocsCriticalBoot">
 html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7faf9;color:#173247}
 #ocsBootSplash{position:fixed;inset:0;z-index:99999;background:#f7faf9;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .2s ease}
 #ocsBootSplash .b{display:flex;align-items:center;gap:12px}
@@ -431,6 +431,29 @@ body:has(#locationModal.show) .ocs-super-nav{visibility:hidden!important}
   #bottomProfileModal .ocs-uc-quick{gap:6px!important}
   #bottomProfileModal .ocs-uc-quick button{padding:10px 8px!important}
   #bottomProfileModal .ocs-uc-quick b{font-size:12px!important}
+}
+</style>
+<style id="ocs-activity-polish-v1">
+#bottomBookingsModal .ocs-activity-card{
+  padding:14px!important;
+}
+#bottomBookingsModal .ocs-activity-card>b{
+  margin-top:8px!important;
+  font-size:14px!important;
+  line-height:1.28!important;
+}
+#bottomBookingsModal .ocs-activity-card>small{
+  margin-top:5px!important;
+  font-size:10px!important;
+  line-height:1.45!important;
+}
+#bottomBookingsModal .ocs-activity-card.is-cancelled{
+  padding-top:12px!important;
+  padding-bottom:12px!important;
+}
+#bottomBookingsModal .ocs-activity-card.is-cancelled .ocs-booking-state{
+  padding:5px 8px!important;
+  font-size:9px!important;
 }
 </style>
 </head><body><script>
@@ -1678,7 +1701,7 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20261007-profile1');
+    clean.searchParams.set('v','20261007-activity1');
     clean.searchParams.set('login','1');
     if(joinRole){
       clean.searchParams.set('open','sp-profile');
@@ -1690,7 +1713,7 @@ async function ocsFreshLoginStart(){
     }
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20261007-profile1&login=1');
+    location.replace('index.html?v=20261007-activity1&login=1');
   }
   return true;
 }
@@ -1890,7 +1913,7 @@ function closeJoinConflict(){
 function useAnotherProviderAccount(){
   const role=String(window.__ocsJoinConflictRole||'home');
   closeJoinConflict();
-  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261007-profile1';
+  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261007-activity1';
 }
 
 function openProviderProfileFromMenu(){
@@ -2614,6 +2637,12 @@ function setBottomBookingsTab(tab){
  Object.entries(ids).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',k===bottomBookingsTab)});
  renderBottomBookings();
 }
+function ocsShortBookingId(v){
+ const raw=String(v||'').trim();
+ if(!raw)return 'OCS Booking';
+ const clean=raw.replace(/[^a-z0-9]/ig,'');
+ return '#'+(clean.slice(0,8)||raw.slice(0,8)).toUpperCase();
+}
 async function renderBottomBookings(){
  const body=document.getElementById('bottomBookingsBody');if(!body)return;
  if(bottomBookingsTab==='ACTIVE'){
@@ -2623,7 +2652,7 @@ async function renderBottomBookings(){
   if(!b||inactive.includes(s)){
    body.innerHTML='<div class="bottom-hub-card"><span class="ocs-booking-state">ACTIVE</span><b>No active booking</b><small>Abhi koi running Home Service booking nahi hai.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button></div></div>';
   }else{
-   const service=b.service||b.category||b.task||'Home Service',label=dashStatusLabel(s),id=b.id||b.bookingId||'OCS Booking';
+   const service=b.service||b.category||b.task||'Home Service',label=dashStatusLabel(s),id=ocsShortBookingId(b.id||b.bookingId||'');
    body.innerHTML='<div class="bottom-hub-card"><span class="ocs-booking-state">ACTIVE</span><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+'<br>Status: <b style="display:inline">'+ocsSavedText(label)+'</b></small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Track Booking</button></div></div>';
   }
   return;
@@ -2652,13 +2681,16 @@ async function renderBottomBookings(){
  }
  body.innerHTML=rows.map(r=>{
   const service=r.service_name||r.service||r.category||'Home Service';
-  const id=r.id||r.booking_id||'OCS Booking';
+  const id=ocsShortBookingId(r.id||r.booking_id||'');
   const rawStatus=String(r.status||'').toUpperCase();
   const status=workHistoryStatusLabel(rawStatus);
   const dateValue=r.closed_at||r.closedAt||r.updated_at||r.created_at||'';
   const d=dateValue?new Date(dateValue).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
   const amount=Number((rawStatus==='COMPLETED'||rawStatus==='DONE')?(r.booking_amount??r.amount??0):(r.visit_charge??r.visitCharge??0));
-  return '<div class="bottom-hub-card"><span class="ocs-booking-state '+(bottomBookingsTab==='COMPLETED'?'completed':'cancelled')+'">'+(bottomBookingsTab==='COMPLETED'?'COMPLETED':'CANCELLED')+'</span><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+' • '+ocsSavedText(d)+'<br>'+ocsSavedText(status)+'<br>Amount: ₹'+amount.toFixed(2)+'</small>'+(bottomBookingsTab==='COMPLETED'?'<div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openWorkHistory(\'CUSTOMER\')">Rating / Details</button></div>':'')+'</div>';
+  const amountText=(bottomBookingsTab==='COMPLETED')
+    ?('Amount ₹'+amount.toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2}))
+    :(amount>0?('Visit charge ₹'+amount.toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2})):'No charge');
+  return '<div class="bottom-hub-card ocs-activity-card '+(bottomBookingsTab==='COMPLETED'?'is-completed':'is-cancelled')+'"><span class="ocs-booking-state '+(bottomBookingsTab==='COMPLETED'?'completed':'cancelled')+'">'+(bottomBookingsTab==='COMPLETED'?'COMPLETED':'CANCELLED')+'</span><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+' • '+ocsSavedText(d)+'<br>'+ocsSavedText(status)+' • '+ocsSavedText(amountText)+'</small>'+(bottomBookingsTab==='COMPLETED'?'<div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openWorkHistory(\'CUSTOMER\')">Rating / Details</button></div>':'')+'</div>';
  }).join('');
 }
 function openBottomBookings(tab){
@@ -4403,7 +4435,7 @@ async function openModule(n,role,serviceCat){
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='home-services.html?v=20261007-profile1'+(qs.length?'&'+qs.join('&'):'');
+   location.href='home-services.html?v=20261007-activity1'+(qs.length?'&'+qs.join('&'):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -4431,7 +4463,7 @@ async function openModule(n,role,serviceCat){
    frame.src='transport.html?v=20261006-driver-e2e1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='home-services.html?v=20261007-profile1&embed=1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='home-services.html?v=20261007-activity1&embed=1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
@@ -5073,7 +5105,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261007-profile1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261007-activity1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -5147,7 +5179,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20261007-profile1';
+const OCS_APP_BUILD='20261007-activity1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
