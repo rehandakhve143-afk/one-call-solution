@@ -618,7 +618,7 @@ body:not(.sp-only-route):not(.admin-route-only) .customer-dashboard-card{margin-
     const explicit=q.get('embed')==='1'||q.get('sp')==='1'||q.get('admin')==='1'||['provider','admin'].includes(String(q.get('tab')||'').toLowerCase());
     const cameFromOcs=String(document.referrer||'').includes(location.origin);
     if(standalone&&topLevel&&!explicit&&!cameFromOcs){
-      location.replace('index.html?pwa=1&v=20261007-readyfix1');
+      location.replace('index.html?pwa=1&v=20261007-cleanservices1');
     }
   }catch(e){}
 })();
@@ -5507,6 +5507,34 @@ function ocsHsRestore(s){
 })();
 
 async function bootHomeServices(){
+ // Clean customer rate-card handoff from customer-services.html.
+ try{
+   const qp0=new URLSearchParams(window.location.search||"");
+   if(OCS_ROUTE_TAB==="customer"&&qp0.get("handoff")==="1"){
+     const raw=localStorage.getItem("ocsCustomerServiceSelectionV1")||"";
+     if(raw){
+       const x=JSON.parse(raw);
+       if(x&&x.category&&services[x.category]){
+         OCS_BROWSE_MODE=true;
+         if(OCS_LIVE_POLL){clearInterval(OCS_LIVE_POLL);OCS_LIVE_POLL=null}
+         S.activeBookingId=null;OCS_LIVE_BOOKING_ID=null;
+         S.category=String(x.category||"");
+         S.selectedItems=Array.isArray(x.selectedItems)?x.selectedItems:[];
+         S.service=String(x.service||"");
+         S.serviceName=S.service;
+         S.serviceType=String(x.serviceType||x.mode||"fixed");
+         S.quantity=S.selectedItems.reduce((a,z)=>a+Number(z.qty||1),0)||1;
+         S.base=Number(x.base||0);S.total=Number(x.total||S.base||0);
+         S.bookingAmount=S.total;S.finalAmount=S.total;S.amount=S.total;
+         S.status=String(x.mode||"")==="quote"?"CUSTOM_REQUEST":"BOOKING_DETAILS";
+         localStorage.removeItem("ocsCustomerServiceSelectionV1");
+         renderCore();updateSelectionTray();updateOcsPageNav();
+         return;
+       }
+     }
+   }
+ }catch(e){console.error("OCS clean service handoff failed",e)}
+
  if(OCS_ROUTE_TAB==="provider"){
    try{
      const session=await ocsSession();
@@ -5752,10 +5780,10 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
      if(n===3){setOn(3);if(typeof openProviderWalletQuick==='function')openProviderWalletQuick();return}
      if(n===4){setOn(4);if(typeof openProviderProfileSafe==='function')openProviderProfileSafe();return}
    }else{
-     if(n===1){location.href='index.html?pwa=1&v=20261007-readyfix1';return}
-     if(n===2){location.href='index.html?open=activity&v=20261007-readyfix1';return}
-     if(n===3){location.href='index.html?open=wallet&v=20261007-readyfix1';return}
-     if(n===4){location.href='index.html?open=account&v=20261007-readyfix1';return}
+     if(n===1){location.href='index.html?pwa=1&v=20261007-cleanservices1';return}
+     if(n===2){location.href='index.html?open=activity&v=20261007-cleanservices1';return}
+     if(n===3){location.href='index.html?open=wallet&v=20261007-cleanservices1';return}
+     if(n===4){location.href='index.html?open=account&v=20261007-cleanservices1';return}
    }
  };
  function configure(){
