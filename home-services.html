@@ -1,6 +1,22 @@
 <!doctype html>
 <html lang="en">
 <head>
+<script id="ocs-force-clean-customer-services">
+(function(){
+  try{
+    const q=new URLSearchParams(location.search||"");
+    const isProvider=q.get("sp")==="1"||q.get("tab")==="provider";
+    const isAdmin=q.get("admin")==="1"||q.get("tab")==="admin";
+    const isHandoff=q.get("handoff")==="1";
+    if(!isProvider&&!isAdmin&&!isHandoff){
+      const cat=q.get("cat");
+      let u="customer-services.html?v=20261007-forceclean1";
+      if(cat)u+="&cat="+encodeURIComponent(cat);
+      location.replace(u);
+    }
+  }catch(e){}
+})();
+</script>
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -618,7 +634,7 @@ body:not(.sp-only-route):not(.admin-route-only) .customer-dashboard-card{margin-
     const explicit=q.get('embed')==='1'||q.get('sp')==='1'||q.get('admin')==='1'||['provider','admin'].includes(String(q.get('tab')||'').toLowerCase());
     const cameFromOcs=String(document.referrer||'').includes(location.origin);
     if(standalone&&topLevel&&!explicit&&!cameFromOcs){
-      location.replace('index.html?pwa=1&v=20261007-cleanservices1');
+      location.replace('index.html?pwa=1&v=20261007-forceclean1');
     }
   }catch(e){}
 })();
@@ -5780,10 +5796,10 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
      if(n===3){setOn(3);if(typeof openProviderWalletQuick==='function')openProviderWalletQuick();return}
      if(n===4){setOn(4);if(typeof openProviderProfileSafe==='function')openProviderProfileSafe();return}
    }else{
-     if(n===1){location.href='index.html?pwa=1&v=20261007-cleanservices1';return}
-     if(n===2){location.href='index.html?open=activity&v=20261007-cleanservices1';return}
-     if(n===3){location.href='index.html?open=wallet&v=20261007-cleanservices1';return}
-     if(n===4){location.href='index.html?open=account&v=20261007-cleanservices1';return}
+     if(n===1){location.href='index.html?pwa=1&v=20261007-forceclean1';return}
+     if(n===2){location.href='index.html?open=activity&v=20261007-forceclean1';return}
+     if(n===3){location.href='index.html?open=wallet&v=20261007-forceclean1';return}
+     if(n===4){location.href='index.html?open=account&v=20261007-forceclean1';return}
    }
  };
  function configure(){
