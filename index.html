@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261008-launchv2"><style id="ocsCriticalBoot">
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1"><title>One Call Solution Master</title><meta name="theme-color" content="#0f766e"><meta name="application-name" content="One Call Solution"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="manifest.json?v=20261008-cleanroutes1"><style id="ocsCriticalBoot">
 html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7faf9;color:#173247}
 #ocsBootSplash{position:fixed;inset:0;z-index:99999;background:#f7faf9;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .2s ease}
 #ocsBootSplash .b{display:flex;align-items:center;gap:12px}
@@ -460,9 +460,9 @@ body:has(#locationModal.show) .ocs-super-nav{visibility:hidden!important}
 try{
   const q=new URLSearchParams(location.search||"");
   if(q.get("admin")==="1"){
-    location.replace("home-services.html?tab=admin&v=20260930-selfiefix2");
+    location.replace("admin-approval.html?v=20261008-cleanroutes1");
   }else if(q.get("sp")==="1"){
-    location.replace("service-provider.html?v=20261006-walletfree2");
+    location.replace("provider-dashboard.html?v=20261008-cleanroutes1");
   }
 }catch(e){}
 </script><script>
@@ -1701,7 +1701,7 @@ async function ocsFreshLoginStart(){
   try{
     const clean=new URL(location.href);
     clean.search='';
-    clean.searchParams.set('v','20261008-launchv2');
+    clean.searchParams.set('v','20261008-cleanroutes1');
     clean.searchParams.set('login','1');
     if(joinRole){
       clean.searchParams.set('open','sp-profile');
@@ -1713,7 +1713,7 @@ async function ocsFreshLoginStart(){
     }
     location.replace(clean.pathname+clean.search);
   }catch(e){
-    location.replace('index.html?v=20261008-launchv2&login=1');
+    location.replace('index.html?v=20261008-cleanroutes1&login=1');
   }
   return true;
 }
@@ -1764,7 +1764,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpDashboard()){
         const s=await getOcsSession();
         if(s&&s.user&&await ocsUserHasRole('service_provider')){
-          location.replace('service-provider.html?v=20261006-walletfree2');
+          location.replace('provider-dashboard.html?v=20261008-cleanroutes1');
           return;
         }
         await openAccount('provider',true);
@@ -1797,13 +1797,13 @@ async function openHomeProviderDashboard(){
     const skills=Array.isArray(data&&data.skills)?data.skills:[];
     const isDriver=skills.some(x=>String(x.category||'').trim()==='Driver Service'&&x.enabled_by_provider!==false);
     const isTransport=skills.some(x=>String(x.category||'').trim()==='Tempo / Goods Transport'&&x.enabled_by_provider!==false);
-    location.href=isDriver?'driver-provider.html?v=20261006-driver2':(isTransport?'transport-driver.html?v=20261006-driver-e2e1':'home-services.html?tab=provider&sp=1&v=20261006-walletfree2');
+    location.href=isDriver?'driver-provider.html?v=20261006-driver2':(isTransport?'transport-driver.html?v=20261006-driver-e2e1':'provider-dashboard.html?v=20261008-cleanroutes1');
   }catch(e){
-    location.href='home-services.html?tab=provider&sp=1&v=20261006-walletfree2';
+    location.href='provider-dashboard.html?v=20261008-cleanroutes1';
   }
 }
 async function openHomeAdminDashboard(){
-  const adminUrl='home-services.html?tab=admin&v=20260930-selfiefix2';
+  const adminUrl='admin-approval.html?v=20261008-cleanroutes1';
   const session=await getOcsSession();
   if(!session||!session.user){
     try{localStorage.setItem('ocsPostLoginReturn',adminUrl)}catch(e){}
@@ -1913,7 +1913,7 @@ function closeJoinConflict(){
 function useAnotherProviderAccount(){
   const role=String(window.__ocsJoinConflictRole||'home');
   closeJoinConflict();
-  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261008-launchv2';
+  location.href='index.html?fresh=1&login=1&open=sp-profile&join='+encodeURIComponent(role)+'&v=20261008-cleanroutes1';
 }
 
 function openProviderProfileFromMenu(){
@@ -2243,7 +2243,7 @@ async function showProviderProfileSummary(){
          ?'<button class="primary" onclick="closeAccount();location.href=\'transport-driver.html?v=20261006-bank1\'">Open Transport Dashboard</button>'
          :category==='Driver Service'
          ?'<button class="primary" onclick="closeAccount();location.href=\'driver-provider.html?v=20261006-bank1\'">Open Driver Dashboard</button>'
-         :'<button class="primary" onclick="closeAccount();location.href=\'home-services.html?tab=provider&sp=1&v=20261006-walletfree2\'">Open SP Dashboard</button>')
+         :'<button class="primary" onclick="closeAccount();location.href=\'provider-dashboard.html?v=20261008-cleanroutes1\'">Open SP Dashboard</button>')
        :status==='pending'
          ?(category==='Tempo / Goods Transport'&&!tp.kyc_complete
            ?'<button class="primary" onclick="editProviderProfileSkills();setTimeout(()=>{const x=document.getElementById(\'paTransportKycLater\');if(x){x.style.display=\'block\';x.scrollIntoView({behavior:\'smooth\',block:\'center\'})}},80)">Complete Transport KYC</button>'
@@ -4429,13 +4429,13 @@ async function openModule(n,role,serviceCat){
  }
  if(n==='Home Services'){
    if(role==='provider'){
-     location.href='service-provider.html?v=20261006-walletfree2';
+     location.href='provider-dashboard.html?v=20261008-cleanroutes1';
      return;
    }
    const qs=[];
    if(role)qs.push('tab='+encodeURIComponent(role));
    if(serviceCat)qs.push('cat='+encodeURIComponent(serviceCat));
-   location.href='customer-launch-v1.html?v=20261008-launchv2'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   location.href='customer-launch-v1.html?v=20261008-cleanroutes1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
    return;
  }
  const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
@@ -4463,7 +4463,7 @@ async function openModule(n,role,serviceCat){
    frame.src='transport.html?v=20261006-driver-e2e1';
  }else if(n==='Home Services'){
    frame.removeAttribute('srcdoc');
-   frame.src='customer-launch-v1.html?v=20261008-launchv2&embed=1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
+   frame.src='customer-launch-v1.html?v=20261008-cleanroutes1&embed=1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
  }else{
    frame.removeAttribute('src');
    try{
@@ -5105,7 +5105,7 @@ async function installOcsApp(){
  alert('Chrome menu (⋮) open karke “Add to Home screen” ya “Install app” select karein.');
 }
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261008-launchv2',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=20261008-cleanroutes1',{scope:'./'}).catch(e=>console.warn('OCS service worker',e)));
 }
 (function ocsNetworkStatus(){
  const bar=document.createElement('div');bar.id='ocsNetworkBar';
@@ -5179,7 +5179,7 @@ async function ocsReloadKeepScreen(){
  }catch(e){console.warn('OCS refresh state restore',e)}
 })();
 
-const OCS_APP_BUILD='20261008-launchv2';
+const OCS_APP_BUILD='20261008-cleanroutes1';
 async function ocsCheckForNewBuild(){
   // Automatic update banner disabled during OCS stabilization.
   // GitHub Pages/CDN can briefly serve mixed build versions and cause false refresh loops.
