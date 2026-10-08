@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>OCS Admin Approval</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#f4f6f8;color:#17343c;font-family:Arial,sans-serif}
+.app{width:min(480px,100%);margin:0 auto;min-height:100vh;padding-bottom:30px}
+.top{background:#063f4a;color:#fff;padding:18px 16px 20px;border-radius:0 0 24px 24px}
+.brand{display:flex;align-items:center;gap:11px}.logo{width:46px;height:46px;border-radius:14px;background:#111;display:grid;place-items:center;font-weight:900}
+.brand b{display:block;font-size:20px}.brand small{display:block;margin-top:2px;color:#cee2e5;font-size:10px}
+.main{padding:14px 16px}.card{background:#fff;border:1px solid #e0e7e9;border-radius:18px;padding:14px;margin-bottom:11px}
+.card h2,.card h3{margin:0 0 8px}.muted{font-size:10px;line-height:1.45;color:#7c8d92}
+.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid #edf1f2;font-size:10px}.row:first-of-type{margin-top:9px}.row b{text-align:right}
+.badge{display:inline-block;padding:6px 9px;border-radius:999px;background:#fff3d9;color:#94651d;font-size:9px;font-weight:900}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.actions button,.btn{min-height:44px;border:0;border-radius:12px;font-weight:900;font-size:10px}
+.ok{background:#07877d;color:#fff}.red{background:#fff0ed;color:#a63a2c;border:1px solid #f0d0c9!important}.btn{width:100%;background:#fff;border:1px solid #d9e3e5;color:#27454d}
+.info{padding:10px 12px;border-radius:13px;background:#eef8f6;color:#426166;font-size:9.5px;line-height:1.45;margin-bottom:11px}
+.empty{text-align:center;padding:28px 10px}.empty .i{width:62px;height:62px;border-radius:19px;background:#eaf7f3;display:grid;place-items:center;margin:auto;font-size:28px}.empty h3{margin:12px 0 5px}
+.error{padding:11px;border-radius:12px;background:#fff0ed;color:#96392d;font-size:10px;line-height:1.45}
+.login{padding:26px;text-align:center}.login button{margin-top:12px}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><div class="brand"><div class="logo">OCS</div><div><b>Admin • SP Approval</b><small>One Call Solution internal control</small></div></div></header>
+<main class="main">
+ <div class="info"><b>Only Admin:</b> submitted Service Provider profile verify karke Approve/Reject karein. Approval ke baad hi Work ON allowed hai.</div>
+ <div id="content"><div class="card">Loading Admin approval queue...</div></div>
+ <button class="btn" onclick="loadQueue()">↻ Refresh</button>
+</main>
+</div>
+<script>
+const sb=window.supabase.createClient(
+ 'https://uipmkrsggpkupgbgoxkg.supabase.co',
+ 'sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto',
+ {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
+);
+const box=document.getElementById('content');
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function loadQueue(){
+ box.innerHTML='<div class="card">Loading Admin approval queue...</div>';
+ try{
+   const ses=await sb.auth.getSession();
+   if(!(ses.data&&ses.data.session)){
+     box.innerHTML='<div class="card login"><h3>Admin login required</h3><div class="muted">OCS Admin account se login karein.</div><button class="ok btn" onclick="location.href=\'index.html?v=20261008-adminclean1&login=1\'">Open Login</button></div>';
+     return;
+   }
+   const access=await sb.rpc('admin_access_snapshot_v1');
+   if(access.error)throw access.error;
+   if(!access.data||!access.data.is_admin){
+     box.innerHTML='<div class="card login"><h3>This account is not Admin</h3><div class="muted">Current login se SP approval allowed nahi hai. Admin account se login karein.</div><button class="ok btn" onclick="adminSignOut()">Switch to Admin Login</button></div>';
+     return;
+   }
+   const q=await sb.rpc('admin_pending_provider_onboarding_v1');
+   if(q.error)throw q.error;
+   const rows=Array.isArray(q.data)?q.data:[];
+   if(!rows.length){
+     box.innerHTML='<div class="card empty"><div class="i">✓</div><h3>No pending SP approval</h3><div class="muted">Sab submitted providers reviewed hain.</div></div>';
+     return;
+   }
+   box.innerHTML=rows.map((x,i)=>'<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><h3>'+esc(x.provider_name||'Service Provider')+'</h3><div class="muted">'+esc(x.phone||'')+'</div></div><span class="badge">PENDING</span></div><div class="row"><span>Category</span><b>'+esc(x.service_name||x.category||'Not set')+'</b></div><div class="row"><span>Service Area</span><b>'+esc(x.service_area||'Not set')+' • '+Number(x.service_radius_km||12)+' km</b></div><div class="row"><span>Bank</span><b>'+esc(x.bank_name||'Not added')+'</b></div><div class="actions"><button class="ok" onclick="review('+JSON.stringify(x.provider_id)+',\'approved\')">Approve SP</button><button class="red" onclick="review('+JSON.stringify(x.provider_id)+',\'rejected\')">Reject</button></div></div>').join('');
+ }catch(e){
+   box.innerHTML='<div class="error"><b>Admin page load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>';
+ }
+}
+async function review(id,decision){
+ let reason=null;
+ if(decision==='rejected')reason=(prompt('Reject reason (optional)')||'').trim()||null;
+ try{
+   const r=await sb.rpc('admin_review_provider_onboarding_v1',{p_provider_id:id,p_decision:decision,p_reason:reason});
+   if(r.error)throw r.error;
+   alert(decision==='approved'?'Service Provider approved.':'Service Provider rejected.');
+   await loadQueue();
+ }catch(e){alert('SP review failed: '+(e&&e.message?e.message:'Unknown error'))}
+}
+async function adminSignOut(){
+ try{await sb.auth.signOut()}catch(e){}
+ location.href='index.html?v=20261008-adminclean1&login=1';
+}
+loadQueue();
+</script>
+</body>
+</html>
