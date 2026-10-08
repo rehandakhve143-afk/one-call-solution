@@ -38,7 +38,7 @@ body{padding-bottom:82px}.app{width:min(480px,100%);margin:0 auto;min-height:100
 <div class="app">
 <header class="top">
  <div class="brand"><div class="logo">OCS</div><div><b>Service Provider</b><small>Jobs • Wallet • Work status</small></div></div>
- <div class="state"><span class="pill" id="verifyPill">Checking profile...</span><button class="toggle" id="workToggle" onclick="toggleWork()" disabled>Work ON</button></div>
+ <div class="state"><span class="pill" id="verifyPill">Checking profile...</span><div style="display:flex;gap:8px;align-items:center"><button class="toggle" style="background:#fff;color:#075460" onclick="location.href='index.html?v=20261008-oneapp1'">Customer Mode</button><button class="toggle" id="workToggle" onclick="toggleWork()" disabled>Work ON</button></div></div>
 </header>
 <main class="main">
  <div id="profileBox" class="card"><div class="loading">Loading Service Provider profile...</div></div>
@@ -49,8 +49,8 @@ body{padding-bottom:82px}.app{width:min(480px,100%);margin:0 auto;min-height:100
 <nav class="nav">
  <button onclick="loadDashboard()">⌂<br>Dashboard</button>
  <button onclick="loadDashboard()">▤<br>Jobs</button>
- <button onclick="location.href='index.html?v=20261008-jobsv5&open=wallet'">▣<br>Wallet</button>
- <button onclick="location.href='index.html?v=20261008-jobsv5&open=account'">♙<br>Account</button>
+ <button onclick="location.href='index.html?v=20261008-oneapp1&open=wallet'">▣<br>Wallet</button>
+ <button onclick="location.href='index.html?v=20261008-oneapp1&open=account'">♙<br>Account</button>
 </nav>
 <script>
 const SB_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
@@ -74,7 +74,7 @@ async function loadDashboard(){
  try{
    const ses=await sb.auth.getSession();
    if(!(ses.data&&ses.data.session)){
-     location.replace('index.html?v=20261008-jobsv5&login=1&open=sp-dashboard');
+     location.replace('index.html?v=20261008-oneapp1&login=1&open=sp-dashboard');
      return;
    }
    const snap=await sb.rpc('provider_profile_snapshot_v1');
@@ -83,13 +83,17 @@ async function loadDashboard(){
    if(profile.registered!==true){
      document.getElementById('verifyPill').textContent='PROFILE REQUIRED';
      document.getElementById('workToggle').disabled=true;
-     pb.innerHTML='<div class="error"><b>Service Provider profile not registered.</b><br>SP profile complete karke Admin approval ke liye submit karein.</div><button class="primary" style="width:100%;margin-top:10px" onclick="location.href=\'index.html?v=20261008-jobsv5&open=sp-profile\'">Complete SP Profile</button>';
+     pb.innerHTML='<div class="error"><b>Service Provider profile not registered.</b><br>SP profile complete karke Admin approval ke liye submit karein.</div><button class="primary" style="width:100%;margin-top:10px" onclick="location.href=\'index.html?v=20261008-oneapp1&open=sp-profile\'">Complete SP Profile</button>';
      jb.innerHTML='';
      return;
    }
    const skills=Array.isArray(profile.skills)?profile.skills.filter(x=>x&&x.enabled_by_provider!==false):[];
    const skillApproved=skills.some(x=>x.approved===true&&String(x.verification_status||'').toLowerCase()==='approved');
-   const onboardingStatus=String(profile.onboarding_status||profile.onboardingStatus||profile.provider_onboarding_status||'').toLowerCase();
+   let onboardingStatus='';
+   try{
+     const ob=await sb.rpc('provider_onboarding_snapshot_v1');
+     if(!ob.error&&ob.data)onboardingStatus=String(ob.data.status||'').toLowerCase();
+   }catch(e){}
    const onboardingApproved=onboardingStatus==='approved';
    const pill=document.getElementById('verifyPill');
    if(onboardingApproved&&skillApproved)pill.textContent='VERIFIED SP';
