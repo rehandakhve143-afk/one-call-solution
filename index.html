@@ -814,7 +814,7 @@ setTimeout(function(){
   <button id="customerLoginContinue" class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('customer')">Continue</button>
   <div id="customerLoginOtpWrap" class="ocs-login-otp-card" style="display:none">
     <div class="ocs-login-otp-head"><div><small>SECURE LOGIN</small><b id="customerLoginOtpLabel">Enter OTP</b></div><span>🔐</span></div>
-    <input id="customerLoginOtp" class="ocs-login-otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Enter OTP" oninput="this.value=this.value.replace(/\D/g,'').slice(0,8)">
+    <input id="customerLoginOtp" class="ocs-login-otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter OTP" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)">
     <button class="ocs-login-otp-verify" onclick="verifySimpleOcsOtp('customer')">Verify & Login</button>
     <button type="button" class="ocs-login-otp-resend" onclick="resendSimpleOcsOtp('customer')">Didn't get the code? <b>Resend OTP</b></button>
   </div>
@@ -837,7 +837,7 @@ setTimeout(function(){
   <button id="providerLoginContinue" class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('provider')">Continue</button>
   <div id="providerLoginOtpWrap" class="ocs-login-otp-card" style="display:none">
     <div class="ocs-login-otp-head"><div><small>SECURE LOGIN</small><b id="providerLoginOtpLabel">Enter OTP</b></div><span>🔐</span></div>
-    <input id="providerLoginOtp" class="ocs-login-otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Enter OTP" oninput="this.value=this.value.replace(/\D/g,'').slice(0,8)">
+    <input id="providerLoginOtp" class="ocs-login-otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter OTP" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)">
     <button class="ocs-login-otp-verify" onclick="verifySimpleOcsOtp('provider')">Verify & Login</button>
     <button type="button" class="ocs-login-otp-resend" onclick="resendSimpleOcsOtp('provider')">Didn't get the code? <b>Resend OTP</b></button>
   </div>
