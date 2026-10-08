@@ -49,8 +49,8 @@ body{padding-bottom:82px}.app{width:min(480px,100%);margin:0 auto;min-height:100
 <nav class="nav">
  <button onclick="loadDashboard()">⌂<br>Dashboard</button>
  <button onclick="loadDashboard()">▤<br>Jobs</button>
- <button onclick="location.href='index.html?v=20261008-spstatus1&open=wallet'">▣<br>Wallet</button>
- <button onclick="location.href='index.html?v=20261008-spstatus1&open=account'">♙<br>Account</button>
+ <button onclick="location.href='index.html?v=20261008-jobsv5&open=wallet'">▣<br>Wallet</button>
+ <button onclick="location.href='index.html?v=20261008-jobsv5&open=account'">♙<br>Account</button>
 </nav>
 <script>
 const SB_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
@@ -74,7 +74,7 @@ async function loadDashboard(){
  try{
    const ses=await sb.auth.getSession();
    if(!(ses.data&&ses.data.session)){
-     location.replace('index.html?v=20261008-spstatus1&login=1&open=sp-dashboard');
+     location.replace('index.html?v=20261008-jobsv5&login=1&open=sp-dashboard');
      return;
    }
    const snap=await sb.rpc('provider_profile_snapshot_v1');
@@ -83,7 +83,7 @@ async function loadDashboard(){
    if(profile.registered!==true){
      document.getElementById('verifyPill').textContent='PROFILE REQUIRED';
      document.getElementById('workToggle').disabled=true;
-     pb.innerHTML='<div class="error"><b>Service Provider profile not registered.</b><br>SP profile complete karke Admin approval ke liye submit karein.</div><button class="primary" style="width:100%;margin-top:10px" onclick="location.href=\'index.html?v=20261008-spstatus1&open=sp-profile\'">Complete SP Profile</button>';
+     pb.innerHTML='<div class="error"><b>Service Provider profile not registered.</b><br>SP profile complete karke Admin approval ke liye submit karein.</div><button class="primary" style="width:100%;margin-top:10px" onclick="location.href=\'index.html?v=20261008-jobsv5&open=sp-profile\'">Complete SP Profile</button>';
      jb.innerHTML='';
      return;
    }
@@ -107,7 +107,8 @@ async function loadDashboard(){
    const cur=await sb.rpc('provider_current_booking');
    if(!cur.error&&Array.isArray(cur.data)&&cur.data.length)booking=cur.data[0];
    if(!booking){
-     const jobs=await sb.rpc('provider_open_jobs_v4');
+     let jobs=await sb.rpc('provider_open_jobs_v5');
+     if(jobs.error)jobs=await sb.rpc('provider_open_jobs_v4');
      if(jobs.error)throw jobs.error;
      if(Array.isArray(jobs.data)&&jobs.data.length)booking=jobs.data[0];
    }
