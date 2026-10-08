@@ -7,14 +7,27 @@
     const q=new URLSearchParams(location.search||"");
     const isProvider=q.get("sp")==="1"||q.get("tab")==="provider";
     const isAdmin=q.get("admin")==="1"||q.get("tab")==="admin";
-    const isHandoff=q.get("handoff")==="1";
-    if(!isProvider&&!isAdmin&&!isHandoff){
-      const cat=q.get("cat");
-      let u="customer-services.html?v=20261007-forceclean1";
-      if(cat)u+="&cat="+encodeURIComponent(cat);
-      location.replace(u);
+    if(isProvider){
+      location.replace("provider-dashboard.html?v=20261008-cleanroutes1");
+      return;
     }
-  }catch(e){}
+    if(isAdmin){
+      location.replace("admin-approval.html?v=20261008-cleanroutes1");
+      return;
+    }
+    let u="customer-launch-v1.html?v=20261008-cleanroutes1";
+    const cat=q.get("cat");
+    if(cat)u+="&cat="+encodeURIComponent(cat);
+    if(q.get("handoff")==="1"||q.get("resume")==="1"){
+      try{
+        const x=JSON.parse(localStorage.getItem("ocsCustomerServiceSelectionV1")||"null");
+        u+=(x&&x.mode==="quote")?"&resumeQuote=1":"&resume=1";
+      }catch(e){u+="&resume=1"}
+    }
+    location.replace(u);
+  }catch(e){
+    location.replace("customer-launch-v1.html?v=20261008-cleanroutes1");
+  }
 })();
 </script>
 <meta charset="utf-8">
