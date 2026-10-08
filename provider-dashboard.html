@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>OCS Service Provider</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#f4f6f8;color:#17343c;font-family:Arial,sans-serif}
+body{padding-bottom:82px}.app{width:min(480px,100%);margin:0 auto;min-height:100vh}
+.top{background:#064d59;color:#fff;padding:16px 16px 18px;border-radius:0 0 24px 24px}
+.brand{display:flex;align-items:center;gap:11px}.logo{width:46px;height:46px;border-radius:14px;background:#111;display:grid;place-items:center;font-weight:900}
+.brand div{flex:1}.brand b{display:block;font-size:20px}.brand small{display:block;color:#cde1e4;margin-top:2px;font-size:10px}
+.state{margin-top:13px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pill{padding:7px 10px;border-radius:999px;background:#ffffff18;font-size:10px;font-weight:900}
+.toggle{border:0;border-radius:12px;padding:10px 14px;font-weight:900;background:#f3ef00;color:#17343c}
+.toggle.off{background:#fff;color:#8b3d32}
+.main{padding:14px 16px 25px}.card{background:#fff;border:1px solid #e0e7e9;border-radius:18px;padding:14px;margin-bottom:11px}
+.card h2,.card h3{margin:0 0 8px}.muted{color:#7d8d92;font-size:10px;line-height:1.45}
+.profile{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.profile b{display:block;font-size:16px}.profile small{display:block;color:#7b8a8f;margin-top:3px;font-size:10px}
+.wallet{font-size:18px;font-weight:900;color:#087b72;text-align:right}.wallet small{display:block;font-size:8px;color:#809095}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.chip{padding:6px 8px;border-radius:999px;background:#edf8f7;color:#087b72;font-size:8.5px;font-weight:900}
+.job{border:1px solid #dbe7e5;border-radius:18px;background:#fff;padding:15px;margin-bottom:12px}
+.badge{display:inline-block;padding:6px 9px;border-radius:999px;background:#e7f7f3;color:#087b72;font-size:9px;font-weight:900}
+.job h2{margin:10px 0 5px;font-size:18px;line-height:1.25}.meta{font-size:10px;color:#75878c;line-height:1.55}.amount{font-size:25px;font-weight:900;color:#075460;margin-top:9px}
+.items{margin-top:10px;display:grid;gap:6px}.item{padding:8px 10px;border-radius:11px;background:#f5f8f8;font-size:10px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}.actions button,.primary{min-height:45px;border:0;border-radius:12px;font-weight:900;font-size:11px}
+.accept,.primary{background:#07877d;color:#fff}.reject{background:#fff0ed;color:#a93d2e;border:1px solid #f0d2cb!important}
+.empty{text-align:center;padding:28px 10px}.empty .ico{width:64px;height:64px;border-radius:20px;background:#edf8f7;display:grid;place-items:center;margin:auto;font-size:28px;color:#07877d}.empty h3{margin:12px 0 5px}.error{padding:11px;border-radius:12px;background:#fff0ed;color:#96392d;font-size:10px;line-height:1.45}
+.refresh{width:100%;min-height:43px;border:1px solid #dce5e7;border-radius:12px;background:#fff;color:#24424a;font-weight:900}
+.loading{padding:35px;text-align:center;color:#6f8287}
+.nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(480px,100%);height:70px;display:grid;grid-template-columns:repeat(4,1fr);background:#064d59;z-index:40;padding:7px 5px max(7px,env(safe-area-inset-bottom));box-shadow:0 -6px 22px #042d371f}
+.nav button{border:0;background:transparent;color:#dcebed;font-size:9px;font-weight:800}.nav button:first-child{color:#f3ef00;background:#ffffff0b;border-radius:12px}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+ <div class="brand"><div class="logo">OCS</div><div><b>Service Provider</b><small>Jobs • Wallet • Work status</small></div></div>
+ <div class="state"><span class="pill" id="verifyPill">Checking profile...</span><button class="toggle" id="workToggle" onclick="toggleWork()" disabled>Work ON</button></div>
+</header>
+<main class="main">
+ <div id="profileBox" class="card"><div class="loading">Loading Service Provider profile...</div></div>
+ <div id="jobBox"><div class="card loading">Checking matching jobs...</div></div>
+ <button class="refresh" onclick="loadDashboard()">↻ Refresh Jobs</button>
+</main>
+</div>
+<nav class="nav">
+ <button onclick="loadDashboard()">⌂<br>Dashboard</button>
+ <button onclick="loadDashboard()">▤<br>Jobs</button>
+ <button onclick="location.href='index.html?v=20261008-spclean1&open=wallet'">▣<br>Wallet</button>
+ <button onclick="location.href='index.html?v=20261008-spclean1&open=account'">♙<br>Account</button>
+</nav>
+<script>
+const SB_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
+const SB_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let profile=null,available=true,currentJob=null;
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function money(n){return '₹'+Number(n||0).toLocaleString('en-IN')}
+function shortId(v){return '#'+String(v||'').replace(/[^a-z0-9]/ig,'').slice(0,8).toUpperCase()}
+function skillLabel(x){
+ const c=String(x&&x.category||''),s=String(x&&x.service_name||'');
+ if(c==='Appliance Repair')return s||c;
+ if(c==='AC Service')return 'AC';
+ if(c==='Maid Service'&&/Cooking/i.test(s))return 'Cook';
+ if(c==='Maid Service')return 'Maid';
+ return c||s||'Skill';
+}
+async function loadDashboard(){
+ const pb=document.getElementById('profileBox'),jb=document.getElementById('jobBox');
+ jb.innerHTML='<div class="card loading">Checking matching jobs...</div>';
+ try{
+   const ses=await sb.auth.getSession();
+   if(!(ses.data&&ses.data.session)){
+     location.replace('index.html?v=20261008-spclean1&login=1&open=sp-dashboard');
+     return;
+   }
+   const snap=await sb.rpc('provider_profile_snapshot_v1');
+   if(snap.error)throw snap.error;
+   profile=snap.data||{};
+   if(profile.registered!==true){
+     document.getElementById('verifyPill').textContent='PROFILE REQUIRED';
+     document.getElementById('workToggle').disabled=true;
+     pb.innerHTML='<div class="error"><b>Service Provider profile not registered.</b><br>SP profile complete karke Admin approval ke liye submit karein.</div><button class="primary" style="width:100%;margin-top:10px" onclick="location.href=\'index.html?v=20261008-spclean1&open=sp-profile\'">Complete SP Profile</button>';
+     jb.innerHTML='';
+     return;
+   }
+   const skills=Array.isArray(profile.skills)?profile.skills.filter(x=>x&&x.enabled_by_provider!==false):[];
+   const approved=skills.some(x=>x.approved===true&&String(x.verification_status||'').toLowerCase()==='approved');
+   document.getElementById('verifyPill').textContent=approved?'VERIFIED SP':'APPROVAL PENDING';
+   available=profile.available_for_work!==false;
+   try{
+     const st=await sb.rpc('provider_status_snapshot');
+     if(!st.error&&Array.isArray(st.data)&&st.data.length)available=st.data[0].available_for_work!==false;
+   }catch(e){}
+   syncToggle();
+   pb.innerHTML='<div class="profile"><div><b>'+esc(profile.full_name||'Service Provider')+'</b><small>'+esc(profile.phone||'Mobile not added')+'</small></div><div class="wallet">'+money(profile.wallet_balance||0)+'<small>OCS Wallet</small></div></div><div class="chips">'+(skills.length?skills.map(x=>'<span class="chip">'+esc(skillLabel(x))+(x.approved===true?' ✓':'')+'</span>').join(''):'<span class="chip">No skill selected</span>')+'</div>';
+
+   let booking=null;
+   const cur=await sb.rpc('provider_current_booking');
+   if(!cur.error&&Array.isArray(cur.data)&&cur.data.length)booking=cur.data[0];
+   if(!booking){
+     const jobs=await sb.rpc('provider_open_jobs_v4');
+     if(jobs.error)throw jobs.error;
+     if(Array.isArray(jobs.data)&&jobs.data.length)booking=jobs.data[0];
+   }
+   currentJob=booking;
+   renderJob();
+ }catch(e){
+   pb.innerHTML='<div class="error"><b>SP dashboard load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>';
+   jb.innerHTML='';
+ }
+}
+function syncToggle(){
+ const b=document.getElementById('workToggle');
+ b.disabled=false;b.textContent=available?'Work ON':'Work OFF';b.classList.toggle('off',!available);
+}
+async function toggleWork(){
+ const b=document.getElementById('workToggle');b.disabled=true;
+ try{
+   const r=await sb.rpc('set_provider_available',{p_available:!available});
+   if(r.error)throw r.error;
+   available=r.data&&typeof r.data.available_for_work==='boolean'?r.data.available_for_work:!available;
+   syncToggle();await loadDashboard();
+ }catch(e){alert('Work status update failed: '+(e&&e.message?e.message:'Unknown error'));syncToggle()}
+}
+function renderJob(){
+ const box=document.getElementById('jobBox');
+ if(!currentJob){
+   box.innerHTML='<div class="card empty"><div class="ico">✓</div><h3>No matching job right now</h3><div class="muted">Work ON rakhein. Matching customer request aate hi yahan dikhegi.</div></div>';
+   return;
+ }
+ const b=currentJob,st=String(b.status||'searching').toLowerCase();
+ const incoming=st==='searching';
+ const items=Array.isArray(b.selected_items)?b.selected_items:[];
+ box.innerHTML='<div class="job"><span class="badge">'+(incoming?'NEW REQUEST':'CURRENT JOB')+'</span><h2>'+esc(b.service_name||b.category||'Home Service')+'</h2><div class="meta">'+shortId(b.id)+' • '+esc(b.category||'Home Service')+(b.distance_km!=null?' • '+Number(b.distance_km).toFixed(1)+' km':'')+'</div><div class="amount">'+money(b.booking_amount||0)+'</div>'+(items.length?'<div class="items">'+items.map(x=>'<div class="item">'+esc(x.name||'Service')+' × '+Number(x.qty||1)+'</div>').join('')+'</div>':'')+(incoming?'<div class="actions"><button class="accept" onclick="decision(\'accept\')">Accept</button><button class="reject" onclick="decision(\'reject\')">Reject</button></div>':'<div class="muted" style="margin-top:12px">Status: '+esc(String(b.status||'').replaceAll('_',' '))+'</div>')+'</div>';
+}
+async function decision(d){
+ if(!currentJob||!currentJob.id)return;
+ try{
+   if(d==='accept'){
+     const r=await sb.rpc('accept_booking_v3',{p_booking_id:currentJob.id});
+     if(r.error)throw r.error;
+   }else{
+     const r=await sb.rpc('reject_booking_v2',{p_booking_id:currentJob.id,p_reason:'Provider rejected'});
+     if(r.error)throw r.error;
+   }
+   await loadDashboard();
+ }catch(e){alert((d==='accept'?'Accept':'Reject')+' failed: '+(e&&e.message?e.message:'Unknown error'))}
+}
+loadDashboard();
+setInterval(loadDashboard,10000);
+</script>
+</body>
+</html>
