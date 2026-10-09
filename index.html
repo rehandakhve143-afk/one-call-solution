@@ -824,8 +824,36 @@ setTimeout(function(){
  #customerAuthBox .help,#providerAuthBox .help{margin-bottom:18px!important}
 }
 @media(max-height:650px){#accountModal .account-sheet{max-height:84dvh!important}}
+
+/* Shared OCS account: one signed-in identity, two easy-to-find profiles */
+#ocsAccountRoleSwitcher{display:none;grid-template-columns:1fr 1fr;gap:9px;margin:13px 0 8px}
+#ocsAccountRoleSwitcher button{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-height:69px;padding:11px 8px;cursor:pointer;text-align:center;border-radius:13px;border:1.5px solid #d9e6e4;background:#fff;color:#284a50;font-size:13px;font-weight:800}
+#ocsAccountRoleSwitcher button small{display:block;font-size:10px;line-height:1.25;color:#74878a;font-weight:500}
+#ocsAccountRoleSwitcher button.is-active{border-color:#087f73;background:#edf9f6;color:#086e62}
+#ocsAccountRoleSwitcher button.is-active small{color:#376d65}
+#ocsAccountIdentity{display:none;color:#637b80;font-size:11px;line-height:1.4;overflow-wrap:anywhere;margin:4px 0 10px}
+.ocs-one-login-hint{font-size:11px;color:#557278;margin:0 0 12px}
+.ocs-account-join-card{border:1px solid #e2ece9;border-radius:15px;background:#f8fbfa;padding:16px}
+.ocs-account-join-card h3{font-size:16px;color:#173f46;margin:0 0 8px}
+.ocs-account-join-card p{color:#557278;font-size:12px;line-height:1.55;margin:0 0 14px}
+.ocs-account-join-card button{width:100%;min-height:43px;position:static!important;margin:5px 0!important}
+.ocs-account-roles-hub{margin:10px 0 14px}
+.ocs-account-roles-hub h3{font-size:14px;margin:0 0 4px;color:#173f46}
+.ocs-account-roles-hub p{font-size:11px;margin:0 0 10px;color:#667e82}
+.ocs-account-roles-hub button{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;gap:12px;min-height:61px;margin:0 0 8px;padding:11px 13px;border-radius:14px;border:1px solid #dde9e6;background:#fff;color:#173f46;cursor:pointer}
+.ocs-account-roles-hub button b{display:block;font-size:13px}
+.ocs-account-roles-hub button small{display:block;font-size:10.5px;margin-top:4px;color:#60797d}
+.ocs-account-roles-hub button strong{font-size:20px;color:#087f73}
+.ocs-account-roles-hub button.ocs-role-sp{background:#eff9f6;border-color:#cfe7e0}
+.ocs-account-roles-hub button.ocs-role-dashboard{background:#075b66;border-color:#075b66;color:white;min-height:43px}
+.ocs-account-roles-hub button.ocs-role-dashboard small,.ocs-account-roles-hub button.ocs-role-dashboard strong{color:#fff}
 </style>
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">OCS ACCOUNT</span><h2 id="accountTitle">Login to One Call Solution</h2><p class="muted" id="accountSub">Email ID ya Mobile Number se simple login</p>
+<div id="ocsAccountRoleSwitcher" role="group" aria-label="OCS profile">
+  <button type="button" id="ocsCustomerRoleTab" onclick="openAccount('customer')">👤 Customer<small>Book services</small></button>
+  <button type="button" id="ocsProviderRoleTab" onclick="openAccount('provider')">🧰 Service Provider<small>Get jobs</small></button>
+</div>
+<div id="ocsAccountIdentity"></div>
 <div id="customerAccountForm">
   <div id="customerProfileSummary" style="display:none"></div>
   <div id="customerAuthBox">
@@ -1809,6 +1837,7 @@ async function openLogin(){
   if(auth)auth.style.display='block';
   if(setup)setup.style.display='none';
   resetSimpleOcsOtp('customer');
+  updateOcsAccountRoleChooser('customer',null);
   document.body.classList.add('ocs-account-open');
   document.getElementById('accountModal').classList.add('show');
 }
@@ -2065,8 +2094,32 @@ async function prefillProviderApprovalFromBackend(){
   }catch(e){console.error('SP approval prefill failed',e)}
 }
 
+function updateOcsAccountRoleChooser(role,session){
+ const switcher=document.getElementById('ocsAccountRoleSwitcher');
+ const identity=document.getElementById('ocsAccountIdentity');
+ const signedIn=!!(session&&session.user);
+ if(switcher)switcher.style.display=signedIn?'grid':'none';
+ if(identity){
+   const id=signedIn?String(session.user.email||session.user.phone||'OCS Account'):'';
+   identity.style.display=signedIn?'block':'none';
+   identity.textContent=signedIn?'✓ One Login • '+id:'';
+ }
+ for(const [kind,elementId] of [['customer','ocsCustomerRoleTab'],['provider','ocsProviderRoleTab']]){
+   const tab=document.getElementById(elementId);
+   if(!tab)continue;
+   const active=kind===role;
+   tab.classList.toggle('is-active',active);
+   tab.setAttribute('aria-pressed',active?'true':'false');
+ }
+}
 async function openAccount(role,forceProviderSetup){
  const isProvider=role==='provider';
+ const signedIn=await getOcsSession();
+ if(!signedIn||!signedIn.user){
+   try{localStorage.setItem('ocsLoginIntentRole',isProvider?'provider':'customer')}catch(e){}
+   await openLogin();
+   return;
+ }
  forceProviderSetup=forceProviderSetup===true;
  const existingProfile=isProvider?getProviderProfile():getCustomerProfile();
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
@@ -2075,6 +2128,7 @@ async function openAccount(role,forceProviderSetup){
  document.getElementById('customerAccountForm').style.display=isProvider?'none':'block';
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  await refreshOcsEmailStatus();
+ updateOcsAccountRoleChooser(role,signedIn);
  if(!isProvider){
    const p=getCustomerProfile();
    const session=await getOcsSession();
@@ -2094,7 +2148,9 @@ async function openAccount(role,forceProviderSetup){
  }
  if(isProvider){
    const p=getProviderProfile();
-   const session=await getOcsSession();
+   const session=signedIn;
+   const registeredEmail=document.getElementById('paEmail');
+   if(registeredEmail)registeredEmail.value=session.user.email||session.user.phone||'';
    const hasProviderRole=!!(session&&session.user&&await ocsUserHasRole('service_provider'));
    const sum=document.getElementById('providerProfileSummary');
    const auth=document.getElementById('providerAuthBox');
@@ -2145,20 +2201,27 @@ async function openAccount(role,forceProviderSetup){
      if(sum)sum.style.display='none';
      if(auth)auth.style.display='none';
      if(setup)setup.style.display='block';
+     const cp=getCustomerProfile();
+     const nameInput=document.getElementById('paName');
+     if(nameInput&&!nameInput.value&&cp&&cp.name)nameInput.value=cp.name;
+     if(loginState)loginState.textContent='Same OCS login • SP ke liye alag OTP nahi chahiye';
      document.getElementById('accountTitle').textContent='Complete Service Provider Profile';
-     document.getElementById('accountSub').textContent='Profile, one category, work location aur selfie submit karein';
+     document.getElementById('accountSub').textContent='One category, work location aur selfie submit karein';
    }else{
-     if(sum)sum.style.display='none';
-     if(auth)auth.style.display='block';
-     if(setup)setup.style.display='none';
-     document.getElementById('accountTitle').textContent='Service Provider Login';
-     document.getElementById('accountSub').textContent='Apni registered SP Email ID ya Mobile Number se login karein';
-     const pa=document.getElementById('paEmail');
-     if(pa&&session&&session.user)pa.value='';
-     if(loginState&&session&&session.user){
-       loginState.textContent='Current OCS login Service Provider account nahi hai. Apni SP Email/Mobile se Continue karein.';
-       loginState.style.color='#b7791f';
+     if(sum){
+       sum.style.display='block';
+       sum.innerHTML='<div class="ocs-account-join-card">'+
+         '<h3>Become a Service Provider</h3>'+
+         '<p>Aapka Customer login hi SP ke liye bhi chalega. Alag Email ya OTP nahi chahiye. SP Profile aur verification ke baad hi jobs milengi.</p>'+
+         '<button class="primary" onclick="openAccount(\'provider\',true)">Create SP Profile</button>'+
+         '<button class="btn gray" onclick="openAccount(\'customer\')">Back to Customer</button>'+
+         '</div>';
      }
+     if(auth)auth.style.display='none';
+     if(setup)setup.style.display='none';
+     if(loginState)loginState.textContent='Same OCS login • No separate SP OTP';
+     document.getElementById('accountTitle').textContent='Service Provider';
+     document.getElementById('accountSub').textContent='Use this account to register as an SP';
    }
  }
  document.body.classList.add('ocs-account-open');
@@ -2839,9 +2902,13 @@ async function openBottomProfile(){
    '<div class="ocs-uc-contact">'+ocsSavedText(contact)+'</div>'+
  '</div>'+
 
- (hasSpRole
-   ?'<button type="button" style="width:100%;margin:0 0 12px;border:0;border-radius:16px;padding:15px;background:#075b66;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left" onclick="closeBottomHub(\'bottomProfileModal\');openProviderDashboardFromMenu()"><span><b style="display:block;font-size:15px">Switch to Service Provider</b><small style="display:block;margin-top:3px;opacity:.82">Jobs • Work ON/OFF • SP Wallet</small></span><span style="font-size:22px">›</span></button>'
-   :'')+
+ '<div class="ocs-account-roles-hub">'+
+   '<h3>My OCS Profiles</h3>'+
+   '<p>One Login • Customer aur Service Provider dono ek account mein</p>'+
+   '<button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')"><span><b>👤 Customer</b><small>My profile • Book services</small></span><strong>›</strong></button>'+
+   '<button class="ocs-role-sp" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')"><span><b>🧰 Service Provider</b><small>'+(hasSpRole?'My SP Profile • Approval status':'Start SP Profile • Same login')+'</small></span><strong>›</strong></button>'+
+   (hasSpRole?'<button class="ocs-role-dashboard" onclick="openProviderDashboardFromMenu()"><span><b>Open SP Dashboard</b><small>Jobs • Availability • Wallet</small></span><strong>›</strong></button>':'')+
+ '</div>'+
  '<div class="ocs-uc-quick">'+
    '<button onclick="closeBottomHub(\'bottomProfileModal\');openBottomBookings()"><span>▤</span><b>My Bookings</b><small>Active & history</small></button>'+
    '<button onclick="closeBottomHub(\'bottomProfileModal\');openWalletHub()"><span>₹</span><b>Wallet</b><small>Rewards & payments</small></button>'+
