@@ -812,7 +812,7 @@ setTimeout(function(){
   max-height:min(92dvh,760px)!important;overflow-y:auto!important;overscroll-behavior:contain!important;
   -webkit-overflow-scrolling:touch!important;padding:16px 18px max(30px,calc(env(safe-area-inset-bottom) + 20px))!important;
 }
-#accountModal .account-submit{position:static!important;display:block!important;width:100%!important;margin:12px 0 6px!important;min-height:46px!important}
+#accountModal .account-submit{position:static!important;display:block;width:100%!important;margin:12px 0 6px!important;min-height:46px!important}
 #accountModal input,#accountModal select,#accountModal textarea{box-sizing:border-box!important}
 @media(max-width:480px){
  #accountModal{align-items:flex-end!important}
@@ -1264,6 +1264,7 @@ async function simpleOcsLogin(role){
   const cont=document.getElementById(isProvider?'providerLoginContinue':'customerLoginContinue');
   OCS_OTP_SEND_GUARD.sending[guardKey]=true;
   if(cont){cont.disabled=true;cont.textContent='Sending OTP...'}
+  if(st){st.textContent='OTP request processing...';st.style.color='#667d81'}
   try{
     if(isEmail){
       const {error}=await ocsSupabase.auth.signInWithOtp({
@@ -1300,6 +1301,7 @@ async function simpleOcsLogin(role){
     return true;
   }catch(e){
     const msg=(e&&e.message?e.message:'Unknown error');
+    if(st){st.textContent='OTP send nahi hua: '+msg;st.style.color='#b44343'}
     console.error('Simple OCS OTP login failed',e);
     if(/phone logins are disabled|phone provider disabled/i.test(msg)){
       alert('Mobile OTP/SMS provider setup abhi pending hai. Email OTP use karein; final OCS me Email aur Mobile dono same OTP screen par rahenge.');
