@@ -123,7 +123,15 @@ async function showSpVerification(id){
   const response=await sb.rpc('admin_provider_verification_details_v1',{p_provider_id:id});
   if(response.error)throw response.error;
   const v=response.data||{};
+  let selfieUrl='';
+  if(v.selfie_uploaded&&v.selfie_path){
+   const signed=await sb.storage.from('ocs-provider-private').createSignedUrl(v.selfie_path,120);
+   if(signed.error)throw signed.error;
+   selfieUrl=(signed.data&&signed.data.signedUrl)||'';
+  }
   panel.innerHTML='<div class="card"><b>Private SP Verification</b>'+
+   '<p class="muted">Admin-only selfie. Customer ko nahi dikhegi.</p>'+
+   (selfieUrl?'<img id="verify-photo-'+esc(id)+'" src="'+esc(selfieUrl)+'" alt="Private SP selfie" style="width:100%;max-height:300px;object-fit:contain;background:#edf3f2;border-radius:12px;margin:12px 0">':'<div class="error">Selfie not available</div>')+
    '<div class="row"><span>Work Category</span><b>'+esc(v.categories||'Missing')+'</b></div>'+
    '<div class="row"><span>Location Saved</span><b>'+(v.location_saved?'Yes':'No')+'</b></div>'+
    '<div class="row"><span>Selfie Uploaded</span><b>'+(v.selfie_uploaded?'Yes':'No')+'</b></div>'+
