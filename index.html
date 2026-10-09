@@ -1310,7 +1310,7 @@ async function verifySimpleOcsOtp(role){
   const isEmail=raw.includes('@');
   const phone=!isEmail?ocsIndiaPhone(raw):'';
   const token=(document.getElementById(isProvider?'providerLoginOtp':'customerLoginOtp')?.value||'').trim();
-  if(!/^\d{6,8}$/.test(token)){alert('Valid OTP enter karein.');return false}
+  if(!/^\d{6}$/.test(token)){alert('6-digit OTP enter karein.');return false}
   if(!isEmail&&!phone){alert('Valid Email ID ya Mobile Number check karein.');return false}
   try{
     const payload=isEmail?{email:raw,token,type:'email'}:{phone,token,type:'sms'};
