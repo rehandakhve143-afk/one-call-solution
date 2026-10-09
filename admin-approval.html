@@ -135,6 +135,10 @@ async function showSpVerification(id){
    '<div class="row"><span>Work Category</span><b>'+esc(v.categories||'Missing')+'</b></div>'+
    '<div class="row"><span>Location Saved</span><b>'+(v.location_saved?'Yes':'No')+'</b></div>'+
    '<div class="row"><span>Selfie Uploaded</span><b>'+(v.selfie_uploaded?'Yes':'No')+'</b></div>'+
+   '<div class="row"><span>Single Category</span><b>'+(Number(v.category_count)===1?'Yes':'No')+'</b></div>'+
+   '<div class="row"><span>Service Area</span><b>'+esc(v.service_area||'Not set')+' • '+esc(v.service_radius_km||'')+' km</b></div>'+
+   '<div class="row"><span>Payout Bank</span><b>'+esc(v.bank_status||'Not added')+' (optional)</b></div>'+
+   '<p class="muted" style="margin:12px 0">GPS saved does not prove identity. Admin must check the photo and profile manually.</p>'+
    '</div>';
  }catch(e){panel.innerHTML='<div class="error">'+esc(e.message||'Verification error')+'</div>'}
 }
