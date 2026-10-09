@@ -921,8 +921,8 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
   <div class="verifyok" id="providerMobileStatus">Mobile verification: Verify later in Settings</div>
   <label>Service Area / City *</label><input id="paArea" placeholder="e.g. Khopoli / Panvel">
   <label>Service Radius *</label><select id="paRadius"><option value="6">Up to 6 km</option><option value="12">Up to 12 km</option><option value="20">Up to 20 km</option><option value="30">Up to 30 km</option></select>
-  <label>Select One Work Category *</label>
-  <div id="providerSkillLockHelp" class="help" style="margin:4px 0 9px"><b>1 SP = 1 Work Category.</b> Signup me sirf ek category choose karein. Category change/add ke liye OCS Support/Admin approval required hoga.</div>
+  <label>Select One Home Service Category *</label>
+  <div id="providerSkillLockHelp" class="help" style="margin:4px 0 9px"><b>1 SP = 1 Home Service Category.</b> Driver aur Goods Transport ke liye alag registration hai.</div>
   <div class="skillgrid">
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Electrical">Electrical</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Plumbing">Plumbing</label>
@@ -940,8 +940,6 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Gas Stove">Gas Stove</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Wi-Fi / TV Setup">Wi-Fi / TV Setup</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Packers & Movers">Packers & Movers</label>
-    <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Driver Service">Driver Service</label>
-    <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Tempo / Goods Transport">Tempo / Goods Transport</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Painter">Painter</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Tiles / Stone Work">Tiles / Stone Work</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Waterproofing">Waterproofing</label>
@@ -2533,22 +2531,32 @@ function setProviderOnboardingLocation(){
     async p=>{
       providerWorkLat=Number(p.coords.latitude);
       providerWorkLng=Number(p.coords.longitude);
+      if(!Number.isFinite(providerWorkLat)||!Number.isFinite(providerWorkLng)){
+        if(st){st.textContent='GPS location invalid. Try again.';st.style.color='#b42318'}
+        return;
+      }
       try{
-        const radius=Number(document.getElementById('paRadius')?.value||12);
         const session=await getOcsSession();
-        if(session&&session.user&&ocsSupabase){
-          const r=await ocsSupabase.rpc('set_provider_service_location_v1',{
-            p_latitude:providerWorkLat,
-            p_longitude:providerWorkLng,
-            p_radius_km:radius
-          });
-          if(r.error)throw r.error;
+        if(!session||!session.user)throw new Error('Login required');
+        // New users become SPs only after submitting their profile. Before then,
+        // hold GPS coordinates for submit; otherwise the RPC rejects missing SP role.
+        const hasSp=await ocsUserHasRole('service_provider');
+        if(!hasSp){
+          if(st){st.textContent='✓ Location selected • Submit par save hogi';st.style.color='#16815d';st.classList.add('ok')}
+          return;
         }
+        const radius=Number(document.getElementById('paRadius')?.value||12);
+        const r=await ocsSupabase.rpc('set_provider_service_location_v1',{
+          p_latitude:providerWorkLat,
+          p_longitude:providerWorkLng,
+          p_radius_km:radius
+        });
+        if(r.error)throw r.error;
         if(st){st.textContent='✓ Work location saved • nearby matching ready';st.style.color='#16815d';st.classList.add('ok')}
         if(window.__ocsProviderOnboarding)window.__ocsProviderOnboarding.location_added=true;
       }catch(e){
-        if(st){st.textContent='Location selected • save failed';st.style.color='#b42318'}
-        alert('Work location online save nahi hui: '+(e&&e.message?e.message:'Unknown error'));
+        if(st){st.textContent='Location selected • online save pending. Submit par dobara try hoga';st.style.color='#b7791f'}
+        console.warn('Work location save deferred until provider submission',e);
       }
     },
     ()=>{if(st){st.textContent='Location permission required';st.style.color='#b42318'};alert('Location permission allow karein. Work location required hai.')},
@@ -2655,6 +2663,8 @@ async function saveProviderAccount(){
        p_radius_km:radius
      });
      if(loc.error)throw loc.error;
+     const st=document.getElementById('paWorkLocationStatus');
+     if(st){st.textContent='✓ Work location saved';st.style.color='#16815d';st.classList.add('ok')}
    }
 
    let selfiePath='';
