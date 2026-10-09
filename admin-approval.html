@@ -139,8 +139,15 @@ async function showSpVerification(id){
    '<div class="row"><span>Service Area</span><b>'+esc(v.service_area||'Not set')+' • '+esc(v.service_radius_km||'')+' km</b></div>'+
    '<div class="row"><span>Payout Bank</span><b>'+esc(v.bank_status||'Not added')+' (optional)</b></div>'+
    '<p class="muted" style="margin:12px 0">GPS saved does not prove identity. Admin must check the photo and profile manually.</p>'+
+   (v.ready_for_admin_review&&selfieUrl?'<label style="display:flex;gap:9px;align-items:flex-start;font-size:12px;margin:12px 0"><input id="verify-check-'+esc(id)+'" type="checkbox" disabled onchange="confirmSpVerification('+JSON.stringify(id)+',this.checked)">I checked the selfie and SP details.</label>':'<div class="error">Approval blocked: verification incomplete.</div>')+
+   '<div class="actions"><button id="approve-'+esc(id)+'" class="ok" disabled onclick="review('+JSON.stringify(id)+',\'approved\')">Approve SP</button><button class="red" onclick="review('+JSON.stringify(id)+',\'rejected\')">Reject / Correction</button></div>'+
    '</div>';
  }catch(e){panel.innerHTML='<div class="error">'+esc(e.message||'Verification error')+'</div>'}
+}
+function confirmSpVerification(id,checked){
+ ocsAdminReviewChecked[id]=checked===true;
+ const btn=document.getElementById('approve-'+id);
+ if(btn)btn.disabled=!ocsAdminReviewChecked[id];
 }
 async function review(id,decision){
  if(decision==='approved'&&!ocsAdminReviewChecked[id]){
