@@ -940,6 +940,8 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Gas Stove">Gas Stove</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Wi-Fi / TV Setup">Wi-Fi / TV Setup</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Packers & Movers">Packers & Movers</label>
+    <label id="paDedicatedDriverCategory" style="display:none"><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Driver Service">Driver Service</label>
+    <label id="paDedicatedTransportCategory" style="display:none"><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Tempo / Goods Transport">Tempo / Goods Transport</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Painter">Painter</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Tiles / Stone Work">Tiles / Stone Work</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Waterproofing">Waterproofing</label>
@@ -1997,6 +1999,8 @@ function applyOcsJoinProviderSelection(){
   if(!target)return;
   const input=[...document.querySelectorAll('input[name="paSkill"]')].find(x=>x.value===target);
   if(input&&!input.disabled){
+    const dedicatedRow=input.closest('label');
+    if(dedicatedRow&&(target==='Driver Service'||target==='Tempo / Goods Transport'))dedicatedRow.style.display='';
     input.checked=true;
     ocsProviderSingleCategory(input);
     const row=input.closest('label');
@@ -2159,6 +2163,7 @@ async function openAccount(role,forceProviderSetup){
      x.removeAttribute('data-approved-locked');
      x.checked=!!(p&&Array.isArray(p.skills)&&p.skills.includes(x.value));
      const lab=x.closest('label');
+     if(lab&&x.checked&&(x.value==='Driver Service'||x.value==='Tempo / Goods Transport'))lab.style.display='';
      if(lab){
        lab.style.background='';
        lab.style.borderColor='';
