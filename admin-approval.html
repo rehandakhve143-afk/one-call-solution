@@ -113,6 +113,23 @@ async function loadQueue(){
    box.innerHTML='<div class="error"><b>Admin page load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>';
  }
 }
+const ocsAdminReviewChecked={};
+async function showSpVerification(id){
+ const panel=document.getElementById('ocs-verification-'+id);
+ if(!panel)return;
+ ocsAdminReviewChecked[id]=false;
+ panel.innerHTML='<div class="info">Loading verification...</div>';
+ try{
+  const response=await sb.rpc('admin_provider_verification_details_v1',{p_provider_id:id});
+  if(response.error)throw response.error;
+  const v=response.data||{};
+  panel.innerHTML='<div class="card"><b>Private SP Verification</b>'+
+   '<div class="row"><span>Work Category</span><b>'+esc(v.categories||'Missing')+'</b></div>'+
+   '<div class="row"><span>Location Saved</span><b>'+(v.location_saved?'Yes':'No')+'</b></div>'+
+   '<div class="row"><span>Selfie Uploaded</span><b>'+(v.selfie_uploaded?'Yes':'No')+'</b></div>'+
+   '</div>';
+ }catch(e){panel.innerHTML='<div class="error">'+esc(e.message||'Verification error')+'</div>'}
+}
 async function review(id,decision){
  let reason=null;
  if(decision==='rejected')reason=(prompt('Reject reason (optional)')||'').trim()||null;
