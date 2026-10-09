@@ -132,7 +132,8 @@ async function showSpVerification(id){
  const panel=document.getElementById('ocs-verification-'+id);
  if(!panel)return;
  ocsAdminReviewChecked[id]=false;
- panel.innerHTML='<div class="info">Loading verification...</div>';
+ panel.innerHTML='<div class="info">⏳ Opening verification... Please wait.</div>';
+ panel.scrollIntoView({behavior:'smooth',block:'nearest'});
  try{
   const response=await sb.rpc('admin_provider_verification_details_v1',{p_provider_id:id});
   if(response.error)throw response.error;
@@ -173,7 +174,7 @@ async function showSpVerification(id){
    });
    if(img.complete)checkPhoto();
   }
- }catch(e){panel.innerHTML='<div class="error">'+esc(e.message||'Verification error')+'</div>'}
+ }catch(e){panel.innerHTML='<div class="error"><b>Verification not loaded</b><div style="margin-top:6px">'+esc(e&&e.message||'Unknown error')+'</div></div><button type="button" class="btn" data-ocs-action="verify" data-sp-id="'+esc(id)+'" style="margin-top:8px">Try Again</button>'}
 }
 function confirmSpVerification(id,checked){
  ocsAdminReviewChecked[id]=checked===true;
