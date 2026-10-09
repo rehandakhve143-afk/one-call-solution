@@ -948,11 +948,6 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="False Ceiling / POP / Gypsum / PVC">False Ceiling / POP / Gypsum / PVC</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Sliding / Aluminium Repair">Sliding / Aluminium Repair</label>
     <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="General Labour / Helper">General Labour / Helper</label>
-    <label><input type="checkbox" name="paSkill" onchange="ocsProviderSingleCategory(this)" value="Other">Other</label>
-  </div>
-  <div id="paOtherSkillWrap" style="display:none">
-    <label>Other Skill / Service Name *</label>
-    <input id="paOtherSkill" placeholder="e.g. Glass work / Door repair / Custom service">
   </div>
   <div id="paTransportDetails" style="display:none;margin-top:12px">
     <h3 style="margin:10px 0 6px">Transport Vehicle Details *</h3>
@@ -1572,28 +1567,14 @@ function ocsProviderSingleCategory(el){
       if(x!==el && !x.disabled)x.checked=false;
     });
   }
-  const other=document.querySelector('input[name="paSkill"][value="Other"]');
-  const wrap=document.getElementById('paOtherSkillWrap');
-  if(wrap)wrap.style.display=(other&&other.checked)?'block':'none';
   const transport=document.querySelector('input[name="paSkill"][value="Tempo / Goods Transport"]');
   const transportWrap=document.getElementById('paTransportDetails');
   if(transportWrap)transportWrap.style.display=(transport&&transport.checked)?'block':'none';
   const kycLater=document.getElementById('paTransportKycLater');
   if(kycLater&&!(transport&&transport.checked))kycLater.style.display='none';
-  if(!(other&&other.checked)){
-    const input=document.getElementById('paOtherSkill');
-    if(input)input.value='';
-  }
 }
 function providerSkillLabels(){
-  let skills=[...document.querySelectorAll('input[name="paSkill"]:checked')].map(x=>x.value);
-  const otherChecked=skills.includes('Other');
-  const otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
-  if(otherChecked){
-    skills=skills.filter(x=>x!=='Other');
-    if(otherSkill)skills.push(otherSkill);
-  }
-  return skills;
+  return [...document.querySelectorAll('input[name="paSkill"]:checked')].map(x=>x.value).filter(x=>x!=='Other');
 }
 function providerUiSkillMatchesBackend(label,s){
   const cat=String(s&&s.category||'').trim();
@@ -1658,8 +1639,6 @@ async function lockApprovedProviderSkills(){
     });
     if(approved.length){
       if(grid)grid.style.gridTemplateColumns='1fr';
-      const otherWrap=document.getElementById('paOtherSkillWrap');
-      if(otherWrap)otherWrap.style.display='none';
     }
     if(help&&approved.length){
       help.innerHTML='<b>Work Category</b> • Approved & locked. Change karna ho to OCS Support/Admin request karein.';
@@ -2618,9 +2597,6 @@ async function saveProviderAccount(){
  const email=(session.user.email||'').trim();
  const skills=providerSkillLabels();
  if(skills.length!==1){alert('Sirf 1 Work Category select karein.');return}
- const otherChecked=[...document.querySelectorAll('input[name="paSkill"]:checked')].some(x=>x.value==='Other');
- const otherSkill=(document.getElementById('paOtherSkill')?.value||'').trim();
- if(otherChecked&&!otherSkill){alert('Other select kiya hai to apni skill / service ka naam likhein.');return}
  const transportSelected=skills.includes('Tempo / Goods Transport');
  const transportVehicleType=(document.getElementById('paTransportVehicleType')?.value||'').trim();
  const transportVehicleNumber=(document.getElementById('paTransportVehicleNumber')?.value||'').trim();
