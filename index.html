@@ -758,6 +758,7 @@ setTimeout(function(){
 .ocs-login-otp-head>span{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:#e8f7f3;font-size:13px}
 .ocs-login-otp-input{width:100%!important;box-sizing:border-box!important;height:44px!important;border:1.5px solid #b9d8d1!important;border-radius:12px!important;background:#fff!important;text-align:center!important;font-size:18px!important;font-weight:850!important;letter-spacing:3.5px!important;color:#173f46!important;padding:0 10px!important;outline:none!important}
 .ocs-login-otp-input:focus{border-color:#0b8d80!important;box-shadow:0 0 0 3px rgba(11,141,128,.10)!important}
+.ocs-login-otp-change{display:block;width:100%;border:0;background:transparent;color:#087f73;font-weight:700;padding:8px 0 1px;font-size:12px;cursor:pointer;text-decoration:underline}
 .ocs-login-otp-verify{width:100%;margin-top:8px;border:0;border-radius:11px;padding:10px 12px;background:#087f73;color:#fff;font-weight:900;font-size:12.5px}
 .ocs-login-otp-resend{display:block;width:100%;margin-top:5px;padding:9px 5px;border:0;background:transparent;color:#667d81;font-size:11.5px}
 .ocs-login-otp-resend b{color:#087f73}
@@ -828,13 +829,14 @@ setTimeout(function(){
 <div id="customerAccountForm">
   <div id="customerProfileSummary" style="display:none"></div>
   <div id="customerAuthBox">
-  <label>Mobile Number or Email ID *</label><input id="caEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
+  <label>Mobile Number or Email ID *</label><input id="caEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID" oninput="ocsLoginIdentityChanged('customer')">
   <button id="customerLoginContinue" class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('customer')">Continue</button>
   <div id="customerLoginOtpWrap" class="ocs-login-otp-card" style="display:none">
     <div class="ocs-login-otp-head"><div><small>SECURE LOGIN</small><b id="customerLoginOtpLabel">Enter OTP</b></div><span>🔐</span></div>
     <input id="customerLoginOtp" class="ocs-login-otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter OTP" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)">
     <button class="ocs-login-otp-verify" onclick="verifySimpleOcsOtp('customer')">Verify & Login</button>
     <button type="button" class="ocs-login-otp-resend" onclick="resendSimpleOcsOtp('customer')">Didn't get the code? <b>Resend OTP</b></button>
+    <button type="button" class="ocs-login-otp-change" onclick="resetSimpleOcsOtp('customer')">Change Email / Mobile</button>
   </div>
   <div class="verifyok" id="customerEmailStatus">Mobile ya Email se simple login</div>
   <div class="help" style="margin:7px 0 12px">Email ID ya Mobile Number dalo → Continue → OTP enter karein → Verify & Login. Email link ki zarurat nahi. Login ke baad OCS Home khulega; pending profile Settings me complete karein.</div>
@@ -851,13 +853,14 @@ setTimeout(function(){
 <div id="providerAccountForm" style="display:none">
   <div id="providerProfileSummary" style="display:none"></div>
   <div id="providerAuthBox">
-  <label>Mobile Number or Email ID *</label><input id="paEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID">
+  <label>Mobile Number or Email ID *</label><input id="paEmail" autocomplete="username" inputmode="email" placeholder="10-digit mobile or Email ID" oninput="ocsLoginIdentityChanged('provider')">
   <button id="providerLoginContinue" class="primary account-submit" style="position:static;margin-top:10px!important" onclick="simpleOcsLogin('provider')">Continue</button>
   <div id="providerLoginOtpWrap" class="ocs-login-otp-card" style="display:none">
     <div class="ocs-login-otp-head"><div><small>SECURE LOGIN</small><b id="providerLoginOtpLabel">Enter OTP</b></div><span>🔐</span></div>
     <input id="providerLoginOtp" class="ocs-login-otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter OTP" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)">
     <button class="ocs-login-otp-verify" onclick="verifySimpleOcsOtp('provider')">Verify & Login</button>
     <button type="button" class="ocs-login-otp-resend" onclick="resendSimpleOcsOtp('provider')">Didn't get the code? <b>Resend OTP</b></button>
+    <button type="button" class="ocs-login-otp-change" onclick="resetSimpleOcsOtp('provider')">Change Email / Mobile</button>
   </div>
   <div class="verifyok" id="providerEmailStatus">Mobile ya Email se simple login</div>
   <div class="help" style="margin:7px 0 12px">New aur existing user ke liye same flow: Email/Mobile → OTP → Login. Password, magic link ya separate Create Account screen nahi chahiye.</div>
@@ -1241,7 +1244,36 @@ async function saveNewOcsPassword(){
   alert('OCS password successfully change ho gaya. Ab Email + new password se Login karein.');
   return true;
 }
-const OCS_OTP_SEND_GUARD={sending:{},lastSent:{}};
+const OCS_OTP_SEND_GUARD={sending:{},lastSent:{},pendingInput:{},version:{}};
+function resetSimpleOcsOtp(role){
+  const rk=role==='provider'?'provider':'customer';
+  OCS_OTP_SEND_GUARD.version[rk]=(OCS_OTP_SEND_GUARD.version[rk]||0)+1;
+  OCS_OTP_SEND_GUARD.pendingInput[rk]='';
+  const wrap=document.getElementById(rk+'LoginOtpWrap');
+  const cont=document.getElementById(rk+'LoginContinue');
+  const otp=document.getElementById(rk+'LoginOtp');
+  const st=document.getElementById(rk+'EmailStatus');
+  if(wrap)wrap.style.display='none';
+  if(cont){cont.style.display='block';cont.disabled=false;cont.textContent='Continue'}
+  if(otp)otp.value='';
+  if(st){st.textContent='Email ya Mobile daalein, phir Continue dabayein';st.style.color='#667d81'}
+  try{
+    const target=JSON.parse(localStorage.getItem('ocsLoginOtpTarget')||'null');
+    if(target&&target.role===rk)localStorage.removeItem('ocsLoginOtpTarget');
+  }catch(e){}
+}
+function ocsLoginIdentityChanged(role){
+  const rk=role==='provider'?'provider':'customer';
+  const input=document.getElementById(rk==='provider'?'paEmail':'caEmail');
+  const raw=(input&&input.value||'').trim();
+  const value=raw.includes('@')?raw.toLowerCase():(ocsIndiaPhone(raw)||raw.replace(/\D/g,''));
+  const requested=OCS_OTP_SEND_GUARD.pendingInput[rk]||'';
+  if(requested&&requested!==value)resetSimpleOcsOtp(rk);
+  else if(!requested){
+    const wrap=document.getElementById(rk+'LoginOtpWrap');
+    if(wrap&&wrap.style.display!=='none')resetSimpleOcsOtp(rk);
+  }
+}
 async function simpleOcsLogin(role){
   if(!ocsSupabase){alert('Online login service load nahi hua. Internet check karke page reopen karein.');return false}
   try{localStorage.setItem('ocsLoginIntentRole',role||'customer')}catch(e){}
@@ -1252,17 +1284,27 @@ async function simpleOcsLogin(role){
   const isEmail=raw.includes('@');
   const phone=!isEmail?ocsIndiaPhone(raw):'';
   if(!isEmail&&!phone){alert('Valid 10-digit Mobile Number ya Email ID enter karein.');return false}
-  const guardKey=(isProvider?'provider':'customer')+'|'+(isEmail?raw.toLowerCase():phone);
+  const roleKey=isProvider?'provider':'customer';
+  const expectedInput=isEmail?raw.toLowerCase():phone;
+  const guardKey=roleKey+'|'+expectedInput;
   if(OCS_OTP_SEND_GUARD.sending[guardKey])return false;
   const last=Number(OCS_OTP_SEND_GUARD.lastSent[guardKey]||0);
   const waitMs=30000-(Date.now()-last);
   if(waitMs>0){
     const sec=Math.ceil(waitMs/1000);
-    if(st){st.textContent='✓ OTP already sent • '+sec+' sec baad Resend karein';st.style.color='#b7791f'}
+    OCS_OTP_SEND_GUARD.pendingInput[roleKey]=expectedInput;
+    const wrap=document.getElementById(roleKey+'LoginOtpWrap');
+    const btn=document.getElementById(roleKey+'LoginContinue');
+    if(wrap)wrap.style.display='block';
+    if(btn)btn.style.display='none';
+    if(st){st.textContent='OTP recently requested • '+sec+' sec baad Resend karein';st.style.color='#b7791f'}
     return false;
   }
   const cont=document.getElementById(isProvider?'providerLoginContinue':'customerLoginContinue');
   OCS_OTP_SEND_GUARD.sending[guardKey]=true;
+  OCS_OTP_SEND_GUARD.pendingInput[roleKey]=expectedInput;
+  const requestVersion=(OCS_OTP_SEND_GUARD.version[roleKey]||0)+1;
+  OCS_OTP_SEND_GUARD.version[roleKey]=requestVersion;
   if(cont){cont.disabled=true;cont.textContent='Sending OTP...'}
   if(st){st.textContent='OTP request processing...';st.style.color='#667d81'}
   try{
@@ -1276,6 +1318,7 @@ async function simpleOcsLogin(role){
         }
       });
       if(error)throw error;
+      if(OCS_OTP_SEND_GUARD.version[roleKey]!==requestVersion || OCS_OTP_SEND_GUARD.pendingInput[roleKey]!==expectedInput)return false;
       try{localStorage.setItem('ocsLoginOtpTarget',JSON.stringify({role:isProvider?'provider':'customer',type:'email',value:raw.toLowerCase()}))}catch(e){}
       const wrap=document.getElementById(isProvider?'providerLoginOtpWrap':'customerLoginOtpWrap');
       const label=document.getElementById(isProvider?'providerLoginOtpLabel':'customerLoginOtpLabel');
@@ -1289,6 +1332,7 @@ async function simpleOcsLogin(role){
     }
     const {error}=await ocsSupabase.auth.signInWithOtp({phone});
     if(error)throw error;
+    if(OCS_OTP_SEND_GUARD.version[roleKey]!==requestVersion || OCS_OTP_SEND_GUARD.pendingInput[roleKey]!==expectedInput)return false;
     try{localStorage.setItem('ocsLoginOtpTarget',JSON.stringify({role:isProvider?'provider':'customer',type:'sms',value:phone}))}catch(e){}
     const wrap=document.getElementById(isProvider?'providerLoginOtpWrap':'customerLoginOtpWrap');
     const label=document.getElementById(isProvider?'providerLoginOtpLabel':'customerLoginOtpLabel');
@@ -1301,6 +1345,7 @@ async function simpleOcsLogin(role){
     return true;
   }catch(e){
     const msg=(e&&e.message?e.message:'Unknown error');
+    if(OCS_OTP_SEND_GUARD.version[roleKey]!==requestVersion)return false;
     if(st){st.textContent='OTP send nahi hua: '+msg;st.style.color='#b44343'}
     console.error('Simple OCS OTP login failed',e);
     if(/phone logins are disabled|phone provider disabled/i.test(msg)){
@@ -1311,7 +1356,7 @@ async function simpleOcsLogin(role){
     return false;
   }finally{
     OCS_OTP_SEND_GUARD.sending[guardKey]=false;
-    if(cont&&cont.style.display!=='none'){cont.disabled=false;cont.textContent='Continue'}
+    if(OCS_OTP_SEND_GUARD.version[roleKey]===requestVersion&&cont&&cont.style.display!=='none'){cont.disabled=false;cont.textContent='Continue'}
   }
 }
 async function resendSimpleOcsOtp(role){
@@ -1330,6 +1375,11 @@ async function verifySimpleOcsOtp(role){
   const isEmail=raw.includes('@');
   const phone=!isEmail?ocsIndiaPhone(raw):'';
   const token=(document.getElementById(isProvider?'providerLoginOtp':'customerLoginOtp')?.value||'').trim();
+  const roleKey=isProvider?'provider':'customer';
+  const requestValue=isEmail?raw.toLowerCase():phone;
+  try{const target=JSON.parse(localStorage.getItem('ocsLoginOtpTarget')||'null');
+    if(!target || target.role!==roleKey || target.value!==requestValue){alert('Email ya Mobile badal gaya. Continue dabakar naya OTP mangayein.');resetSimpleOcsOtp(roleKey);return false}
+  }catch(e){resetSimpleOcsOtp(roleKey);return false}
   if(!/^\d{6}$/.test(token)){alert('6-digit OTP enter karein.');return false}
   if(!isEmail&&!phone){alert('Valid Email ID ya Mobile Number check karein.');return false}
   try{
@@ -1758,6 +1808,7 @@ async function openLogin(){
   if(pf)pf.style.display='none';
   if(auth)auth.style.display='block';
   if(setup)setup.style.display='none';
+  resetSimpleOcsOtp('customer');
   document.body.classList.add('ocs-account-open');
   document.getElementById('accountModal').classList.add('show');
 }
