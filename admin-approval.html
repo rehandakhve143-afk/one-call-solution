@@ -131,8 +131,16 @@ async function showSpVerification(id){
  }catch(e){panel.innerHTML='<div class="error">'+esc(e.message||'Verification error')+'</div>'}
 }
 async function review(id,decision){
+ if(decision==='approved'&&!ocsAdminReviewChecked[id]){
+   alert('Pehle View Verification mein photo aur details check karein.');
+   return;
+ }
+ if(!confirm(decision==='approved'?'Verify karke SP approve karna hai?':'Reject / correction karna hai?'))return;
  let reason=null;
- if(decision==='rejected')reason=(prompt('Reject reason (optional)')||'').trim()||null;
+ if(decision==='rejected'){
+   reason=(prompt('Correction / rejection reason (required)')||'').trim();
+   if(!reason){alert('Reason zaruri hai.');return}
+ }
  try{
    const r=await sb.rpc('admin_review_provider_onboarding_v1',{p_provider_id:id,p_decision:decision,p_reason:reason});
    if(r.error)throw r.error;
