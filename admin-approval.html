@@ -109,7 +109,7 @@ async function loadQueue(){
      box.innerHTML='<div class="card empty"><div class="i">✓</div><h3>No pending SP approval</h3><div class="muted">Sab submitted providers reviewed hain.</div></div>';
      return;
    }
-   box.innerHTML=rows.map((x,i)=>'<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><h3>'+esc(x.provider_name||'Service Provider')+'</h3><div class="muted">'+esc(x.phone||'')+'</div></div><span class="badge">PENDING</span></div><div class="row"><span>Category</span><b>'+esc(x.service_name||x.category||'Not set')+'</b></div><div class="row"><span>Service Area</span><b>'+esc(x.service_area||'Not set')+' • '+Number(x.service_radius_km||12)+' km</b></div><div class="row"><span>Bank</span><b>'+esc(x.bank_name||'Not added')+'</b></div><button class="btn" type="button" style="margin-top:12px" data-ocs-action="verify" data-sp-id="'+esc(x.provider_id)+'">🔍 View Verification</button><div id="ocs-verification-'+esc(x.provider_id)+'"></div></div>').join('');
+   box.innerHTML=rows.map((x,i)=>'<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><h3>'+esc(x.provider_name||'Service Provider')+'</h3><div class="muted">'+esc(x.phone||'')+'</div></div><span class="badge">PENDING</span></div><div class="row"><span>Job Category</span><b>'+esc(x.service_name||x.category||'Not set')+'</b></div><div class="row"><span>Service Area</span><b>'+esc(x.service_area||'Not set')+' • '+Number(x.service_radius_km||12)+' km</b></div><div class="row"><span>Bank</span><b>'+esc(x.bank_name||'Not added')+'</b></div><button class="btn" type="button" style="margin-top:12px" data-ocs-action="verify" data-sp-id="'+esc(x.provider_id)+'">🔍 View Verification</button><div id="ocs-verification-'+esc(x.provider_id)+'"></div></div>').join('');
  }catch(e){
    box.innerHTML='<div class="error"><b>Admin page load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>';
  }
@@ -147,10 +147,10 @@ async function showSpVerification(id){
   panel.innerHTML='<div class="card"><b>Private SP Verification</b>'+
    '<p class="muted">Admin-only selfie. Customer ko nahi dikhegi.</p>'+
    (selfieUrl?'<img id="verify-photo-'+esc(id)+'" src="'+esc(selfieUrl)+'" alt="Private SP selfie" style="width:100%;max-height:300px;object-fit:contain;background:#edf3f2;border-radius:12px;margin:12px 0">':'<div class="error">Selfie not available</div>')+
-   '<div class="row"><span>Work Category</span><b>'+esc(v.categories||'Missing')+'</b></div>'+
+   '<div class="row"><span>Job Category</span><b>'+esc(v.categories||'Missing')+'</b></div>'+
    '<div class="row"><span>Location Saved</span><b>'+(v.location_saved?'Yes':'No')+'</b></div>'+
    '<div class="row"><span>Selfie Uploaded</span><b>'+(v.selfie_uploaded?'Yes':'No')+'</b></div>'+
-   '<div class="row"><span>Single Category</span><b>'+(Number(v.category_count)===1?'Yes':'No')+'</b></div>'+
+
    '<div class="row"><span>Service Area</span><b>'+esc(v.service_area||'Not set')+' • '+esc(v.service_radius_km||'')+' km</b></div>'+
    '<div class="row"><span>Payout Bank</span><b>'+esc(v.bank_status||'Not added')+' (optional)</b></div>'+
    '<p class="muted" style="margin:12px 0">GPS saved does not prove identity. Admin must check the photo and profile manually.</p>'+
