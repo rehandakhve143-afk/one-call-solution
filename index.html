@@ -847,6 +847,27 @@ setTimeout(function(){
 .ocs-account-roles-hub button.ocs-role-sp{background:#eff9f6;border-color:#cfe7e0}
 .ocs-account-roles-hub button.ocs-role-dashboard{background:#075b66;border-color:#075b66;color:white;min-height:43px}
 .ocs-account-roles-hub button.ocs-role-dashboard small,.ocs-account-roles-hub button.ocs-role-dashboard strong{color:#fff}
+/* On mobile the fixed bottom navigation was covering profile actions. Hide it
+   while the account sheet is open, and let the sheet scroll normally. */
+body.ocs-account-open .ocs-super-nav,
+body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-events:none!important}
+#accountModal.show{z-index:31000!important}
+#accountModal .account-sheet{scroll-padding-bottom:20px!important}
+#accountModal .account-sheet .ocs-sp-summary-top{padding:12px 14px!important}
+#accountModal .account-sheet .ocs-sp-summary-rows{padding:3px 14px!important}
+#accountModal .account-sheet .ocs-sp-summary-row{padding:9px 0!important}
+#accountModal .account-sheet .ocs-sp-summary-actions{padding:10px 14px 14px!important}
+#accountModal .account-sheet .ocs-sp-summary-card{border-radius:16px!important;box-shadow:none!important}
+#accountModal .account-sheet .ocs-account-join-card{padding:14px!important}
+#accountModal .account-sheet .ocs-account-join-card h3{font-size:15px!important}
+#accountModal .account-sheet .ocs-account-join-card p{margin:0 0 10px!important;font-size:11px!important}
+#ocsAccountRoleSwitcher{margin:10px 0 7px!important}
+#ocsAccountRoleSwitcher button{min-height:60px!important;padding:8px 6px!important}
+#accountModal #accountSub{font-size:12px!important}
+@media(max-width:480px){
+ #accountModal .account-sheet{max-height:95dvh!important;padding-bottom:max(22px,env(safe-area-inset-bottom))!important}
+ #accountModal h2{font-size:22px!important;margin:8px 0!important}
+}
 </style>
 <div class="modal" id="accountModal"><div class="sheet account-sheet"><button class="x" onclick="closeAccount()">×</button><span class="rolepill" id="accountRolePill">OCS ACCOUNT</span><h2 id="accountTitle">Login to One Call Solution</h2><p class="muted" id="accountSub">Email ID ya Mobile Number se simple login</p>
 <div id="ocsAccountRoleSwitcher" role="group" aria-label="OCS profile">
@@ -2212,16 +2233,15 @@ async function openAccount(role,forceProviderSetup){
        sum.style.display='block';
        sum.innerHTML='<div class="ocs-account-join-card">'+
          '<h3>Become a Service Provider</h3>'+
-         '<p>Aapka Customer login hi SP ke liye bhi chalega. Alag Email ya OTP nahi chahiye. SP Profile aur verification ke baad hi jobs milengi.</p>'+
-         '<button class="primary" onclick="openAccount(\'provider\',true)">Create SP Profile</button>'+
-         '<button class="btn gray" onclick="openAccount(\'customer\')">Back to Customer</button>'+
+         '<p>Same Login. Apni work category aur verification complete karein, phir jobs lein.</p>'+
+         '<button class="primary" onclick="openAccount(\'provider\',true)">Create SP Profile →</button>'+
          '</div>';
      }
      if(auth)auth.style.display='none';
      if(setup)setup.style.display='none';
      if(loginState)loginState.textContent='Same OCS login • No separate SP OTP';
      document.getElementById('accountTitle').textContent='Service Provider';
-     document.getElementById('accountSub').textContent='Use this account to register as an SP';
+     document.getElementById('accountSub').textContent='Same login • No separate OTP';
    }
  }
  document.body.classList.add('ocs-account-open');
@@ -2252,17 +2272,15 @@ function showCustomerProfileSummary(){
       '<span class="ocs-sp-summary-badge ok">ACTIVE</span>'+
     '</div>'+
     '<div class="ocs-sp-summary-rows">'+
-      '<div class="ocs-sp-summary-row"><span>Mobile</span><b>'+ocsEsc(mobile)+'</b></div>'+
       '<div class="ocs-sp-summary-row"><span>Email</span><b>'+ocsEsc(email)+'</b></div>'+
-      '<div class="ocs-sp-summary-row"><span>Mobile Verification</span><b>' + ocsEsc(mobileState) + '</b></div>'+
+      '<div class="ocs-sp-summary-row"><span>Mobile</span><b>'+ocsEsc(p.mobile||'Add later')+'</b></div>'+
     '</div>'+
     '<div class="ocs-sp-summary-actions">'+
       '<button class="primary" onclick="editCustomerProfile()">Edit Profile</button>'+
-      '<button class="btn gray" onclick="closeAccount()">Close</button>'+
     '</div>'+
   '</div>';
  document.getElementById('accountTitle').textContent='Customer Profile';
- document.getElementById('accountSub').textContent='Your OCS account details';
+ document.getElementById('accountSub').textContent='Same account • Book services or work as SP';
 }
 function editCustomerProfile(){
  const p=getCustomerProfile()||{};
