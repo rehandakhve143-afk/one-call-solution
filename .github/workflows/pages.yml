@@ -29,6 +29,8 @@ jobs:
           node-version: "20"
       - name: Verify posting, photo rates, draft and enquiry code (no live payments)
         run: node tests/smoke.cjs
+      - name: Verify customer/SP booking and Start OTP with mocked backend
+        run: node tests/booking-smoke.cjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
