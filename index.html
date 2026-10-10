@@ -611,7 +611,7 @@ html body.module-open #viewer.show:not(.home-service-view)>iframe {
 /* Treat posting as an app page, not a half-visible bottom sheet. */
 #bizModal.show{position:fixed!important;inset:0!important;z-index:30100!important;align-items:stretch!important;justify-content:center!important;background:#f4f7f8!important;backdrop-filter:none!important}
 #bizModal.show>.sheet{box-sizing:border-box!important;width:min(520px,100%)!important;height:100vh!important;height:100dvh!important;min-height:0!important;max-height:100dvh!important;border-radius:0!important;margin:0 auto!important;padding:22px 16px 48px!important;overflow-y:auto!important;background:#fff!important;overscroll-behavior:contain!important}
-#bizModal .sheet>.x{position:sticky!important;top:0!important;z-index:5!important;float:right!important;min-width:40px!important;min-height:40px!important;background:#edf2f3!important}
+#bizModal .sheet>.x{position:static!important;top:auto!important;z-index:5!important;float:right!important;min-width:40px!important;min-height:40px!important;background:#edf2f3!important}
 #bizModal .sheet>h2{font-size:23px!important;line-height:1.2!important;margin:5px 0 10px!important}
 #bizModal #obShopType{box-sizing:border-box!important;width:100%!important;padding:13px!important;background:#fff!important;border:1px solid #d9e3e6!important;border-radius:12px!important}
 body:has(#bizModal.show){overflow:hidden!important}
@@ -4640,7 +4640,9 @@ function ocsPlaceCategoryListing(doc,category,element){
  }
  // Dynamic ads must not appear above the category identity or displace its header.
  const masthead=doc.getElementById('ocsPremiumCategoryHeader');
- if(masthead&&masthead.parentNode){masthead.parentNode.insertBefore(element,masthead.nextSibling);return}
+ const likeRow=doc.getElementById('ocsCategoryLikeRow');
+ const anchor=likeRow&&likeRow.parentNode===masthead?.parentNode?likeRow:masthead;
+ if(anchor&&anchor.parentNode){anchor.parentNode.insertBefore(element,anchor.nextSibling);return}
  const target=doc.querySelector('main,.wrap,.container,.app')||doc.body;
  target.insertBefore(element,target.firstChild);
 }
