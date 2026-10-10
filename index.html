@@ -1190,6 +1190,41 @@ startSlider();
 
 const accountVerified={customerMobile:false,customerEmail:false,providerMobile:false,providerEmail:false};
 let ocsProviderProfileMenuIntent=false;
+// The signed-in account is the ONLY authority for browser-cached profiles.
+// Never let a prior customer's local data appear under another login.
+let ocsActiveAccountId='';
+let ocsActiveAccountEmail='';
+function ocsRememberAccountSession(session){
+ const user=session&&session.user;
+ ocsActiveAccountId=String(user&&user.id||'');
+ ocsActiveAccountEmail=String(user&&user.email||'').toLowerCase();
+}
+function ocsGetAccountProfile(type){
+ if(!ocsActiveAccountId)return null;
+ const legacyKey=type==='provider'?'ocsProviderProfile':'ocsCustomerProfile';
+ const scopedKey=legacyKey+':'+ocsActiveAccountId;
+ try{
+   const saved=JSON.parse(localStorage.getItem(scopedKey)||'null');
+   if(saved&&saved.accountUserId===ocsActiveAccountId)return saved;
+   // Migrate only when the legacy record is provably for THIS login.
+   const legacy=JSON.parse(localStorage.getItem(legacyKey)||'null');
+   if(legacy&&(String(legacy.accountUserId||'')===ocsActiveAccountId||
+     (ocsActiveAccountEmail&&String(legacy.email||'').toLowerCase()===ocsActiveAccountEmail))){
+     const migrated={...legacy,accountUserId:ocsActiveAccountId};
+     localStorage.setItem(scopedKey,JSON.stringify(migrated));
+     return migrated;
+   }
+ }catch(e){console.warn('Account profile cache unavailable',e)}
+ return null;
+}
+function ocsSaveAccountProfile(type,value){
+ if(!ocsActiveAccountId)return false;
+ const key=(type==='provider'?'ocsProviderProfile':'ocsCustomerProfile')+':'+ocsActiveAccountId;
+ try{
+   localStorage.setItem(key,JSON.stringify({...value,accountUserId:ocsActiveAccountId}));
+   return true;
+ }catch(e){console.warn('Account profile could not be cached',e);return false}
+}
 
 const OCS_SUPABASE_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
 const OCS_SUPABASE_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
@@ -1216,12 +1251,14 @@ function ocsInitSupabaseClient(){
 })();
 
 async function getOcsSession(){
-  if(!ocsSupabase)return null;
+  if(!ocsSupabase){ocsRememberAccountSession(null);return null}
   try{
     const {data,error}=await ocsSupabase.auth.getSession();
     if(error)throw error;
-    return data&&data.session?data.session:null;
-  }catch(e){console.error('OCS session read failed',e);return null}
+    const session=data&&data.session?data.session:null;
+    ocsRememberAccountSession(session);
+    return session;
+  }catch(e){ocsRememberAccountSession(null);console.error('OCS session read failed',e);return null}
 }
 async function refreshOcsEmailStatus(){
   const session=await getOcsSession();
@@ -1700,7 +1737,7 @@ async function ensureSimpleCustomerAccount(session){
       backendConnected:true,
       backendCustomerId:data?.customer_id||session.user.id
     };
-    localStorage.setItem('ocsCustomerProfile',JSON.stringify(profile));
+    ocsSaveAccountProfile('customer',profile);
     return profile;
   }catch(e){console.error('Simple customer bootstrap failed',e);return null}
 }
@@ -2174,7 +2211,7 @@ async function saveOcsUnifiedContacts(){
   if(es)es.textContent=data.email_verified?'✓ Email verified':'Email unverified • notifications disabled';
   if(ms)ms.textContent=data.mobile_verified?'✓ Mobile verified • SMS pending':'Mobile unverified • SMS pending';
   const existing=getCustomerProfile()||{};
-  localStorage.setItem('ocsCustomerProfile',JSON.stringify({...existing,contactEmail:data.email,contactMobile:data.mobile}));
+  ocsSaveAccountProfile('customer',{...existing,contactEmail:data.email,contactMobile:data.mobile});
  }catch(err){if(st)st.textContent='Save failed: '+(err.message||'Unknown error')}
  finally{if(btn)btn.disabled=false}
 }
@@ -2210,6 +2247,7 @@ async function openAccount(role,forceProviderSetup){
      }
    }
    if(session&&session.user){
+     if(!getCustomerProfile())await ensureSimpleCustomerAccount(session);
      showCustomerProfileSummary();
    }
  }
@@ -2309,7 +2347,7 @@ function showCustomerProfileSummary(){
  if(!summary)return;
  const name=p.name||'Customer';
  const mobile=p.mobile||'Not added';
- const email=p.email||'Not added';
+ const email=ocsActiveAccountEmail||p.email||'Not added';
  const mobileState=p.mobileVerified?'✓ Verified':(p.mobile?'Verify later':'Add when needed');
  summary.style.display='block';
  summary.innerHTML=
@@ -2319,8 +2357,7 @@ function showCustomerProfileSummary(){
       '<span class="ocs-sp-summary-badge ok">ACTIVE</span>'+
     '</div>'+
     '<div class="ocs-sp-summary-rows">'+
-      '<div class="ocs-sp-summary-row"><span>Email</span><b>'+ocsEsc(email)+'</b></div>'+
-      '<div class="ocs-sp-summary-row"><span>Mobile</span><b>'+ocsEsc(p.mobile||'Add later')+'</b></div>'+
+      '<div class="ocs-sp-summary-row"><span>Account Email</span><b>'+ocsEsc(email)+'</b></div>'+
     '</div>'+
     '<div class="ocs-sp-summary-actions">'+
       '<button class="primary" onclick="editCustomerProfile()">Edit Profile</button>'+
@@ -2572,14 +2609,14 @@ async function saveCustomerAccount(){
        if(referralResult&&referralResult.applied) localStorage.removeItem('ocsPendingReferralCode');
      }catch(re){console.error('Referral apply failed',re)}
    }
-   localStorage.setItem('ocsCustomerProfile',JSON.stringify({
+   ocsSaveAccountProfile('customer',{
      name:safeName,mobile:savedMobile,email:profileEmail,
      verified:true,emailVerified:!!profileEmail,mobileVerified:!!accountVerified.customerMobile,
      mobileVerificationPending:!!savedMobile&&!accountVerified.customerMobile,
      backendConnected:true,
      backendCustomerId:(data&&data.customer_id)||session.user.id,
      referralApplied:!!(referralResult&&referralResult.applied)
-   }));
+   });
    const st=document.getElementById('customerMobileStatus');
    if(st){
      st.textContent=savedMobile?'Profile saved • Mobile verification can be completed later':'Profile saved • Mobile will be asked only when a Home Service booking needs contact';
@@ -2754,7 +2791,7 @@ async function saveProviderAccount(){
    });
    if(submit.error)throw submit.error;
 
-   localStorage.setItem('ocsProviderProfile',JSON.stringify({
+   ocsSaveAccountProfile('provider',{
      name,mobile,email,area,radius,skills,transportVehicleType,transportVehicleNumber,transportCapacity,
      backendConnected:true,
      backendProviderId:(sync&&sync.provider_id)||session.user.id,
@@ -2762,7 +2799,7 @@ async function saveProviderAccount(){
      kycStatus:'Pending',
      payoutStatus:'Not Added',
      status:'Submitted • Admin Approval Pending'
-   }));
+   });
 
    alert(transportSelected?'Transport basic profile save ho gaya. Ab Complete Transport KYC karke Admin approval lein.':'Service Provider profile Admin approval ke liye submit ho gaya. Approval ke baad Work ON hoga.');
    await showProviderProfileSummary();
@@ -2771,8 +2808,8 @@ async function saveProviderAccount(){
    alert('SP profile submit nahi hua: '+(e&&e.message?e.message:'Unknown error'));
  }
 }
-function getCustomerProfile(){try{return JSON.parse(localStorage.getItem('ocsCustomerProfile')||'null')}catch(e){return null}}
-function getProviderProfile(){try{return JSON.parse(localStorage.getItem('ocsProviderProfile')||'null')}catch(e){return null}}
+function getCustomerProfile(){return ocsGetAccountProfile('customer')}
+function getProviderProfile(){return ocsGetAccountProfile('provider')}
 function getCurrentBooking(){
  try{
    const b=JSON.parse(localStorage.getItem('ocsCurrentBooking')||'null');
@@ -2950,12 +2987,12 @@ async function submitBottomSupport(){
 
 async function openBottomProfile(){
  closeAllBottomHubs();setBottomActive('bnProfile');
- const customer=getCustomerProfile();
  const body=document.getElementById('bottomProfileBody');
  if(!body)return;
 
  let session=null;
  try{session=await getOcsSession()}catch(e){}
+ const customer=getCustomerProfile();
  let hasSpRole=false;
  try{hasSpRole=!!(session&&session.user&&await ocsUserHasRole('service_provider'))}catch(e){}
  const accountId=String(customer?.mobile||customer?.email||session?.user?.phone||session?.user?.email||'').trim();
