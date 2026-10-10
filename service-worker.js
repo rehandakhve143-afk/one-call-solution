@@ -1,4 +1,4 @@
-const OCS_CACHE='ocs-shell-v45';
+const OCS_CACHE='ocs-shell-v46';
 const OCS_SHELL=[
   './',
   './index.html',
@@ -69,6 +69,26 @@ self.addEventListener('fetch',event=>{
   }
 
   if(url.origin===location.origin){
+    // The app is updated frequently. Always request current HTML/JS/CSS online;
+    // stale-while-revalidate made phones repeatedly display old posting forms.
+    const isAppCode=/\.(?:html|js|mjs|css)$/i.test(url.pathname);
+    if(isAppCode){
+      event.respondWith(
+        fetch(req,{cache:'no-cache'})
+          .then(res=>{
+            if(res&&res.ok){
+              const copy=res.clone();
+              caches.open(OCS_CACHE).then(cache=>cache.put(req,copy)).catch(()=>{});
+            }
+            return res;
+          })
+          .catch(async()=> (await caches.match(req)) ||
+                             (await caches.match(req,{ignoreSearch:true})) ||
+                             Response.error())
+      );
+      return;
+    }
+    // Images and other media can load quickly from cache while refreshing.
     event.respondWith(
       caches.match(req,{ignoreSearch:true}).then(cached=>{
         const fresh=fetch(req).then(res=>{
