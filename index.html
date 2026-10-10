@@ -4647,9 +4647,11 @@ function ocsPlaceCategoryListing(doc,category,element){
 async function injectLiveCategoryAds(cat){
  const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;if(!doc||!doc.body)return;
  let rows=await fetchPublicLivePosts(cat==='Property'?'Property':cat,30);
+ // Ignore old requests after another category replaces this iframe.
+ if(frame.contentDocument!==doc||currentModuleName!==cat)return 0;
  if(cat==='Property')rows=[...rows].sort((a,b)=>Number(ocsIsDemoPostRow(a))-Number(ocsIsDemoPostRow(b)));
  const old=doc.getElementById('ocsLiveCategoryFeed');if(old)old.remove();
- if(!rows.length)return;
+ if(!rows.length)return 0;
  let style=doc.getElementById('ocsLiveCategoryStyle');
  if(!style){style=doc.createElement('style');style.id='ocsLiveCategoryStyle';style.textContent=
  '#ocsLiveCategoryFeed{margin:12px auto 18px;max-width:760px;font-family:system-ui,Arial,sans-serif}#ocsLiveCategoryFeed .lfHead{display:flex;justify-content:space-between;align-items:end;margin:0 2px 9px}#ocsLiveCategoryFeed .lfHead b{font-size:15px;color:#173f46}#ocsLiveCategoryFeed .lfHead small{font-size:9px;color:#789}'+
@@ -4665,8 +4667,8 @@ async function injectLiveCategoryAds(cat){
  const feed=doc.createElement('section');feed.id='ocsLiveCategoryFeed';
  const demoCount=rows.filter(ocsIsDemoPostRow).length,liveCount=rows.length-demoCount;
  if(cat==='Property'&&!liveCount)feed.classList.add('ocsPropertySampleFeed');
- const feedHeading=cat==='Property'?(liveCount?'Property Listings':'Example Properties'):'LIVE '+cat+' Ads';
- const feedCount=cat==='Property'?(liveCount+' real • '+demoCount+' samples'):(rows.length+' active');
+ const feedHeading=cat==='Property'?(liveCount?'Property Listings':'Example Properties'):(liveCount?cat+' Listings':'Example '+cat+' Listings');
+ const feedCount=cat==='Property'?(liveCount+' real • '+demoCount+' samples'):(liveCount+' live'+(demoCount?' • '+demoCount+' sample'+(demoCount===1?'':'s'):''));
  feed.innerHTML='<div class="lfHead"><b>'+ocsSavedText(feedHeading)+'</b><small>'+ocsSavedText(feedCount)+'</small></div><div class="lfRail">'+rows.map((x,i)=>{const m=livePostMeta(x),media=livePostMedia(m),photos=media.filter(z=>z.type==='image').slice(0,20),videos=media.filter(z=>z.type==='video').slice(0,3),name=livePostDisplayName(x);
  const fallback=m.image?[{url:m.image,type:'image'}]:[];
  const allPhotos=photos.length?photos:fallback,upper=allPhotos.slice(0,10),lower=allPhotos.slice(10,20);
@@ -4777,6 +4779,7 @@ async function injectLiveCategoryAds(cat){
 
  feed.querySelectorAll('.lfBigSlider').forEach(g=>{
    const imgs=[...g.querySelectorAll('img')];if(imgs.length<=1)return;
+   if(g.closest('.ocs-sample-preview'))return; // Samples stay still; tap image for gallery.
    let timer=null,touchX=0;
    const start=()=>{clearInterval(timer);timer=setInterval(()=>{
      const step=g.clientWidth;
@@ -4795,6 +4798,7 @@ async function injectLiveCategoryAds(cat){
    g.addEventListener('pointercancel',start,{passive:true});
    start();
  });
+ return rows.length;
 }
 
 const OCS_MODULE_NAMES=["Home Services","Property","Tempo / Goods Transport","Local Shop","Sliding / Aluminium","Welding / Fabrication","Beauty / Make-up","Used Vehicle","New Vehicle","Medical Store","Diagnostic Lab","Modular Kitchen","Hotel / Restaurant / Lodging"];
@@ -5188,8 +5192,16 @@ async function openModule(n,role,serviceCat){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role);if(role==='customer'&&serviceCat)frame.contentWindow.selectCategory(serviceCat)}catch(e){}}
    if(n==='Property'&&pendingPropertyPost){const postType=pendingPropertyPost;pendingPropertyPost='';setTimeout(()=>{try{if(typeof frame.contentWindow.openPostWithType==='function')frame.contentWindow.openPostWithType(postType);else frame.contentWindow.openPost()}catch(e){console.warn('Property post open',e)}},120)}
    const specialFlow=(n==='Home Services'||n==='Tempo / Goods Transport');
-   if(!specialFlow&&n!=='Property'){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS XYZ Demo',e)}}
-   if(!specialFlow){injectLiveCategoryAds(n).then(()=>{if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch='';setTimeout(()=>runWindowSearch(q),120)}}).catch(e=>console.warn('OCS live feed',e))}
+   // First load verified listings, then show ONE XYZ fallback only when none exist.
+   // This avoids inserting a huge placeholder that moves the page when data arrives.
+   if(!specialFlow){injectLiveCategoryAds(n).then(count=>{
+     if(currentModuleName!==n)return;
+     if(!count&&n!=='Property'){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS sample fallback',e)}}
+     if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch='';setTimeout(()=>runWindowSearch(q),120)}
+   }).catch(e=>{
+     console.warn('OCS live feed',e);
+     if(currentModuleName===n&&n!=='Property'){try{injectXyzDemoListing(n)}catch(_){}}
+   })}
    if(!specialFlow){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
    // The enquiry CTA is on each verified LIVE listing, not a floating category-wide button.
    if(!specialFlow&&n!=='Property'){try{injectBusinessContactBar(n)}catch(e){console.warn('OCS Business Contact UI',e)}}
