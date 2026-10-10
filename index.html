@@ -1317,7 +1317,15 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
 <div id="bizCurrentPrice" class="price-now">Current 28-day plan: —</div>
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
-<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><select id="obShopType" style="display:none" aria-label="Choose shop type"><option value="Electrical Shop">Electrical Shop</option><option value="Hardware Shop">Hardware Shop</option></select><div id="obPostPriceWrap" style="display:none"><label id="obPostPriceLabel">Post Price / Rate (₹)</label><input id="obPostPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter price"></div><div id="obVariantWrap" style="display:none"><label>Product / Variant / Model</label><input id="obVariant" placeholder="e.g. 750W • Red • Model X1"></div><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
+<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><select id="obShopType" style="display:none" aria-label="Choose shop type"><option value="Electrical Shop">Electrical Shop</option><option value="Hardware Shop">Hardware Shop</option></select><div id="obPostPriceWrap" style="display:none"><label id="obPostPriceLabel">Post Price / Rate (₹)</label><input id="obPostPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter price"></div><div id="obVariantWrap" style="display:none"><label>Product / Variant / Model</label><input id="obVariant" placeholder="e.g. 750W • Red • Model X1"></div>
+<div id="ocsShopProductsEditor" style="display:none;margin:14px 0;padding:12px;border:1px solid #d6e9e6;border-radius:16px;background:#f7fbfa">
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+ <div><b style="font-size:16px;color:#17474e">Shop Product Catalogue</b><div class="muted" style="font-size:11px">Ek listing mein 20 products tak, har product ki photo aur price alag</div></div>
+ <span id="ocsShopProductCount" style="font-size:11px;color:#087a70;font-weight:850">1 / 20</span></div>
+ <div id="ocsShopProductRows" style="display:grid;gap:10px;margin:12px 0"></div>
+ <button type="button" onclick="ocsShopAddProduct()" style="width:100%;min-height:45px;background:#e0f4ef;border:1px solid #b8ddd2;border-radius:12px;color:#08665d;font-weight:900">+ Add Another Product</button>
+ <div class="muted" style="margin-top:8px;font-size:11px">Sirf shop listing fee lagegi. Products par OCS commission nahi. Photos ka total limit: 20 images + 3 videos per shop.</div>
+</div><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
 <div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button id="bizContinueBtn" class="primary" onclick="continueBiz()">Continue to Payment →</button></div><div class="muted" style="margin-top:8px"><b>Auto-save ON.</b> Details isi device par draft me save hoti rahengi. Payment se pehle edit kar sakte hain.</div></div></div>
 <script>
 let homeSlide=0,homeSlideTimer=null,homeTouchStartX=0;
@@ -5699,9 +5707,67 @@ function injectBusinessContactBar(cat){
    if(bar)bar.remove();
  }
 }
+let ocsShopCatalog=[];
+const OCS_SHOP_PRODUCT_LIMIT=20;
+function ocsShopCatalogClean(){
+ return ocsShopCatalog.map(p=>({
+   name:String(p.name||'').trim().slice(0,120),
+   price:String(p.price==null?'':p.price).trim(),
+   variant:String(p.variant||'').trim().slice(0,140),
+   details:String(p.details||'').trim().slice(0,300),
+   image:String(p.image||'').trim()
+ }));
+}
+function ocsRenderShopProducts(){
+ const box=document.getElementById('ocsShopProductRows'),counter=document.getElementById('ocsShopProductCount');
+ if(!box)return;
+ if(!ocsShopCatalog.length)ocsShopCatalog=[{name:'',price:'',variant:'',details:'',image:''}];
+ const item=(p,i)=>'<div style="background:#fff;border:1px solid #dce8e5;border-radius:13px;padding:12px">'+
+ '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="color:#17474e">Product '+(i+1)+'</b>'+
+ (ocsShopCatalog.length>1?'<button type="button" onclick="ocsShopRemoveProduct('+i+')" style="border:0;background:#fff0f0;color:#9f3030;border-radius:9px;padding:8px;font-weight:850">Remove</button>':'')+'</div>'+
+ '<label style="font-size:12px">Product Name *</label><input maxlength="120" aria-label="Product '+(i+1)+' name" value="'+ocsSavedText(p.name||'')+'" placeholder="e.g. LED Bulb / Drill" oninput="ocsShopProductChange('+i+',\'name\',this.value)">'+
+ '<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px"><div><label style="font-size:12px">Price ₹ (optional)</label><input type="number" min="0" step="1" inputmode="decimal" value="'+ocsSavedText(p.price==null?'':p.price)+'" placeholder="e.g. 499" oninput="ocsShopProductChange('+i+',\'price\',this.value)"></div>'+
+ '<div><label style="font-size:12px">Variant / Model</label><input maxlength="140" value="'+ocsSavedText(p.variant||'')+'" placeholder="e.g. 750W / Red" oninput="ocsShopProductChange('+i+',\'variant\',this.value)"></div></div>'+
+ '<label style="font-size:12px">Short Description / Offer</label><input maxlength="300" value="'+ocsSavedText(p.details||'')+'" placeholder="Brand, size or offer" oninput="ocsShopProductChange('+i+',\'details\',this.value)">'+
+ '<label style="font-size:12px">Product Photo (optional)</label><input type="file" accept="image/*" onchange="ocsShopProductPhoto('+i+',this.files)">'+
+ ((p.photoFile||p.image)?'<div style="font-size:11px;color:#087a70;margin-top:5px">✓ '+ocsSavedText(p.photoFile?p.photoFile.name:'Saved product photo')+'</div>':'')+
+ '</div>';
+ box.innerHTML=ocsShopCatalog.map(item).join('');
+ if(counter)counter.textContent=ocsShopCatalog.length+' / '+OCS_SHOP_PRODUCT_LIMIT;
+}
+function ocsShopProductChange(i,key,value){
+ if(ocsShopCatalog[i]&&['name','price','variant','details'].includes(key)){
+   ocsShopCatalog[i][key]=value;
+   queueBizDraftAutoSave();
+ }
+}
+function ocsShopProductPhoto(i,files){
+ if(!ocsShopCatalog[i])return;
+ const f=files&&files[0];
+ if(!f)return;
+ if(!String(f.type||'').startsWith('image/')){alert('Product photo image hona chahiye.');return}
+ ocsShopCatalog[i].photoFile=f;
+ queueBizDraftAutoSave();
+ // Do not re-render: keep other selected file input fields intact.
+}
+function ocsShopAddProduct(){
+ if(ocsShopCatalog.length>=OCS_SHOP_PRODUCT_LIMIT){alert('Ek shop listing mein maximum 20 products allowed hain.');return}
+ ocsShopCatalog.push({name:'',price:'',variant:'',details:'',image:''});
+ ocsRenderShopProducts();queueBizDraftAutoSave();
+}
+function ocsShopRemoveProduct(i){
+ if(ocsShopCatalog.length<=1)return;
+ ocsShopCatalog.splice(i,1);ocsRenderShopProducts();queueBizDraftAutoSave();
+}
+function ocsLoadShopCatalog(d){
+ const products=Array.isArray(d&&d.products)?d.products.slice(0,OCS_SHOP_PRODUCT_LIMIT):[];
+ ocsShopCatalog=products.map(p=>({name:String(p.name||''),price:p.price==null?'':String(p.price),variant:String(p.variant||''),details:String(p.details||''),image:String(p.image||'')}));
+ if(!ocsShopCatalog.length)ocsShopCatalog=[{name:'',price:'',variant:'',details:'',image:''}];
+ ocsRenderShopProducts();
+}
 function loadBizDraft(cat){
  const d=readBizDrafts()[cat]||{};
- obName.value=d.name||'';obType.value=d.type||'';if(document.getElementById('obPostPrice'))document.getElementById('obPostPrice').value=d.itemPrice||'';if(document.getElementById('obVariant'))document.getElementById('obVariant').value=d.variant||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';updateBizLikeSummary(cat);
+ obName.value=d.name||'';obType.value=d.type||'';if(document.getElementById('obPostPrice'))document.getElementById('obPostPrice').value=d.itemPrice||'';if(document.getElementById('obVariant'))document.getElementById('obVariant').value=d.variant||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';if(cat==='Local Shop')ocsLoadShopCatalog(d);updateBizLikeSummary(cat);
 }
 let ocsBizAutoSaveTimer=null;
 function autoSaveCurrentBizDraft(){
@@ -5720,6 +5786,7 @@ function autoSaveCurrentBizDraft(){
      billingEmail:(document.getElementById('obEmail')?.value||'').trim(),
      itemPrice:priceRaw===''?null:Number(priceRaw),
      variant:(document.getElementById('obVariant')?.value||'').trim(),
+     products:cat==='Local Shop'?ocsShopCatalogClean():old.products,
      draftSavedAt:new Date().toISOString()
    });
    localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
@@ -5770,8 +5837,10 @@ function syncBizReadyForm(cat){
  if(pl&&cfg.priceLabel)pl.textContent=cfg.priceLabel;
  if(pi){pi.placeholder=cfg.pricePh||'Enter price';if(!cfg.priceLabel)pi.value=''}
  const vw=document.getElementById('obVariantWrap'),vi=document.getElementById('obVariant');
- const showVariant=(cat==='Local Shop'||cat==='Used Vehicle'||cat==='New Vehicle');
+ const showVariant=(cat==='Used Vehicle'||cat==='New Vehicle');
  if(vw)vw.style.display=showVariant?'block':'none';
+ if(pw&&isShop)pw.style.display='none';
+ const productEditor=document.getElementById('ocsShopProductsEditor');if(productEditor)productEditor.style.display=isShop?'block':'none';
  if(vi&&!showVariant)vi.value='';
 }
 function syncPropertyEntryUi(){
@@ -5839,21 +5908,54 @@ async function continueBiz(){
  if(!name||!area||phone.replace(/\D/g,'').length<10){alert('Business/Profile name, City/Area aur valid Mobile/WhatsApp required.');return}
  if(cat==='Other Business'&&!type){alert('Apna Business Category likhiye — e.g. Chinese Food Stall / Mobile Repair / Tailor.');return}
  if(cat==='Local Shop'&&!['Electrical Shop','Hardware Shop'].includes(type)){alert('Shop Type mein Electrical Shop ya Hardware Shop select karein.');return}
+ if(cat==='Local Shop'){
+   if(!ocsShopCatalog.length||ocsShopCatalog.length>OCS_SHOP_PRODUCT_LIMIT){alert('1 se 20 products add karein.');return}
+   for(let i=0;i<ocsShopCatalog.length;i++){
+     const p=ocsShopCatalog[i],pr=String(p.price==null?'':p.price).trim();
+     if(!String(p.name||'').trim()){alert('Product '+(i+1)+' ka naam required hai.');return}
+     if(pr!==''&&(!Number.isFinite(Number(pr))||Number(pr)<0)){alert('Product '+(i+1)+' ki price valid nahi hai.');return}
+   }
+ }
  if(itemPrice!==null&&(!Number.isFinite(itemPrice)||itemPrice<0)){alert('Valid post price / rate enter karein.');return}
  if((cat==='Used Vehicle'||cat==='New Vehicle')&&(itemPrice===null||itemPrice<=0)){alert(cat==='Used Vehicle'?'Used Vehicle ka Asking Price required.':'New Vehicle ka Starting / Ex-showroom Price required.');return}
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
  const drafts=readBizDrafts(),previous=drafts[cat]||{},oldLikeKey=getBizLikeKey(cat),listingId=previous.listingId||('biz_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8));
  let media=Array.isArray(previous.media)?previous.media:[];
+ let products=cat==='Local Shop'?ocsShopCatalogClean():[];
  const mediaInput=document.getElementById('obMedia');
  if(mediaInput&&mediaInput.files&&mediaInput.files.length){
    try{media=await uploadOcsPublicMedia(mediaInput.files,'business-'+ocsBizSlug(cat))}catch(e){alert('Photo/Video upload nahi hua: '+(e&&e.message?e.message:'Upload error'));return}
+ }
+ if(cat==='Local Shop'){
+   // Photos are part of this shop listing, not separately paid posts.
+   const selected=ocsShopCatalog.filter(p=>p.photoFile);
+   const newGallery=mediaInput&&mediaInput.files&&mediaInput.files.length?Array.from(mediaInput.files):[];
+   const storedGallery=media.length;
+   const uploadedProduct=ocsShopCatalog.filter(p=>p.image&&!p.photoFile).length;
+   const currentGalleryPhotoCount=media.filter(m=>m.type==='image').length;
+   const newPhotoCount=newGallery.length?newGallery.filter(f=>String(f.type||'').startsWith('image/')).length:currentGalleryPhotoCount;
+   const newVideoCount=newGallery.length?newGallery.filter(f=>String(f.type||'').startsWith('video/')).length:media.filter(m=>m.type==='video').length;
+   if(newPhotoCount+selected.length+uploadedProduct>20||newVideoCount>3){
+     alert('Ek shop mein gallery aur product photos milaakar max 20 photos + 3 videos hain.');return;
+   }
+   try{
+     for(let i=0;i<ocsShopCatalog.length;i++){
+       const file=ocsShopCatalog[i].photoFile;
+       if(!file)continue;
+       const out=await uploadOcsPublicMedia([file],'shop-product-'+i);
+       if(!out[0]||!out[0].url)throw Error('Product '+(i+1)+' photo missing');
+       products[i].image=out[0].url;
+       ocsShopCatalog[i].image=out[0].url;
+       delete ocsShopCatalog[i].photoFile;
+     }
+   }catch(e){alert('Product photo upload fail: '+(e&&e.message||'Try again'));return}
  }
  const key=BIZ_PRICE_KEY[cat]||'localShop',normalBase=pricingValue(key,name,'LISTING'),requestedAdminFree=!!document.getElementById('bizAdminFree')?.checked;
  const adminFree=requestedAdminFree?await ocsAdminFreeAllowed():false;
  if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
  const base=adminFree?0:normalBase,tax=getGstBreakup(base);
- const postMeta={category:cat,business:name,area,type,about,phone,itemPrice,variant,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
- drafts[cat]={name,type,area,about,phone,itemPrice,variant,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'PUBLISHING':'PAYMENT_PENDING',paymentStatus:base===0?'PENDING_ADMIN_CONFIRMATION':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:null,expiresAt:null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
+ const postMeta={category:cat,business:name,area,type,about,phone,itemPrice:cat==='Local Shop'?null:itemPrice,variant:cat==='Local Shop'?'':variant,products:cat==='Local Shop'?products:undefined,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
+ drafts[cat]={name,type,area,about,phone,itemPrice,variant,products:cat==='Local Shop'?products:previous.products,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'PUBLISHING':'PAYMENT_PENDING',paymentStatus:base===0?'PENDING_ADMIN_CONFIRMATION':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:null,expiresAt:null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
  if(base===0&&adminFree){
    // Server acknowledgement is mandatory. A phone-local draft is never a LIVE listing.
