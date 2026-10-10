@@ -183,6 +183,7 @@ body.ocs-embedded-property nav.bottom{display:none!important}
 <div id="s2" class="hidden">
 <button type="button" class="form-back" onclick="go(1)">← Back</button>
 <span class="step-kicker">Project Details & Location</span>
+<div id="builderMainProjectLabel" class="hidden" style="background:#eaf8f5;padding:10px 12px;border-radius:12px;font-weight:850;color:#12554e;margin:10px 0">Project 1 • Primary Project</div>
 <div class="row"><div><label>City *</label><input class="field" id="city" placeholder="City"></div><div><label>Locality / Area *</label><input class="field" id="area" placeholder="Area"></div></div>
 <label>Property / Project Address *</label><textarea class="field" id="address" placeholder="Building, road, landmark"></textarea>
 <label>Google Maps / Location Link (Optional)</label><input class="field" id="mapLink" placeholder="Paste Maps link">
@@ -190,6 +191,13 @@ body.ocs-embedded-property nav.bottom{display:none!important}
 <label>Area (sq ft)</label><input class="field" id="sqft" type="number" placeholder="e.g. 1050">
 <div id="builderStatusWrap" class="hidden"><label>Project Status</label><select class="field" id="projectStatus"><option>Ready to Move</option><option>Under Construction</option><option>New Launch</option><option>Possession Soon</option></select></div>
 <label>Short Description</label><textarea class="field" id="desc" placeholder="Amenities, highlights, nearby landmarks and important details"></textarea>
+<div id="builderExtraProjectSection" class="builder-block hidden" style="margin:15px 0;background:#f1f9f7;border:1px solid #cce5de;border-radius:16px;padding:12px">
+ <b style="font-size:16px;color:#164f51">Builder's Other Projects</b>
+ <p class="muted" style="margin:6px 0 12px;font-size:12px">₹799 ke ek Builder Project Profile mein primary project aur 19 additional projects tak. Extra posting charge nahi.</p>
+ <div id="builderExtraProjectCards" style="display:grid;gap:12px"></div>
+ <button type="button" class="field" style="background:#e0f4ed;color:#06695d;border-color:#a9dbcf;font-weight:900;margin-top:10px" onclick="addBuilderExtraProject()">+ Add Another Project</button>
+ <p class="muted" style="font-size:11px;margin:9px 0 0">Har project ki alag city, area, price, configuration, details aur optional cover photo. Gallery + project cover photos combined max 20; videos max 3.</p>
+</div>
 <button class="next primary-action" onclick="go(3)">Continue to Media →</button></div>
 
 <div id="s3" class="hidden">
@@ -258,6 +266,7 @@ function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;',
 function formValues(){
  const data={};
  document.querySelectorAll('#overlay input,#overlay select,#overlay textarea').forEach(el=>{if(el.id&&el.type!=='file')data[el.id]=el.value});
+ data.__builderExtraProjects=readBuilderExtraProjects();
  return data;
 }
 function applyValues(data){
@@ -266,8 +275,10 @@ function applyValues(data){
    const el=$(id);if(!el||el.type==='file')return;
    if(id==='poster'&&v==='Property Owner')v='Single Property – Sale / Rent';
    if(id==='poster'&&v==='Builder / Developer')v='Builder Project Profile';
+   if(id==='__builderExtraProjects')return;
    el.value=v;
  });
+ restoreBuilderExtraProjects(data.__builderExtraProjects);
  posterChange();typeChange();
 }
 function savePropertyDraft(silent){
@@ -348,12 +359,93 @@ function openXyzBuilderSample(){
 function propertyPostingMode(){return $('poster')?.value||'Single Property – Sale / Rent'}
 function isBuilderPost(){return propertyPostingMode()==='Builder Property'||propertyPostingMode()==='Builder Project Profile'}
 function isBuilderProjectProfile(){return propertyPostingMode()==='Builder Project Profile'}
+const OCS_BUILDER_PROJECT_PROFILE_MAX=20;
+let builderExtraProjects=[];
+const ocsBuilderProjectFields=['name','city','area','address','price','propertyType','bhk','sqft','status','description','mapLink','videoUrl'];
+function cleanBuilderProject(p){
+ const out={};
+ for(const k of ocsBuilderProjectFields)out[k]=String((p&&p[k])??'').trim().slice(0,k==='description'?600:220);
+ if(p&&p.image)out.image=String(p.image).slice(0,1600);
+ return out;
+}
+function readBuilderExtraProjects(){
+ return builderExtraProjects.map(cleanBuilderProject);
+}
+function restoreBuilderExtraProjects(data){
+ builderExtraProjects=Array.isArray(data)?data.slice(0,OCS_BUILDER_PROJECT_PROFILE_MAX-1).map(cleanBuilderProject):[];
+ renderBuilderExtraProjects();
+}
+function renderBuilderExtraProjects(){
+ const host=$('builderExtraProjectCards');if(!host)return;
+ const types=['Flat','Bungalow','Row House','Land'];
+ const statuses=['Ready to Move','Under Construction','New Launch','Possession Soon'];
+ const item=(p,i)=>{
+  const input=(key,label,placeholder,number=false)=>'<div><label style="font-size:12px">'+label+'</label><input class="field" '+(number?'type="number" min="0" inputmode="decimal" ':'')+'placeholder="'+esc(placeholder)+'" value="'+esc(p[key]||'')+'" oninput="editBuilderExtraProject('+i+',\''+key+'\',this.value)"></div>';
+  const select=(key,label,options)=>'<div><label style="font-size:12px">'+label+'</label><select class="field" onchange="editBuilderExtraProject('+i+',\''+key+'\',this.value)">'+options.map(t=>'<option value="'+esc(t)+'"'+(p[key]===t?' selected':'')+'>'+esc(t)+'</option>').join('')+'</select></div>';
+  return '<section style="background:#fff;border:1px solid #d8e7e2;border-radius:13px;padding:12px">'+
+   '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b>Project '+(i+2)+'</b><button type="button" style="border:0;background:#fff0ed;padding:8px;border-radius:9px;color:#9b3f28;font-weight:800" onclick="removeBuilderExtraProject('+i+')">Remove</button></div>'+
+   input('name','Project Name *','e.g. XYZ Green Heights')+
+   '<div class="row">'+input('city','City *','City')+input('area','Locality / Area *','Locality')+'</div>'+
+   input('address','Project Address *','Road / locality')+
+   '<div class="row">'+input('price','Price (₹) *','e.g. 5500000',true)+input('sqft','Area (sq ft)','e.g. 1050',true)+'</div>'+
+   '<div class="row">'+select('propertyType','Property Type',types)+select('bhk','Configuration',['1 BHK','2 BHK','3 BHK','4+ BHK'])+'</div>'+
+   select('status','Project Status',statuses)+
+   input('description','Short Description','Amenities, highlights, offer')+
+   input('mapLink','Google Maps URL (optional)','https://maps.google.com/...')+
+   input('videoUrl','Project Video / YouTube URL (optional)','https://youtu.be/...')+
+   '<label style="font-size:12px">Project Cover Photo (optional)</label><input class="field" type="file" accept="image/*" onchange="builderExtraProjectPhoto('+i+',this.files)">'+
+   (p.photoFile||p.image?'<small style="color:#087a70;display:block;margin-top:5px">✓ '+esc(p.photoFile?p.photoFile.name:'Saved cover image')+'</small>':'')+
+   '</section>';
+ };
+ host.innerHTML=builderExtraProjects.map(item).join('');
+}
+function addBuilderExtraProject(){
+ if(builderExtraProjects.length>=OCS_BUILDER_PROJECT_PROFILE_MAX-1){alert('Ek Builder Project Profile mein 20 projects tak rakh sakte hain.');return}
+ builderExtraProjects.push({name:'',city:'',area:'',address:'',price:'',sqft:'',propertyType:'Flat',bhk:'2 BHK',status:'Ready to Move',description:'',mapLink:'',videoUrl:''});
+ renderBuilderExtraProjects();savePropertyDraft(true);
+}
+function removeBuilderExtraProject(i){
+ builderExtraProjects.splice(i,1);
+ renderBuilderExtraProjects();savePropertyDraft(true);
+}
+function editBuilderExtraProject(i,key,value){
+ if(!builderExtraProjects[i]||!ocsBuilderProjectFields.includes(key))return;
+ builderExtraProjects[i][key]=value;
+}
+function builderExtraProjectPhoto(i,files){
+ const file=files&&files[0];if(!file||!builderExtraProjects[i])return;
+ if(!String(file.type||'').startsWith('image/')){alert('Project photo image honi chahiye.');return}
+ builderExtraProjects[i].photoFile=file;
+}
+function collectBuilderProfileProjects(){
+ const main={
+  name:($('project')?.value||'').trim(),city:($('city')?.value||'').trim(),area:($('area')?.value||'').trim(),
+  address:($('address')?.value||'').trim(),price:String($('price')?.value||'').trim(),
+  propertyType:$('ptype')?.value||'Flat',bhk:$('ptype')?.value==='Land'?'':$('bhk')?.value||'',
+  sqft:String($('sqft')?.value||'').trim(),status:$('projectStatus')?.value||'',
+  description:($('desc')?.value||'').trim(),mapLink:$('mapLink')?.value||'',videoUrl:$('video')?.value||''
+ };
+ return [main,...readBuilderExtraProjects()].map(x=>Object.assign({},x,{price:Number(x.price)||0,sqft:Number(x.sqft)||0}));
+}
+function validateBuilderProfileProjects(){
+ if(!isBuilderProjectProfile())return true;
+ for(let i=0;i<builderExtraProjects.length;i++){
+  const x=builderExtraProjects[i];
+  if(!String(x.name||'').trim()||!String(x.city||'').trim()||!String(x.area||'').trim()||!String(x.address||'').trim()||!Number.isFinite(Number(x.price))||Number(x.price)<=0){
+   alert('Project '+(i+2)+': Name, City, Locality, Address aur valid Price required.');return false
+  }
+  if(x.sqft!==''&&x.sqft!=null&&(!Number.isFinite(Number(x.sqft))||Number(x.sqft)<0)){
+   alert('Project '+(i+2)+': sq ft valid nahi hai.');return false
+  }
+ }
+ return true;
+}
 function propertyPostingLabel(){return propertyPostingMode()}
 function propertyPostingCategory(){return propertyPostingMode()==='Single Property – Sale / Rent'?'Single Property':propertyPostingMode()}
 function posterChange(){
  const b=isBuilderPost(),profile=isBuilderProjectProfile(),single=!b;
  ['builderProject','builderIdentity','builderStatusWrap'].forEach(id=>$(id)?.classList.toggle('hidden',!b));
- ['builderMedia','builderLinks'].forEach(id=>$(id)?.classList.toggle('hidden',!profile));
+ ['builderMedia','builderLinks','builderMainProjectLabel','builderExtraProjectSection'].forEach(id=>$(id)?.classList.toggle('hidden',!profile));
  $('propertyWhatsappWrap')?.classList.toggle('hidden',single);
  $('propertyPublicEmailWrap')?.classList.toggle('hidden',!profile);
  if(single){$('contactWhatsapp').value='';$('contactEmail').value=''}
@@ -426,6 +518,7 @@ function validateStep(n){
  const b=isBuilderPost();
  if(n===1&&b&&(!$('builderCompany').value.trim()||!$('builderContactPerson').value.trim()||!$('project').value.trim())){alert('Builder/Company name, Contact Person aur Project/Advertisement Name required.');return false}
  if(n===2&&(!$('city').value.trim()||!$('area').value.trim()||!$('address').value.trim()||!Number($('price').value||0))){alert('City, Area, Address aur Price required.');return false}
+ if(n===2&&!validateBuilderProfileProjects())return false;
  if(n===4){
    const b=isBuilderPost(),profile=isBuilderProjectProfile();
    if(!validPhone($('contactPhone').value)){alert('Valid Call number required.');return false}
@@ -459,7 +552,7 @@ function makePreview(){
  '<div>'+esc(type)+(type!=='Land'?' • '+esc($('bhk').value):'')+($('sqft').value?' • '+esc($('sqft').value)+' sq ft':'')+(b&&$('projectStatus').value?' • '+esc($('projectStatus').value):'')+'</div>'+
  '<p>'+esc($('desc').value||'No description added')+'</p>'+
  '<div class="property-preview-plan"><b>'+esc(propertyPostingLabel())+'</b><span>'+(p===null?'Rate not set':propertyPlanPayText(propertyPlanDays))+' / '+planLabel+'</span></div>'+
- (profile?'<div class="ownerbox"><b>Builder Project Profile Features</b><br>'+esc(featureBits.join(' • ')||'Project Gallery')+'</div>':b?'<div class="ownerbox"><b>Builder Property</b><br>One builder property • Photos • Project details • Direct contact</div>':'<div class="ownerbox"><b>Single Property – Sale / Rent</b><br>One property listing • Photos • Direct contact</div>')+
+ (profile?'<div class="ownerbox"><b>Builder Project Profile • '+collectBuilderProfileProjects().length+' Projects</b><br>'+collectBuilderProfileProjects().map((pj,i)=>'<div style="padding:9px 0;border-bottom:1px solid #dce9e8"><b>'+esc(pj.name)+'</b> • ₹'+Number(pj.price).toLocaleString('en-IN')+'<div>'+esc(pj.area)+' • '+esc(pj.city)+'</div></div>').join('')+'<small>'+esc(featureBits.join(' • ')||'Project Gallery')+'</small></div>':b?'<div class="ownerbox"><b>Builder Property</b><br>One builder property • Photos • Project details • Direct contact</div>':'<div class="ownerbox"><b>Single Property – Sale / Rent</b><br>One property listing • Photos • Direct contact</div>')+
  '<div class="preview-actions"><span>📞 Call</span>'+(b?'<span>💬 Chat</span><span>🟢 WhatsApp</span>':'')+(profile?'<span>✉ Email</span>':'')+(b&&$('mapLink').value?'<span>📍 Directions</span>':'')+'</div>';
 }
 function listingActionAttrs(kind,value){
