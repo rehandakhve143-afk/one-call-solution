@@ -453,14 +453,23 @@ function ocsHomeRestore(x){
 }
 function ocsHomeInit(){
  try{
-  const current=ocsHomeCapture(ocsHomeNavView);
-  if(ocsHomeNavView!=='categories'){
-   const parent=ocsHomeNavView==='category'?'categories':'category';
-   history.replaceState({...current,view:parent,selected:parent==='categories'?[]:current.selected},'',location.href);
-   history.pushState(current,'',location.href);
-  }else history.replaceState(current,'',location.href);
-  ocsHomeReady=true;
+  const saved=history.state?.ocsHomeNav?history.state:null;
+  if(saved){
+   // Back from another OCS page or a browser reload must keep the last booking step.
+   ocsHomeReady=true;
+   ocsHomeRestore(saved);
+   history.replaceState(saved,'',location.href);
+  }else{
+   const current=ocsHomeCapture(ocsHomeNavView);
+   if(ocsHomeNavView!=='categories'){
+    const parent=ocsHomeNavView==='category'?'categories':'category';
+    history.replaceState({...current,view:parent,selected:parent==='categories'?[]:current.selected},'',location.href);
+    history.pushState(current,'',location.href);
+   }else history.replaceState(current,'',location.href);
+   ocsHomeReady=true;
+  }
   window.addEventListener('popstate',e=>{if(e.state?.ocsHomeNav)ocsHomeRestore(e.state)});
+  window.addEventListener('pagehide',ocsHomeSave);
   document.addEventListener('input',e=>{
    if(document.getElementById('content')?.contains(e.target)){
     clearTimeout(ocsHomeSaveTimer);
