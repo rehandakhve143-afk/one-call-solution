@@ -1,0 +1,119 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>OCS • Listing Enquiries</title><meta name="theme-color" content="#005360">
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#153b43;background:#f4f7f8}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh}header{background:#005361;color:white;padding:18px 15px 20px;display:flex;align-items:center;gap:13px}header a{color:white;text-decoration:none;border:1px solid #35828b;border-radius:13px;padding:12px}header h1{font-size:22px;margin:0}header small{font-size:12px;color:#b9dddf}
+main{max-width:700px;margin:auto;padding:15px 13px 90px}.tabs{display:flex;background:white;border:1px solid #d9e5e6;border-radius:15px;padding:4px;gap:3px}.tabs button{flex:1;background:transparent;border:0;color:#39626b;padding:14px 3px;border-radius:12px;font-size:14px;font-weight:700}.tabs button.on{background:#e3f5f2;color:#006b66}
+.card{background:white;border:1px solid #dce8e9;border-radius:18px;margin:15px 0;padding:16px}.card h2{font-size:19px;margin:0 0 9px}p,.muted{color:#647d82;font-size:13px;line-height:1.55}label{display:block;font-size:14px;font-weight:750;margin:13px 0 7px}
+input,textarea,select{width:100%;border:1px solid #d1dee0;border-radius:13px;padding:13px;font:inherit;font-size:15px;background:#fff;color:#163942}textarea{min-height:110px;resize:vertical}button{cursor:pointer;font:inherit}.btn{width:100%;background:#007f82;border:0;border-radius:13px;color:white;font-weight:800;padding:15px;margin-top:12px}.btn:disabled{opacity:.45}.outline{background:white;color:#00666f;border:1px solid #afd3d3}.list{display:grid;gap:9px;margin-top:12px}.listing{display:block;text-align:left;border:1px solid #dce8e9;background:white;border-radius:13px;padding:13px;color:#19444e;width:100%;font-weight:700}.listing small{display:block;color:#71878c;margin-top:4px;font-size:12px;font-weight:500}.listing.on{border:2px solid #00877e;background:#ecf9f6}.status{padding:10px 12px;border-radius:12px;background:#edf6f6;color:#245760;margin-top:12px;font-size:13px;white-space:pre-wrap}.danger{background:#fff0ea;color:#963b2e}.hide{display:none!important}.pill{font-size:11px;color:#855d10;background:#fff6d9;border-radius:20px;padding:5px 10px;float:right}.entry{border:1px solid #d8e5e7;border-radius:15px;margin:10px 0;padding:15px;background:white}.entry strong{font-size:16px}.entry p{white-space:pre-wrap;word-break:break-word;margin:10px 0}.entry time{font-size:11px;color:#74888a}.reply{background:#eaf7f4;border-radius:12px;padding:9px 12px;margin:7px 0;white-space:pre-wrap;word-break:break-word;font-size:14px}.reply.owner{background:#f3f3ff}.subheading{font-size:12px;font-weight:800;margin-top:12px;text-transform:uppercase;letter-spacing:.04em;color:#67818a}.empty{padding:25px 12px;text-align:center;color:#788a8b}
+</style></head><body>
+<header><a href="index.html" aria-label="Back to OCS">‹ Back</a><div><h1>OCS Enquiries</h1><small>One Listing → One Owner • One Login</small></div></header>
+<main>
+<div class="tabs"><button data-tab="new" class="on">Send Enquiry</button><button data-tab="sent">My Enquiries</button><button data-tab="received">Received</button></div>
+<div id="msg" class="status">Connecting to OCS…</div>
+<section id="new">
+ <div class="card"><h2>Select a Live Listing</h2><p>Request sirf selected, verified live listing ke actual owner ko jayegi. XYZ sample/test listing par real enquiry nahi jayegi.</p>
+ <label for="search">Search business, property or area</label><input id="search" placeholder="Shop, builder, locality…" maxlength="90">
+ <label for="category">Listing Category</label><select id="category">
+ <option value="">All Live Listings</option><option>Local Shop</option><option>Sliding / Aluminium</option><option>Welding / Fabrication</option><option>Beauty / Make-up</option><option>Used Vehicle</option><option>New Vehicle</option><option>Medical Store</option><option>Diagnostic Lab</option><option>Modular Kitchen</option><option>Hotel / Restaurant / Lodging</option><option>Property</option></select>
+ <div id="results" class="list"></div></div>
+ <div class="card"><h2>Send your Requirement</h2><div id="selectedText" class="status">Choose a real listing above first.</div>
+ <label for="requirement">Product / Service / Property Requirement *</label><textarea id="requirement" minlength="5" maxlength="2000" placeholder="What do you need? Quantity, area, date, other details…"></textarea>
+ <button id="send" class="btn" disabled>Send to Selected Owner</button><p>Once sent, owner can reply inside OCS. Email and SMS delivery are not yet enabled for these enquiries.</p>
+ </div>
+</section>
+<section id="sent" class="hide"><div class="card"><h2>My Sent Enquiries</h2><p>View your request and replies from the selected listing owner.</p><div id="sentList" class="list"></div></div></section>
+<section id="received" class="hide"><div class="card"><h2>Received Enquiries</h2><p>Only enquiries for listings owned by this signed-in account are shown here.</p><div id="receivedList" class="list"></div></div></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const sb=window.supabase?.createClient('https://uipmkrsggpkupgbgoxkg.supabase.co','sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const q=new URLSearchParams(location.search);
+const categoryMap={'Medical':'Medical Store','Lab':'Diagnostic Lab','Sliding / Aluminium Repair':'Sliding / Aluminium','Builder Property':'Property','Property':'Property'};
+const preferred=categoryMap[q.get('category')]||q.get('category')||'';
+if(preferred&&[...$('category').options].some(o=>o.value===preferred))$('category').value=preferred;
+if(q.get('requirement'))$('requirement').value=q.get('requirement').slice(0,2000);
+let listings=[],selected=null,signedIn=false,busy=false;
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function notice(txt,bad=false){$('msg').textContent=txt;$('msg').classList.toggle('danger',bad)}
+function checkSend(){$('send').disabled=!signedIn||!selected||busy||$('requirement').value.trim().length<5}
+async function ensureUser(){if(!sb)throw Error('Internet or login library not loaded');let {data,error}=await sb.auth.getUser();if(error||!data?.user){signedIn=false;notice('Please login to OCS first. Open Home → Account → Login, then return to this page.',true);return false}signedIn=true;return true}
+async function loadListings(){
+ const word=$('search').value.trim();const category=$('category').value;
+ $('results').innerHTML='<p class="muted">Loading live listings…</p>';
+ selected=null;checkSend();
+ if(!sb){notice('Internet library not loaded. Reload this page.',true);return}
+ const kind=category==='Property'?'property':(category?'business':'all');
+ const {data,error}=await sb.rpc('ocs_live_listing_targets_v1',{p_kind:kind,p_category:category==='Property'?null:(category||null),p_search:word||null});
+ if(error){$('results').textContent='Cannot load listings: '+error.message;notice('Could not load live listings.',true);return}
+ listings=data||[];
+ $('results').innerHTML='';
+ if(!listings.length){$('results').innerHTML='<div class="empty">No Live Listings found yet. Sample XYZ posts cannot receive real enquiries.</div>';return}
+ for(const l of listings){
+  const b=document.createElement('button');b.className='listing';b.type='button';
+  b.innerHTML=esc(l.listing_name)+'<small>'+esc(l.kind==='property'?'Property':l.category)+' • '+esc(l.place||'Location not specified')+'</small>';
+  b.addEventListener('click',()=>selectListing(l.id,l.kind));
+  $('results').appendChild(b);
+ }
+ const id=q.get('listing_id'),kindParam=q.get('kind');
+ if(id&&listings.some(l=>l.id===id&&l.kind===kindParam))selectListing(id,kindParam);
+}
+function selectListing(id,kind){
+ selected=listings.find(l=>l.id===id&&l.kind===kind)||null;
+ [...$('results').children].forEach((el,i)=>el.classList.toggle('on',!!selected&&listings[i]?.id===selected.id&&listings[i]?.kind===selected.kind));
+ $('selectedText').textContent=selected?'Selected: '+selected.listing_name+' ('+(selected.kind==='property'?'Property':selected.category)+')':'Choose a real live listing above.';
+ checkSend();
+}
+async function send(){
+ if(!await ensureUser())return;
+ if(!selected){notice('Choose a live listing first.',true);return}
+ if($('requirement').value.trim().length<5){notice('Please write your requirement.',true);return}
+ busy=true;checkSend();notice('Sending securely to '+selected.listing_name+'…');
+ try{
+  const {data,error}=await sb.rpc('ocs_send_listing_enquiry_v1',{p_kind:selected.kind,p_listing_id:selected.id,p_message:$('requirement').value.trim()});
+  if(error)throw error;
+  $('requirement').value='';notice('✓ Enquiry sent to '+(data.recipient||selected.listing_name)+'. You can see it under My Enquiries.');
+  switchTab('sent');
+ }catch(e){notice('Enquiry not sent: '+(e.message||'Please retry'),true)}
+ finally{busy=false;checkSend()}
+}
+async function loadBox(box){
+ const out=$(box+'List');out.innerHTML='<p>Loading…</p>';
+ if(!await ensureUser()){out.innerHTML='<div class="empty">Please log in first.</div>';return}
+ const {data,error}=await sb.rpc('ocs_my_listing_enquiries_v1',{p_box:box});
+ if(error){out.textContent=error.message;return}
+ out.innerHTML='';
+ if(!data?.length){out.innerHTML='<div class="empty">No '+(box==='received'?'received':'sent')+' enquiries yet.</div>';return}
+ for(const e of data){
+  const div=document.createElement('article');div.className='entry';
+  div.innerHTML='<span class="pill">'+esc(e.status)+'</span><strong>'+esc(e.listing_name||'Listing')+'</strong><div class="muted">'+esc(e.category||e.listing_kind)+'</div><p>'+esc(e.message)+'</p><time>'+esc(new Date(e.created_at).toLocaleString('en-IN'))+'</time><div id="replies-'+esc(e.id)+'" class="list"></div><label for="reply-'+esc(e.id)+'">Reply in OCS</label><textarea id="reply-'+esc(e.id)+'" maxlength="2000" placeholder="Type your reply…" style="min-height:65px"></textarea><button class="btn outline" type="button">Send Reply</button>';
+  div.querySelector('button').addEventListener('click',()=>sendReply(e.id,box));
+  out.appendChild(div);
+  loadReplies(e.id);
+ }
+}
+async function loadReplies(id){
+ const box=$('replies-'+id);if(!box)return;
+ const {data,error}=await sb.rpc('ocs_listing_enquiry_replies_v1',{p_enquiry_id:id});
+ if(error){box.textContent='Reply history unavailable';return}
+ box.innerHTML=(data||[]).map(r=>'<div class="reply '+(r.sender_role==='owner'?'owner':'')+'"><b>'+esc(r.sender_role==='owner'?'Listing Owner':'Customer')+'</b><div>'+esc(r.message)+'</div></div>').join('');
+}
+async function sendReply(id,box){
+ const input=$('reply-'+id),message=input?.value.trim();
+ if(!message){notice('Write a reply first.',true);return}
+ const {error}=await sb.rpc('ocs_reply_listing_enquiry_v1',{p_enquiry_id:id,p_message:message});
+ if(error){notice('Reply not sent: '+error.message,true);return}
+ input.value='';notice('✓ Reply delivered in OCS');await loadReplies(id);
+}
+function switchTab(tab){
+ ['new','sent','received'].forEach(t=>{$(t).classList.toggle('hide',t!==tab);document.querySelector('[data-tab="'+t+'"]').classList.toggle('on',t===tab)});
+ if(tab!=='new')loadBox(tab);
+}
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+$('send').addEventListener('click',send);
+$('requirement').addEventListener('input',checkSend);
+$('category').addEventListener('change',loadListings);
+let debounce;$('search').addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(loadListings,300)});
+(async()=>{try{await ensureUser();await loadListings();if(signedIn)notice('Select a live listing to send an enquiry. Only its owner receives the request.');else notice('You can browse listings. Login before sending.',true);checkSend();if(q.get('tab')==='received'||q.get('tab')==='sent')switchTab(q.get('tab'));}catch(e){notice(e.message||'Unable to load OCS Enquiries',true)}})();
+</script></body></html>
