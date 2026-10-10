@@ -34,7 +34,7 @@
 <body>
 <header class="top">
  <div class="brand"><div class="logo">OCS</div><div><h1>Tempo / Goods Transport</h1><p>Pickup • Delivery • Home Shifting • Get Quote</p></div></div>
- <button class="back" onclick="history.length>1?history.back():location.href='index.html?pwa=1&v=20261006-driver-e2e1'">← Back to OCS Home</button>
+ <button class="back" onclick="backToPreviousOcs()">← Back to OCS Home</button>
 </header>
 <main class="wrap">
  <section class="hero transport-clean-hero">
@@ -409,6 +409,20 @@ async function sendTripChat(){const inp=$('tripChatInput'),msg=(inp.value||'').t
 if(window.self!==window.top){const topBar=document.querySelector('.top');if(topBar)topBar.style.display='none';document.body.style.paddingTop='0'}
 setMode('GOODS_DELIVERY');goTransportStep(1);loadTransportTrip().then(maybeShowClosedTransport);loadTransportOffers();setInterval(()=>{loadTransportTrip();loadTransportOffers();maybeShowClosedTransport()},8000);
 try{const d=new Date();d.setDate(d.getDate()+1);$('date').min=new Date().toISOString().slice(0,10);$('date').value=d.toISOString().slice(0,10)}catch(e){}
+function backToPreviousOcs(){
+ // A Back button returns to the real previous OCS page when known.
+ // Do not blindly go back to an unrelated external website.
+ try{
+   const prior=document.referrer?new URL(document.referrer,location.href):null;
+   const appDir=location.pathname.slice(0,location.pathname.lastIndexOf('/')+1);
+   if(prior&&prior.origin===location.origin&&prior.pathname.startsWith(appDir)&&
+      prior.pathname!==location.pathname&&history.length>1){
+     history.back();
+     return;
+   }
+ }catch(e){}
+ location.href='index.html?pwa=1&v=20261006-driver-e2e1';
+}
 </script>
 </body>
 </html>
