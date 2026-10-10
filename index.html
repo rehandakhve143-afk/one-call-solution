@@ -4748,6 +4748,21 @@ function ocsUnifiedBack(){
  try{
    const viewer=document.getElementById('viewer');
    if(viewer&&viewer.classList.contains('show')){
+     // Nested Local Shop / Beauty / Vehicle forms own their browser Back entries.
+     // Go back inside the iframe before changing the main OCS window.
+     if(currentModuleName&&currentModuleName!=='Property'){
+       const current=ocsEmbeddedWindowState();
+       if(current){
+         const frame=document.getElementById('frame'),w=frame&&frame.contentWindow;
+         const frameStep=w&&w.history.state?.ocsFrameStep?w.history.state:null;
+         if(frameStep&&Number(frameStep.index)>0){
+           const liveKey=ocsEmbeddedFrameViewKey(current);
+           const savedKey=ocsEmbeddedFrameViewKey(frameStep.view);
+           if(liveKey===savedKey){w.history.back();return}
+         }
+         if(ocsTryImmediateWindowBack())return;
+       }
+     }
      const state=history.state;
      if(state&&state.ocsUi&&state.state&&state.state.module===currentModuleName&&history.length>1){
        const captured=ocsCaptureUiState();
@@ -4822,8 +4837,55 @@ function ocsGetPropertyNavState(){
 // Embedded marketplace windows contain their own enquiry and posting modals.
 // Record their visible step so phone Back restores that step instead of OCS Home.
 let ocsEmbeddedWindowObserver=null,ocsPendingEmbeddedRestore=null;
+let ocsEmbeddedFrameHistoryWindow=null,ocsEmbeddedFrameHistoryHandler=null;
+let ocsEmbeddedFrameHistoryIndex=0,ocsEmbeddedFrameHistoryKey='',ocsEmbeddedFrameHistoryApplying=false;
+let ocsEmbeddedFrameHistoryTimer=null;
+function ocsEmbeddedFrameViewKey(s){
+ return s&&s.dialog?String(s.dialog)+':'+String(s.step||0):'';
+}
 function ocsStopWatchingEmbeddedWindow(){
  if(ocsEmbeddedWindowObserver){ocsEmbeddedWindowObserver.disconnect();ocsEmbeddedWindowObserver=null}
+ if(ocsEmbeddedFrameHistoryWindow&&ocsEmbeddedFrameHistoryHandler){
+  try{ocsEmbeddedFrameHistoryWindow.removeEventListener('popstate',ocsEmbeddedFrameHistoryHandler)}catch(e){}
+ }
+ clearTimeout(ocsEmbeddedFrameHistoryTimer);
+ ocsEmbeddedFrameHistoryWindow=null;ocsEmbeddedFrameHistoryHandler=null;
+ ocsEmbeddedFrameHistoryIndex=0;ocsEmbeddedFrameHistoryKey='';
+ ocsEmbeddedFrameHistoryApplying=false;
+}
+function ocsEmbeddedFrameSyncHistory(){
+ if(ocsEmbeddedFrameHistoryApplying||!ocsEmbeddedFrameHistoryWindow)return;
+ try{
+  const w=ocsEmbeddedFrameHistoryWindow;
+  const next=ocsEmbeddedWindowState();
+  const nextKey=ocsEmbeddedFrameViewKey(next);
+  if(nextKey===ocsEmbeddedFrameHistoryKey)return;
+  const oldState=w.history.state;
+  if(!oldState?.ocsFrameStep)return;
+  const oldView=oldState.view||null;
+  const oldKey=ocsEmbeddedFrameViewKey(oldView);
+  const index=Math.max(0,Number(oldState.index)||0);
+  if(!nextKey&&oldKey&&index>0){
+   // X/Close should exit the entire dialog instead of re-opening older wizard steps.
+   ocsEmbeddedFrameHistoryApplying=true;
+   w.history.go(-index);
+   clearTimeout(ocsEmbeddedFrameHistoryTimer);
+   ocsEmbeddedFrameHistoryTimer=setTimeout(()=>{ocsEmbeddedFrameHistoryApplying=false;ocsEmbeddedFrameHistoryKey=ocsEmbeddedFrameViewKey(ocsEmbeddedWindowState())},900);
+   return;
+  }
+  if(next&&oldView&&next.dialog===oldView.dialog&&
+     Number(next.step)>0&&Number(oldView.step)>Number(next.step)&&index>0){
+   const distance=Math.min(index,Math.max(1,Number(oldView.step)-Number(next.step)));
+   ocsEmbeddedFrameHistoryApplying=true;
+   w.history.go(-distance);
+   clearTimeout(ocsEmbeddedFrameHistoryTimer);
+   ocsEmbeddedFrameHistoryTimer=setTimeout(()=>{ocsEmbeddedFrameHistoryApplying=false;ocsEmbeddedFrameHistoryKey=ocsEmbeddedFrameViewKey(ocsEmbeddedWindowState())},900);
+   return;
+  }
+  w.history.pushState({ocsFrameStep:true,index:index+1,view:next},'');
+  ocsEmbeddedFrameHistoryIndex=index+1;
+  ocsEmbeddedFrameHistoryKey=nextKey;
+ }catch(e){console.warn('OCS inner form history',e)}
 }
 function ocsEmbeddedCurrentStep(modal){
  if(!modal||modal.id!=='postM')return null;
@@ -4847,8 +4909,28 @@ function ocsWatchEmbeddedWindowNavigation(moduleName){
  if(currentModuleName!==moduleName)return;
  const f=document.getElementById('frame'),d=f&&f.contentDocument;
  if(!d||!d.body||moduleName==='Property')return;
+ const w=f.contentWindow;
+ ocsEmbeddedFrameHistoryWindow=w;
+ ocsEmbeddedFrameHistoryKey=ocsEmbeddedFrameViewKey(ocsEmbeddedWindowState());
+ try{w.history.replaceState({ocsFrameStep:true,index:0,view:ocsEmbeddedWindowState()},'')}catch(e){console.warn('OCS inner history init',e)}
+ ocsEmbeddedFrameHistoryHandler=ev=>{
+   if(w!==ocsEmbeddedFrameHistoryWindow)return;
+   clearTimeout(ocsEmbeddedFrameHistoryTimer);
+   ocsEmbeddedFrameHistoryApplying=true;
+   const state=ev.state&&ev.state.ocsFrameStep?ev.state:null;
+   const target=state?state.view:null;
+   ocsEmbeddedFrameHistoryIndex=Number(state?.index||0);
+   ocsEmbeddedFrameHistoryKey=ocsEmbeddedFrameViewKey(target);
+   ocsRestoreEmbeddedWindowNavigation(target);
+   ocsEmbeddedFrameHistoryTimer=setTimeout(()=>{
+     if(w!==ocsEmbeddedFrameHistoryWindow)return;
+     ocsEmbeddedFrameHistoryApplying=false;
+     ocsEmbeddedFrameHistoryKey=ocsEmbeddedFrameViewKey(ocsEmbeddedWindowState());
+   },140);
+ };
+ w.addEventListener('popstate',ocsEmbeddedFrameHistoryHandler);
  const observer=new MutationObserver(()=>{
-   if(currentModuleName===moduleName&&!ocsUiHistoryApplying)ocsQueueUiHistory();
+   if(currentModuleName===moduleName)ocsEmbeddedFrameSyncHistory();
  });
  observer.observe(d.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
  ocsEmbeddedWindowObserver=observer;
@@ -4924,8 +5006,8 @@ function ocsUiStateKey(s){
   return JSON.stringify({
    module:state.module||'',
    modals:Array.isArray(state.modals)?state.modals:[],
-   property:state.property||null,
-   embedded:state.embedded||null
+   property:state.property||null
+   // Embedded modals own their own iframe history, not duplicate parent entries.
   });
  }catch(e){return ''}
 }
