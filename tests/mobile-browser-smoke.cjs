@@ -66,7 +66,7 @@ const {chromium}=require('playwright');
      await page.waitForFunction(()=>typeof window.openModule==='function');
      const tile=page.locator('#ocsMainBusiness .'+x.cls);
      await tile.click({timeout:15000});
-     await page.waitForURL(new RegExp('/'+x.dest.replace(/[.*+?^$()|[\]{}]/g,'\\   // Show only essential app JS errors, not external CDN or network diagnostics.')+'\\?'),{timeout:15000});
+     await page.waitForURL(url=>url.pathname.endsWith('/'+x.dest),{timeout:15000});
      assert(new URL(page.url()).pathname.endsWith('/'+x.dest));
    }
    console.log('PASS mobile browser: Customer, SP, Driver and Transport direct route tiles');
