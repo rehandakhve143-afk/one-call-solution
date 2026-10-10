@@ -1416,3 +1416,22 @@ body:has(.modal.show) .ocs-lock-bottom{display:none!important}
 body:has(#bottomBookingsModal.show) .ocs-super-nav,
 body:has(#walletModal.show) .ocs-super-nav,
 body:has(#bottomProfileModal.show) .ocs-super-nav{display:grid!important}
+
+/* OCS BUSINESS WINDOW VIEWPORT FIX — 2026-10-10
+   Previous .viewer padding-top:72px plus iframe height:100vh-54px
+   displaced business header and pushed modal sheets below the mobile screen. */
+.viewer:not(.home-service-view){
+ padding-top:0!important;
+ overflow:hidden!important;
+}
+.viewer:not(.home-service-view)>.bar{
+ height:54px!important;
+ flex-shrink:0!important;
+}
+.viewer:not(.home-service-view)>iframe{
+ display:block!important;
+ width:100%!important;
+ height:calc(100vh - 54px)!important;
+ height:calc(100dvh - 54px)!important;
+ border:0!important;
+}
