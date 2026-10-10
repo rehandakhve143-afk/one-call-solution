@@ -3930,7 +3930,7 @@ async function ocsPayPaidPost(opts){
  if(!session||!session.user){alert('Payment ke liye pehle OCS login karein.');openAccount('customer');return null}
  if(!ocsSupabase)throw new Error('OCS online payment service load nahi hui');
  const base=Number(o.baseAmount||0),days=Number(o.durationDays||28),email=String(o.email||'').trim();
- if(base<=0)return {free:true};
+ if(!Number.isFinite(base)||base<=0)throw new Error('Paid listing ka valid charge Admin ko set karna hoga. FREE sirf verified Admin override se possible hai.');
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error('Valid invoice email required');
  const {data:intent,error:ie}=await ocsSupabase.rpc('create_paid_post_payment_intent_v1',{
    p_source_kind:String(o.sourceKind||'other_paid_post'),
@@ -3966,7 +3966,11 @@ async function ocsPayPaidPost(opts){
            razorpay_signature:resp.razorpay_signature
          }});
          if(ve)throw ve;if(vr&&vr.error)throw new Error(vr.error);
-         resolve({ok:true,paymentId:intent.id,razorpayPaymentId:resp.razorpay_payment_id,result:vr&&vr.result});
+         // Payment verification and backend activation must BOTH be confirmed.
+         if(!vr||vr.ok!==true||!vr.result||String(vr.result.status||'').toLowerCase()!=='verified'){
+           throw new Error('Payment confirm hua ho sakta hai, lekin listing abhi LIVE verified nahi hui. Payment dubara na karein; OCS Support se payment ID share karein.');
+         }
+         resolve({ok:true,paymentId:intent.id,razorpayPaymentId:resp.razorpay_payment_id,result:vr.result});
        }catch(e){reject(e)}
      },
      modal:{ondismiss:()=>resolve(null)}
@@ -4084,7 +4088,7 @@ function savePricingAdmin(){
    legalName:(document.getElementById('gstLegalName')?.value||'One Call Solution').trim(),
    businessAddress:(document.getElementById('gstBusinessAddress')?.value||'').trim()
  });
- updateBizPrice();updateBannerPrice();alert('Prices & GST settings saved. Note: ₹0 public rate means FREE for everyone.');
+ updateBizPrice();updateBannerPrice();alert('Prices & GST settings saved. ₹0 public plan posting disabled rakhta hai; only authorized Admin FREE may publish at ₹0.');
 }
 let bannerImageData="",editingBannerId="";
 function getBannerRequests(){try{return JSON.parse(localStorage.getItem('ocsBannerRequests')||'[]')}catch(e){return []}}
@@ -4205,6 +4209,7 @@ async function submitBannerAd(){
  const adminFree=requestedAdminFree?await ocsAdminFreeAllowed():false;
  if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
  const price=adminFree?0:normalPrice,plan=key==='banner6m'?'6 Months':'28 Days';
+ if(!adminFree&&(!Number.isFinite(price)||price<=0)){alert('Is Slider Ad plan ka public rate set nahi hai. Admin rate set kare, ya authorized Admin FREE use kare.');return}
  const pending=getBannerRequests();
  const tax=getGstBreakup(price);
  const payload={name:n,title:t,description:d,area:a,cta,actionValue:av,billingEmail,plan,planDays:key==='banner6m'?180:28,price,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,image:publicBannerImage||bannerImageData||''};
@@ -4214,7 +4219,7 @@ async function submitBannerAd(){
    if(!bannerEditableStatus(pending[i].status))return alert('Payment complete hone ke baad ad locked hai. Is ad ko edit nahi kar sakte.');
    pending[i]=Object.assign({},pending[i],payload,{status:'PAYMENT_PENDING',updatedAt:new Date().toISOString()});
  }else{
-   pending.push(Object.assign({id:'OCSB'+Date.now(),status:price===0?'LIVE':'PAYMENT_PENDING',createdAt:new Date().toISOString(),locked:price===0},payload));
+   pending.push(Object.assign({id:'OCSB'+Date.now(),status:price===0?'PUBLISHING':'PAYMENT_PENDING',createdAt:new Date().toISOString(),locked:false},payload));
  }
  try{setBannerRequests(pending)}catch(e){
    const i=editingBannerId?pending.findIndex(x=>x.id===editingBannerId):pending.length-1;
@@ -4225,11 +4230,16 @@ async function submitBannerAd(){
  const currentId=editingBannerId||pending[pending.length-1]?.id||'';
  const bannerMeta={business:n,headline:t,description:d,area:a,cta,actionValue:av,localId:currentId,image:publicBannerImage||''};
  editingBannerId='';
- if(price===0){
+ if(adminFree){
+   // A locally-created banner is not public LIVE until the backend confirms the Admin FREE listing.
+   const record=await recordAdminFreePostBackend({sourceKind:'banner',category:'Slider Ad',title:'OCS Slider Ad • '+n,email:billingEmail,planLabel:plan,durationDays:key==='banner6m'?180:28,metadata:bannerMeta});
    const a=getBannerRequests(),i=a.findIndex(x=>x.id===currentId);
-   if(i>=0){const start=new Date().toISOString();a[i].status='LIVE';a[i].startsAt=start;a[i].expiresAt=addDaysIso(start,Number(a[i].planDays||28));a[i].locked=true;setBannerRequests(a)}
-   if(adminFree)await recordAdminFreePostBackend({sourceKind:'banner',category:'Slider Ad',title:'OCS Slider Ad • '+n,email:billingEmail,planLabel:plan,durationDays:key==='banner6m'?180:28,metadata:bannerMeta});
-   renderLivePaidBanners();closeBannerAd();alert('FREE banner is LIVE ✅');return
+   if(!record||!record.id||String(record.status||'').toLowerCase()!=='live'){
+     if(i>=0){a[i].status='DRAFT';a[i].locked=false;setBannerRequests(a)}
+     alert('FREE Slider Ad abhi LIVE nahi hua. Backend confirmation failed. Draft safe hai; retry karein.');return;
+   }
+   if(i>=0){a[i].status='LIVE';a[i].backendRecordId=record.id;a[i].startsAt=record.starts_at||new Date().toISOString();a[i].expiresAt=record.expires_at||addDaysIso(a[i].startsAt,Number(a[i].planDays||28));a[i].locked=true;setBannerRequests(a)}
+   renderLivePaidBanners();closeBannerAd();alert('Admin FREE banner is LIVE ✅');return;
  }
  try{
    const paid=await ocsPayPaidPost({
@@ -6187,6 +6197,7 @@ async function continueBiz(){
  const adminFree=requestedAdminFree?await ocsAdminFreeAllowed():false;
  if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
  const base=adminFree?0:normalBase,tax=getGstBreakup(base);
+ if(!adminFree&&(!Number.isFinite(base)||base<=0)){alert('Is Business Category ka public listing rate abhi set nahi hai. Admin charge set kare; FREE post sirf authorized Admin ka hoga.');return}
  const postMeta={category:cat,business:name,area,type,about,phone,itemPrice:cat==='Local Shop'?null:itemPrice,variant:cat==='Local Shop'?'':variant,products:cat==='Local Shop'?products:undefined,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
  drafts[cat]={name,type,area,about,phone,itemPrice,variant,products:cat==='Local Shop'?products:previous.products,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'PUBLISHING':'PAYMENT_PENDING',paymentStatus:base===0?'PENDING_ADMIN_CONFIRMATION':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:null,expiresAt:null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
