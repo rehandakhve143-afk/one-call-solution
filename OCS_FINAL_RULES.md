@@ -90,6 +90,8 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Plan: **₹99 / 28 days**.
 - Storefront: banner/logo/name/category/area/open status, Call, WhatsApp, Directions, Share, product search, gallery/popular products, offers, Ask for a Product.
 - Full inventory is not mandatory.
+- **One Local Shop listing supports a catalogue of multiple products (initial mobile form: up to 20).** Every item may have its own product name, price, variant/model, details, and photo. No separate posting charge per product: the ₹99/28-day fee applies to the shop listing, not each item. Shop media allowance is shared across gallery/product photos (20 images plus 3 videos).
+- Product cards carry direct Call / WhatsApp / Ask for Product actions tied to the exact shop listing; no OCS product cart or checkout.
 - **OCS is a digital storefront/listing and direct-contact platform for shops, not an online product retailer or fulfilment marketplace.**
 - Each shop owner posts their own shop, photos, product details/prices/offers from a ready-made mobile form. Payment verification activates the listing automatically (subject to moderation and validity). Owner can maintain their own listing.
 - Customers view a specific LIVE shop/product listing, then contact **that exact shop owner** using Call, WhatsApp or **Ask for Product**. In-app enquiries must store the exact backend listing ID and route to its verified owner; do not use device-local category drafts as the recipient.
