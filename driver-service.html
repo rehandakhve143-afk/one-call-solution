@@ -319,10 +319,8 @@ async function loadBooking(){
     (Number(b.booking_amount||0)>0?'<div class="row"><span>Amount</span><b>₹'+Number(b.booking_amount).toFixed(0)+'</b></div>':'');
    const s=String(b.status||'').toLowerCase();$('otpBox').innerHTML=s==='reached'&&b.start_otp?'<div class="otp"><small>START TRIP OTP</small><b>'+esc(b.start_otp)+'</b></div>':'';
    $('tripActions').innerHTML=s==='completion_requested'?'<div class="actions"><button class="primary" onclick="confirmDone()">Confirm Complete</button><button class="gray" onclick="support()">Need Help</button></div>':'';
-   if(b.provider_id){const {data:q}=await sb.rpc('latest_booking_quote_v1',{p_booking_id:b.id});const quote=Array.isArray(q)?q[0]:q;if(quote&&quote.status==='pending')$('tripActions').innerHTML='<div class="info"><b>Driver Quote: ₹'+Number(quote.amount||0).toFixed(0)+'</b><br>'+esc(quote.description||'')+'</div><div class="actions"><button class="primary" onclick="decideQuote(\''+quote.id+'\',\'accepted\')">Accept</button><button class="gray" onclick="decideQuote(\''+quote.id+'\',\'rejected\')">Reject</button></div>'}
  }catch(e){console.error(e)}
 }
-async function decideQuote(id,d){const {error}=await sb.rpc('customer_decide_quote_v1',{p_quote_id:id,p_decision:d});if(error){show(error.message,true);return}await loadBooking()}
 async function confirmDone(){if(!current)return;const {error}=await sb.rpc('customer_confirm_completion_v2',{p_booking_id:current.id});if(error){show(error.message,true);return}await loadBooking()}
 async function support(){
  const message=(prompt('Driver Service ke baare mein apni problem likhein:')||'').trim();
