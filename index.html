@@ -875,6 +875,19 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
   <button type="button" id="ocsProviderRoleTab" onclick="openAccount('provider')">🧰 Service Provider<small>Get jobs</small></button>
 </div>
 <div id="ocsAccountIdentity"></div>
+<div id="ocsUnifiedContacts" style="display:none;margin:10px 0 14px;padding:14px;border:1px solid #d9e9e6;background:#f8fcfb;border-radius:15px">
+ <div style="font-size:15px;font-weight:800;color:#173f46">Contact Details</div>
+ <div style="font-size:11px;color:#60797d;margin:5px 0 12px">Customer aur SP dono ke liye same Email aur Mobile</div>
+ <label for="ocsContactEmail">Email ID (Booking / Job updates)</label>
+ <input id="ocsContactEmail" inputmode="email" type="email" autocomplete="email" placeholder="Your contact email">
+ <div id="ocsContactEmailStatus" style="font-size:11px;color:#65777c;margin:4px 0 11px">Not verified</div>
+ <label for="ocsContactMobile">Mobile Number (Calls / future SMS)</label>
+ <input id="ocsContactMobile" inputmode="tel" type="tel" autocomplete="tel-national" maxlength="14" placeholder="10-digit mobile">
+ <div id="ocsContactMobileStatus" style="font-size:11px;color:#65777c;margin:4px 0 12px">SMS service pending</div>
+ <button type="button" class="primary" style="width:100%;position:static!important;margin:0!important" onclick="saveOcsUnifiedContacts()">Save Contact Details</button>
+ <div id="ocsContactSaveStatus" style="font-size:11px;color:#60797d;margin-top:9px"></div>
+ <div style="font-size:11px;color:#667e82;margin-top:8px">Unverified contacts par booking ya job details automatically nahi bhejenge. In-app notifications available rahengi.</div>
+</div>
 <div id="customerAccountForm">
   <div id="customerProfileSummary" style="display:none"></div>
   <div id="customerAuthBox">
@@ -2114,6 +2127,57 @@ function updateOcsAccountRoleChooser(role,session){
    tab.setAttribute('aria-pressed',active?'true':'false');
  }
 }
+let ocsContactsLoadCounter=0;
+async function loadOcsUnifiedContacts(session){
+ const card=document.getElementById('ocsUnifiedContacts');
+ const e=document.getElementById('ocsContactEmail');
+ const m=document.getElementById('ocsContactMobile');
+ const es=document.getElementById('ocsContactEmailStatus');
+ const ms=document.getElementById('ocsContactMobileStatus');
+ const st=document.getElementById('ocsContactSaveStatus');
+ const nonce=++ocsContactsLoadCounter;
+ if(!card)return;
+ const user=session&&session.user;
+ card.style.display=user?'block':'none';
+ if(!user)return;
+ if(st)st.textContent='Loading contact details...';
+ if(e)e.value=user.email||'';
+ if(m)m.value=String(user.phone||'').replace(/^\+91/,'');
+ try{
+  const {data,error}=await ocsSupabase.rpc('get_my_contact_details_v1');
+  if(error)throw error;
+  if(nonce!==ocsContactsLoadCounter)return;
+  if(e)e.value=data.email||'';
+  if(m)m.value=data.mobile||'';
+  if(es)es.textContent=data.email_verified?'✓ Email verified':'Email not verified • Add/verify in OCS login';
+  if(ms)ms.textContent=data.mobile_verified?'✓ Mobile verified • SMS alerts pending':'Mobile not verified • SMS alerts pending';
+  if(st)st.textContent='Same contacts for Customer + Service Provider';
+ }catch(err){
+  if(st)st.textContent='Contact details load failed: '+(err.message||'Please retry');
+ }
+}
+async function saveOcsUnifiedContacts(){
+ const session=await getOcsSession();
+ if(!session||!session.user){alert('Login required');return}
+ const email=(document.getElementById('ocsContactEmail')?.value||'').trim().toLowerCase();
+ const mobile=(document.getElementById('ocsContactMobile')?.value||'').trim();
+ const st=document.getElementById('ocsContactSaveStatus');
+ if(!email&&!mobile){if(st)st.textContent='Enter Email or Mobile Number';return}
+ const btn=document.querySelector('#ocsUnifiedContacts button');
+ if(btn)btn.disabled=true;
+ if(st)st.textContent='Saving...';
+ try{
+  const {data,error}=await ocsSupabase.rpc('save_my_contact_details_v1',{p_email:email,p_mobile:mobile});
+  if(error)throw error;
+  if(st)st.textContent='✓ Saved for Customer and SP. Unverified contacts need verification before alerts.';
+  const es=document.getElementById('ocsContactEmailStatus'),ms=document.getElementById('ocsContactMobileStatus');
+  if(es)es.textContent=data.email_verified?'✓ Email verified':'Email unverified • notifications disabled';
+  if(ms)ms.textContent=data.mobile_verified?'✓ Mobile verified • SMS pending':'Mobile unverified • SMS pending';
+  const existing=getCustomerProfile()||{};
+  localStorage.setItem('ocsCustomerProfile',JSON.stringify({...existing,contactEmail:data.email,contactMobile:data.mobile}));
+ }catch(err){if(st)st.textContent='Save failed: '+(err.message||'Unknown error')}
+ finally{if(btn)btn.disabled=false}
+}
 async function openAccount(role,forceProviderSetup){
  const isProvider=role==='provider';
  const signedIn=await getOcsSession();
@@ -2131,6 +2195,7 @@ async function openAccount(role,forceProviderSetup){
  document.getElementById('providerAccountForm').style.display=isProvider?'block':'none';
  await refreshOcsEmailStatus();
  updateOcsAccountRoleChooser(role,signedIn);
+ await loadOcsUnifiedContacts(signedIn);
  if(!isProvider){
    const p=getCustomerProfile();
    const session=await getOcsSession();
