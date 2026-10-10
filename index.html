@@ -4517,6 +4517,22 @@ async function refreshHomeLiveWindowPosters(){
  });
  ocsWindowPosterTick++;
 }
+// Keep category selection and product search FIRST inside Local Shop.
+// Gallery/demo/ads must never be prepended above the shop search field.
+function ocsPlaceCategoryListing(doc,category,element){
+ if(category==='Local Shop'){
+   const note=doc.getElementById('ocsShopListingNotice');
+   const list=doc.querySelector('#customer #list');
+   const anchor=note||list;
+   if(anchor&&anchor.parentNode){
+     // Repeated insertions after this anchor place real LIVE ads before the XYZ demo.
+     anchor.parentNode.insertBefore(element,anchor.nextSibling);
+     return;
+   }
+ }
+ const target=doc.querySelector('main,.wrap,.container,.app')||doc.body;
+ target.insertBefore(element,target.firstChild);
+}
 async function injectLiveCategoryAds(cat){
  const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;if(!doc||!doc.body)return;
  const rows=await fetchPublicLivePosts(cat==='Property'?'Property':cat,30);
@@ -4548,8 +4564,7 @@ async function injectLiveCategoryAds(cat){
   :'<button style="width:100%;background:#e3f6f2;border:1px solid #b2dfd7;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">✉ '+(cat==='Local Shop'?'Ask for Product':'Enquire with this Listing')+'</button>';
  return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?'SAMPLE • NOT A REAL SHOP':'LIVE')+'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p>'+directShopNote+(isSample?'':'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+enquiryHtml+itemWa+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
  window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat,__sourceTitle:x.title||'',__isDemo:/^XYZ Demo/i.test(String(x.title||''))||['true','1'].includes(String(livePostMeta(x).is_demo||'').toLowerCase())||['true','1'].includes(String(livePostMeta(x).sample||'').toLowerCase())}));
- const target=doc.querySelector('main,.wrap,.container,.app')||doc.body;
- if(target===doc.body)doc.body.insertBefore(feed,doc.body.firstChild);else target.insertBefore(feed,target.firstChild);
+ ocsPlaceCategoryListing(doc,cat,feed);
 
  // One consistent full-screen gallery for every LIVE listing photo.
  let liveLb=doc.getElementById('ocsLivePhotoLightbox');
@@ -4719,8 +4734,7 @@ function injectXyzDemoListing(cat){
  xyzSlider(lower10,"lower")+
  '<video controls preload="metadata" poster="'+d.image+'"><source src="'+OCS_XYZ_DEMO.video+'" type="video/mp4">Video preview</video>'+
  '<div style="margin-top:7px;color:#829295;font-size:8.5px">Temporary XYZ demo • 10 photos upper + 10 photos lower.</div></div>';
- const target=doc.querySelector("main,.wrap,.container,.app")||doc.body;
- if(target===doc.body)doc.body.insertBefore(card,doc.body.firstChild);else target.insertBefore(card,target.firstChild);
+ ocsPlaceCategoryListing(doc,cat,card);
 
  let lb=doc.getElementById("ocsXyzPhotoLightbox");
  if(!lb){
