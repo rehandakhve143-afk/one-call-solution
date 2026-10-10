@@ -98,7 +98,7 @@ const initialCat=qs.get("cat")&&services[qs.get("cat")]?qs.get("cat"):"";
 
 function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function money(n){return "₹"+Number(n||0).toLocaleString("en-IN")}
-function goHome(){location.href="index.html?v=20261008-cleanroutes1"}
+function goHome(){location.replace("index.html?v=20261010-navigationfix")}
 function labourOnly(cat){return ["Electrical","Plumbing","Carpenter","Painter","Tiles / Stone","Waterproofing","False Ceiling / POP / Gypsum / PVC"].includes(cat)}
 function renderCategories(){
  category="";selected=[];updateCart();
@@ -420,6 +420,14 @@ function homeServiceBack(){
  if(ocsHomeReady&&!ocsHomeRestoring&&ocsHomeNavView!=='categories'&&history.state?.ocsHomeNav){
   ocsHomeSave();history.back();return;
  }
+ // Once the category list is reached, Back returns to the previous OCS page
+ // instead of adding another Home entry and causing an Android Back loop.
+ try{
+  const prior=document.referrer?new URL(document.referrer,location.href):null;
+  if(prior&&prior.origin===location.origin&&/\/(?:index\.html)?$/i.test(prior.pathname)&&history.length>1){
+   history.back();return;
+  }
+ }catch(e){}
  goHome();
 }
 function ocsHomeRestore(x){
