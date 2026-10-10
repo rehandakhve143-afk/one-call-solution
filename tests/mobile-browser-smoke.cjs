@@ -48,6 +48,28 @@ const {chromium}=require('playwright');
    assert.equal(await page.locator('#bizCat').inputValue(),'Property');
    assert(await page.locator('#propertyPostTypeWrap').count(),'Property needs own posting selection');
    console.log('PASS mobile browser: Property posting selection loads');
+
+   // Four core services are first-class home actions, not repeated secondary cards.
+   for(const pathname of ['customer-launch-v1.html','provider-dashboard.html','driver-service.html','transport.html']){
+     await page.route('**/'+pathname+'*',route=>route.fulfill({
+       status:200,contentType:'text/html',body:'<!doctype html><title>OCS route smoke</title><main>Target route loaded</main>'
+     }));
+   }
+   const routes=[
+      {cls:'ocs-core-customer',dest:'customer-launch-v1.html'},
+      {cls:'ocs-core-sp',dest:'provider-dashboard.html'},
+      {cls:'ocs-core-driver',dest:'driver-service.html'},
+      {cls:'ocs-core-transport',dest:'transport.html'}
+   ];
+   for(const x of routes){
+     await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
+     await page.waitForFunction(()=>typeof window.openModule==='function');
+     const tile=page.locator('#ocsMainBusiness .'+x.cls);
+     await tile.click({timeout:15000});
+     await page.waitForURL(new RegExp('/'+x.dest.replace(/[.*+?^$()|[\]{}]/g,'\\   // Show only essential app JS errors, not external CDN or network diagnostics.')+'\\?'),{timeout:15000});
+     assert(new URL(page.url()).pathname.endsWith('/'+x.dest));
+   }
+   console.log('PASS mobile browser: Customer, SP, Driver and Transport direct route tiles');
    // Show only essential app JS errors, not external CDN or network diagnostics.
    if(errors.some(e=>/ocsPortfolio|openBiz|ocsShop/i.test(e)))throw Error('Critical browser errors: '+errors.join(' ; '));
    console.log('OCS mobile browser smoke PASSED');
