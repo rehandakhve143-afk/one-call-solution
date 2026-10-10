@@ -456,6 +456,94 @@ body:has(#locationModal.show) .ocs-super-nav{visibility:hidden!important}
   font-size:9px!important;
 }
 </style>
+
+<style id="ocs-notifications-fullscreen-20261010">
+/* Notifications are a dedicated app screen, not a bottom sheet.
+   Keep content above the phone navigation and avoid scrolling Home behind it. */
+#notificationsModal {
+ position:fixed!important;
+ inset:0!important;
+ z-index:30050!important;
+ display:none!important;
+ justify-content:center!important;
+ align-items:stretch!important;
+ padding:0!important;
+ margin:0!important;
+ background:#f4f6f8!important;
+ backdrop-filter:none!important;
+}
+#notificationsModal.show {display:flex!important}
+#notificationsModal .sheet,
+#notificationsModal.show .sheet {
+ box-sizing:border-box!important;
+ flex:0 1 480px!important;
+ width:min(480px,100%)!important;
+ height:100vh!important;
+ height:100dvh!important;
+ min-height:0!important;
+ max-height:100vh!important;
+ max-height:100dvh!important;
+ margin:0 auto!important;
+ padding:0 16px 28px!important;
+ border:0!important;
+ border-radius:0!important;
+ overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch!important;
+ overscroll-behavior:contain!important;
+ background:#f4f6f8!important;
+ box-shadow:none!important;
+}
+#notificationsModal .bottom-hub-head {
+ position:sticky!important;
+ top:0!important;
+ z-index:5!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:space-between!important;
+ gap:12px!important;
+ margin:0 -16px 16px!important;
+ padding:18px 16px 14px!important;
+ border-bottom:1px solid #e0e8e9!important;
+ background:#f4f6f8!important;
+}
+#notificationsModal .bottom-hub-head h2 {
+ margin:0!important;
+ font-size:23px!important;
+ line-height:1.2!important;
+}
+#notificationsModal .bottom-hub-head .muted {
+ margin-top:4px!important;
+ font-size:11px!important;
+ line-height:1.4!important;
+}
+#notificationsModal .bottom-hub-head .x {
+ float:none!important;
+ flex:0 0 42px!important;
+ display:grid!important;
+ place-items:center!important;
+ width:42px!important;
+ height:42px!important;
+ min-height:42px!important;
+ border:0!important;
+ border-radius:12px!important;
+ background:#e6ebec!important;
+ color:#183e45!important;
+}
+#notificationsModal #notificationsBody {padding-bottom:env(safe-area-inset-bottom)!important}
+#notificationsModal .bottom-hub-card {
+ margin:0 0 12px!important;
+ padding:16px!important;
+ border-radius:18px!important;
+ border:1px solid #e0e9e8!important;
+ background:white!important;
+}
+#notificationsModal .bottom-hub-actions button {
+ min-height:44px!important;
+ border-radius:12px!important;
+}
+body:has(#notificationsModal.show) {overflow:hidden!important}
+body:has(#notificationsModal.show) .ocs-super-nav {display:none!important}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
@@ -3564,8 +3652,11 @@ function submitOcsRating(){
 }
 
 async function openNotifications(){
- const body=document.getElementById('notificationsBody');if(!body)return;
+ const body=document.getElementById('notificationsBody'),modal=document.getElementById('notificationsModal');
+ if(!body||!modal)return;
  body.innerHTML='<div class="bottom-hub-card"><b>Loading notifications...</b></div>';
+ // Show immediately from the top; never wait for network to reveal a bottom sheet.
+ modal.classList.add('show');
  const items=[];
  const session=await getOcsSession();
  if(session&&session.user&&ocsSupabase){
@@ -3597,7 +3688,6 @@ async function openNotifications(){
  }
  if(!items.length)items.push('<div class="bottom-hub-card"><b>No new notification</b><small>Booking, quote, support aur payment updates yahan dikhengi.</small></div>');
  body.innerHTML=items.join('');
- document.getElementById('notificationsModal').classList.add('show');
 }
 function closeNotifications(){document.getElementById('notificationsModal').classList.remove('show')}
 function openVerificationInfo(){document.getElementById('verificationInfoModal').classList.add('show')}
