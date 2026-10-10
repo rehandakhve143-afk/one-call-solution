@@ -5270,10 +5270,46 @@ function ocsWindowNav(dir){
  if(btn){btn.click();return}
  try{doc.defaultView.scrollBy({top:dir*(doc.defaultView.innerHeight*.72),behavior:'smooth'})}catch(e){}
 }
+// Owner-targeted enquiries: prototype modules never claim sent without a live listing.
+function ocsOpenListingEnquiries(category,kind,requirement){
+ const qs=new URLSearchParams();
+ if(category)qs.set('category',category);
+ if(kind)qs.set('kind',kind);
+ if(requirement)qs.set('requirement',String(requirement).slice(0,2000));
+ location.href='listing-enquiries.html?'+qs.toString();
+}
+function ocsAttachLiveEnquiryRouting(category,doc){
+ if(!doc||!doc.body||doc.getElementById('ocsLiveEnquiriesCta'))return;
+ const js=[
+   '(function(){',
+   'const category='+JSON.stringify(String(category||''))+';',
+   'function routeToRealListing(){',
+   'const form=document.querySelector(".modal.show")||document;',
+   'const values=[...form.querySelectorAll("input,select,textarea")].filter(x=>x.type!=="file"&&x.type!=="hidden"&&x.value&&String(x.value).trim()).map(x=>String(x.value).trim()).slice(0,12);',
+   'const details=values.join(" • ").slice(0,1800);',
+   'try{window.parent.ocsOpenListingEnquiries(category,category==="Property"?"property":"business",details)}',
+   'catch(e){window.top.location.href="listing-enquiries.html?category="+encodeURIComponent(category)}',
+   '}',
+   'for(const action of ["sendAsk","sendReq","sendQuote"]){if(typeof window[action]==="function")window[action]=routeToRealListing}',
+   'const call=document.createElement("div");call.id="ocsLiveEnquiriesCta";',
+   'call.style.cssText="margin:12px 14px;padding:13px;background:#e9f8f5;border:1px solid #cae8df;border-radius:13px;text-align:center";',
+   'const button=document.createElement("button");button.type="button";button.textContent="✉ Enquire with a Live Listing";',
+   'button.style.cssText="background:#007e7a;color:white;border:0;border-radius:11px;padding:12px;font-weight:800;width:100%";',
+   'button.addEventListener("click",routeToRealListing);call.appendChild(button);',
+   'const sub=document.createElement("div");sub.style.cssText="font-size:11px;color:#577177;margin-top:6px";',
+   'sub.textContent="Choose the exact business owner. Sample posts cannot receive real enquiries.";call.appendChild(sub);',
+   'const header=document.querySelector("header,.topbar,.head,.headrow");',
+   'if(header&&header.parentElement)header.insertAdjacentElement("afterend",call);else document.body.insertBefore(call,document.body.firstChild);',
+   '})();'
+ ].join("\n");
+ try{const script=doc.createElement('script');script.textContent=js;doc.body.appendChild(script);script.remove()}
+ catch(e){console.warn('OCS listing enquiry bridge error',e)}
+}
 function injectUniversalWindowNav(cat){
  // No fake bottom Back / Next bars. Keep only meaningful wizard actions.
  const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;
  if(!doc)return;
+ ocsAttachLiveEnquiryRouting(cat,doc);
  doc.getElementById('ocsUniversalWindowNav')?.remove();
  doc.getElementById('ocsUniversalWindowNavStyle')?.remove();
  let st=doc.getElementById('ocsSingleBackWizardStyle');
