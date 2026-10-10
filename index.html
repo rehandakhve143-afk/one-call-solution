@@ -607,6 +607,15 @@ html body.module-open #viewer.show:not(.home-service-view)>iframe {
  background:#f4f7f8!important;
 }
 </style>
+<style id="ocs-post-business-fullscreen-shop">
+/* Treat posting as an app page, not a half-visible bottom sheet. */
+#bizModal.show{position:fixed!important;inset:0!important;z-index:30100!important;align-items:stretch!important;justify-content:center!important;background:#f4f7f8!important;backdrop-filter:none!important}
+#bizModal.show>.sheet{box-sizing:border-box!important;width:min(520px,100%)!important;height:100vh!important;height:100dvh!important;min-height:0!important;max-height:100dvh!important;border-radius:0!important;margin:0 auto!important;padding:22px 16px 48px!important;overflow-y:auto!important;background:#fff!important;overscroll-behavior:contain!important}
+#bizModal .sheet>.x{position:sticky!important;top:0!important;z-index:5!important;float:right!important;min-width:40px!important;min-height:40px!important;background:#edf2f3!important}
+#bizModal .sheet>h2{font-size:23px!important;line-height:1.2!important;margin:5px 0 10px!important}
+#bizModal #obShopType{box-sizing:border-box!important;width:100%!important;padding:13px!important;background:#fff!important;border:1px solid #d9e3e6!important;border-radius:12px!important}
+body:has(#bizModal.show){overflow:hidden!important}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
@@ -1283,7 +1292,7 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
 <div class="muted" style="margin-top:8px">Verified Razorpay payment ke baad ad automatically LIVE hoga aur GST invoice billing email par generate hoga. Admin sirf Pause / Block / Remove control use karega.</div>
 </div></div>
 
-<div class="modal" id="bizModal"><div class="sheet"><button class="x" onclick="closeBiz()">×</button><h2>Post Your Business</h2><p class="muted">Simple 3 steps: details bharo, photos/videos add karo, payment ke baad listing LIVE ho jayegi.</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 12px"><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">1. Details</div><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">2. Photos / Videos</div><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">3. Pay & LIVE</div></div><div class="muted" style="margin:-2px 0 10px"><b>Payment se pehle Edit Draft allowed.</b> Payment successful hone ke baad listing lock ho jayegi.</div>
+<div class="modal" id="bizModal"><div class="sheet"><button class="x" onclick="closeBiz()">×</button><h2 id="bizModalTitle">Post Your Business</h2><p class="muted" id="bizModalIntro">Simple 3 steps: details bharo, photos/videos add karo, payment ke baad listing LIVE ho jayegi.</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 12px"><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">1. Details</div><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">2. Photos / Videos</div><div style="padding:9px 6px;border-radius:12px;background:#f2f8f7;text-align:center;font-size:10px;font-weight:900;color:#184e50">3. Pay & LIVE</div></div><div class="muted" style="margin:-2px 0 10px"><b>Payment se pehle Edit Draft allowed.</b> LIVE listing ka status aur details My Ads se manage karein.</div>
 <label>Business Category</label><select id="bizCat"><option>Property</option><option>Local Shop</option><option>Sliding / Aluminium</option><option>Welding / Fabrication</option><option>Beauty / Make-up</option><option>Used Vehicle</option><option>New Vehicle</option><option>Medical Store</option><option>Diagnostic Lab</option><option>Modular Kitchen</option><option>Hotel / Restaurant / Lodging</option><option value="Other Business">Other / Not Listed</option></select>
 <div id="propertyPostTypeWrap" style="display:none;margin:12px 0">
   <div style="font-weight:900;font-size:15px;margin-bottom:8px">Choose Property Post Type</div>
@@ -1307,7 +1316,7 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
 <div id="bizCurrentPrice" class="price-now">Current 28-day plan: —</div>
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
-<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><datalist id="ocsLocalShopKinds"><option value="Electrical Shop"></option><option value="Hardware Shop"></option></datalist><div id="obPostPriceWrap" style="display:none"><label id="obPostPriceLabel">Post Price / Rate (₹)</label><input id="obPostPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter price"></div><div id="obVariantWrap" style="display:none"><label>Product / Variant / Model</label><input id="obVariant" placeholder="e.g. 750W • Red • Model X1"></div><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
+<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><select id="obShopType" style="display:none" aria-label="Choose shop type"><option value="Electrical Shop">Electrical Shop</option><option value="Hardware Shop">Hardware Shop</option></select><div id="obPostPriceWrap" style="display:none"><label id="obPostPriceLabel">Post Price / Rate (₹)</label><input id="obPostPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter price"></div><div id="obVariantWrap" style="display:none"><label>Product / Variant / Model</label><input id="obVariant" placeholder="e.g. 750W • Red • Model X1"></div><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
 <div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button id="bizContinueBtn" class="primary" onclick="continueBiz()">Continue to Payment →</button></div><div class="muted" style="margin-top:8px"><b>Auto-save ON.</b> Details isi device par draft me save hoti rahengi. Payment se pehle edit kar sakte hain.</div></div></div>
 <script>
 let homeSlide=0,homeSlideTimer=null,homeTouchStartX=0;
@@ -4932,9 +4941,32 @@ function ocsAlignEmbeddedBusinessWindow(category,frame){
        /* Legacy global enquiry cannot identify the owner of an individual shop.
           A real LIVE shop card uses the backend listing ID instead. */
        '#customer .card.ask{display:none!important}',
+       '#customer .card.join{display:none!important}',
+       '#customer #list{display:none!important}',
+       '#postM{display:none!important}',
+       '#owner{display:none!important}',
        '.app{padding-bottom:30px!important}'
      ].join('\n');
      doc.head.appendChild(shop);
+   }
+   // The embedded shop wizard only simulates payment in localStorage.
+   // Every public Post Shop action must open the single verified OCS backend form.
+   try{
+     const w=frame.contentWindow;
+     if(w){
+       w.startPost=function(){window.openBiz('Local Shop')};
+       w.showOwner=function(){window.openMyAds()};
+       w.ocsEditMyListing=function(){window.openMyAds()};
+       w.ocsRenewMyListing=function(){window.openMyAds()};
+       w.openAsk=function(){window.alert('Choose a specific LIVE shop and tap Ask for Product on its card.')};
+     }
+   }catch(e){console.warn('Local Shop unified posting route',e)}
+   const listingArea=doc.getElementById('list');
+   if(listingArea&&!doc.getElementById('ocsShopListingNotice')){
+     const note=doc.createElement('div');note.id='ocsShopListingNotice';
+     note.style.cssText='margin:12px 14px;padding:12px;border-radius:13px;background:#edf6f5;color:#42646b;font:600 12px system-ui,Arial';
+     note.textContent='Real shops appear here after their verified listings are published. Select a LIVE shop to contact its owner directly.';
+     listingArea.parentElement.insertBefore(note,listingArea.nextSibling);
    }
  }
  try{frame.contentWindow.scrollTo(0,0)}catch(_){}
@@ -5557,7 +5589,7 @@ function ocsOpenListingEnquiries(category,kind,requirement){
  location.href='listing-enquiries.html?'+qs.toString();
 }
 function ocsAttachLiveEnquiryRouting(category,doc){
- if(!doc||!doc.body||doc.getElementById('ocsLiveEnquiriesCta'))return;
+ if(!doc||!doc.body||category==='Local Shop'||doc.getElementById('ocsLiveEnquiriesCta'))return;
  const js=[
    '(function(){',
    'const category='+JSON.stringify(String(category||''))+';',
@@ -5699,10 +5731,22 @@ function syncBizReadyForm(cat){
  const cfg=OCS_BIZ_FORM_CONFIG[cat]||OCS_BIZ_FORM_CONFIG['Other Business'];
  const fields=document.getElementById('otherFields');if(!fields)return;
  const obType=document.getElementById('obType'),ta=document.getElementById('obAbout');
+ const isShop=cat==='Local Shop';
+ const shopType=document.getElementById('obShopType');
+ const formTitle=document.getElementById('bizModalTitle'),formIntro=document.getElementById('bizModalIntro');
+ if(formTitle)formTitle.textContent=isShop?'Post Your Shop':'Post Your Business';
+ if(formIntro)formIntro.textContent=isShop?'Electrical / Hardware shop ka ready-made online storefront. Details aur photos add karein; payment verify hone par listing LIVE hogi.':'Ready-made category form • Photos / Videos • Pay & LIVE';
+ const likes=document.getElementById('bizLikeSummary');if(likes)likes.style.display=isShop?'none':'';
+ if(shopType)shopType.style.display=isShop?'block':'none';
  const typeLabel=obType&&obType.previousElementSibling&&obType.previousElementSibling.tagName==='LABEL'?obType.previousElementSibling:null;
  const aboutLabel=ta&&ta.previousElementSibling&&ta.previousElementSibling.tagName==='LABEL'?ta.previousElementSibling:null;
  if(typeLabel)typeLabel.textContent=cfg.type;
- if(obType){obType.placeholder=cfg.typePh;if(cat==='Local Shop')obType.setAttribute('list','ocsLocalShopKinds');else obType.removeAttribute('list')}
+ if(obType){
+   obType.placeholder=cfg.typePh;
+   if(isShop){obType.style.display='none';obType.removeAttribute('list')}
+   else obType.style.display='';
+ }
+ if(shopType&&isShop&&['Electrical Shop','Hardware Shop'].includes(obType?.value||''))shopType.value=obType.value;
  if(aboutLabel)aboutLabel.textContent=cfg.about;
  if(ta)ta.placeholder=cfg.aboutPh;
  const pw=document.getElementById('obPostPriceWrap'),pl=document.getElementById('obPostPriceLabel'),pi=document.getElementById('obPostPrice');
@@ -5725,6 +5769,13 @@ function syncPropertyEntryUi(){
    const af=document.getElementById('bizAdminFreeWrap');if(af)af.style.display='none';
  }
 }
+function ocsSyncShopTypeFromDraft(category){
+ if(category!=='Local Shop')return;
+ const select=document.getElementById('obShopType'),input=document.getElementById('obType');
+ if(!select||!input)return;
+ select.value=['Electrical Shop','Hardware Shop'].includes(input.value)?input.value:'Electrical Shop';
+ input.value=select.value;
+}
 function openBiz(category){
  const modal=document.getElementById('bizModal'),sel=document.getElementById('bizCat');
  if(category&&[...sel.options].some(o=>o.value===category||o.text===category))sel.value=category;
@@ -5733,7 +5784,7 @@ function openBiz(category){
    const price=document.getElementById('bizCurrentPrice'),gst=document.getElementById('bizGstNote');
    if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹499';
    if(gst)gst.textContent='Continue karke Single Property / Builder Property / Builder Project Profile choose karein.';
- }else{loadBizDraft(sel.value);updateBizPrice()}
+ }else{loadBizDraft(sel.value);ocsSyncShopTypeFromDraft(sel.value);updateBizPrice()}
  updateBizLikeSummary(sel.value);modal.classList.add('show');syncAdminFreePostControls().then(()=>{syncPropertyEntryUi();if(!isProperty)updateBizPrice()})
 }
 function closeBiz(){document.getElementById('bizModal').classList.remove('show')}
@@ -5752,9 +5803,10 @@ document.getElementById('bizCat').onchange=function(){
  if(isProperty){
    if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹499';
    if(gst)gst.textContent='Continue karke Single Property / Builder Property / Builder Project Profile choose karein.';
- }else{loadBizDraft(this.value);updateBizPrice()}
+ }else{loadBizDraft(this.value);ocsSyncShopTypeFromDraft(this.value);updateBizPrice()}
  updateBizLikeSummary(this.value);
 };
+document.getElementById('obShopType')?.addEventListener('change',e=>{const x=document.getElementById('obType');if(x)x.value=e.target.value;queueBizDraftAutoSave()});
 document.getElementById('obName').addEventListener('input',()=>{updateBizPrice();updateBizLikeSummary()});updateBizPrice();updateBizLikeSummary();
 document.getElementById('otherFields')?.addEventListener('input',queueBizDraftAutoSave);
 document.getElementById('otherFields')?.addEventListener('change',queueBizDraftAutoSave);
@@ -5766,7 +5818,7 @@ async function continueBiz(){
    pendingPropertyPost=chosen?chosen.value:'Single Property – Sale / Rent';
    closeBiz();openModule('Property');return;
  }
- const name=obName.value.trim(),type=obType.value.trim(),area=obArea.value.trim(),about=obAbout.value.trim(),phone=obPhone.value.trim(),billingEmail=(document.getElementById('obEmail')?.value||'').trim(),priceRaw=(document.getElementById('obPostPrice')?.value||'').trim(),itemPrice=priceRaw===''?null:Number(priceRaw),variant=(document.getElementById('obVariant')?.value||'').trim();
+ const name=obName.value.trim(),type=cat==='Local Shop'?(document.getElementById('obShopType')?.value||''):obType.value.trim(),area=obArea.value.trim(),about=obAbout.value.trim(),phone=obPhone.value.trim(),billingEmail=(document.getElementById('obEmail')?.value||'').trim(),priceRaw=(document.getElementById('obPostPrice')?.value||'').trim(),itemPrice=priceRaw===''?null:Number(priceRaw),variant=(document.getElementById('obVariant')?.value||'').trim();
  if(!name||!area||phone.replace(/\D/g,'').length<10){alert('Business/Profile name, City/Area aur valid Mobile/WhatsApp required.');return}
  if(cat==='Other Business'&&!type){alert('Apna Business Category likhiye — e.g. Chinese Food Stall / Mobile Repair / Tailor.');return}
  if(cat==='Local Shop'&&!['Electrical Shop','Hardware Shop'].includes(type)){alert('Shop Type mein Electrical Shop ya Hardware Shop select karein.');return}
