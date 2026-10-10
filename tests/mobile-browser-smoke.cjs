@@ -50,9 +50,12 @@ const {chromium}=require('playwright');
    console.log('PASS mobile browser: Property posting selection loads');
    await page.evaluate(()=>window.closeBiz());
 
+   // Use a CLEAN browser session. A test posting draft may reopen a modal from persisted state.
+   const navContext=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});
+   const navPage=await navContext.newPage();
    // Four core services are first-class home actions, not repeated secondary cards.
    for(const pathname of ['customer-launch-v1.html','provider-dashboard.html','driver-service.html','transport.html']){
-     await page.route('**/'+pathname+'*',route=>route.fulfill({
+     await navPage.route('**/'+pathname+'*',route=>route.fulfill({
        status:200,contentType:'text/html',body:'<!doctype html><title>OCS route smoke</title><main>Target route loaded</main>'
      }));
    }
@@ -63,15 +66,16 @@ const {chromium}=require('playwright');
       {cls:'ocs-core-transport',dest:'transport.html'}
    ];
    for(const x of routes){
-     await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
-     await page.waitForFunction(()=>typeof window.openModule==='function');
-     await page.evaluate(()=>window.closeBiz?.());
-     await page.locator('#bizModal').waitFor({state:'hidden',timeout:5000});
-     const tile=page.locator('#ocsMainBusiness .'+x.cls);
+     await navPage.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
+     await navPage.waitForFunction(()=>typeof window.openModule==='function');
+     await navPage.evaluate(()=>window.closeBiz?.());
+     await navPage.locator('#bizModal').waitFor({state:'hidden',timeout:5000});
+     const tile=navPage.locator('#ocsMainBusiness .'+x.cls);
      await tile.click({timeout:15000});
-     await page.waitForURL(url=>url.pathname.endsWith('/'+x.dest),{timeout:15000});
-     assert(new URL(page.url()).pathname.endsWith('/'+x.dest));
+     await navPage.waitForURL(url=>url.pathname.endsWith('/'+x.dest),{timeout:15000});
+     assert(new URL(navPage.url()).pathname.endsWith('/'+x.dest));
    }
+   await navContext.close();
    console.log('PASS mobile browser: Customer, SP, Driver and Transport direct route tiles');
    // Show only essential app JS errors, not external CDN or network diagnostics.
    if(errors.some(e=>/ocsPortfolio|openBiz|ocsShop/i.test(e)))throw Error('Critical browser errors: '+errors.join(' ; '));
