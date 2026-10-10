@@ -4362,7 +4362,7 @@ function ocsEnquireAboutLivePost(meta){
    alert('Select a real LIVE listing. A sample or draft cannot receive customer enquiries.');
    return;
  }
- if(meta.__isDemo===true||String(meta.is_demo||'').toLowerCase()==='true'||String(meta.sample||'').toLowerCase()==='true'){
+ if(meta.__isDemo===true||['true','1'].includes(String(meta.is_demo||'').toLowerCase())||['true','1'].includes(String(meta.sample||'').toLowerCase())){
    alert('This is a sample post. Customer enquiries work only on a real LIVE owner listing.');
    return;
  }
@@ -4541,12 +4541,13 @@ async function injectLiveCategoryAds(cat){
  const priceHtml=(m.itemPrice!==null&&m.itemPrice!==undefined&&Number(m.itemPrice)>0)?'<div class="lfPrice">₹'+Number(m.itemPrice).toLocaleString('en-IN')+'</div>':'';
  const variantHtml=m.variant?'<div style="font-size:10px;font-weight:850;color:#516a70;margin:2px 0 7px">Variant: '+ocsSavedText(m.variant)+'</div>':'';
  const directShopNote=cat==='Local Shop'?'<p style="font-size:10px;color:#647b80;margin:6px 0 8px">Final price, stock, payment aur delivery shop se directly discuss karein. OCS sirf listing platform hai.</p>':'';
- const itemWa=(cat==='Local Shop')?'<button class="lfItemWa" onclick="parent.livePostWhatsAppItem(parent.__ocsLiveFeed['+i+'])">🟢 WhatsApp this Product</button>':'';
- const enquiryHtml=String(x.title||'').toLowerCase().startsWith('xyz demo')
+ const isSample=/^XYZ Demo/i.test(String(x.title||''))||['true','1'].includes(String(m.is_demo||'').toLowerCase())||['true','1'].includes(String(m.sample||'').toLowerCase());
+ const itemWa=(cat==='Local Shop'&&!isSample)?'<button class="lfItemWa" onclick="parent.livePostWhatsAppItem(parent.__ocsLiveFeed['+i+'])">🟢 WhatsApp this Product</button>':'';
+ const enquiryHtml=isSample
   ?'<div style="font-size:11px;background:#fff4df;color:#8c6618;padding:7px;border-radius:9px;margin-top:8px">SAMPLE • No real enquiry</div>'
   :'<button style="width:100%;background:#e3f6f2;border:1px solid #b2dfd7;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">✉ '+(cat==='Local Shop'?'Ask for Product':'Enquire with this Listing')+'</button>';
- return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px">LIVE</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p>'+directShopNote+'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>'+enquiryHtml+itemWa+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
- window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat,__sourceTitle:x.title||'',__isDemo:/^XYZ Demo/i.test(String(x.title||''))||String(livePostMeta(x).is_demo||'').toLowerCase()==='true'||String(livePostMeta(x).sample||'').toLowerCase()==='true'}));
+ return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?'SAMPLE • NOT A REAL SHOP':'LIVE')+'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p>'+directShopNote+(isSample?'':'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+enquiryHtml+itemWa+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
+ window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat,__sourceTitle:x.title||'',__isDemo:/^XYZ Demo/i.test(String(x.title||''))||['true','1'].includes(String(livePostMeta(x).is_demo||'').toLowerCase())||['true','1'].includes(String(livePostMeta(x).sample||'').toLowerCase())}));
  const target=doc.querySelector('main,.wrap,.container,.app')||doc.body;
  if(target===doc.body)doc.body.insertBefore(feed,doc.body.firstChild);else target.insertBefore(feed,target.firstChild);
 
