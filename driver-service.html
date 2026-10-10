@@ -67,7 +67,7 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 <main class="wrap">
 <section class="hero">
   <small>OCS VERIFIED DRIVER</small>
-  <h1>Plan your trip</h1>
+  <h1>Hire a Driver</h1>
   <p>Aapki apni 4-wheeler ke liye Driver book karein. OCS vehicle provide nahi karta.</p>
   <div class="mode"><button id="planMode" class="on" onclick="setMode('PLAN')">Plan your trip</button><button id="nowMode" onclick="setMode('NOW')">Go Now</button></div>
 </section>
@@ -127,7 +127,7 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 </section>
 
 <section class="card">
-  <h2>Trip Summary</h2>
+  <h2>Driver Hire • Fare Summary</h2>
   <div class="summary">
     <div class="sumrow"><span>Way</span><b id="sumWay">One Way</b></div>
     <div class="sumrow"><span>Car</span><b id="sumCar">Hatchback • Manual</b></div>
@@ -135,9 +135,9 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
     <div class="sumrow"><span>Schedule</span><b id="sumSchedule">Not selected</b></div>
   </div>
   <div class="field"><label>Note (Optional)</label><textarea id="note" placeholder="Parking, society gate, car details, etc."></textarea></div>
-  <div class="fare"><b>Estimated</b><strong>Driver Quote</strong></div>
+  <div class="fare" style="display:block;border-radius:15px;background:#ecf8f5;padding:15px"><div style="display:flex;justify-content:space-between;gap:10px"><b>Hourly Driver Rate</b><strong id="driverHourlyRate">Loading...</strong></div><div style="display:flex;justify-content:space-between;gap:10px;margin-top:10px"><span id="driverFareFormula">2 hrs × rate</span><strong id="driverTotalFare" style="font-size:25px;color:#087a70">Loading...</strong></div><small id="driverRateInfo" style="display:block;margin-top:9px;font-size:11px;color:#58787a">Driver only • Customer ki apni car.</small></div>
   <div class="payrow"><button id="onlinePay" class="on" onclick="setPay('ONLINE')">Online</button><button id="cashPay" onclick="setPay('CASH')">Cash</button></div>
-  <div class="cta"><button id="bookBtn" onclick="bookDriver()">Confirm Driver Request</button></div>
+  <div class="cta"><button id="bookBtn" onclick="bookDriver()" disabled>Confirm Driver Booking</button></div>
   <div id="status" class="status"></div>
 </section>
 
@@ -174,6 +174,7 @@ const SB_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 const $=id=>document.getElementById(id);
 let current=null,mode='PLAN',tripType='One Way',carType='Hatchback',transmission='Manual',duration='2 Hrs',payment='ONLINE';
+let driverTariff=null;
 let pickupLat=null,pickupLng=null,selectedDate='',selectedTime='',tempDate='',tempTime='',tempHour='6',tempMinute='00',tempAmpm='PM';
 const wheelTimers={};
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
@@ -187,8 +188,19 @@ function selectCar(btn){carType=btn.dataset.car;document.querySelectorAll('.carc
 function selectTransmission(btn){transmission=btn.dataset.value;document.querySelectorAll('#transmissionChoices button').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
 function selectDuration(btn){duration=btn.dataset.value;document.querySelectorAll('#durationChoices button').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
 function setPay(v){payment=v;$('onlinePay').classList.toggle('on',v==='ONLINE');$('cashPay').classList.toggle('on',v==='CASH')}
+function driverHours(){return Number.parseFloat(duration)||2}
+function updateDriverFare(){
+ const hours=driverHours(),rate=Number(driverTariff&&driverTariff.hourly_rate||0),enabled=!!(driverTariff&&driverTariff.enabled&&rate>0);
+ const permitted=enabled&&hours>=Number(driverTariff.minimum_hours||2);
+ $('driverHourlyRate').textContent=enabled?'₹'+rate.toLocaleString('en-IN')+' / hour':'Rate pending';
+ $('driverFareFormula').textContent=hours+' hrs × '+(enabled?'₹'+rate.toLocaleString('en-IN'):'OCS rate');
+ $('driverTotalFare').textContent=enabled?'₹'+(hours*rate).toLocaleString('en-IN',{maximumFractionDigits:2}):'Not available';
+ $('driverRateInfo').textContent=!enabled?'OCS hourly rate final hone ke baad booking available hogi.':(!permitted?'Minimum '+driverTariff.minimum_hours+' hours required.':'Driver only • Customer ki apni car • 9% OCS charge driver earning se.');
+ $('bookBtn').disabled=!permitted;
+}
+async function loadDriverTariff(){try{const {data,error}=await sb.rpc('ocs_driver_hourly_rate_v1');if(error)throw error;driverTariff=data&&typeof data==='object'?data:null}catch(e){driverTariff=null;show('Hourly rate load nahi hua: '+(e.message||'Retry'),true)}updateDriverFare()}
 function updateSummary(){
- $('sumWay').textContent=tripType;$('sumCar').textContent=carType+' • '+transmission;$('sumDuration').textContent=duration;$('sumSchedule').textContent=selectedDate&&selectedTime?prettyDateTime(selectedDate,selectedTime):'Not selected';
+ $('sumWay').textContent=tripType;$('sumCar').textContent=carType+' • '+transmission;$('sumDuration').textContent=duration;$('sumSchedule').textContent=selectedDate&&selectedTime?prettyDateTime(selectedDate,selectedTime):'Not selected';updateDriverFare();
 }
 function roundToQuarter(d){const x=new Date(d);x.setSeconds(0,0);const m=x.getMinutes(),next=Math.ceil(m/15)*15;if(next===60){x.setHours(x.getHours()+1);x.setMinutes(0)}else x.setMinutes(next);return x}
 function isoDate(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
@@ -276,6 +288,7 @@ function useCurrentLocation(){
  navigator.geolocation.getCurrentPosition(p=>{pickupLat=p.coords.latitude;pickupLng=p.coords.longitude;const field=$('pickup');if(!field.value.trim()||field.value.trim()==='Current Location')field.value='GPS Pin: '+pickupLat.toFixed(5)+', '+pickupLng.toFixed(5);show('✓ Pickup GPS pin saved. Pickup address/landmark bhi add karein.',false)},()=>show('Location permission allow karein.',true),{enableHighAccuracy:true,timeout:8000,maximumAge:30000})
 }
 async function bookDriver(){
+ if(!driverTariff||!driverTariff.enabled||!(Number(driverTariff.hourly_rate)>0)){show('OCS hourly rate abhi activate nahi hua.',true);return}
  if(current&&current.id&&!['completed','cancelled','cancelled_settled'].includes(String(current.status||'').toLowerCase())){show('Ek Driver request already active hai. Pehle current trip complete karein.',true);$('tripCard').scrollIntoView({behavior:'smooth',block:'start'});return}
  const pickup=$('pickup').value.trim(),drop=$('drop').value.trim();
  if(!pickup||!drop){show('Pickup aur Drop required hain.',true);return}
@@ -288,15 +301,15 @@ async function bookDriver(){
    const boot=await sb.rpc('ensure_customer_account_v1');if(boot.error)throw boot.error;
    const readiness={module:'driver_service',pickup_address:pickup,drop_address:drop,car_type:carType,transmission,trip_type:tripType,estimated_duration:duration,booking_mode:mode,payment_preference:payment,note:$('note').value.trim()};
    const desc=['Driver Service','Pickup: '+pickup,'Drop: '+drop,'Car: '+carType,'Transmission: '+transmission,'Trip: '+tripType,'Duration: '+duration,'Mode: '+mode,'Payment: '+payment,'Note: '+($('note').value.trim()||'None')].join('\n');
-   const {error}=await sb.rpc('create_customer_quote_request_v2',{p_category:'Driver Service',p_service_name:'4-Wheeler Driver',p_description:desc,p_schedule:selectedDate+' '+selectedTime,p_address:pickup,p_media:[],p_readiness:readiness,p_latitude:pickupLat,p_longitude:pickupLng});
-   if(error)throw error;show('✓ Driver request sent. Matching verified Drivers ko request jayegi.',false);$('bookBtn').textContent='Request Sent ✓';await loadBooking()
- }catch(e){show(e&&e.message?e.message:'Driver request create nahi hui.',true);$('bookBtn').disabled=false;$('bookBtn').textContent='Confirm Driver Request'}
+   const {data:booking,error}=await sb.rpc('create_customer_driver_hourly_booking_v1',{p_duration_hours:driverHours(),p_schedule:selectedDate+' '+selectedTime,p_address:pickup,p_drop_address:drop,p_latitude:pickupLat,p_longitude:pickupLng,p_readiness:readiness,p_payment_method:payment.toLowerCase()});
+   if(error)throw error;if(!booking||!booking.id)throw new Error('Booking confirmation not received');show('✓ Driver booking created • ₹'+Number(booking.booking_amount||0).toFixed(0)+' • Matching verified Drivers.',false);$('bookBtn').textContent='Booking Sent ✓';await loadBooking()
+ }catch(e){show(e&&e.message?e.message:'Driver request create nahi hui.',true);$('bookBtn').disabled=false;$('bookBtn').textContent='Confirm Driver Booking'}
 }
 function statusLabel(s){const x=String(s||'').toLowerCase();return({searching:'Searching Driver',accepted:'Driver Assigned',on_way:'Driver On the Way',reached:'Driver Reached Pickup',working:'Trip In Progress',completion_requested:'Driver marked Complete',payment_pending:'Payment Pending',cash_wait:'Cash Confirmation',completed:'Completed'})[x]||String(s||'').replaceAll('_',' ')}
 async function loadBooking(){
  try{
    const {data,error}=await sb.rpc('customer_active_booking');if(error)throw error;const b=Array.isArray(data)?data[0]:data;
-   if(!b||String(b.category||'').trim()!=='Driver Service'){current=null;$('tripCard').style.display='none';if($('bookBtn').textContent.includes('Request Sent')){$('bookBtn').disabled=false;$('bookBtn').textContent='Confirm Driver Request'}return}
+   if(!b||String(b.category||'').trim()!=='Driver Service'){current=null;$('tripCard').style.display='none';if($('bookBtn').textContent.includes('Booking Sent')){$('bookBtn').disabled=false;$('bookBtn').textContent='Confirm Driver Booking'}return}
    current=b;$('tripCard').style.display='block';const r=b.booking_readiness||{};$('tripSub').textContent=statusLabel(b.status);
    $('tripRows').innerHTML='<div class="row"><span>Status</span><b>'+esc(statusLabel(b.status))+'</b></div>'+
     '<div class="row"><span>Pickup</span><b>'+esc(r.pickup_address||b.address||'')+'</b></div>'+
@@ -326,7 +339,7 @@ async function support(){
  }catch(e){show('Support request failed: '+(e&&e.message||'Retry'),true)}
 }
 function goTab(x){if(x==='home'){location.href='index.html?pwa=1&v=20261006-driver-ui4';return}if(x==='activity'){location.href='index.html?open=activity&v=20261006-driver-ui4';return}if(x==='wallet'){location.href='index.html?open=wallet&v=20261006-driver-ui4';return}if(x==='account'){location.href='index.html?open=account&v=20261006-driver-ui4'}}
-const first=roundToQuarter(new Date());selectedDate=isoDate(first);selectedTime=hhmm(first);updateScheduleLabel();updateSummary();loadBooking();setInterval(loadBooking,7000);
+const first=roundToQuarter(new Date());selectedDate=isoDate(first);selectedTime=hhmm(first);updateScheduleLabel();updateSummary();loadDriverTariff();loadBooking();setInterval(loadBooking,7000);
 function backToPreviousOcs(){
  // A Back button returns to the real previous OCS page when known.
  // Do not blindly go back to an unrelated external website.
