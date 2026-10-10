@@ -4750,14 +4750,35 @@ function ocsUnifiedBack(){
    if(viewer&&viewer.classList.contains('show')){
      const state=history.state;
      if(state&&state.ocsUi&&state.state&&state.state.module===currentModuleName&&history.length>1){
+       const captured=ocsCaptureUiState();
+       // A very fast tap can happen before the 40 ms browser-history update.
+       // In that case close the current inner modal/step rather than leaving the window.
+       if(ocsUiStateKey(captured)!==ocsUiStateKey(state.state)&&ocsTryImmediateWindowBack())return;
        history.back();
        return;
      }
    }
    if(ocsIndexHandleBack())return;
  }catch(e){console.warn('OCS Back fallback',e)}
- // No in-app previous page: keep OCS Home visible.
  bottomHome();
+}
+function ocsTryImmediateWindowBack(){
+ try{
+   const f=document.getElementById('frame'),w=f&&f.contentWindow,d=f&&f.contentDocument;
+   if(currentModuleName==='Property'&&w&&typeof w.ocsPropertyHandleBack==='function')
+     return !!w.ocsPropertyHandleBack();
+   const current=ocsEmbeddedWindowState();
+   if(!current||!d||!w)return false;
+   if(current.dialog==='postM'&&typeof w.ocsWizardBack==='function'){
+     w.ocsWizardBack();return true;
+   }
+   const modal=d.getElementById(current.dialog);
+   if(typeof w.closeM==='function')w.closeM(current.dialog);
+   else if(modal)modal.classList.remove('show');
+   else return false;
+   return true;
+ }catch(e){console.warn('OCS current window back',e)}
+ return false;
 }
 function ocsIndexHandleBack(){
  try{
