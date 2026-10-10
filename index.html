@@ -4363,9 +4363,10 @@ function livePostMedia(meta){
 }
 function livePostDisplayName(x){const m=livePostMeta(x);return String(m.business||m.name||x.title||x.category||'OCS Listing')}
 function livePostSearchText(x){
- const m=livePostMeta(x),products=Array.isArray(m.products)?m.products:[];
+ const m=livePostMeta(x),products=Array.isArray(m.products)?m.products:[],projects=Array.isArray(m.projects)?m.projects:[];
  const productText=products.map(p=>[p.name,p.variant,p.details,p.price].filter(Boolean).join(' ')).join(' ');
- return ocsNorm([x.category,x.title,m.business,m.name,m.area,m.type,m.about,m.propertyType,m.city,m.propertyCategory,m.address,m.itemPrice,productText].filter(Boolean).join(' '));
+ const projectsText=projects.map(p=>[p.name,p.city,p.area,p.address,p.propertyType,p.bhk,p.status,p.description,p.price].filter(Boolean).join(' ')).join(' ');
+ return ocsNorm([x.category,x.title,m.business,m.name,m.area,m.type,m.about,m.propertyType,m.city,m.propertyCategory,m.address,m.itemPrice,productText,projectsText].filter(Boolean).join(' '));
 }
 function closeLiveSearch(){const x=document.getElementById('ocsLiveSearchOverlay');if(x)x.remove()}
 function openLiveSearchResult(category,q){closeLiveSearch();pendingWindowSearch=q||'';openModule(category==='Single Property'||category==='Builder Property'||category==='Builder Project Profile'?'Property':category)}
@@ -4425,6 +4426,11 @@ function ocsEnquireAboutLivePost(meta,product){
  const trackBtn=overlay.querySelector('[data-action="track"]');
  if(isShop&&product&&product.name){
    field.value=['Product: '+String(product.name),'Variant: '+String(product.variant||''),product.price!==''&&product.price!=null?'Listed price: ₹'+String(product.price):'','Quantity: ','Please confirm availability and final price.'].filter(Boolean).join('\n');
+ }else if(cat==='Property'&&product&&product.name){
+   field.value=['Project: '+String(product.name),
+     'Location: '+[product.area,product.city].filter(Boolean).join(', '),
+     Number(product.price)>0?'Listed price: ₹'+Number(product.price).toLocaleString('en-IN'):'',
+     'I would like to enquire about this project. Please contact me.'].filter(Boolean).join('\n');
  }else if(isShop&&meta.variant)field.value='Product / Variant: '+String(meta.variant)+'\n';
  overlay.querySelector('[data-action="close"]').onclick=()=>overlay.remove();
  overlay.onclick=(event)=>{if(event.target===overlay)overlay.remove()};
@@ -4581,7 +4587,7 @@ async function injectLiveCategoryAds(cat){
  if(!style){style=doc.createElement('style');style.id='ocsLiveCategoryStyle';style.textContent=
  '#ocsLiveCategoryFeed{margin:12px auto 18px;max-width:760px;font-family:system-ui,Arial,sans-serif}#ocsLiveCategoryFeed .lfHead{display:flex;justify-content:space-between;align-items:end;margin:0 2px 9px}#ocsLiveCategoryFeed .lfHead b{font-size:15px;color:#173f46}#ocsLiveCategoryFeed .lfHead small{font-size:9px;color:#789}'+
  '#ocsLiveCategoryFeed .lfRail{display:flex;gap:10px;overflow:auto;scroll-snap-type:x mandatory;padding:2px 2px 6px}#ocsLiveCategoryFeed .lfCard{min-width:min(86vw,330px);scroll-snap-align:start;border:1px solid #dce8e5;border-radius:18px;background:#fff;overflow:hidden;box-shadow:0 8px 24px rgba(20,45,55,.10)}'+
- '#ocsLiveCategoryFeed .lfProductGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 3px}#ocsLiveCategoryFeed .lfProduct{min-width:0;border:1px solid #e1e9e8;border-radius:13px;padding:7px;background:#fafdfc}#ocsLiveCategoryFeed .lfProduct img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:9px;background:#edf3f2}#ocsLiveCategoryFeed .lfProduct b{display:block;font-size:11px;color:#173f46;line-height:1.35;margin:6px 0 3px;overflow-wrap:anywhere}#ocsLiveCategoryFeed .lfProduct small{display:block;font-size:9px;color:#668;overflow-wrap:anywhere}#ocsLiveCategoryFeed .lfProduct .productPrice{font-size:12px;color:#087a70;font-weight:900;margin:5px 0}#ocsLiveCategoryFeed .lfProduct .productBtns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:7px}#ocsLiveCategoryFeed .lfProduct button{border:0;border-radius:8px;padding:8px 3px;background:#e2f4ef;color:#0a655f;font-size:10px;font-weight:900;cursor:pointer}'+
+ '#ocsLiveCategoryFeed .lfProductGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 3px}#ocsLiveCategoryFeed .lfProduct{min-width:0;border:1px solid #e1e9e8;border-radius:13px;padding:7px;background:#fafdfc}#ocsLiveCategoryFeed .lfProduct img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:9px;background:#edf3f2}#ocsLiveCategoryFeed .lfProduct b{display:block;font-size:11px;color:#173f46;line-height:1.35;margin:6px 0 3px;overflow-wrap:anywhere}#ocsLiveCategoryFeed .lfProduct small{display:block;font-size:9px;color:#668;overflow-wrap:anywhere}#ocsLiveCategoryFeed .lfProduct .productPrice{font-size:12px;color:#087a70;font-weight:900;margin:5px 0}#ocsLiveCategoryFeed .lfProjectRail{display:flex;overflow-x:auto;gap:10px;scroll-snap-type:x mandatory;padding:4px 0 10px;margin:9px 0 12px}#ocsLiveCategoryFeed .lfProjectCard{flex:0 0 min(72vw,220px);min-width:0;scroll-snap-align:start;background:#fff;border:1px solid #dcebe5;border-radius:12px;padding:9px;box-shadow:0 3px 10px #112b3210}#ocsLiveCategoryFeed .lfProjectCard .projectCover{width:100%;aspect-ratio:4/3;background:#e9f2f0 center/cover no-repeat;border-radius:9px;margin-bottom:9px}#ocsLiveCategoryFeed .lfProjectCard b{font-size:12px;color:#143f43;display:block;overflow-wrap:anywhere}#ocsLiveCategoryFeed .lfProjectCard small{font-size:10px;color:#63797c;display:block;margin:4px 0}#ocsLiveCategoryFeed .lfProjectCard .projectPrice{font-size:14px;font-weight:900;color:#087a70;margin:5px 0}#ocsLiveCategoryFeed .lfProjectCard button{border:0;border-radius:9px;padding:9px 6px;background:#e1f4ec;color:#08766a;font-size:11px;font-weight:850;width:100%;margin-top:6px}#ocsLiveCategoryFeed .lfProduct .productBtns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:7px}#ocsLiveCategoryFeed .lfProduct button{border:0;border-radius:8px;padding:8px 3px;background:#e2f4ef;color:#0a655f;font-size:10px;font-weight:900;cursor:pointer}'+
  '#ocsLiveCategoryFeed .lfMedia{width:100%;aspect-ratio:16/9;min-height:170px;background-color:#edf3f2;background-repeat:no-repeat;background-position:center center;background-size:cover;position:relative;overflow:hidden}#ocsLiveCategoryFeed .lfBadge{position:absolute;left:9px;top:9px;background:#e9fff6;color:#087a70;border-radius:999px;padding:5px 8px;font-size:8px;font-weight:950}'+
  '#ocsLiveCategoryFeed .lfBigSlider{display:flex;width:100%;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:#edf3f2}#ocsLiveCategoryFeed .lfBigSlider::-webkit-scrollbar{display:none}#ocsLiveCategoryFeed .lfBigSlider img{flex:0 0 100%;width:100%;aspect-ratio:16/9;object-fit:cover;scroll-snap-align:start;background:#edf3f2}#ocsLiveCategoryFeed .lfBigSlider.lower{margin-top:8px;border-top:1px solid #edf2f1}'+
  '#ocsLiveCategoryFeed .lfVideoRail{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 10px 0;scrollbar-width:none}#ocsLiveCategoryFeed .lfVideoRail::-webkit-scrollbar{display:none}#ocsLiveCategoryFeed .lfVideoRail video{flex:0 0 100%;width:100%;aspect-ratio:16/9;border-radius:12px;background:#111;scroll-snap-align:start}'+
@@ -4610,6 +4616,21 @@ async function injectLiveCategoryAds(cat){
    (propertyBuilder?'<button style="width:100%;border:1px solid #b2dfd7;background:#e3f6f2;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">💬 Chat / Enquiry with Builder</button>':'')+
    (propertyProjectProfile&&m.email?'<button style="width:100%;border:1px solid #d9e7e5;background:#f5faf8;color:#22545a;border-radius:10px;padding:10px;font-weight:800;margin-top:6px" onclick="parent.livePostEmail(parent.__ocsLiveFeed['+i+'])">✉ Email Builder</button>':''):'';
  const isSample=/^XYZ Demo/i.test(String(x.title||''))||['true','1'].includes(String(m.is_demo||'').toLowerCase())||['true','1'].includes(String(m.sample||'').toLowerCase());
+ const projectList=propertyProjectProfile&&Array.isArray(m.projects)?m.projects.slice(0,20).map((p,j)=>Object.assign({__projectIndex:j},p)).filter(p=>p&&p.name):[];
+ const projectCards=projectList.length?
+   '<div style="font-size:13px;font-weight:900;color:#17444a;margin-top:12px">Builder Projects ('+projectList.length+')</div>'+
+   '<div class="lfProjectRail">'+projectList.map(p=>{
+     const img=String(p.image||''),hasPhoto=img.length>0;
+     const price=Number(p.price)>0?'₹'+Number(p.price).toLocaleString('en-IN'):'Price on enquiry';
+     return '<div class="lfProjectCard">'+
+       '<div class="projectCover"'+(hasPhoto?' style="background-image:url('+JSON.stringify(img)+')"':'')+'></div>'+
+       '<b>'+ocsSavedText(p.name)+'</b><small>📍 '+ocsSavedText([p.area,p.city].filter(Boolean).join(', '))+'</small>'+
+       '<div class="projectPrice">'+price+'</div>'+
+       '<small>'+ocsSavedText([p.propertyType,p.bhk,p.status].filter(Boolean).join(' • '))+'</small>'+
+       (isSample?'<small>SAMPLE • No real enquiries</small>':
+         '<button type="button" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'],parent.__ocsLiveFeed['+i+'].projects['+p.__projectIndex+'])">Enquire About Project</button>')+
+       '</div>';
+   }).join('')+'</div>':'';
  const products=cat==='Local Shop'&&Array.isArray(m.products)?m.products.slice(0,20).map((p,j)=>Object.assign({__productIndex:j},p)).filter(p=>p&&p.name):[];
  const catalogHtml=products.length?'<div style="font-size:12px;font-weight:900;color:#163f46;margin-top:13px">Products ('+products.length+')</div><div class="lfProductGrid">'+products.map((p,pi)=>{
    const photo=String(p.image||'');
@@ -4626,7 +4647,7 @@ async function injectLiveCategoryAds(cat){
  const enquiryHtml=isSample
   ?'<div style="font-size:11px;background:#fff4df;color:#8c6618;padding:7px;border-radius:9px;margin-top:8px">SAMPLE • No real enquiry</div>'
   :'<button style="width:100%;background:#e3f6f2;border:1px solid #b2dfd7;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">✉ '+(cat==='Local Shop'?'Ask for Product':'Enquire with this Listing')+'</button>';
- return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?'SAMPLE • NOT A REAL SHOP':'LIVE') +'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+propertyPrice+propertyFeatures+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'') +'</p>'+directShopNote+catalogHtml+(isSample?'':isProperty?propertyButtons:'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+(isProperty?'':enquiryHtml+itemWa)+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
+ return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?'SAMPLE • NOT A REAL SHOP':'LIVE') +'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+propertyPrice+propertyFeatures+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'') +'</p>'+directShopNote+projectCards+catalogHtml+(isSample?'':isProperty?propertyButtons:'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+(isProperty?'':enquiryHtml+itemWa)+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
  window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat,__sourceTitle:x.title||'',__isDemo:/^XYZ Demo/i.test(String(x.title||''))||['true','1'].includes(String(livePostMeta(x).is_demo||'').toLowerCase())||['true','1'].includes(String(livePostMeta(x).sample||'').toLowerCase())}));
  ocsPlaceCategoryListing(doc,cat,feed);
 
