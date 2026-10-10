@@ -5116,7 +5116,7 @@ async function openModule(n,role,serviceCat){
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role);if(role==='customer'&&serviceCat)frame.contentWindow.selectCategory(serviceCat)}catch(e){}}
    if(n==='Property'&&pendingPropertyPost){const postType=pendingPropertyPost;pendingPropertyPost='';setTimeout(()=>{try{if(typeof frame.contentWindow.openPostWithType==='function')frame.contentWindow.openPostWithType(postType);else frame.contentWindow.openPost()}catch(e){console.warn('Property post open',e)}},120)}
    const specialFlow=(n==='Home Services'||n==='Tempo / Goods Transport');
-   if(!specialFlow){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS XYZ Demo',e)}}
+   if(!specialFlow&&n!=='Property'){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS XYZ Demo',e)}}
    if(!specialFlow){injectLiveCategoryAds(n).then(()=>{if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch='';setTimeout(()=>runWindowSearch(q),120)}}).catch(e=>console.warn('OCS live feed',e))}
    if(!specialFlow){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
    if(!specialFlow){try{injectCompactWindowEnquiry(n)}catch(e){console.warn('OCS compact enquiry UI',e)}}
@@ -5668,6 +5668,16 @@ function injectBusinessLikeBar(cat){
  let bar=doc.getElementById('ocsBusinessLikeBar');
  if(!bar){bar=doc.createElement('div');bar.id='ocsBusinessLikeBar';bar.innerHTML='<button id="ocsBusinessLikeBtn" type="button" aria-label="Like this business" aria-pressed="false"></button><span id="ocsBusinessLikeCount">0 Likes</span>';doc.body.appendChild(bar)}
  const btn=doc.getElementById('ocsBusinessLikeBtn');if(btn)btn.onclick=()=>parent.toggleBusinessLike(cat);
+ if(cat==='Property'){
+   // Keep Like in the normal flow below filters instead of floating above Enquiry.
+   const filters=doc.querySelector('.filters');
+   if(filters&&filters.parentElement){
+     filters.insertAdjacentElement('afterend',bar);
+     bar.style.cssText='position:relative!important;inset:auto!important;transform:none!important;display:inline-flex!important;float:right;margin:1px 2px 8px auto;z-index:1;box-shadow:none;border:0;background:transparent;padding:0';
+     bar.querySelector('#ocsBusinessLikeCount').style.cssText='font-size:11px;color:#6d7f8d;font-weight:750';
+     if(btn)btn.style.cssText='font-size:11px;padding:7px 10px;border-radius:999px;background:#fff0f4;box-shadow:none';
+   }
+ }
  refreshBusinessLikeUI(cat);
 }
 
@@ -5827,15 +5837,8 @@ function ocsAttachLiveEnquiryRouting(category,doc){
    'catch(e){window.top.location.href="listing-enquiries.html?category="+encodeURIComponent(category)}',
    '}',
    'for(const action of ["sendAsk","sendReq","sendQuote"]){if(typeof window[action]==="function")window[action]=routeToRealListing}',
-   'const call=document.createElement("div");call.id="ocsLiveEnquiriesCta";',
-   'call.style.cssText="margin:12px 14px;padding:13px;background:#e9f8f5;border:1px solid #cae8df;border-radius:13px;text-align:center";',
-   'const button=document.createElement("button");button.type="button";button.textContent="✉ Enquire with a Live Listing";',
-   'button.style.cssText="background:#007e7a;color:white;border:0;border-radius:11px;padding:12px;font-weight:800;width:100%";',
-   'button.addEventListener("click",routeToRealListing);call.appendChild(button);',
-   'const sub=document.createElement("div");sub.style.cssText="font-size:11px;color:#577177;margin-top:6px";',
-   'sub.textContent="Choose the exact business owner. Sample posts cannot receive real enquiries.";call.appendChild(sub);',
-   'const header=document.querySelector("header,.topbar,.head,.headrow");',
-   'if(header&&header.parentElement)header.insertAdjacentElement("afterend",call);else document.body.insertBefore(call,document.body.firstChild);',
+   '// The compact bottom enquiry is the only generic enquiry entry. No extra top CTA.',
+   'const mark=document.createElement("span");mark.id="ocsLiveEnquiriesCta";mark.hidden=true;document.body.appendChild(mark);',
    '})();'
  ].join("\n");
  try{const script=doc.createElement('script');script.textContent=js;doc.body.appendChild(script);script.remove()}
