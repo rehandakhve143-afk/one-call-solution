@@ -193,6 +193,10 @@ function continueBooking(){
  '</div>';
  ocsAutofillBookingMobile();
  ocsHomePush('booking');
+ // A returning customer should see the same payment/readiness buttons selected.
+ setPay(bookingPayment);
+ if(bookingMaterial)setMaterial(bookingMaterial);
+ if(bookingPower)setPower(bookingPower);
  window.scrollTo(0,0);
 }
 function setPay(v){
