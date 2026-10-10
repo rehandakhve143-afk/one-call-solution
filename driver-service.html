@@ -273,12 +273,15 @@ function updateScheduleLabel(){
 }
 function useCurrentLocation(){
  if(!navigator.geolocation){show('GPS available nahi hai.',true);return}
- navigator.geolocation.getCurrentPosition(p=>{pickupLat=p.coords.latitude;pickupLng=p.coords.longitude;$('pickup').value='Current Location';show('✓ Pickup current GPS location set.',false)},()=>show('Location permission allow karein.',true),{enableHighAccuracy:true,timeout:8000,maximumAge:30000})
+ navigator.geolocation.getCurrentPosition(p=>{pickupLat=p.coords.latitude;pickupLng=p.coords.longitude;const field=$('pickup');if(!field.value.trim()||field.value.trim()==='Current Location')field.value='GPS Pin: '+pickupLat.toFixed(5)+', '+pickupLng.toFixed(5);show('✓ Pickup GPS pin saved. Pickup address/landmark bhi add karein.',false)},()=>show('Location permission allow karein.',true),{enableHighAccuracy:true,timeout:8000,maximumAge:30000})
 }
 async function bookDriver(){
+ if(current&&current.id&&!['completed','cancelled','cancelled_settled'].includes(String(current.status||'').toLowerCase())){show('Ek Driver request already active hai. Pehle current trip complete karein.',true);$('tripCard').scrollIntoView({behavior:'smooth',block:'start'});return}
  const pickup=$('pickup').value.trim(),drop=$('drop').value.trim();
  if(!pickup||!drop){show('Pickup aur Drop required hain.',true);return}
+ if(!Number.isFinite(pickupLat)||!Number.isFinite(pickupLng)){show('Matching Driver ke liye pehle Use Current Location se pickup GPS pin set karein.',true);return}
  if(!selectedDate||!selectedTime){show('Date & Time choose karein.',true);openSchedule();return}
+ if(new Date(selectedDate+'T'+selectedTime+':00').getTime()<Date.now()-60000){show('Future date aur time select karein.',true);openSchedule();return}
  const sess=await sb.auth.getSession(),session=sess.data&&sess.data.session;if(!session){try{localStorage.setItem('ocsPostLoginReturn','driver-service.html?v=20261006-driver-ui4')}catch(e){}location.href='index.html?login=1';return}
  $('bookBtn').disabled=true;$('bookBtn').textContent='Sending...';
  try{
@@ -293,7 +296,7 @@ function statusLabel(s){const x=String(s||'').toLowerCase();return({searching:'S
 async function loadBooking(){
  try{
    const {data,error}=await sb.rpc('customer_active_booking');if(error)throw error;const b=Array.isArray(data)?data[0]:data;
-   if(!b||String(b.category||'').trim()!=='Driver Service'){current=null;return}
+   if(!b||String(b.category||'').trim()!=='Driver Service'){current=null;$('tripCard').style.display='none';if($('bookBtn').textContent.includes('Request Sent')){$('bookBtn').disabled=false;$('bookBtn').textContent='Confirm Driver Request'}return}
    current=b;$('tripCard').style.display='block';const r=b.booking_readiness||{};$('tripSub').textContent=statusLabel(b.status);
    $('tripRows').innerHTML='<div class="row"><span>Status</span><b>'+esc(statusLabel(b.status))+'</b></div>'+
     '<div class="row"><span>Pickup</span><b>'+esc(r.pickup_address||b.address||'')+'</b></div>'+
@@ -310,7 +313,18 @@ async function loadBooking(){
 }
 async function decideQuote(id,d){const {error}=await sb.rpc('customer_decide_quote_v1',{p_quote_id:id,p_decision:d});if(error){show(error.message,true);return}await loadBooking()}
 async function confirmDone(){if(!current)return;const {error}=await sb.rpc('customer_confirm_completion_v2',{p_booking_id:current.id});if(error){show(error.message,true);return}await loadBooking()}
-function support(){alert('OCS Support se Driver booking issue raise kiya jayega.')}
+async function support(){
+ const message=(prompt('Driver Service ke baare mein apni problem likhein:')||'').trim();
+ if(message.length<8){if(message)show('Support ke liye kam se kam 8 letters likhein.',true);return}
+ try{
+  const {data,error}=await sb.rpc('create_support_ticket_v1',{
+   p_role:'customer',p_category:'Driver Service',p_message:message,
+   p_callback:false,p_booking_id:current&&current.id||null
+  });
+  if(error)throw error;
+  show('✓ Support request submitted'+(data&&data.ticket_no?' • Ticket '+data.ticket_no:''),false);
+ }catch(e){show('Support request failed: '+(e&&e.message||'Retry'),true)}
+}
 function goTab(x){if(x==='home'){location.href='index.html?pwa=1&v=20261006-driver-ui4';return}if(x==='activity'){location.href='index.html?open=activity&v=20261006-driver-ui4';return}if(x==='wallet'){location.href='index.html?open=wallet&v=20261006-driver-ui4';return}if(x==='account'){location.href='index.html?open=account&v=20261006-driver-ui4'}}
 const first=roundToQuarter(new Date());selectedDate=isoDate(first);selectedTime=hhmm(first);updateScheduleLabel();updateSummary();loadBooking();setInterval(loadBooking,7000);
 function backToPreviousOcs(){
