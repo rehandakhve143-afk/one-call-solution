@@ -4565,6 +4565,10 @@ async function refreshHomeLiveWindowPosters(){
 // Keep category selection and product search FIRST inside Local Shop.
 // Gallery/demo/ads must never be prepended above the shop search field.
 function ocsPlaceCategoryListing(doc,category,element){
+ if(category==='Property'){
+   const listings=doc.getElementById('liveArea');
+   if(listings){listings.insertBefore(element,listings.firstChild);return}
+ }
  if(category==='Local Shop'){
    const note=doc.getElementById('ocsShopListingNotice');
    const list=doc.querySelector('#customer #list');
@@ -4623,7 +4627,7 @@ async function injectLiveCategoryAds(cat){
      const img=String(p.image||''),hasPhoto=img.length>0;
      const price=Number(p.price)>0?'₹'+Number(p.price).toLocaleString('en-IN'):'Price on enquiry';
      return '<div class="lfProjectCard">'+
-       '<div class="projectCover"'+(hasPhoto?' style="background-image:url('+JSON.stringify(img)+')"':'')+'></div>'+
+       '<div class="projectCover">'+(hasPhoto?'<img loading="lazy" alt="'+ocsSavedText(p.name)+' photo" src="'+ocsSavedText(img)+'" style="display:block;width:100%;height:100%;object-fit:cover;border-radius:9px">':'')+'</div>'+
        '<b>'+ocsSavedText(p.name)+'</b><small>📍 '+ocsSavedText([p.area,p.city].filter(Boolean).join(', '))+'</small>'+
        '<div class="projectPrice">'+price+'</div>'+
        '<small>'+ocsSavedText([p.propertyType,p.bhk,p.status].filter(Boolean).join(' • '))+'</small>'+
@@ -5129,7 +5133,7 @@ async function openModule(n,role,serviceCat){
  };
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
-   frame.src='property.html?v=20261010-single-post1';
+   frame.src='property.html?v=20261010-buildermulti1';
  }else if(n==='Tempo / Goods Transport'){
    frame.removeAttribute('srcdoc');
    frame.src='transport.html?v=20261006-driver-e2e1';
