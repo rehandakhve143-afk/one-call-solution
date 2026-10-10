@@ -83,12 +83,21 @@ const projectUrl='https://uipmkrsggpkupgbgoxkg.supabase.co';
 const publishableKey='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase?window.supabase.createClient(projectUrl,publishableKey,{auth:{persistSession:true,autoRefreshToken:true}}):null;
 const $=id=>document.getElementById(id);
-const allowed={driver:{label:'Driver Service',back:'driver-provider.html?view=account&v=20261006-bank1'},transport:{label:'Tempo / Goods Transport',back:'transport-driver.html?view=account&v=20261006-bank1'},sp:{label:'Home Service Provider',back:'home-services.html?tab=provider&sp=1&v=20261006-bank1'}};
+const allowed={driver:{label:'Driver Service',back:'driver-provider.html?view=account&v=20261006-bank1'},transport:{label:'Tempo / Goods Transport',back:'transport-driver.html?view=account&v=20261006-bank1'},sp:{label:'Home Service Provider',back:'provider-dashboard.html?v=20261010-navfix'}};
 const source=new URLSearchParams(location.search).get('from')||'sp';
 const selected=allowed[source]||allowed.sp;
 let saved=null;let saving=false;
 $('context').textContent=selected.label+' • Payout Account';
-function goBack(){location.href=selected.back}
+function goBack(){
+ try{
+  const prior=document.referrer?new URL(document.referrer,location.href):null;
+  const appDir=location.pathname.slice(0,location.pathname.lastIndexOf('/')+1);
+  if(prior&&prior.origin===location.origin&&prior.pathname.startsWith(appDir)&&prior.pathname!==location.pathname&&history.length>1){
+    history.back();return;
+  }
+ }catch(e){}
+ location.href=selected.back;
+}
 function setStatus(txt,cls){$('verifyBadge').textContent=txt;$('verifyBadge').className='status '+cls}
 function fill(id,value){$(id).textContent=String(value??'—')}
 function money(v){return '₹'+Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
