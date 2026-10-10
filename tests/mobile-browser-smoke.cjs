@@ -48,6 +48,7 @@ const {chromium}=require('playwright');
    assert.equal(await page.locator('#bizCat').inputValue(),'Property');
    assert(await page.locator('#propertyPostTypeWrap').count(),'Property needs own posting selection');
    console.log('PASS mobile browser: Property posting selection loads');
+   await page.evaluate(()=>window.closeBiz());
 
    // Four core services are first-class home actions, not repeated secondary cards.
    for(const pathname of ['customer-launch-v1.html','provider-dashboard.html','driver-service.html','transport.html']){
@@ -64,6 +65,8 @@ const {chromium}=require('playwright');
    for(const x of routes){
      await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
      await page.waitForFunction(()=>typeof window.openModule==='function');
+     await page.evaluate(()=>window.closeBiz?.());
+     await page.locator('#bizModal').waitFor({state:'hidden',timeout:5000});
      const tile=page.locator('#ocsMainBusiness .'+x.cls);
      await tile.click({timeout:15000});
      await page.waitForURL(url=>url.pathname.endsWith('/'+x.dest),{timeout:15000});
