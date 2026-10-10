@@ -40,8 +40,8 @@ async function load(){
    if(!skills.some(s=>String(s.category||'')==='Driver Service'&&s.enabled_by_provider!==false)){
      $('openJobs').innerHTML='<div class="empty">Driver Service category profile me select/approve karein.</div>';return;
    }
-   $('driverName').textContent=(snap.profile&&snap.profile.full_name)||'Driver';
- }catch(e){}
+   $('driverName').textContent=String(snap.full_name||(snap.profile&&snap.profile.full_name)||'Driver');
+ }catch(e){$('openJobs').innerHTML='<div class="empty">'+esc(e&&e.message||'Driver profile load failed')+'</div>';return}
  try{
    const {data:ps}=await sb.from('provider_status').select('available_for_work,wallet_balance,admin_paused').maybeSingle();
    workOn=!!(ps&&ps.available_for_work);$('workState').textContent=(ps&&ps.admin_paused)?'ADMIN HOLD':(workOn?'WORK ON':'WORK OFF');$('workBtn').textContent=workOn?'Turn Work OFF':'Turn Work ON';
