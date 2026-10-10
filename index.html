@@ -5159,7 +5159,19 @@ function closeModule(){
  const gs=document.getElementById("globalSearch");if(gs){gs.value="";gs.placeholder="Search services, shops, property, vehicle..."}
  const ws=document.getElementById("windowSearch");if(ws){ws.value="";ws.placeholder="Search in this window..."}
 }
+function ocsCollapseExpandedEnquiry(){
+ try{
+   const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;
+   const panel=doc&&doc.getElementById('ocsCompactEnquiryPanel');
+   if(panel&&!panel.hidden){
+     doc.querySelector('#ocsCompactEnquiryRoot .compactClose')?.click();
+     return true;
+   }
+ }catch(e){}
+ return false;
+}
 function ocsUnifiedBack(){
+ if(ocsCollapseExpandedEnquiry())return;
  try{
    const viewer=document.getElementById('viewer');
    if(viewer&&viewer.classList.contains('show')){
@@ -5211,6 +5223,7 @@ function ocsTryImmediateWindowBack(){
  return false;
 }
 function ocsIndexHandleBack(){
+ if(ocsCollapseExpandedEnquiry())return true;
  try{
    const live=document.getElementById('ocsLiveSearchOverlay');if(live){live.remove();return true}
    const xyz=document.getElementById('xyzDemoSearchOverlay');if(xyz){xyz.remove();return true}
