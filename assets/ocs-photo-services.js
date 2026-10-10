@@ -19,10 +19,10 @@
   box.style.display='block';
   const cfg=labels[active],count=items.length;
   box.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:16px;color:#17474e">Photo-wise Name & Rate</b><b style="color:#087a70;font-size:12px">'+count+' / 20</b></div>'+
-  '<p style="font-size:12px;color:#647b80;line-height:1.5;margin:6px 0 12px">Har selected photo ke neeche us service ka naam aur rate likhiye. Rate optional hai; khaali rakhein to customer ko Get Quote dikhega.</p>'+
+  '<p style="font-size:12px;color:#647b80;line-height:1.5;margin:6px 0 12px">Har photo ke neeche service ka naam aur rate likhiye. Rate optional hai; khaali rakhein to customer ko Get Quote dikhega.</p>'+
   (!count?'<div style="padding:14px;background:white;border:1px dashed #b9d5d0;border-radius:12px;color:#59717a;font-size:12px">Upar Photos / Videos mein Choose Files dabakar photos select karein. Har photo ka alag Name aur Rate box yahan aa jayega.</div>':
   items.map((x,i)=>'<div style="display:grid;grid-template-columns:94px minmax(0,1fr);gap:12px;padding:12px;margin:0 0 10px;background:#fff;border:1px solid #dce8e6;border-radius:14px">'+
-    '<div><div style="width:94px;height:98px;border-radius:10px;background:#eef3f3;overflow:hidden">'+(x._preview||x.image?'<img alt="Service photo '+(i+1)+'" src="'+escapeHTML(x._preview||x.image)+'" style="width:100%;height:100%;object-fit:cover">':'<span style="font-size:11px;display:block;padding:12px">Photo '+(i+1)+'</span>')+'</div><small style="font-size:9px;color:#6d8183;display:block;overflow-wrap:anywhere;padding-top:5px">Photo '+(i+1)+'</small></div>'+
+    '<div><div style="width:94px;height:98px;border-radius:10px;background:#eef3f3;overflow:hidden">'+(x._preview||x.image?'<img alt="Service photo '+(i+1)+'" src="'+escapeHTML(x._preview||x.image)+'" style="width:100%;height:100%;object-fit:cover">':'<span style="font-size:11px;display:block;padding:12px">Photo '+(i+1)+'</span>')+'</div><small style="font-size:9px;color:'+(x._preview||x.image?'#6d8183':'#b03a3a')+';display:block;overflow-wrap:anywhere;padding-top:5px">'+(x._preview||x.image?'Photo '+(i+1):'Photo reselect karein')+'</small></div>'+
     '<div style="min-width:0">'+
     '<label style="display:block;font-size:12px;margin:0 0 5px">'+cfg[0]+' *</label>'+
     '<input maxlength="120" value="'+escapeHTML(x.name)+'" placeholder="'+cfg[1]+'" oninput="ocsPortfolioField('+i+',\'name\',this.value)" style="width:100%;box-sizing:border-box;min-height:41px;padding:9px;font-size:13px">'+
@@ -40,15 +40,18 @@
   if(editor)editor.style.display=active?'block':'none';
   const source=Array.isArray(d&&d.photoServices)?d.photoServices.slice(0,20).map(clean):[];
   const media=Array.isArray(d&&d.media)?d.media.filter(x=>x&&x.type==='image').slice(0,20):[];
+  // Restoring photo names and prices must not depend on file bytes surviving a reload.
+  // A browser cannot persist local File objects into localStorage: request re-selection.
   items=media.length?media.map((m,i)=>{
     const saved=source.find(x=>x.image&&x.image===m.url)||source[i]||{};
     return {...clean(saved),image:m.url,filename:String(m.name||saved.filename||'')};
-  }):[];
+  }):source.map(clean);
   render();
  };
  window.ocsPortfolioOnMediaChange=function(files){
   if(!labels[active])return;
   const selected=Array.from(files||[]);
+  if(!selected.length)return; // File picker cancelled: never erase saved names/rates.
   try{if(typeof validateOcsMediaFiles==='function')validateOcsMediaFiles(selected)}
   catch(e){alert(String(e&&e.message||'Maximum 20 photos + 3 videos'));const field=document.getElementById('obMedia');if(field)field.value='';return}
   const previous=items.slice(),draft=typeof readBizDrafts==='function'?(readBizDrafts()[active]||{}):{};
@@ -68,6 +71,13 @@
  };
  window.ocsPortfolioValidate=function(cat){
   if(!labels[cat]||active!==cat)return true;
+  const selected=document.getElementById('obMedia');
+  const hasFreshPhoto=Array.from(selected&&selected.files||[]).some(isImage);
+  if(items.some(x=>!x.image&&!x._preview)&&!hasFreshPhoto){
+   alert('Draft ke names/rates saved hain, lekin mobile photos dobara Choose Files se select karein.');
+   document.getElementById('obMedia')?.scrollIntoView({block:'center',behavior:'auto'});
+   return false;
+  }
   for(let i=0;i<items.length;i++){
    const x=items[i],p=String(x.price==null?'':x.price).trim();
    if(!String(x.name||'').trim()){alert('Photo '+(i+1)+' ka service / work name bharein.');document.getElementById('ocsPhotoServiceEditor')?.scrollIntoView({block:'start',behavior:'auto'});return false}
