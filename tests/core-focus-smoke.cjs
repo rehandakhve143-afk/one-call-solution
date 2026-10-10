@@ -81,6 +81,16 @@ function roleRoute(skill){
   assert(provider.includes("'Driver profile load failed'"));
   assert(provider.includes('snap.full_name'));
  });
- console.log('OCS main-business smoke: '+successes+'/9 passed');
- if(successes!==9)process.exitCode=1;
+ await check('Driver only: hourly fare calculated from OCS central rate and manual quote removed',()=>{
+  assert(driver.includes("sb.rpc('ocs_driver_hourly_rate_v1')"));
+  assert(driver.includes("const hours=driverHours(),rate="));
+  assert(driver.includes("hours*rate"));
+  assert(driver.includes("sb.rpc('create_customer_driver_hourly_booking_v1'"));
+  assert(driver.includes("$('bookBtn').disabled=!permitted"));
+  assert(!driver.includes("sb.rpc('create_customer_quote_request_v2'"));
+  assert(!provider.includes("setTimeout(()=>promptQuote(id),100)"));
+  assert(!provider.includes("async function promptQuote(id)"));
+ });
+ console.log('OCS main-business smoke: '+successes+'/10 passed');
+ if(successes!==10)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});
