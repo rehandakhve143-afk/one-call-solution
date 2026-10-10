@@ -94,10 +94,16 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 
 </style>
 <link rel="stylesheet" href="assets/ocs-unified-ui.css?v=20261005-unified2">
-</head><body><div class="app">
+<style>
+/* The OCS app already offers + Post Property in its category toolbar.
+   Keep the hero CTA only for direct standalone property.html visitors. */
+body.ocs-embedded-property #heroPropertyPostBtn{display:none!important}
+body.ocs-embedded-property nav.bottom{display:none!important}
+</style>
+</head><body><script>if(window.parent!==window)document.body.classList.add('ocs-embedded-property');</script><div class="app">
 <header class="top"><div class="brand"><div class="logo">OCS</div><div><h1>One Call Solution</h1><div class="tag">One for All and All for One</div></div></div></header>
 
-<div class="hero"><h2>Find or Post Property Easily</h2><p>Owner ho ya Builder — mobile se simple details bharo, photos add karo aur apni property customers tak pahunchao.</p><button class="orange" onclick="openPost()">+ Post Property</button><button type="button" style="display:block;margin-top:12px;padding:12px 15px;border-radius:12px;background:#fff;color:#00666f;border:0;font-weight:800;max-width:100%" onclick="window.top.location.href='listing-enquiries.html?category=Property'">✉ Enquire with a Live Property Owner / Builder</button><div style="color:#f1ffff;font-size:12px;margin-top:8px">Select a real live property listing. Sample projects do not receive enquiries.</div></div>
+<div class="hero"><h2>Find or Post Property Easily</h2><p>Owner ho ya Builder — mobile se simple details bharo, photos add karo aur apni property customers tak pahunchao.</p><button class="orange" id="heroPropertyPostBtn" onclick="openPost()">+ Post Property</button><button type="button" style="display:block;margin-top:12px;padding:12px 15px;border-radius:12px;background:#fff;color:#00666f;border:0;font-weight:800;max-width:100%" onclick="window.top.location.href='listing-enquiries.html?category=Property'">✉ Enquire with a Live Property Owner / Builder</button><div style="color:#f1ffff;font-size:12px;margin-top:8px">Select a real live property listing. Sample projects do not receive enquiries.</div></div>
 
 <section class="section">
 <div class="headrow"><div><h2>Property</h2><div class="muted">Rent, Buy & trusted property listings</div></div><div class="muted">📍 Your Location</div></div>
@@ -147,7 +153,7 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 </div>
 </section>
 
-<div class="partner"><b style="font-size:19px">Post your property in a few simple steps</b><div class="muted">No complicated form. Only relevant fields appear for the property you select.</div><div class="steps"><div class="step"><div class="num">1</div><b>Add Details</b><br>type, price, location</div><div class="step"><div class="num">2</div><b>Add Media</b><br>photos & optional links</div><div class="step"><div class="num">3</div><b>Payment & Go Live</b><br>publish listing</div></div><button class="orange" style="width:100%;margin-top:13px" onclick="openPost()">Post Property →</button></div>
+<div class="partner"><b style="font-size:19px">Post your property in a few simple steps</b><div class="muted">No complicated form. Only relevant fields appear for the property you select.</div><div class="steps"><div class="step"><div class="num">1</div><b>Add Details</b><br>type, price, location</div><div class="step"><div class="num">2</div><b>Add Media</b><br>photos & optional links</div><div class="step"><div class="num">3</div><b>Payment & Go Live</b><br>publish listing</div></div></div>
 
 <nav class="bottom"><button onclick="ocsModuleHome()">⌂<br>Home</button><button class="active" onclick="ocsModuleTop()">▣<br>Property</button><button onclick="ocsModuleSearch()">⌕<br>Search</button><button onclick="openPost()">○<br>Profile</button></nav>
 </div>
