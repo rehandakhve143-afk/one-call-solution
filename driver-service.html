@@ -109,16 +109,14 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 <section class="card">
   <h2>Estimated Duration</h2>
   <div class="duration" id="durationChoices">
-    <button class="on" data-value="2 Hrs" onclick="selectDuration(this)">2<br>Hrs</button>
-    <button data-value="2.5 Hrs" onclick="selectDuration(this)">2.5<br>Hrs</button>
-    <button data-value="3 Hrs" onclick="selectDuration(this)">3<br>Hrs</button>
-    <button data-value="3.5 Hrs" onclick="selectDuration(this)">3.5<br>Hrs</button>
-    <button data-value="4 Hrs" onclick="selectDuration(this)">4<br>Hrs</button>
-    <button data-value="4.5 Hrs" onclick="selectDuration(this)">4.5<br>Hrs</button>
-    <button data-value="5 Hrs" onclick="selectDuration(this)">5<br>Hrs</button>
-    <button data-value="6 Hrs" onclick="selectDuration(this)">6<br>Hrs</button>
-    <button data-value="8 Hrs" onclick="selectDuration(this)">8<br>Hrs</button>
-  </div>
+     <button data-value="1 Hrs" onclick="selectDuration(this)">1<br>Hr</button>
+     <button class="on" data-value="2 Hrs" onclick="selectDuration(this)">2<br>Hrs</button>
+     <button data-value="3 Hrs" onclick="selectDuration(this)">3<br>Hrs</button>
+     <button data-value="4 Hrs" onclick="selectDuration(this)">4<br>Hrs</button>
+     <button data-value="6 Hrs" onclick="selectDuration(this)">6<br>Hrs</button>
+     <button data-value="8 Hrs" onclick="selectDuration(this)">8<br>Hrs</button>
+     <button data-value="12 Hrs" onclick="selectDuration(this)">12<br>Hrs</button>
+   </div>
 </section>
 
 <section class="card">
@@ -135,7 +133,7 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
     <div class="sumrow"><span>Schedule</span><b id="sumSchedule">Not selected</b></div>
   </div>
   <div class="field"><label>Note (Optional)</label><textarea id="note" placeholder="Parking, society gate, car details, etc."></textarea></div>
-  <div class="fare" style="display:block;border-radius:15px;background:#ecf8f5;padding:15px"><div style="display:flex;justify-content:space-between;gap:10px"><b>Hourly Driver Rate</b><strong id="driverHourlyRate">Loading...</strong></div><div style="display:flex;justify-content:space-between;gap:10px;margin-top:10px"><span id="driverFareFormula">2 hrs × rate</span><strong id="driverTotalFare" style="font-size:25px;color:#087a70">Loading...</strong></div><small id="driverRateInfo" style="display:block;margin-top:9px;font-size:11px;color:#58787a">Driver only • Customer ki apni car.</small></div>
+  <div class="fare" style="display:block;border-radius:15px;background:#ecf8f5;padding:15px"><div style="display:flex;justify-content:space-between;gap:10px"><b>Driver Package Fare</b><strong id="driverHourlyRate">Loading...</strong></div><div style="display:flex;justify-content:space-between;gap:10px;margin-top:10px"><span id="driverFareFormula">2 hrs × rate</span><strong id="driverTotalFare" style="font-size:25px;color:#087a70">Loading...</strong></div><small id="driverRateInfo" style="display:block;margin-top:9px;font-size:11px;color:#58787a">Driver only • Customer ki apni car.</small></div>
   <div class="payrow"><button id="onlinePay" class="on" onclick="setPay('ONLINE')">Online</button><button id="cashPay" onclick="setPay('CASH')">Cash</button></div>
   <div class="cta"><button id="bookBtn" onclick="bookDriver()" disabled>Confirm Driver Booking</button></div>
   <div id="status" class="status"></div>
@@ -189,16 +187,16 @@ function selectTransmission(btn){transmission=btn.dataset.value;document.querySe
 function selectDuration(btn){duration=btn.dataset.value;document.querySelectorAll('#durationChoices button').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
 function setPay(v){payment=v;$('onlinePay').classList.toggle('on',v==='ONLINE');$('cashPay').classList.toggle('on',v==='CASH')}
 function driverHours(){return Number.parseFloat(duration)||2}
+function driverPackage(){return Array.isArray(driverTariff&&driverTariff.packages)?driverTariff.packages.find(x=>Number(x.hours)===driverHours()):null}
 function updateDriverFare(){
- const hours=driverHours(),rate=Number(driverTariff&&driverTariff.hourly_rate||0),enabled=!!(driverTariff&&driverTariff.enabled&&rate>0);
- const permitted=enabled&&hours>=Number(driverTariff.minimum_hours||2);
- $('driverHourlyRate').textContent=enabled?'₹'+rate.toLocaleString('en-IN')+' / hour':'Rate pending';
- $('driverFareFormula').textContent=hours+' hrs × '+(enabled?'₹'+rate.toLocaleString('en-IN'):'OCS rate');
- $('driverTotalFare').textContent=enabled?'₹'+(hours*rate).toLocaleString('en-IN',{maximumFractionDigits:2}):'Not available';
- $('driverRateInfo').textContent=!enabled?'OCS hourly rate final hone ke baad booking available hogi.':(!permitted?'Minimum '+driverTariff.minimum_hours+' hours required.':'Driver only • Customer ki apni car • 9% OCS charge driver earning se.');
- $('bookBtn').disabled=!permitted;
+ const hours=driverHours(),pkg=driverPackage(),rate=Number(pkg&&pkg.price||0),enabled=!!(pkg&&pkg.enabled&&rate>0);
+ $('driverHourlyRate').textContent=enabled?'₹'+rate.toLocaleString('en-IN',{maximumFractionDigits:2}):'Rate pending';
+ $('driverFareFormula').textContent=hours+' hr'+(hours===1?'':'s')+' Driver Hire';
+ $('driverTotalFare').textContent=enabled?'₹'+rate.toLocaleString('en-IN',{maximumFractionDigits:2}):'Not available';
+ $('driverRateInfo').textContent=enabled?'Only Driver Hire • Customer ki apni car • OCS 9% platform charge driver earning se.':'Package rate OCS Admin final karega. Rate approve hone tak booking band hai.';
+ $('bookBtn').disabled=!enabled;
 }
-async function loadDriverTariff(){try{const {data,error}=await sb.rpc('ocs_driver_hourly_rate_v1');if(error)throw error;driverTariff=data&&typeof data==='object'?data:null}catch(e){driverTariff=null;show('Hourly rate load nahi hua: '+(e.message||'Retry'),true)}updateDriverFare()}
+async function loadDriverTariff(){try{const {data,error}=await sb.rpc('ocs_driver_packages_v1');if(error)throw error;driverTariff=data&&typeof data==='object'?data:null}catch(e){driverTariff=null;show('Package rate load nahi hua: '+(e.message||'Retry'),true)}updateDriverFare()}
 function updateSummary(){
  $('sumWay').textContent=tripType;$('sumCar').textContent=carType+' • '+transmission;$('sumDuration').textContent=duration;$('sumSchedule').textContent=selectedDate&&selectedTime?prettyDateTime(selectedDate,selectedTime):'Not selected';updateDriverFare();
 }
@@ -288,7 +286,7 @@ function useCurrentLocation(){
  navigator.geolocation.getCurrentPosition(p=>{pickupLat=p.coords.latitude;pickupLng=p.coords.longitude;const field=$('pickup');if(!field.value.trim()||field.value.trim()==='Current Location')field.value='GPS Pin: '+pickupLat.toFixed(5)+', '+pickupLng.toFixed(5);show('✓ Pickup GPS pin saved. Pickup address/landmark bhi add karein.',false)},()=>show('Location permission allow karein.',true),{enableHighAccuracy:true,timeout:8000,maximumAge:30000})
 }
 async function bookDriver(){
- if(!driverTariff||!driverTariff.enabled||!(Number(driverTariff.hourly_rate)>0)){show('OCS hourly rate abhi activate nahi hua.',true);return}
+ if(!driverPackage()||!driverPackage().enabled||!(Number(driverPackage().price)>0)){show('Selected Driver package rate abhi activate nahi hua.',true);return}
  if(current&&current.id&&!['completed','cancelled','cancelled_settled'].includes(String(current.status||'').toLowerCase())){show('Ek Driver request already active hai. Pehle current trip complete karein.',true);$('tripCard').scrollIntoView({behavior:'smooth',block:'start'});return}
  const pickup=$('pickup').value.trim(),drop=$('drop').value.trim();
  if(!pickup||!drop){show('Pickup aur Drop required hain.',true);return}
@@ -301,7 +299,7 @@ async function bookDriver(){
    const boot=await sb.rpc('ensure_customer_account_v1');if(boot.error)throw boot.error;
    const readiness={module:'driver_service',pickup_address:pickup,drop_address:drop,car_type:carType,transmission,trip_type:tripType,estimated_duration:duration,booking_mode:mode,payment_preference:payment,note:$('note').value.trim()};
    const desc=['Driver Service','Pickup: '+pickup,'Drop: '+drop,'Car: '+carType,'Transmission: '+transmission,'Trip: '+tripType,'Duration: '+duration,'Mode: '+mode,'Payment: '+payment,'Note: '+($('note').value.trim()||'None')].join('\n');
-   const {data:booking,error}=await sb.rpc('create_customer_driver_hourly_booking_v1',{p_duration_hours:driverHours(),p_schedule:selectedDate+' '+selectedTime,p_address:pickup,p_drop_address:drop,p_latitude:pickupLat,p_longitude:pickupLng,p_readiness:readiness,p_payment_method:payment.toLowerCase()});
+   const {data:booking,error}=await sb.rpc('create_customer_driver_package_booking_v1',{p_duration_hours:driverHours(),p_schedule:selectedDate+' '+selectedTime,p_address:pickup,p_drop_address:drop,p_latitude:pickupLat,p_longitude:pickupLng,p_readiness:readiness,p_payment_method:payment.toLowerCase()});
    if(error)throw error;if(!booking||!booking.id)throw new Error('Booking confirmation not received');show('✓ Driver booking created • ₹'+Number(booking.booking_amount||0).toFixed(0)+' • Matching verified Drivers.',false);$('bookBtn').textContent='Booking Sent ✓';await loadBooking()
  }catch(e){show(e&&e.message?e.message:'Driver request create nahi hui.',true);$('bookBtn').disabled=false;$('bookBtn').textContent='Confirm Driver Booking'}
 }
