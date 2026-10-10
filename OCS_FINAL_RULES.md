@@ -90,6 +90,12 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Plan: **₹99 / 28 days**.
 - Storefront: banner/logo/name/category/area/open status, Call, WhatsApp, Directions, Share, product search, gallery/popular products, offers, Ask for a Product.
 - Full inventory is not mandatory.
+- **OCS is a digital storefront/listing and direct-contact platform for shops, not an online product retailer or fulfilment marketplace.**
+- Each shop owner posts their own shop, photos, product details/prices/offers from a ready-made mobile form. Payment verification activates the listing automatically (subject to moderation and validity). Owner can maintain their own listing.
+- Customers view a specific LIVE shop/product listing, then contact **that exact shop owner** using Call, WhatsApp or **Ask for Product**. In-app enquiries must store the exact backend listing ID and route to its verified owner; do not use device-local category drafts as the recipient.
+- The customer and the shop negotiate final price, discount, availability, payment method, and optional delivery **directly**. The shop alone decides whether to deliver.
+- **No OCS shopping cart, product checkout, local-shop product-sale commission, OCS delivery service, or OCS product return/refund handling.** OCS charges only its separately posted shop listing/advertising fees.
+- Display notice: "Contact the shop directly for final price, availability, payment and delivery."
 
 ## 9A) Single Post Gateway
 - Home keeps one common **Post Your Ad** entry for paid business/window posts.
