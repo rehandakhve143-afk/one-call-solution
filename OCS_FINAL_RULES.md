@@ -99,6 +99,13 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - **No OCS shopping cart, product checkout, local-shop product-sale commission, OCS delivery service, or OCS product return/refund handling.** OCS charges only its separately posted shop listing/advertising fees.
 - Display notice: "Contact the shop directly for final price, availability, payment and delivery."
 
+### Compact Universal Enquiry Entry
+- In business/category windows (including Property Builder listings), show **one small ✉ Enquiry pill at the bottom-left**, collapsed by default. Tapping expands a compact panel; it must not block the marketplace/search screen or duplicate large static enquiry cards.
+- Expanded panel shows **verified LIVE listings of the current category only**. Customer selects exactly one shop/business/Builder listing; sending then uses that listing's backend UUID and owner, never category-wide broadcast or local draft contact data.
+- Button wording follows category: Local Shop **Ask for Product**; Property Builder **Builder Enquiry**; Medical **Medicine Enquiry**; Lab **Test Enquiry**; trade work **Get Quote**; Vehicle **Vehicle Enquiry**. My Enquiries and Received link to the shared OCS Inbox.
+- **Single Property Owner remains Call Only**, excluded from compact send-enquiry targets. Home Services retains Book Service/Get Quote; no extra generic enquiry pill there. Samples/XYZ cannot receive real enquiries.
+- App Back should collapse an expanded enquiry panel before navigating away from its business window.
+
 ## 9A) Single Post Gateway
 - Home keeps one common **Post Your Ad** entry for paid business/window posts.
 - Flow: **Post Your Ad → Category → category-ready form → Preview → Payment / Admin FREE → LIVE**.
