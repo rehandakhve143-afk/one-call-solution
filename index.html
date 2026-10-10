@@ -4189,6 +4189,18 @@ function showLiveSearchResults(rows,q){
  '<p style="font-size:11px;color:#718488">Search: '+ocsSavedText(q)+'</p><div style="display:grid;gap:8px">'+cards+'</div></div>';
  document.body.appendChild(ov);
 }
+function ocsEnquireAboutLivePost(meta){
+ const id=String(meta&&meta.__sourceRef||'');
+ const kind=String(meta&&meta.__sourceKind||'');
+ const isUuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+ if(!isUuid||!['business_listing','property_listing'].includes(kind)){
+   alert('Listing ID unavailable. Choose a live listing from the enquiry page.');
+   location.href='listing-enquiries.html';
+   return;
+ }
+ const qs=new URLSearchParams({listing_id:id,kind:'post',category:kind==='property_listing'?'Property':String(meta.__category||'')});
+ location.href='listing-enquiries.html?'+qs.toString();
+}
 function livePostCall(meta){
  const n=String(meta.phone||meta.contactPhone||'').replace(/[^0-9+]/g,'');if(n)location.href='tel:'+n;else alert('Call number available nahi hai.');
 }
@@ -4310,8 +4322,11 @@ async function injectLiveCategoryAds(cat){
  const priceHtml=(m.itemPrice!==null&&m.itemPrice!==undefined&&Number(m.itemPrice)>0)?'<div class="lfPrice">₹'+Number(m.itemPrice).toLocaleString('en-IN')+'</div>':'';
  const variantHtml=m.variant?'<div style="font-size:10px;font-weight:850;color:#516a70;margin:2px 0 7px">Variant: '+ocsSavedText(m.variant)+'</div>':'';
  const itemWa=(cat==='Local Shop')?'<button class="lfItemWa" onclick="parent.livePostWhatsAppItem(parent.__ocsLiveFeed['+i+'])">🟢 WhatsApp this Product</button>':'';
- return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px">LIVE</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p><div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>'+itemWa+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
- window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat}));
+ const enquiryHtml=String(x.title||'').toLowerCase().startsWith('xyz demo')
+  ?'<div style="font-size:11px;background:#fff4df;color:#8c6618;padding:7px;border-radius:9px;margin-top:8px">SAMPLE • No real enquiry</div>'
+  :'<button style="width:100%;background:#e3f6f2;border:1px solid #b2dfd7;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">✉ Enquire with this Listing</button>';
+ return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px">LIVE</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p><div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>'+enquiryHtml+itemWa+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
+ window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat}));
  const target=doc.querySelector('main,.wrap,.container,.app')||doc.body;
  if(target===doc.body)doc.body.insertBefore(feed,doc.body.firstChild);else target.insertBefore(feed,target.firstChild);
 
