@@ -22,6 +22,19 @@
 .empty{text-align:center;padding:28px 10px}.empty .i{width:62px;height:62px;border-radius:19px;background:#eaf7f3;display:grid;place-items:center;margin:auto;font-size:28px}.empty h3{margin:12px 0 5px}
 .error{padding:11px;border-radius:12px;background:#fff0ed;color:#96392d;font-size:10px;line-height:1.45}
 .login{padding:26px;text-align:center}.login button{margin-top:12px}
+
+.driver-rate-row{border-top:1px solid #e4eded;padding:12px 0}
+.driver-rate-main{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px}
+.driver-rate-row label{display:block;margin-bottom:5px;font-size:11px;color:#536c71}
+.driver-rate-row input{width:100%;height:43px;border:1px solid #c7d8da;border-radius:10px;padding:8px 11px;font:inherit;font-size:15px}
+.driver-rate-status{padding:5px 9px;border-radius:999px;background:#eef3f5;color:#557178;font-size:10px;font-weight:900}
+.driver-rate-status.on{background:#e0f8ed;color:#087453}
+.driver-rate-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.driver-rate-actions button{min-height:40px;background:#f0f6f6;border:1px solid #cbdde0;color:#20545b;border-radius:11px;font-weight:800}
+.driver-rate-actions button[data-live="true"]{background:#087e70;color:white;border-color:#087e70}
+.driver-rate-actions button:disabled{opacity:.45}
+.driver-rate-message{padding-top:10px;font-size:11px;color:#056d50}
+.driver-rate-message.bad{color:#a52d29}
 </style>
 </head>
 <body>
@@ -30,6 +43,7 @@
 <main class="main">
  <div class="info"><b>Only Admin:</b> Pehle private SP verification details check karein, phir Approve/Reject karein. Approval ke baad hi Work ON allowed hai.</div>
  <div id="content"><div class="card">Loading Admin approval queue...</div></div>
+ <section id="driverPackagesPanel" hidden aria-label="Driver Hire package fare management"></section>
  <button class="btn" onclick="loadQueue()">↻ Refresh</button>
 </main>
 </div>
@@ -88,6 +102,7 @@ async function verifyAdminOtp(){
  }catch(e){msg.textContent='OTP verify failed: '+(e&&e.message?e.message:'Unknown error')}
 }
 async function loadQueue(){
+ window.ocsHideDriverRateAdmin?.();
  box.innerHTML='<div class="card">Loading Admin approval queue...</div>';
  try{
    const ses=await sb.auth.getSession();
@@ -101,6 +116,7 @@ async function loadQueue(){
      box.innerHTML='<div class="card login"><h3>This account is not Admin</h3><div class="muted">Current login se SP approval allowed nahi hai. Admin account se login karein.</div><button class="ok btn" onclick="adminSignOut()">Switch to Admin Login</button></div>';
      return;
    }
+   await window.ocsLoadDriverRateAdmin?.();
    const q=await sb.rpc('admin_pending_provider_onboarding_v1');
    if(q.error)throw q.error;
    const rows=Array.isArray(q.data)?q.data:[];
@@ -205,5 +221,6 @@ async function adminSignOut(){
 }
 loadQueue();
 </script>
+<script src="assets/ocs-driver-admin-rates.js?v=20261011-admin-rates1"></script>
 </body>
 </html>
