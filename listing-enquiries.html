@@ -9,7 +9,7 @@ input,textarea,select{width:100%;border:1px solid #d1dee0;border-radius:13px;pad
 </style></head><body>
 <header><a href="index.html" aria-label="Back to OCS">‹ Back</a><div><h1>OCS Enquiries</h1><small>One Listing → One Owner • One Login</small></div></header>
 <main>
-<div class="tabs"><button data-tab="new" class="on">Send Enquiry</button><button data-tab="sent">My Enquiries</button><button data-tab="received">Received</button></div>
+<div class="tabs"><button data-tab="new" class="on">Send Enquiry</button><button data-tab="sent">My Sent Requests</button><button data-tab="received">For My Listings</button></div>
 <div id="msg" class="status">Connecting to OCS…</div>
 <section id="new">
  <div class="card"><h2>Select a Live Listing</h2><p>Request sirf selected, verified live listing ke actual owner ko jayegi. XYZ sample/test listing par real enquiry nahi jayegi.</p>
@@ -22,8 +22,8 @@ input,textarea,select{width:100%;border:1px solid #d1dee0;border-radius:13px;pad
  <button id="send" class="btn" disabled>Send to Selected Owner</button><p>Once sent, owner can reply inside OCS. Email and SMS delivery are not yet enabled for these enquiries.</p>
  </div>
 </section>
-<section id="sent" class="hide"><div class="card"><h2>My Sent Enquiries</h2><p>View your request and replies from the selected listing owner.</p><div id="sentList" class="list"></div></div></section>
-<section id="received" class="hide"><div class="card"><h2>Received Enquiries</h2><p>Only enquiries for listings owned by this signed-in account are shown here.</p><div id="receivedList" class="list"></div></div></section>
+<section id="sent" class="hide"><div class="card"><h2>Requests I Sent</h2><p>Requests you sent to a shop, builder, or another listing owner, with their replies.</p><div id="sentList" class="list"></div></div></section>
+<section id="received" class="hide"><div class="card"><h2>Customer Requests for My Listings</h2><p>Requests from customers about shops, builder properties, or other posts owned by this signed-in account.</p><div id="receivedList" class="list"></div></div></section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
 <script>
