@@ -428,6 +428,7 @@ function ocsHomeRestore(x){
  try{
   bookingMaterial=x.material||'';
   bookingPower=x.power||'';
+  bookingPayment=pay;
   ocsHomeSuccess=x.success||null;
   if(view==='categories'||!cat)renderCategories();
   else if(view==='category'){
