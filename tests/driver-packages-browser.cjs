@@ -71,9 +71,21 @@ function fakeNonAdminClient(){
   console.log('PASS Driver customer: seven packages, backend package prices, unpriced booking disabled');
 
   const admin=await context.newPage();
+  admin.on('pageerror',e=>console.log('Admin browser pageerror:',e.message));
   await routeFake(admin,fakeAdminClient);
   await admin.goto('http://127.0.0.1:8765/admin-approval.html',{waitUntil:'domcontentloaded'});
-  await admin.locator('#driverPackageRate-2').waitFor({state:'visible',timeout:15000});
+  try{await admin.locator('#driverPackageRate-2').waitFor({state:'visible',timeout:15000})}
+  catch(e){
+    console.log('Admin page diagnostic:',JSON.stringify(await admin.evaluate(()=>({
+     content:document.getElementById('content')?.textContent?.slice(0,500),
+     rates:document.getElementById('driverPackagesPanel')?.textContent?.slice(0,500),
+     hidden:document.getElementById('driverPackagesPanel')?.hidden,
+     scriptLoaded:typeof window.ocsLoadDriverRateAdmin,
+     sbExists:typeof window.supabase,
+     authFn:typeof window.loadQueue
+    }))));
+    throw e
+  }
   assert.equal(await admin.locator('.driver-rate-row').count(),7);
   assert.equal(await admin.locator('#driverPackagesPanel .driver-rate-status.on').count(),0);
   await admin.locator('#driverPackageRate-2').fill('399');
