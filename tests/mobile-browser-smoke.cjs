@@ -32,7 +32,7 @@ const {chromium}=require('playwright');
    await page.waitForFunction(()=>typeof window.openBiz==='function',null,{timeout:20000});
    await page.evaluate(()=>window.openBiz('Beauty / Make-up'));
    const restored=page.locator('#ocsPhotoServiceEditor');
-   assert.match(await restored.innerText(),/Bridal Make-up/);
+   assert.equal(await restored.locator('input[maxlength="120"]').first().inputValue(),'Bridal Make-up');
    assert.equal(await restored.locator('input[type="number"]').first().inputValue(),'3500');
    assert.match(await restored.innerText(),/Photo reselect karein/);
    console.log('PASS mobile browser: name/rate restored after refresh; missing local image not silently treated as uploaded');
