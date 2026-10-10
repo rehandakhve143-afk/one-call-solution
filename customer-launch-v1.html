@@ -63,7 +63,7 @@ body{padding-bottom:82px}.app{width:min(480px,100%);margin:0 auto;min-height:100
 <div class="app">
   <header class="top">
     <div class="head">
-      <button class="back" onclick="goHome()">‹</button>
+      <button class="back" onclick="homeServiceBack()" aria-label="Go back one step">‹</button>
       <div class="logo">OCS</div>
       <div class="title"><b id="topTitle">Home Services</b><small>Verified professionals • clear OCS rates • Launch V1</small></div>
     </div>
@@ -102,6 +102,8 @@ function goHome(){location.href="index.html?v=20261008-cleanroutes1"}
 function labourOnly(cat){return ["Electrical","Plumbing","Carpenter","Painter","Tiles / Stone","Waterproofing","False Ceiling / POP / Gypsum / PVC"].includes(cat)}
 function renderCategories(){
  category="";selected=[];updateCart();
+ ocsHomeNavView='categories';
+ document.getElementById('search').style.display='';
  document.getElementById("topTitle").textContent="Home Services";
  document.getElementById("search").value="";
  document.getElementById("search").placeholder="Search Home Services...";
@@ -110,19 +112,23 @@ function renderCategories(){
 }
 function openCategoryRoute(cat){
  if(!cat||!services[cat])return;
- const u='customer-launch-v1.html?cat='+encodeURIComponent(cat);
- location.href=u;
+ ocsHomeSave();
+ openCategory(cat);
+ ocsHomePush('category');
+ scrollTo(0,0);
 }
 function openCategory(cat){
  if(!services[cat])return;
  category=cat;selected=[];updateCart();
+ ocsHomeNavView='category';
+ document.getElementById('search').style.display='';
  const d=services[cat];
  document.getElementById("topTitle").textContent=d.label||cat;
  document.getElementById("search").value="";
  document.getElementById("search").placeholder="Search "+(d.label||cat)+"...";
  const warn=labourOnly(cat)?'<div class="note"><b>LABOUR RATE ONLY</b><br>Shown rates me material / parts included nahi hain. Material clear nahi ho to Visit / Inspection ya Get Quote choose karein.</div>':'';
  const rows=d.items.map((it,i)=>serviceCard(it,i)).join("");
- document.getElementById("content").innerHTML='<div class="cat-title"><button onclick="renderCategories()">‹</button><div><b>'+esc(d.label||cat)+'</b><small>'+d.items.length+' services</small></div></div>'+warn+'<button class="other" onclick="handoffQuote(\'New Service Request\')">Can’t find your work? New Service Request →</button><div class="svc-list" id="svcList">'+rows+'</div>';
+ document.getElementById("content").innerHTML='<div class="cat-title"><button onclick="homeServiceBack()">‹</button><div><b>'+esc(d.label||cat)+'</b><small>'+d.items.length+' services</small></div></div>'+warn+'<button class="other" onclick="handoffQuote(\'New Service Request\')">Can’t find your work? New Service Request →</button><div class="svc-list" id="svcList">'+rows+'</div>';
 }
 function serviceCard(it,i){
  const x=selected.find(z=>z.i===i);
@@ -135,7 +141,7 @@ function refreshServices(){if(category)openCategoryKeep(category)}
 function openCategoryKeep(cat){
  const keep=selected.map(x=>({...x})); category=cat;
  const d=services[cat],warn=labourOnly(cat)?'<div class="note"><b>LABOUR RATE ONLY</b><br>Shown rates me material / parts included nahi hain. Material clear nahi ho to Visit / Inspection ya Get Quote choose karein.</div>':'';
- document.getElementById("content").innerHTML='<div class="cat-title"><button onclick="renderCategories()">‹</button><div><b>'+esc(d.label||cat)+'</b><small>'+d.items.length+' services</small></div></div>'+warn+'<button class="other" onclick="handoffQuote(\'New Service Request\')">Can’t find your work? New Service Request →</button><div class="svc-list" id="svcList">'+d.items.map((it,i)=>serviceCard(it,i)).join("")+'</div>';
+ document.getElementById("content").innerHTML='<div class="cat-title"><button onclick="homeServiceBack()">‹</button><div><b>'+esc(d.label||cat)+'</b><small>'+d.items.length+' services</small></div></div>'+warn+'<button class="other" onclick="handoffQuote(\'New Service Request\')">Can’t find your work? New Service Request →</button><div class="svc-list" id="svcList">'+d.items.map((it,i)=>serviceCard(it,i)).join("")+'</div>';
  selected=keep; // cards read selected before assignment? rerender once more if needed
  document.getElementById("svcList").innerHTML=d.items.map((it,i)=>serviceCard(it,i)).join("");
  updateCart();
@@ -144,12 +150,12 @@ function toggleItem(i){
  const it=services[category].items[i];if(!it||it.type!=="fixed")return;
  const k=selected.findIndex(x=>x.i===i);
  if(k>=0)selected.splice(k,1);else selected.push({i,name:it.name,price:Number(it.price||0),qty:1});
- openCategoryKeep(category);
+ openCategoryKeep(category);ocsHomeSave();
 }
 function changeQty(i,d){
  const x=selected.find(z=>z.i===i);if(!x)return;
  x.qty=Math.max(1,Number(x.qty||1)+Number(d||0));
- openCategoryKeep(category);
+ openCategoryKeep(category);ocsHomeSave();
 }
 function updateCart(){
  const c=document.getElementById("cart");
@@ -163,6 +169,9 @@ function updateCart(){
 let bookingPayment="ONLINE";
 function continueBooking(){
  if(!category||!selected.length)return;
+ ocsHomeSave();
+ ocsHomeNavView='booking';
+ document.getElementById('search').style.display='';
  const total=selected.reduce((a,x)=>a+Number(x.price||0)*Number(x.qty||1),0);
  document.getElementById("topTitle").textContent="Booking Details";
  document.getElementById("search").value="";
@@ -170,7 +179,7 @@ function continueBooking(){
  document.getElementById("cart").classList.remove("show");
  const rows=selected.map(x=>'<div class="sum-row"><span>'+esc(x.name)+' × '+Number(x.qty||1)+'</span><b>'+money(Number(x.price||0)*Number(x.qty||1))+'</b></div>').join("");
  document.getElementById("content").innerHTML=
- '<div class="cat-title"><button onclick="openCategoryKeep(category)">‹</button><div><b>Booking Summary</b><small>'+esc(category)+'</small></div></div>'+
+ '<div class="cat-title"><button onclick="homeServiceBack()">‹</button><div><b>Booking Summary</b><small>'+esc(category)+'</small></div></div>'+
  '<div class="booking">'+
    '<div class="summary"><h3>Selected Services</h3>'+rows+'<div class="total"><span>Grand Total</span><strong>'+money(total)+'</strong></div></div>'+
    (labourOnly(category)?'<div class="note"><b>LABOUR RATE ONLY</b><br>Material / parts charge included nahi hai.</div>':'')+
@@ -180,13 +189,14 @@ function continueBooking(){
    (category==="Electrical"?'<div class="readybox"><b>Nearby working power point available? *</b><div class="readyopts"><button id="powerYes" onclick="setPower(\'YES\')">Yes</button><button id="powerNo" onclick="setPower(\'NO\')">No</button><button id="powerUnsure" onclick="setPower(\'NOT_SURE\')">Not sure</button></div></div>':'')+
    '<div class="field"><label>Payment Method</label><div class="payrow"><button id="payOnline" class="on" onclick="setPay(\'ONLINE\')">Online</button><button id="payCash" onclick="setPay(\'CASH\')">Cash</button></div><div class="policy" style="margin-top:9px"><b>Online payment preferred.</b> Network ya payment issue ho to Cash use kar sakte hain.</div></div>'+
    '<button class="primary" id="findSpBtn" onclick="createCleanBooking()">Find Service Provider</button>'+
-   '<button class="secondary" onclick="openCategoryKeep(category)">← Back to Rate List</button>'+
+   '<button class="secondary" onclick="homeServiceBack()">← Back to Rate List</button>'+
  '</div>';
  try{
    const p=JSON.parse(localStorage.getItem("ocsCustomerProfile")||"{}");
    const m=(p.mobile||p.phone||"").replace(/\D/g,"").slice(-10);
    if(m)document.getElementById("bookingMobile").value=m;
  }catch(e){}
+ ocsHomePush('booking');
  window.scrollTo(0,0);
 }
 function setPay(v){
@@ -267,6 +277,8 @@ async function createCleanBooking(){
  }
 }
 function renderBookingSuccess(id,total){
+ ocsHomeSuccess={id:String(id||''),total:Number(total||0)};
+ ocsHomeNavView='success';
  document.getElementById("topTitle").textContent="Booking Requested";
  document.getElementById("search").style.display="none";
  document.getElementById("cart").classList.remove("show");
@@ -276,20 +288,23 @@ function renderBookingSuccess(id,total){
    '<div class="summary" style="text-align:left;margin-top:8px"><div class="sum-row"><span>Service</span><b>'+esc(category)+'</b></div><div class="sum-row"><span>Amount</span><b>'+money(total)+'</b></div><div class="sum-row"><span>Payment</span><b>'+esc(bookingPayment)+'</b></div></div>'+
    '<button class="primary" style="margin-top:12px" onclick="location.href=\'index.html?open=activity&v=20261008-cleanroutes1\'">View Activity</button>'+
    '<button class="secondary" style="margin-top:8px" onclick="goHome()">Back to Home</button></div>';
+ ocsHomeReplace('success');
  window.scrollTo(0,0);
 }
 let quoteServiceName="";
 function handoffQuote(i){
+ ocsHomeSave();
  let name="New Service Request";
  if(typeof i==="number"){const it=services[category].items[i];if(it)name=it.name}
  else if(typeof i==="string")name=i;
  quoteServiceName=name;
  bookingPayment="ONLINE";
+ ocsHomeNavView='quote';
  document.getElementById("topTitle").textContent="Get Quote";
  document.getElementById("search").style.display="none";
  document.getElementById("cart").classList.remove("show");
  document.getElementById("content").innerHTML=
-  '<div class="cat-title"><button onclick="openCategory(category)">‹</button><div><b>'+esc(name)+'</b><small>'+esc(category||"Custom / Other")+' • Get Quote</small></div></div>'+
+  '<div class="cat-title"><button onclick="homeServiceBack()">‹</button><div><b>'+esc(name)+'</b><small>'+esc(category||"Custom / Other")+' • Get Quote</small></div></div>'+
   '<div class="booking">'+
     '<div class="summary"><h3>Request Details</h3><div class="sum-row"><span>Service</span><b>'+esc(name)+'</b></div><div class="sum-row"><span>Price</span><b>Final after quote</b></div></div>'+
     '<div class="field"><label>Describe your work *</label><input id="quoteDetails" placeholder="Problem / work details"></div>'+
@@ -297,13 +312,14 @@ function handoffQuote(i){
     '<div class="field"><label>Contact Mobile *</label><input id="bookingMobile" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number"></div>'+
     '<div class="field"><label>Payment Method</label><div class="payrow"><button id="payOnline" class="on" onclick="setPay(\'ONLINE\')">Online</button><button id="payCash" onclick="setPay(\'CASH\')">Cash</button></div></div>'+
     '<button class="primary" id="findSpBtn" onclick="createQuoteBooking()">Find Service Provider</button>'+
-    '<button class="secondary" onclick="openCategory(category)">← Back to Rate List</button>'+
+    '<button class="secondary" onclick="homeServiceBack()">← Back to Rate List</button>'+
   '</div>';
  try{
    const p=JSON.parse(localStorage.getItem("ocsCustomerProfile")||"{}");
    const m=(p.mobile||p.phone||"").replace(/\D/g,"").slice(-10);
    if(m)document.getElementById("bookingMobile").value=m;
  }catch(e){}
+ ocsHomePush('quote');
  window.scrollTo(0,0);
 }
 async function createQuoteBooking(){
@@ -365,6 +381,90 @@ function filterList(q){
  if(!root)return;
  [...root.children].forEach(el=>el.style.display=!q||String(el.dataset.search||"").includes(q)?"":"none");
 }
+// OCS Home Services: preserve step order and booking inputs on Android/browser Back.
+let ocsHomeReady=false,ocsHomeRestoring=false,ocsHomeNavView='categories',ocsHomeSuccess=null,ocsHomeSaveTimer=null;
+function ocsHomeCapture(view){
+ const form={};
+ for(const id of ['bookingAddress','bookingMobile','quoteDetails']){
+  const el=document.getElementById(id);if(el)form[id]=el.value||'';
+ }
+ return {ocsHomeNav:true,view:view||ocsHomeNavView,category,selected:selected.map(x=>({...x})),
+  payment:bookingPayment,material:bookingMaterial,power:bookingPower,quoteName:quoteServiceName||'',
+  form,success:ocsHomeSuccess?{...ocsHomeSuccess}:null};
+}
+function ocsHomeSave(){
+ if(!ocsHomeReady||ocsHomeRestoring||!history.state?.ocsHomeNav)return;
+ try{history.replaceState(ocsHomeCapture(),'',location.href)}catch(e){console.warn('OCS nav save',e)}
+}
+function ocsHomePush(view){
+ ocsHomeNavView=view;
+ if(!ocsHomeReady||ocsHomeRestoring)return;
+ try{history.pushState(ocsHomeCapture(view),'',location.href)}catch(e){console.warn('OCS nav push',e)}
+}
+function ocsHomeReplace(view){
+ ocsHomeNavView=view;
+ if(!ocsHomeReady||ocsHomeRestoring)return;
+ try{history.replaceState(ocsHomeCapture(view),'',location.href)}catch(e){console.warn('OCS nav replace',e)}
+}
+function homeServiceBack(){
+ if(ocsHomeReady&&!ocsHomeRestoring&&ocsHomeNavView!=='categories'&&history.state?.ocsHomeNav){
+  ocsHomeSave();history.back();return;
+ }
+ goHome();
+}
+function ocsHomeRestore(x){
+ if(!x?.ocsHomeNav)return;
+ ocsHomeRestoring=true;
+ const view=x.view||'categories';
+ const cat=services[x.category]?x.category:'';
+ const savedSelected=Array.isArray(x.selected)?x.selected.map(y=>({...y})):[];
+ const pay=x.payment||'ONLINE';
+ try{
+  bookingMaterial=x.material||'';
+  bookingPower=x.power||'';
+  ocsHomeSuccess=x.success||null;
+  if(view==='categories'||!cat)renderCategories();
+  else if(view==='category'){
+   openCategory(cat);selected=savedSelected;openCategoryKeep(cat);
+  }else if(view==='booking'){
+   category=cat;selected=savedSelected;continueBooking();setPay(pay);
+   if(bookingMaterial)setMaterial(bookingMaterial);
+   if(bookingPower)setPower(bookingPower);
+  }else if(view==='quote'){
+   category=cat;handoffQuote(x.quoteName||'New Service Request');setPay(pay);
+  }else if(view==='success'){
+   category=cat;bookingPayment=pay;
+   renderBookingSuccess(x.success?.id||'',x.success?.total||0);
+  }else renderCategories();
+  for(const [id,value] of Object.entries(x.form||{})){
+   const el=document.getElementById(id);if(el)el.value=value||'';
+  }
+  ocsHomeNavView=view;
+  window.scrollTo(0,0);
+ }catch(e){console.warn('OCS nav restore',e)}
+ finally{ocsHomeRestoring=false}
+}
+function ocsHomeInit(){
+ try{
+  const current=ocsHomeCapture(ocsHomeNavView);
+  if(ocsHomeNavView!=='categories'){
+   const parent=ocsHomeNavView==='category'?'categories':'category';
+   history.replaceState({...current,view:parent,selected:parent==='categories'?[]:current.selected},'',location.href);
+   history.pushState(current,'',location.href);
+  }else history.replaceState(current,'',location.href);
+  ocsHomeReady=true;
+  window.addEventListener('popstate',e=>{if(e.state?.ocsHomeNav)ocsHomeRestore(e.state)});
+  document.addEventListener('input',e=>{
+   if(document.getElementById('content')?.contains(e.target)){
+    clearTimeout(ocsHomeSaveTimer);
+    ocsHomeSaveTimer=setTimeout(ocsHomeSave,100);
+   }
+  });
+  document.addEventListener('change',e=>{
+   if(document.getElementById('content')?.contains(e.target))ocsHomeSave();
+  });
+ }catch(e){console.warn('OCS nav startup',e)}
+}
 if(qs.get("resumeQuote")==="1"){
   try{
     const x=JSON.parse(localStorage.getItem("ocsCustomerServiceSelectionV1")||"null");
@@ -393,6 +493,7 @@ if(qs.get("resumeQuote")==="1"){
     }else renderCategories();
   }catch(e){renderCategories()}
 }else if(initialCat)openCategory(initialCat);else renderCategories();
+ocsHomeInit();
 </script>
 </body>
 </html>
