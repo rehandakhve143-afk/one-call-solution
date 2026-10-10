@@ -191,11 +191,7 @@ function continueBooking(){
    '<button class="primary" id="findSpBtn" onclick="createCleanBooking()">Find Service Provider</button>'+
    '<button class="secondary" onclick="homeServiceBack()">← Back to Rate List</button>'+
  '</div>';
- try{
-   const p=JSON.parse(localStorage.getItem("ocsCustomerProfile")||"{}");
-   const m=(p.mobile||p.phone||"").replace(/\D/g,"").slice(-10);
-   if(m)document.getElementById("bookingMobile").value=m;
- }catch(e){}
+ ocsAutofillBookingMobile();
  ocsHomePush('booking');
  window.scrollTo(0,0);
 }
@@ -203,17 +199,20 @@ function setPay(v){
  bookingPayment=v==="CASH"?"CASH":"ONLINE";
  document.getElementById("payOnline")?.classList.toggle("on",bookingPayment==="ONLINE");
  document.getElementById("payCash")?.classList.toggle("on",bookingPayment==="CASH");
+ ocsHomeSave();
 }
 function setMaterial(v){
  bookingMaterial=v;
  document.getElementById("matReady")?.classList.toggle("on",v==="READY");
  document.getElementById("matInspect")?.classList.toggle("on",v==="INSPECTION");
+ ocsHomeSave();
 }
 function setPower(v){
  bookingPower=v;
  document.getElementById("powerYes")?.classList.toggle("on",v==="YES");
  document.getElementById("powerNo")?.classList.toggle("on",v==="NO");
  document.getElementById("powerUnsure")?.classList.toggle("on",v==="NOT_SURE");
+ ocsHomeSave();
 }
 async function createCleanBooking(){
  const address=String(document.getElementById("bookingAddress")?.value||"").trim();
@@ -314,11 +313,7 @@ function handoffQuote(i){
     '<button class="primary" id="findSpBtn" onclick="createQuoteBooking()">Find Service Provider</button>'+
     '<button class="secondary" onclick="homeServiceBack()">← Back to Rate List</button>'+
   '</div>';
- try{
-   const p=JSON.parse(localStorage.getItem("ocsCustomerProfile")||"{}");
-   const m=(p.mobile||p.phone||"").replace(/\D/g,"").slice(-10);
-   if(m)document.getElementById("bookingMobile").value=m;
- }catch(e){}
+ ocsAutofillBookingMobile();
  ocsHomePush('quote');
  window.scrollTo(0,0);
 }
@@ -383,6 +378,17 @@ function filterList(q){
 }
 // OCS Home Services: preserve step order and booking inputs on Android/browser Back.
 let ocsHomeReady=false,ocsHomeRestoring=false,ocsHomeNavView='categories',ocsHomeSuccess=null,ocsHomeSaveTimer=null;
+function ocsAutofillBookingMobile(){
+ // Only use contact data linked to the CURRENT signed-in account.
+ if(!ocsSupabase)return;
+ ocsSupabase.rpc('get_my_contact_details_v1').then(({data,error})=>{
+  if(error||!data)return;
+  const input=document.getElementById('bookingMobile');
+  if(!input||input.value.trim())return;
+  const digits=String(data.mobile||'').replace(/\D/g,'').slice(-10);
+  if(digits.length===10){input.value=digits;ocsHomeSave()}
+ }).catch(()=>{});
+}
 function ocsHomeCapture(view){
  const form={};
  for(const id of ['bookingAddress','bookingMobile','quoteDetails']){
