@@ -798,6 +798,9 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
        try{adminFree=!!(window.parent&&typeof window.parent.ocsUserHasRole==='function'&&await window.parent.ocsUserHasRole('admin'))}catch(e){adminFree=false}
        if(!adminFree){alert("Admin FREE access allowed nahi hai.");return}
      }
+     if(!adminFree&&(!Number.isFinite(Number(pp))||Number(pp)<=0)){
+       alert("Property plan ka paid charge Admin ko set karna hoga. ₹0 posting sirf verified Admin FREE override se hogi.");return;
+     }
      tax=adminFree?{base:0,rate:0,gst:0,total:0,enabled:false}:propertyPlanTax(propertyPlanDays);planLabel=ocsPropertyPlanLabel(propertyPlanDays);
      if(!validateBuilderProfileProjects()){go(2);return}
      try{
