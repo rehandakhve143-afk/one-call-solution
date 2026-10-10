@@ -658,6 +658,26 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
 @media (min-width:721px){
  html body.module-open #viewer.show:not(.home-service-view){width:min(480px,100%)!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important}
 }
+
+/* The four OCS revenue flows should be visible before marketplace listings. */
+.ocs-core-entry{margin:14px 0 18px}
+.ocs-core-entry .ocs-core-kicker{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 11px}
+.ocs-core-entry .ocs-core-kicker h2{font-size:18px;letter-spacing:-.35px;color:#163b43;font-weight:900;margin:0}
+.ocs-core-entry .ocs-core-kicker span{font-size:11px;color:#6d8188;font-weight:750}
+.ocs-core-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ocs-core-tile{display:flex;align-items:flex-start;gap:11px;text-align:left;background:linear-gradient(155deg,#fff,#f7fbfb);border:1px solid #dce8e8;border-radius:17px;box-shadow:0 3px 12px #1043510d;min-height:112px;padding:15px 11px;color:#16444e;cursor:pointer;position:relative}
+.ocs-core-tile:active{transform:scale(.99)}
+.ocs-core-tile:focus-visible{outline:2px solid #047c82;outline-offset:3px}
+.ocs-core-tile .ocs-core-glyph{flex:none;display:grid;place-items:center;border-radius:12px;width:35px;height:35px;font-size:20px;background:#e3f3f0}
+.ocs-core-tile .ocs-core-copy{min-width:0;display:flex;flex-direction:column;gap:5px;padding-top:1px}
+.ocs-core-tile b{font-size:13px;line-height:1.3;letter-spacing:-.1px}
+.ocs-core-tile small{font-size:10px;line-height:1.35;color:#627c83;font-weight:600}
+.ocs-core-tile .ocs-core-arrow{position:absolute;right:9px;bottom:8px;color:#078579;font-size:15px}
+.ocs-core-tile.ocs-core-customer{background:linear-gradient(145deg,#f0faf7,#fff);border-color:#cbe5db}
+.ocs-core-tile.ocs-core-sp .ocs-core-glyph{background:#eaf0fb}
+.ocs-core-tile.ocs-core-driver .ocs-core-glyph{background:#fff0e4}
+.ocs-core-tile.ocs-core-transport .ocs-core-glyph{background:#e2f0fc}
+@media(min-width:560px){.ocs-core-tile{min-height:120px;padding:16px 14px}.ocs-core-tile b{font-size:14px}.ocs-core-tile small{font-size:11px}}
 </style>
 <script src="assets/ocs-category-experience.js?v=20261010-stable-premium1"></script>
 <script src="assets/ocs-photo-services.js?v=20261010-photorates1"></script>
@@ -709,6 +729,17 @@ setTimeout(function(){
       <button type="button" onclick="event.stopPropagation();openBannerAd()">Promote Now</button>
     </section>
 
+
+    <section class="ocs-core-entry" id="ocsMainBusiness" aria-label="Main OCS services">
+      <div class="ocs-core-kicker"><h2>Book Services & Get Work</h2><span>OCS Main Services</span></div>
+      <div class="ocs-core-grid">
+        <button class="ocs-core-tile ocs-core-customer" type="button" onclick="openModule('Home Services','customer')" aria-label="Book Home Service as Customer"><span class="ocs-core-glyph">🏠</span><span class="ocs-core-copy"><b>Customer</b><small>Book Home Services • Clear Rates</small></span><span class="ocs-core-arrow">↗</span></button>
+        <button class="ocs-core-tile ocs-core-sp" type="button" onclick="openModule('Home Services','provider')" aria-label="Open Service Provider Dashboard"><span class="ocs-core-glyph">🛠</span><span class="ocs-core-copy"><b>Service Provider</b><small>Manage Requests • Work ON/OFF</small></span><span class="ocs-core-arrow">↗</span></button>
+        <button class="ocs-core-tile ocs-core-driver" type="button" onclick="openModule('Driver Service')" aria-label="Book a 4-Wheeler Driver"><span class="ocs-core-glyph">🚘</span><span class="ocs-core-copy"><b>Driver Service</b><small>Book a Driver for Your Car</small></span><span class="ocs-core-arrow">↗</span></button>
+        <button class="ocs-core-tile ocs-core-transport" type="button" onclick="openModule('Tempo / Goods Transport')" aria-label="Book Tempo or Goods Transport"><span class="ocs-core-glyph">🚚</span><span class="ocs-core-copy"><b>Transport Service</b><small>Tempo • Goods • Home Shifting</small></span><span class="ocs-core-arrow">↗</span></button>
+      </div>
+    </section>
+
     <button class="ocs-market-card ocs-market-card-wide ocs-feature-property" onclick="openModule('Property')"><span class="photo" style="background-image:url('https://img.squareyards.com/secondaryPortal/optImages/IN_639108210862157805-0304260151265126.jpg?aio=w-300%3Bh-300%3Bfill%3B')"></span><span class="ocs-market-badge">PROPERTY • BUILDER</span><span class="ocs-market-copy"><b>Property / Builder</b><small>Rent • Buy • Builder Listings</small></span></button>
 
     <div class="ocs-super-head"><h2>Home Services</h2><button onclick="openModule('Home Services','customer')">View Home Services</button></div>
@@ -725,10 +756,8 @@ setTimeout(function(){
       <div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 16 0v5a2 2 0 0 1-2 2h-2v-6h4M4 13h4v6H6a2 2 0 0 1-2-2Z"/></svg><b>OCS Support</b><small>When needed</small></div>
     </div>
 
-    <div class="ocs-super-head"><h2>More on OCS</h2></div>
+    <div class="ocs-super-head"><h2>Shops, Property & More</h2></div>
     <div class="ocs-super-market" id="ocsMarketGrid">
-      <button class="ocs-market-card" onclick="openModule('Driver Service')"><span class="photo" style="background-image:linear-gradient(135deg,#dff6f3,#edf5f6)"></span><span class="ocs-market-badge">DRIVER</span><span class="ocs-market-copy"><b>Driver Service</b><small>4-Wheeler Driver • Pickup & Drop</small></span></button>
-      <button class="ocs-market-card" onclick="openModule('Tempo / Goods Transport')"><span class="photo" style="background-image:url('https://images.unsplash.com/photo-1592838064575-70ed626d3a0e?auto=format&fit=crop&w=900&q=82')"></span><span class="ocs-market-badge">TRANSPORT</span><span class="ocs-market-copy"><b>Tempo / Goods Transport</b><small>Home Shifting • Delivery • Truck</small></span></button>
       
       <button class="ocs-market-card" onclick="openModule('Local Shop')"><span class="photo" style="background-image:url('https://www.dolarlc.com/_next/image?q=75&url=%2Fimages%2Fassets%2Felectricidad-3.webp&w=3840')"></span><span class="ocs-market-badge">NEARBY</span><span class="ocs-market-copy"><b>Local Shop</b><small>Electrical • Hardware</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Modular Kitchen')"><span class="photo" style="background-image:url('https://indiframe-cms-media.s3.ap-south-1.amazonaws.com/blog122_26d5a6b6f3.jpg')"></span><span class="ocs-market-copy"><b>Modular Kitchen</b><small>Design • Measurement • Quote</small></span></button>
@@ -4819,7 +4848,7 @@ async function injectLiveCategoryAds(cat){
  return rows.length;
 }
 
-const OCS_MODULE_NAMES=["Home Services","Property","Tempo / Goods Transport","Local Shop","Sliding / Aluminium","Welding / Fabrication","Beauty / Make-up","Used Vehicle","New Vehicle","Medical Store","Diagnostic Lab","Modular Kitchen","Hotel / Restaurant / Lodging"];
+const OCS_MODULE_NAMES=["Home Services","Driver Service","Tempo / Goods Transport","Property","Local Shop","Sliding / Aluminium","Welding / Fabrication","Beauty / Make-up","Used Vehicle","New Vehicle","Medical Store","Diagnostic Lab","Modular Kitchen","Hotel / Restaurant / Lodging"];
 
 const OCS_XYZ_DEMO_ENABLED=true;
 const OCS_XYZ_DEMO={
@@ -5034,7 +5063,8 @@ let currentModuleName="",pendingWindowSearch="",pendingPropertyPost="";
 const OCS_SEARCH_ALIASES={
  "Home Services":"electrician electrical fan switch socket plumber plumbing ac cleaning carpenter appliance pest maid painter cctv gas stove wifi tv packers movers tiles stone waterproofing false ceiling pop gypsum pvc home repair service provider",
  "Property":"property flat rent buy sale builder bungalow row house land plot xyz builder xyz residency sample builder project",
- "Tempo / Goods Transport":"tempo goods transport truck pickup tata ace mini tempo home shifting delivery parcel logistics helper 14 ft 17 ft 20 ft",
+ "Driver Service":"driver service hire driver for my car 4 wheeler driving chauffeur pickup drop own vehicle",
+ "Tempo / Goods Transport":"transport service tempo goods transport truck pickup tata ace mini tempo home shifting delivery parcel logistics helper 14 ft 17 ft 20 ft",
  "Local Shop":"local shop electrical shop hardware shop product material",
  "Sliding / Aluminium":"sliding aluminium aluminum window door glass",
  "Welding / Fabrication":"welding fabrication grill gate metal",
