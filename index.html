@@ -4357,6 +4357,11 @@ async function fetchPublicLivePosts(category,limit){
  }catch(e){console.warn('Live posts load failed',e);return []}
 }
 function livePostMeta(x){return x&&x.metadata&&typeof x.metadata==='object'?x.metadata:{}}
+function ocsIsDemoPostRow(row){
+ const m=livePostMeta(row),title=String(row&&row.title||'');
+ return /^XYZ Demo/i.test(title)||['true','1'].includes(String(m.is_demo||'').toLowerCase())||
+   ['true','1'].includes(String(m.sample||'').toLowerCase());
+}
 function livePostMedia(meta){
  const a=Array.isArray(meta.media)?meta.media:[];
  return a.filter(x=>x&&x.url).slice(0,23);
@@ -4584,7 +4589,8 @@ function ocsPlaceCategoryListing(doc,category,element){
 }
 async function injectLiveCategoryAds(cat){
  const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;if(!doc||!doc.body)return;
- const rows=await fetchPublicLivePosts(cat==='Property'?'Property':cat,30);
+ let rows=await fetchPublicLivePosts(cat==='Property'?'Property':cat,30);
+ if(cat==='Property')rows=[...rows].sort((a,b)=>Number(ocsIsDemoPostRow(a))-Number(ocsIsDemoPostRow(b)));
  const old=doc.getElementById('ocsLiveCategoryFeed');if(old)old.remove();
  if(!rows.length)return;
  let style=doc.getElementById('ocsLiveCategoryStyle');
@@ -4599,7 +4605,10 @@ async function injectLiveCategoryAds(cat){
  '#ocsLivePhotoLightbox{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:18px 18px 126px;touch-action:pan-y}#ocsLivePhotoLightbox.show{display:flex}#ocsLivePhotoLightbox img{max-width:100%;max-height:72vh;border-radius:16px;object-fit:contain;user-select:none;-webkit-user-drag:none}#ocsLivePhotoLightbox .lfLbClose{position:absolute;right:18px;top:18px;width:48px;height:48px;border:0;border-radius:50%;background:#fff;font-size:28px;font-weight:900;z-index:3}#ocsLivePhotoLightbox .lfLbNav{position:absolute;top:46%;transform:translateY(-50%);width:46px;height:58px;border:0;border-radius:14px;background:rgba(255,255,255,.88);font-size:30px;font-weight:900;z-index:3}#ocsLivePhotoLightbox .lfLbPrev{left:10px}#ocsLivePhotoLightbox .lfLbNext{right:10px}#ocsLivePhotoLightbox .lfLbCount{position:absolute;left:18px;top:22px;background:rgba(0,0,0,.58);color:#fff;border-radius:999px;padding:7px 12px;font:800 12px system-ui,Arial;z-index:3}#ocsLivePhotoLightbox .lfLbInfo{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(255,255,255,.97);border-radius:18px;padding:10px;z-index:4;box-shadow:0 10px 28px rgba(0,0,0,.24);font-family:system-ui,Arial;color:#173f46}#ocsLivePhotoLightbox .lfLbInfoTop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}#ocsLivePhotoLightbox .lfLbTitle{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#ocsLivePhotoLightbox .lfLbPrice{font-size:16px;font-weight:950;color:#087a70;white-space:nowrap}#ocsLivePhotoLightbox .lfLbActions{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#ocsLivePhotoLightbox .lfLbActions button{border:0;border-radius:11px;min-height:42px;font-size:9px;font-weight:900;background:#eef4f3;color:#173f46}#ocsLivePhotoLightbox .lfLbLike.liked{background:#ffe4eb;color:#c62855}#ocsLivePhotoLightbox .lfLbShare{background:#eef0ff!important;color:#3d4f90!important}#ocsLivePhotoLightbox .lfLbCall{background:#eef5f4!important;color:#134b48!important}#ocsLivePhotoLightbox .lfLbEnquiry{background:#dcf8e7!important;color:#13743b!important}';
  (doc.head||doc.documentElement).appendChild(style)}
  const feed=doc.createElement('section');feed.id='ocsLiveCategoryFeed';
- feed.innerHTML='<div class="lfHead"><b>LIVE '+ocsSavedText(cat)+' Ads</b><small>'+rows.length+' active</small></div><div class="lfRail">'+rows.map((x,i)=>{const m=livePostMeta(x),media=livePostMedia(m),photos=media.filter(z=>z.type==='image').slice(0,20),videos=media.filter(z=>z.type==='video').slice(0,3),name=livePostDisplayName(x);
+ const demoCount=rows.filter(ocsIsDemoPostRow).length,liveCount=rows.length-demoCount;
+ const feedHeading=cat==='Property'?(liveCount?'Property Listings':'Property Samples'):'LIVE '+cat+' Ads';
+ const feedCount=cat==='Property'?(liveCount+' real • '+demoCount+' samples'):(rows.length+' active');
+ feed.innerHTML='<div class="lfHead"><b>'+ocsSavedText(feedHeading)+'</b><small>'+ocsSavedText(feedCount)+'</small></div><div class="lfRail">'+rows.map((x,i)=>{const m=livePostMeta(x),media=livePostMedia(m),photos=media.filter(z=>z.type==='image').slice(0,20),videos=media.filter(z=>z.type==='video').slice(0,3),name=livePostDisplayName(x);
  const fallback=m.image?[{url:m.image,type:'image'}]:[];
  const allPhotos=photos.length?photos:fallback,upper=allPhotos.slice(0,10),lower=allPhotos.slice(10,20);
  const slider=(arr,extra)=>arr.length?'<div class="lfBigSlider '+(extra||'')+'">'+arr.map((p,pi)=>'<img data-live-index="'+i+'" src="'+String(p.url||'')+'" loading="lazy" alt="'+ocsSavedText(name)+' photo '+(pi+1)+'">').join('')+'</div>':'';
@@ -4619,7 +4628,7 @@ async function injectLiveCategoryAds(cat){
    '</div>'+
    (propertyBuilder?'<button style="width:100%;border:1px solid #b2dfd7;background:#e3f6f2;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">💬 Chat / Enquiry with Builder</button>':'')+
    (propertyProjectProfile&&m.email?'<button style="width:100%;border:1px solid #d9e7e5;background:#f5faf8;color:#22545a;border-radius:10px;padding:10px;font-weight:800;margin-top:6px" onclick="parent.livePostEmail(parent.__ocsLiveFeed['+i+'])">✉ Email Builder</button>':''):'';
- const isSample=/^XYZ Demo/i.test(String(x.title||''))||['true','1'].includes(String(m.is_demo||'').toLowerCase())||['true','1'].includes(String(m.sample||'').toLowerCase());
+ const isSample=ocsIsDemoPostRow(x);
  const projectList=propertyProjectProfile&&Array.isArray(m.projects)?m.projects.slice(0,20).map((p,j)=>Object.assign({__projectIndex:j},p)).filter(p=>p&&p.name):[];
  const projectCards=projectList.length?
    '<div style="font-size:13px;font-weight:900;color:#17444a;margin-top:12px">Builder Projects ('+projectList.length+')</div>'+
@@ -4651,8 +4660,8 @@ async function injectLiveCategoryAds(cat){
  const enquiryHtml=isSample
   ?'<div style="font-size:11px;background:#fff4df;color:#8c6618;padding:7px;border-radius:9px;margin-top:8px">SAMPLE • No real enquiry</div>'
   :'<button style="width:100%;background:#e3f6f2;border:1px solid #b2dfd7;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">✉ '+(cat==='Local Shop'?'Ask for Product':'Enquire with this Listing')+'</button>';
- return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?'SAMPLE • NOT A REAL SHOP':'LIVE') +'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+propertyPrice+propertyFeatures+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'') +'</p>'+directShopNote+projectCards+catalogHtml+(isSample?'':isProperty?propertyButtons:'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+(isProperty?'':enquiryHtml+itemWa)+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
- window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat,__sourceTitle:x.title||'',__isDemo:/^XYZ Demo/i.test(String(x.title||''))||['true','1'].includes(String(livePostMeta(x).is_demo||'').toLowerCase())||['true','1'].includes(String(livePostMeta(x).sample||'').toLowerCase())}));
+ return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?(cat==='Local Shop'?'SAMPLE • NOT A REAL SHOP':'SAMPLE • NOT LIVE'):'LIVE') +'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+propertyPrice+propertyFeatures+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'') +'</p>'+directShopNote+projectCards+catalogHtml+(isSample?'':isProperty?propertyButtons:'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+(isProperty?'':enquiryHtml+itemWa)+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
+ window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat,__sourceTitle:x.title||'',__isDemo:ocsIsDemoPostRow(x)}));
  ocsPlaceCategoryListing(doc,cat,feed);
 
  // One consistent full-screen gallery for every LIVE listing photo.
