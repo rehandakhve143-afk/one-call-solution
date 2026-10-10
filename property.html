@@ -208,7 +208,7 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 </div>
 <div id="propertyPublicEmailWrap"><label>Public Contact Email *</label><input class="field" id="contactEmail" type="email" placeholder="name@email.com"></div>
 <label>Billing / GST Invoice & Renewal Email *</label><input class="field" id="renewalEmail" type="email" placeholder="name@email.com">
-<div class="muted" style="margin-top:5px">Ye billing email public listing me nahi dikhaya jayega. GST invoice aur renewal reminder ke liye use hoga.</div>
+<div class="muted" style="margin-top:5px">Ye billing email public listing me nahi dikhaya jayega. Billing/GST invoice ke liye use hoga; OCS ke andar expiry reminders bhi milenge.</div>
 <div id="builderLinks" class="builder-block hidden">
   <h3>Builder Advertisement Links</h3>
   <label>Brochure Link (Optional)</label><input class="field" id="brochure" placeholder="Brochure PDF / URL">
@@ -233,7 +233,7 @@ header{box-shadow:0 5px 18px rgba(15,56,66,.08)!important}
 <span class="step-kicker">Payment & Publish</span>
 <label>Listing Package</label>
 <select class="field" id="propertyPlanSelect" onchange="propertyPlanDurationChange()"><option value="28">28 Days</option><option value="180">6 Months</option></select>
-<div class="muted">Package validity ke dauran listing editable rahegi. Expiry se 7 days aur 1 day pehle email reminder jayega.</div>
+<div class="muted">Plan ke expiry se 7 din aur 1 din pehle OCS Notifications mein reminder aayega. Email reminder service abhi verify hona baaki hai.</div>
 <div id="propertyAdminFreeWrap" class="property-plan-box hidden" style="margin-top:12px">
   <label style="display:flex;align-items:center;gap:9px;margin:0"><input id="propertyAdminFree" type="checkbox" style="width:auto" onchange="propertyPlanDurationChange()"> <b>Admin: Make this Property Post FREE</b></label>
   <small>₹0 payment • GST ₹0 • direct LIVE for selected plan.</small>
@@ -620,6 +620,14 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    const m=Array.isArray(media)?media:[];
    return {
      propertyType:$("ptype")?.value||"",
+     purpose:$("purpose")?.value||"",
+     price:Number($("price")?.value||0),
+     bhk:$("ptype")?.value==='Land'?'':($("bhk")?.value||""),
+     sqft:Number($("sqft")?.value||0),
+     projectStatus:isBuilderPost()?($("projectStatus")?.value||""):"",
+     builderCompany:isBuilderPost()?($("builderCompany")?.value||""):"",
+     builderContactPerson:isBuilderPost()?($("builderContactPerson")?.value||""):"",
+     builderRegistration:isBuilderPost()?($("builderReg")?.value||""):"",
      city:$("city")?.value||"",
      area:$("area")?.value||"",
      address:$("address")?.value||"",
@@ -658,8 +666,12 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
      tax=adminFree?{base:0,rate:0,gst:0,total:0,enabled:false}:propertyPlanTax(propertyPlanDays);planLabel=ocsPropertyPlanLabel(propertyPlanDays);
      try{await collectPropertyPublicMedia()}catch(e){alert("Property photo/video upload nahi hua: "+(e&&e.message?e.message:"Upload error"));return}
      const publicMeta=propertyPublicMeta(propertyPublicMedia);
-     if(adminFree&&window.parent&&typeof window.parent.recordAdminFreePostBackend==='function'){
-       await window.parent.recordAdminFreePostBackend({
+     if(adminFree){
+       // Admin-only FREE listing must be confirmed by server, never only localStorage.
+       if(!window.parent||typeof window.parent.recordAdminFreePostBackend!=='function'){
+         alert("OCS backend connected nahi hai. FREE property listing publish nahi hui.");return;
+       }
+       const confirmed=await window.parent.recordAdminFreePostBackend({
          sourceKind:"property_listing",
          category:propertyPostingCategory(),
          title:"OCS Property Listing • "+($("project")?.value||$("propertyTitle")?.value||$("poster")?.value||"Property"),
@@ -668,6 +680,9 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
          durationDays:propertyPlanDays,
          metadata:publicMeta
        });
+       if(!confirmed||!confirmed.id||String(confirmed.status||'').toLowerCase()!=='live'){
+         alert("FREE Property post abhi LIVE nahi hua. Server confirmation failed. Draft safe rakhein aur retry karein.");return;
+       }
      }
      if(Number(pp)>0&&!adminFree){
        try{
