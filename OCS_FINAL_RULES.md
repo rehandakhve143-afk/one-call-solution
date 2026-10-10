@@ -119,7 +119,7 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 ## 10) Property
 - **Single Property – Sale / Rent: ₹199 / 28 days**.
 - **Builder Property: ₹499 / 28 days**.
-- **Builder Project Profile: ₹499 / 28 days**.
+- **Builder Project Profile: ₹799 / 28 days**.
 - Property types can include Flat, Bungalow, Row House and Land/Plot.
 - Keep posting easy: details → location → price → media → contact → preview → payment → post.
 - Latest property flow: successful payment + required verification → listing live for the plan validity.
