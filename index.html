@@ -563,7 +563,7 @@ setTimeout(function(){
   <button id="bnProfile" onclick="openAccountEntry()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>Account</button>
 </nav>
 <div class="common-search module-only" id="windowCommonSearch" aria-label="Search current window"><span aria-hidden="true">⌕</span><input id="windowSearch" placeholder="Search in this window..." onkeydown="if(event.key==='Enter')runWindowSearch(this.value)"><button type="button" onclick="runWindowSearch(document.getElementById('windowSearch')?.value)">Search</button></div>
-<div class="viewer" id="viewer"><div class="bar"><button class="back" onclick="closeModule()">‹ Back</button><div id="title"></div><button id="windowManageBtn" class="window-manage" onclick="manageCurrentWindow()">+ Post Ad</button></div><iframe id="frame"></iframe></div>
+<div class="viewer" id="viewer"><div class="bar"><button class="back" type="button" onclick="ocsUnifiedBack()" aria-label="Back to previous OCS screen">‹ Back</button><div id="title"></div><button id="windowManageBtn" class="window-manage" onclick="manageCurrentWindow()">+ Post Ad</button></div><iframe id="frame"></iframe></div>
 <div class="modal" id="joinOcsModal"><div class="sheet ocs-join-sheet">
   <div class="ocs-join-head"><div><h2>Join One Call Solution</h2><div class="muted">Aap OCS ke saath kis role me judna chahte hain?</div></div><button class="x" onclick="closeJoinOcs()">×</button></div>
   <div class="ocs-join-options">
@@ -4735,6 +4735,21 @@ function closeModule(){
  const gs=document.getElementById("globalSearch");if(gs){gs.value="";gs.placeholder="Search services, shops, property, vehicle..."}
  const ws=document.getElementById("windowSearch");if(ws){ws.value="";ws.placeholder="Search in this window..."}
 }
+function ocsUnifiedBack(){
+ try{
+   const viewer=document.getElementById('viewer');
+   if(viewer&&viewer.classList.contains('show')){
+     const state=history.state;
+     if(state&&state.ocsUi&&state.state&&state.state.module===currentModuleName&&history.length>1){
+       history.back();
+       return;
+     }
+   }
+   if(ocsIndexHandleBack())return;
+ }catch(e){console.warn('OCS Back fallback',e)}
+ // No in-app previous page: keep OCS Home visible.
+ bottomHome();
+}
 function ocsIndexHandleBack(){
  try{
    const live=document.getElementById('ocsLiveSearchOverlay');if(live){live.remove();return true}
@@ -5057,29 +5072,19 @@ function ocsWindowNav(dir){
  try{doc.defaultView.scrollBy({top:dir*(doc.defaultView.innerHeight*.72),behavior:'smooth'})}catch(e){}
 }
 function injectUniversalWindowNav(cat){
- if(!cat||cat==='Home Services')return;
- const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;if(!doc||!doc.body)return;
- let style=doc.getElementById('ocsUniversalWindowNavStyle');
- if(!style){
-   style=doc.createElement('style');style.id='ocsUniversalWindowNavStyle';
-   const isProperty=cat==='Property';
-   style.textContent=
-   'body{padding-bottom:'+(isProperty?'82px':'154px')+'!important}'+
-   '#ocsUniversalWindowNav{position:fixed;left:10px;right:10px;bottom:'+(isProperty?'12px':'78px')+';z-index:2147483002;display:grid;grid-template-columns:.82fr 1.18fr;gap:8px;padding:8px;background:rgba(255,255,255,.98);border:1px solid #dbe8e5;border-radius:17px;box-shadow:0 10px 28px rgba(20,45,55,.22);font-family:system-ui,Arial,sans-serif}'+
-   '#ocsUniversalWindowNav button{border:0;border-radius:12px;min-height:45px;font-weight:900;font-size:12px}'+
-   '#ocsUniversalWindowBack{background:#edf3f2;color:#24494d}#ocsUniversalWindowNext{background:#087a70;color:#fff}'+
-   (isProperty?'':'#ocsBusinessLikeBar{bottom:142px!important}');
-   (doc.head||doc.documentElement).appendChild(style);
+ // No fake bottom Back / Next bars. Keep only meaningful wizard actions.
+ const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;
+ if(!doc)return;
+ doc.getElementById('ocsUniversalWindowNav')?.remove();
+ doc.getElementById('ocsUniversalWindowNavStyle')?.remove();
+ // Native posting wizard has its real Continue/Next button.
+ // Parent window header owns the single navigation Back button.
+ const wizard=doc.getElementById('ocsPostNav');
+ if(wizard){
+   const back=wizard.querySelector('.ocsBack');
+   if(back)back.style.display='none';
+   wizard.style.gridTemplateColumns='1fr';
  }
- let bar=doc.getElementById('ocsUniversalWindowNav');
- if(!bar){
-   bar=doc.createElement('div');bar.id='ocsUniversalWindowNav';
-   bar.innerHTML='<button id="ocsUniversalWindowBack" type="button">← Back</button><button id="ocsUniversalWindowNext" type="button">Next →</button>';
-   doc.body.appendChild(bar);
- }
- const back=doc.getElementById('ocsUniversalWindowBack'),next=doc.getElementById('ocsUniversalWindowNext');
- if(back)back.onclick=()=>parent.ocsWindowNav(-1);
- if(next)next.onclick=()=>parent.ocsWindowNav(1);
 }
 
 const OCS_BIZ_CHATS_KEY='ocsBusinessChatsV1';
