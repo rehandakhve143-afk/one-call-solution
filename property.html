@@ -112,6 +112,102 @@ body.ocs-embedded-property .section>.headrow h2{font-size:24px;margin-top:8px}
 body.ocs-embedded-property .tabs{padding:8px 0}
 body.ocs-embedded-property .filters{padding:8px 0}
 body.ocs-embedded-property .headrow .muted{font-size:12px}
+
+/* Single-screen native app wizard: one scroll area, stable header, no bottom-sheet bounce. */
+html:has(body.ocs-property-post-open),
+body.ocs-property-post-open{
+  height:100%!important;overflow:hidden!important;overscroll-behavior:none!important;
+}
+body.ocs-property-post-open #ocsCompactEnquiryRoot,
+body.ocs-property-post-open #ocsBusinessLikeBar{display:none!important}
+#overlay.overlay{
+  inset:0!important;display:none;align-items:stretch!important;
+  justify-content:center!important;background:#fff!important;
+  overflow:hidden!important;overscroll-behavior:none!important;
+}
+#overlay.overlay .sheet{
+  width:100%!important;max-width:720px!important;height:100%!important;
+  height:100dvh!important;max-height:100%!important;
+  position:relative!important;display:flex!important;flex-direction:column!important;
+  padding:0!important;border:0!important;border-radius:0!important;
+  overflow:hidden!important;background:#fff!important;box-shadow:none!important;
+  overscroll-behavior:none!important
+}
+#overlay .property-form-header{
+  flex:0 0 auto;background:#fff;z-index:2;
+  border-bottom:1px solid #e5ecec;padding:13px 17px 11px;
+}
+#overlay .property-form-topline{
+  display:flex;gap:10px;align-items:center;justify-content:space-between;min-width:0
+}
+#overlay .property-form-headcopy{min-width:0;flex:1}
+#overlay .property-form-headcopy h2{
+  font:850 20px/1.2 system-ui,Arial,sans-serif!important;
+  margin:0 0 4px!important;letter-spacing:-.4px;color:#123c46
+}
+#overlay .property-form-headcopy .muted{
+  font-size:11px!important;line-height:1.4!important;color:#647b80!important
+}
+#overlay .property-form-controls{
+  display:flex;align-items:center;gap:7px;flex-shrink:0
+}
+#overlay .property-form-controls .draft-save-top{
+  float:none!important;margin:0!important;border:1px solid #cce0df!important;
+  border-radius:999px!important;background:#f4faf8!important;
+  padding:9px 11px!important;font-size:11px!important;color:#12665f!important;
+  white-space:nowrap
+}
+#overlay .property-form-controls .close{
+  float:none!important;width:36px!important;height:36px!important;
+  display:grid!important;place-items:center!important;border-radius:11px!important;
+  margin:0!important;font-size:19px!important;background:#f0f4f4!important;color:#23464c!important
+}
+#overlay .property-progress{height:4px;background:#e9f2ef;border-radius:999px;margin-top:12px;overflow:hidden}
+#overlay .property-progress span{display:block;height:100%;background:#078c82;border-radius:999px;transition:width .18s ease}
+#overlay .property-form-scroll{
+  flex:1 1 0!important;min-height:0!important;min-width:0!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch;
+  padding:15px 17px calc(25px + env(safe-area-inset-bottom))!important;
+  background:#fff!important;scrollbar-width:thin;
+}
+#overlay .property-form-scroll>div[id^="s"]:not(.hidden),
+#overlay .property-form-scroll #done:not(.hidden){width:100%;margin:0 auto;max-width:650px}
+#overlay .property-form-scroll .primary-action{
+  position:static!important;display:block!important;width:100%!important;
+  min-height:49px!important;margin:20px 0 8px!important;
+  border-radius:12px!important;box-shadow:none!important;
+  font:850 14px system-ui,Arial,sans-serif!important;
+}
+#overlay .property-form-scroll .step-kicker{margin:3px 0 8px!important;font-size:10px!important}
+#overlay .property-form-scroll label{
+  font-size:13px!important;line-height:1.35!important;margin:13px 0 5px!important;
+  font-weight:750!important;color:#21454d!important;
+}
+#overlay .property-form-scroll .field{
+  width:100%!important;min-width:0!important;min-height:46px!important;
+  padding:11px 12px!important;font-size:14px!important;border-radius:11px!important;
+  border-color:#d5e2e2!important;background:#fff!important;
+}
+#overlay .property-form-scroll textarea.field{min-height:84px!important;line-height:1.4!important}
+#overlay .property-form-scroll .builder-block{
+  background:#f8fbfb!important;border-color:#e2ebea!important;
+  padding:12px!important;border-radius:12px!important;
+}
+#overlay .property-form-scroll .property-plan-box{
+  padding:10px 12px!important;border-radius:12px!important;margin:11px 0!important;
+  background:#f3faf8!important;box-shadow:none!important
+}
+#overlay .property-form-scroll .property-plan-box span{
+  font-size:14px!important;line-height:1.42!important;
+}
+#overlay .property-form-scroll .property-plan-box small{font-size:11px!important}
+#overlay .property-form-scroll .row{grid-template-columns:minmax(0,1fr)!important;gap:0!important}
+#overlay .property-form-scroll .contact-grid{grid-template-columns:minmax(0,1fr)!important}
+#overlay .property-form-scroll #s1,#overlay .property-form-scroll #s2,
+#overlay .property-form-scroll #s3,#overlay .property-form-scroll #s4,
+#overlay .property-form-scroll #s5,#overlay .property-form-scroll #s6{padding-bottom:0!important}
+
 /* Mobile-first, single-column, scrollable posting form inside the OCS iframe. */
 body.ocs-property-post-open{overflow:hidden!important}
 #overlay .sheet{box-sizing:border-box;scroll-behavior:auto}
@@ -184,14 +280,21 @@ body.ocs-property-post-open{overflow:hidden!important}
 </div>
 </section>
 
-<div class="partner"><b style="font-size:19px">Post your property in a few simple steps</b><div class="muted">No complicated form. Only relevant fields appear for the property you select.</div><div class="steps"><div class="step"><div class="num">1</div><b>Add Details</b><br>type, price, location</div><div class="step"><div class="num">2</div><b>Add Media</b><br>photos & optional links</div><div class="step"><div class="num">3</div><b>Payment & Go Live</b><br>publish listing</div></div></div>
+
 
 <nav class="bottom"><button onclick="ocsModuleHome()">⌂<br>Home</button><button class="active" onclick="ocsModuleTop()">▣<br>Property</button><button onclick="ocsModuleSearch()">⌕<br>Search</button><button onclick="openPost()">○<br>Profile</button></nav>
 </div>
 
-<div class="overlay" id="overlay"><div class="sheet"><button class="close" onclick="closePost()">×</button><button class="draft-save-top" type="button" onclick="savePropertyDraft()">Save Draft</button>
-<h2 id="stepTitle">Post Property</h2><div class="muted" id="stepHelp">Step 1 of 6 • Profile & property type</div><div id="draftStatus" class="draft-status">Draft saved on this device.</div>
-
+<div class="overlay" id="overlay"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="stepTitle">
+ <div class="property-form-header">
+  <div class="property-form-topline">
+   <div class="property-form-headcopy"><h2 id="stepTitle">Post Property</h2><div class="muted" id="stepHelp">Step 1 of 6 • Profile & property type</div></div>
+   <div class="property-form-controls"><button class="draft-save-top" type="button" onclick="savePropertyDraft()">Save Draft</button><button class="close" type="button" aria-label="Close form" onclick="closePost()">×</button></div>
+  </div>
+  <div class="property-progress" aria-hidden="true"><span id="propertyStepProgress" style="width:16.67%"></span></div>
+ </div>
+ <div class="property-form-scroll" id="propertyFormScroll">
+  <div id="draftStatus" class="draft-status">Draft saved on this device.</div>
 <div id="s1">
 <span class="step-kicker">Profile & Type</span>
 <label>Property Post Type</label><select class="field" id="poster" onchange="posterChange()"><option>Single Property – Sale / Rent</option><option>Builder Property</option><option>Builder Project Profile</option></select>
@@ -288,6 +391,7 @@ body.ocs-property-post-open{overflow:hidden!important}
 </div>
 
 <div id="done" class="hidden"><div class="notice"><b>✓ Property listing live</b><br>Customer ab listing dekh sakta hai. Profile/My Listings se edit, pause ya renew kar sakenge.</div><button class="next" onclick="closePost()">View Property Window</button></div>
+ </div>
 </div></div>
 <script>
 const $=id=>document.getElementById(id);
@@ -332,8 +436,8 @@ function ocsPropertySetOverlayVisible(visible){
  overlay.style.display=visible?'flex':'none';
  document.body.classList.toggle('ocs-property-post-open',!!visible);
  if(visible){
-   const sheet=overlay.querySelector('.sheet');
-   if(sheet)sheet.scrollTop=0;
+   const scroller=overlay.querySelector('#propertyFormScroll');
+   if(scroller)scroller.scrollTop=0;
  }
 }
 function ocsPropertyNavState(){
@@ -578,7 +682,8 @@ function go(n,fromHistory){
  if(n===5)makePreview();
  if(n===6){const ps=$('propertyPlanSelect');if(ps)ps.value=String(propertyPlanDays);propertyPlanDurationChange()}
  posterChange();typeChange();if(n>1&&!fromHistory)savePropertyDraft(true);
- const sh=document.querySelector('.sheet');if(sh)sh.scrollTop=0;
+ const sh=$('propertyFormScroll');if(sh)sh.scrollTop=0;
+ const meter=$('propertyStepProgress');if(meter)meter.style.width=(n/6*100)+'%';
  ocsPropertyNotifyNav();
 }
 function makePreview(){
