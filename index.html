@@ -4791,7 +4791,18 @@ function ocsCaptureUiState(){
    frameScrollY
  };
 }
-function ocsUiStateKey(s){try{return JSON.stringify(s||{})}catch(e){return ""}}
+function ocsUiStateKey(s){
+ // Only meaningful navigation belongs in browser Back history.
+ // Scroll, changing banners, search animations and other styling are not pages.
+ try{
+  const state=s||{};
+  return JSON.stringify({
+   module:state.module||'',
+   modals:Array.isArray(state.modals)?state.modals:[],
+   property:state.property||null
+  });
+ }catch(e){return ''}
+}
 function ocsStoreUiState(mode){
  if(ocsUiHistoryApplying)return;
  const s=ocsCaptureUiState(),key=ocsUiStateKey(s);
@@ -4822,9 +4833,15 @@ function ocsRestorePropertyNavState(s){
 function ocsRestoreUiDetails(s){
  try{
    document.querySelectorAll('.modal.show').forEach(x=>x.classList.remove('show'));
-   (s.modals||[]).forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('show')});
+   const modals=Array.isArray(s.modals)?s.modals:[];
+   modals.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('show')});
+   document.body.classList.toggle('ocs-account-open',modals.includes('accountModal'));
+   if(modals.includes('bottomProfileModal'))setBottomActive('bnProfile');
+   else if(modals.includes('walletModal'))setBottomActive('bnWallet');
+   else if(modals.includes('bottomBookingsModal'))setBottomActive('bnBookings');
+   else if(!s.module)setBottomActive('bnHome');
    if(s.module==='Property'&&s.property)ocsRestorePropertyNavState(s.property);
- }catch(e){}
+ }catch(e){console.warn('OCS restore current page',e)}
 }
 async function ocsRestoreUiState(s){
  s=s||{module:"",modals:[],property:null};
