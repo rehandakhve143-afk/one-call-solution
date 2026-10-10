@@ -68,6 +68,16 @@
    await refresh();
    boxMessage(hours+' hour: '+cash(price)+' • '+(active?'LIVE':'Saved, not live'),false);
  }
+ document.addEventListener('input',ev=>{
+   const input=ev.target.closest('input[id^="driverPackageRate-"]');
+   if(!input||!root()||!root().contains(input))return;
+   const hours=Number(input.id.replace('driverPackageRate-',''));
+   if(!HOURS.includes(hours))return;
+   const publish=root().querySelector('button[data-driver-toggle="'+hours+'"][data-live="true"]');
+   if(!publish)return;
+   const raw=String(input.value||'').trim(),price=Number(raw);
+   publish.disabled=!raw||!Number.isFinite(price)||price<=0||price>50000||Math.abs(Math.round(price*100)-price*100)>1e-6;
+ });
  document.addEventListener('click',async ev=>{
    const btn=ev.target.closest('button[data-driver-save],button[data-driver-toggle],#refreshDriverRates');
    if(!btn||!root()||!root().contains(btn))return;
