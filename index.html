@@ -4190,16 +4190,71 @@ function showLiveSearchResults(rows,q){
  document.body.appendChild(ov);
 }
 function ocsEnquireAboutLivePost(meta){
- const id=String(meta&&meta.__sourceRef||'');
- const kind=String(meta&&meta.__sourceKind||'');
- const isUuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
- if(!isUuid||!['business_listing','property_listing'].includes(kind)){
-   alert('Listing ID unavailable. Choose a live listing from the enquiry page.');
-   location.href='listing-enquiries.html';
+ // Open a quick requirement sheet for the exact shop/property the customer selected.
+ // Never choose the recipient from device-local category drafts.
+ meta=meta||{};
+ const id=String(meta.__sourceRef||'');
+ const sourceKind=String(meta.__sourceKind||'');
+ if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)||
+    !['business_listing','property_listing'].includes(sourceKind)){
+   alert('Select a real LIVE listing. A sample or draft cannot receive customer enquiries.');
    return;
  }
- const qs=new URLSearchParams({listing_id:id,kind:'post',category:kind==='property_listing'?'Property':String(meta.__category||'')});
- location.href='listing-enquiries.html?'+qs.toString();
+ if(meta.__isDemo===true||String(meta.is_demo||'').toLowerCase()==='true'||String(meta.sample||'').toLowerCase()==='true'){
+   alert('This is a sample post. Customer enquiries work only on a real LIVE owner listing.');
+   return;
+ }
+ const cat=String(meta.__category||'');
+ const isShop=cat==='Local Shop';
+ const name=String(meta.business||meta.name||meta.__sourceTitle||'OCS Business').trim();
+ const old=document.getElementById('ocsDirectEnquiryOverlay');if(old)old.remove();
+ const overlay=document.createElement('div');
+ overlay.id='ocsDirectEnquiryOverlay';
+ overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;display:flex;align-items:flex-start;justify-content:center;background:rgba(6,30,39,.58);padding:24px 10px;overflow:auto;font-family:system-ui,Arial,sans-serif;box-sizing:border-box';
+ overlay.innerHTML='<section role="dialog" aria-modal="true" aria-label="Enquire about this listing" style="width:min(480px,100%);max-height:calc(100dvh - 48px);overflow-y:auto;background:#fff;border-radius:20px;box-shadow:0 20px 55px rgba(0,0,0,.24);padding:18px;box-sizing:border-box">'+
+  '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><h2 data-slot="heading" style="font-size:20px;color:#135057;margin:0"></h2><button type="button" data-action="close" aria-label="Close" style="border:0;background:#eef3f3;border-radius:10px;font-size:24px;width:40px;height:40px">×</button></div>'+
+  '<p data-slot="business" style="font-size:15px;font-weight:800;color:#173d44;margin:14px 0 5px"></p>'+
+  '<p data-slot="note" style="font-size:12px;color:#647b80;margin:0 0 14px;line-height:1.5"></p>'+
+  '<label for="ocsDirectEnquiryText" style="display:block;font-size:13px;font-weight:850;color:#184950;margin-bottom:7px">Your Requirement *</label>'+
+  '<textarea id="ocsDirectEnquiryText" minlength="5" maxlength="2000" rows="5" placeholder="Product / quantity / variant / requirements…" style="box-sizing:border-box;width:100%;min-height:125px;padding:13px;border:1px solid #cbd9da;border-radius:13px;font:14px system-ui,Arial;resize:vertical"></textarea>'+
+  '<p data-slot="status" role="status" style="font-size:12px;color:#6c7e82;line-height:1.5;min-height:18px"></p>'+
+  '<button type="button" data-action="send" style="width:100%;min-height:46px;border:0;border-radius:12px;background:#087b75;color:#fff;font-size:14px;font-weight:850">Send to This Owner</button>'+
+  '<button type="button" data-action="track" style="display:none;width:100%;min-height:42px;border:0;border-radius:12px;background:#e4f2f0;color:#086861;font-size:13px;font-weight:800;margin-top:9px">View My Enquiries</button>'+
+  '</section>';
+ document.body.appendChild(overlay);
+ overlay.querySelector('[data-slot="heading"]').textContent=isShop?'Ask for Product':'Send Enquiry';
+ overlay.querySelector('[data-slot="business"]').textContent=name;
+ overlay.querySelector('[data-slot="note"]').textContent=isShop?
+  'This enquiry will go only to this shop. Price, availability, payment and delivery are discussed directly with the shop.':
+  'Your requirement will be sent only to this selected listing owner.';
+ const field=overlay.querySelector('#ocsDirectEnquiryText');
+ const status=overlay.querySelector('[data-slot="status"]');
+ const sendBtn=overlay.querySelector('[data-action="send"]');
+ const trackBtn=overlay.querySelector('[data-action="track"]');
+ if(isShop&&meta.variant)field.value='Product / Variant: '+String(meta.variant)+'\n';
+ overlay.querySelector('[data-action="close"]').onclick=()=>overlay.remove();
+ overlay.onclick=(event)=>{if(event.target===overlay)overlay.remove()};
+ trackBtn.onclick=()=>{location.href='listing-enquiries.html?tab=sent'};
+ sendBtn.onclick=async()=>{
+   const message=field.value.trim();
+   if(message.length<5){status.textContent='Please write at least 5 characters about your requirement.';return}
+   if(!ocsSupabase){status.textContent='OCS online connection is not ready. Please retry after a moment.';return}
+   sendBtn.disabled=true;sendBtn.textContent='Sending…';status.textContent='';
+   try{
+     const {data:userData,error:userErr}=await ocsSupabase.auth.getUser();
+     if(userErr||!userData||!userData.user)throw Error('Please log in to OCS before sending.');
+     const {data,error}=await ocsSupabase.rpc('ocs_send_listing_enquiry_v1',{
+       p_kind:'post',p_listing_id:id,p_message:message
+     });
+     if(error)throw error;
+     status.textContent='✓ Enquiry sent to '+String(data&&data.recipient||name)+'. The owner can reply in OCS.';
+     status.style.color='#087b75';
+     sendBtn.textContent='Sent ✓';trackBtn.style.display='block';
+   }catch(e){
+     status.textContent='Enquiry not sent: '+String(e&&e.message||'Please retry.');
+     status.style.color='#b23636';sendBtn.disabled=false;sendBtn.textContent='Send to This Owner';
+   }
+ };
 }
 function livePostCall(meta){
  const n=String(meta.phone||meta.contactPhone||'').replace(/[^0-9+]/g,'');if(n)location.href='tel:'+n;else alert('Call number available nahi hai.');
@@ -4329,7 +4384,7 @@ async function injectLiveCategoryAds(cat){
   ?'<div style="font-size:11px;background:#fff4df;color:#8c6618;padding:7px;border-radius:9px;margin-top:8px">SAMPLE • No real enquiry</div>'
   :'<button style="width:100%;background:#e3f6f2;border:1px solid #b2dfd7;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">✉ '+(cat==='Local Shop'?'Ask for Product':'Enquire with this Listing')+'</button>';
  return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px">LIVE</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p>'+directShopNote+'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>'+enquiryHtml+itemWa+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
- window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat}));
+ window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat,__sourceTitle:x.title||'',__isDemo:/^XYZ Demo/i.test(String(x.title||''))||String(livePostMeta(x).is_demo||'').toLowerCase()==='true'||String(livePostMeta(x).sample||'').toLowerCase()==='true'}));
  const target=doc.querySelector('main,.wrap,.container,.app')||doc.body;
  if(target===doc.body)doc.body.insertBefore(feed,doc.body.firstChild);else target.insertBefore(feed,target.firstChild);
 
