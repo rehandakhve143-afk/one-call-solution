@@ -660,6 +660,7 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
 }
 </style>
 <script src="assets/ocs-category-experience.js?v=20261010-stable-premium1"></script>
+<script src="assets/ocs-photo-services.js?v=20261010-photorates1"></script>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
@@ -1369,7 +1370,7 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
  <div id="ocsShopProductRows" style="display:grid;gap:10px;margin:12px 0"></div>
  <button type="button" onclick="ocsShopAddProduct()" style="width:100%;min-height:45px;background:#e0f4ef;border:1px solid #b8ddd2;border-radius:12px;color:#08665d;font-weight:900">+ Add Another Product</button>
  <div class="muted" style="margin-top:8px;font-size:11px">Sirf shop listing fee lagegi. Products par OCS commission nahi. Photos ka total limit: 20 images + 3 videos per shop.</div>
-</div><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div></div>
+</div><label>City / Area *</label><input id="obArea" placeholder="City / locality"><label>About</label><textarea id="obAbout" placeholder="Short description"></textarea><label>Mobile / WhatsApp *</label><input id="obPhone" inputmode="tel" placeholder="Contact number"><label>Billing / Invoice Email *</label><input id="obEmail" type="email" placeholder="invoice@email.com"><div class="muted" style="margin-top:-4px;margin-bottom:8px">Paid listing ka GST invoice isi email par jayega.</div><label>Photos / Videos</label><input id="obMedia" type="file" accept="image/*,video/*" multiple onchange="ocsPortfolioOnMediaChange(this.files)"><div class="muted" style="margin-top:-4px;margin-bottom:8px"><b>Gallery se select karein • Maximum 20 photos + 3 videos.</b><br>Pehli photo Cover Poster hogi. Photo 1–10 upper slider, 11–20 lower slider me automatically set hongi.</div><div id="ocsPhotoServiceEditor" style="display:none;margin:13px 0;padding:12px;border:1px solid #d6e9e6;border-radius:15px;background:#f7fbfa"></div></div>
 <div class="biz-nav-actions"><button type="button" class="biz-back-btn" onclick="closeBiz()">← Back</button><button id="bizContinueBtn" class="primary" onclick="continueBiz()">Continue to Payment →</button></div><div class="muted" style="margin-top:8px"><b>Auto-save ON.</b> Details isi device par draft me save hoti rahengi. Payment se pehle edit kar sakte hain.</div></div></div>
 <script>
 let homeSlide=0,homeSlideTimer=null,homeTouchStartX=0;
@@ -4425,7 +4426,8 @@ function livePostSearchText(x){
  const m=livePostMeta(x),products=Array.isArray(m.products)?m.products:[],projects=Array.isArray(m.projects)?m.projects:[];
  const productText=products.map(p=>[p.name,p.variant,p.details,p.price].filter(Boolean).join(' ')).join(' ');
  const projectsText=projects.map(p=>[p.name,p.city,p.area,p.address,p.propertyType,p.bhk,p.status,p.description,p.price].filter(Boolean).join(' ')).join(' ');
- return ocsNorm([x.category,x.title,m.business,m.name,m.area,m.type,m.about,m.propertyType,m.city,m.propertyCategory,m.address,m.itemPrice,productText,projectsText].filter(Boolean).join(' '));
+ const serviceText=(Array.isArray(m.photoServices)?m.photoServices:[]).map(p=>[p.name,p.price,p.details].filter(Boolean).join(' ')).join(' ');
+ return ocsNorm([x.category,x.title,m.business,m.name,m.area,m.type,m.about,m.propertyType,m.city,m.propertyCategory,m.address,m.itemPrice,productText,projectsText,serviceText].filter(Boolean).join(' '));
 }
 function closeLiveSearch(){const x=document.getElementById('ocsLiveSearchOverlay');if(x)x.remove()}
 function openLiveSearchResult(category,q){closeLiveSearch();pendingWindowSearch=q||'';openModule(category==='Single Property'||category==='Builder Property'||category==='Builder Project Profile'?'Property':category)}
@@ -4485,6 +4487,8 @@ function ocsEnquireAboutLivePost(meta,product){
  const trackBtn=overlay.querySelector('[data-action="track"]');
  if(isShop&&product&&product.name){
    field.value=['Product: '+String(product.name),'Variant: '+String(product.variant||''),product.price!==''&&product.price!=null?'Listed price: ₹'+String(product.price):'','Quantity: ','Please confirm availability and final price.'].filter(Boolean).join('\n');
+ }else if(cat!=='Property'&&product&&product.name){
+   field.value=['Service / Work: '+String(product.name),product.price!==''&&product.price!=null?'Listed rate: ₹'+String(product.price):'Rate: Get Quote',product.details?'Details: '+String(product.details):'','Please contact me about this service.'].filter(Boolean).join('\n');
  }else if(cat==='Property'&&product&&product.name){
    field.value=['Project: '+String(product.name),
      'Location: '+[product.area,product.city].filter(Boolean).join(', '),
@@ -6074,7 +6078,7 @@ function ocsLoadShopCatalog(d){
 }
 function loadBizDraft(cat){
  const d=readBizDrafts()[cat]||{};
- obName.value=d.name||'';obType.value=d.type||'';if(document.getElementById('obPostPrice'))document.getElementById('obPostPrice').value=d.itemPrice||'';if(document.getElementById('obVariant'))document.getElementById('obVariant').value=d.variant||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';if(cat==='Local Shop')ocsLoadShopCatalog(d);updateBizLikeSummary(cat);
+ obName.value=d.name||'';obType.value=d.type||'';if(document.getElementById('obPostPrice'))document.getElementById('obPostPrice').value=d.itemPrice||'';if(document.getElementById('obVariant'))document.getElementById('obVariant').value=d.variant||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';if(cat==='Local Shop')ocsLoadShopCatalog(d);window.ocsPortfolioLoad?.(cat,d);updateBizLikeSummary(cat);
 }
 let ocsBizAutoSaveTimer=null;
 function autoSaveCurrentBizDraft(){
@@ -6094,6 +6098,7 @@ function autoSaveCurrentBizDraft(){
      itemPrice:priceRaw===''?null:Number(priceRaw),
      variant:(document.getElementById('obVariant')?.value||'').trim(),
      products:cat==='Local Shop'?ocsShopCatalogClean():old.products,
+     photoServices:window.ocsPortfolioHasCategory?.(cat)?window.ocsPortfolioDraft(cat):old.photoServices,
      draftSavedAt:new Date().toISOString()
    });
    localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
@@ -6252,6 +6257,7 @@ async function continueBiz(){
  if(itemPrice!==null&&(!Number.isFinite(itemPrice)||itemPrice<0)){alert('Valid post price / rate enter karein.');return}
  if((cat==='Used Vehicle'||cat==='New Vehicle')&&(itemPrice===null||itemPrice<=0)){alert(cat==='Used Vehicle'?'Used Vehicle ka Asking Price required.':'New Vehicle ka Starting / Ex-showroom Price required.');return}
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingEmail)){alert('GST invoice ke liye valid Billing Email required.');return}
+ if(window.ocsPortfolioValidate&&!window.ocsPortfolioValidate(cat))return;
  const drafts=readBizDrafts(),previous=drafts[cat]||{},oldLikeKey=getBizLikeKey(cat),listingId=previous.listingId||('biz_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8));
  let media=Array.isArray(previous.media)?previous.media:[];
  let products=cat==='Local Shop'?ocsShopCatalogClean():[];
@@ -6283,13 +6289,14 @@ async function continueBiz(){
      }
    }catch(e){alert('Product photo upload fail: '+(e&&e.message||'Try again'));return}
  }
+ const photoServices=window.ocsPortfolioAttachMedia?.(cat,media)||[];
  const key=BIZ_PRICE_KEY[cat]||'localShop',normalBase=pricingValue(key,name,'LISTING'),requestedAdminFree=!!document.getElementById('bizAdminFree')?.checked;
  const adminFree=requestedAdminFree?await ocsAdminFreeAllowed():false;
  if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
  const base=adminFree?0:normalBase,tax=getGstBreakup(base);
  if(!adminFree&&(!Number.isFinite(base)||base<=0)){alert('Is Business Category ka public listing rate abhi set nahi hai. Admin charge set kare; FREE post sirf authorized Admin ka hoga.');return}
- const postMeta={category:cat,business:name,area,type,about,phone,itemPrice:cat==='Local Shop'?null:itemPrice,variant:cat==='Local Shop'?'':variant,products:cat==='Local Shop'?products:undefined,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
- drafts[cat]={name,type,area,about,phone,itemPrice,variant,products:cat==='Local Shop'?products:previous.products,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'PUBLISHING':'PAYMENT_PENDING',paymentStatus:base===0?'PENDING_ADMIN_CONFIRMATION':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:null,expiresAt:null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
+ const postMeta={category:cat,business:name,area,type,about,phone,itemPrice:cat==='Local Shop'?null:itemPrice,variant:cat==='Local Shop'?'':variant,products:cat==='Local Shop'?products:undefined,photoServices,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
+ drafts[cat]={name,type,area,about,phone,itemPrice,variant,products:cat==='Local Shop'?products:previous.products,photoServices:window.ocsPortfolioHasCategory?.(cat)?photoServices:previous.photoServices,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'PUBLISHING':'PAYMENT_PENDING',paymentStatus:base===0?'PENDING_ADMIN_CONFIRMATION':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:null,expiresAt:null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
  if(base===0&&adminFree){
    // Server acknowledgement is mandatory. A phone-local draft is never a LIVE listing.
