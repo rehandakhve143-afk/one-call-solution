@@ -5912,6 +5912,18 @@ function closeBiz(){document.getElementById('bizModal').classList.remove('show')
 function manageCurrentWindow(){
  const n=currentModuleName;
  if(n==='Home Services')return;
+ if(n==='Property'){
+   // One direct property wizard with its 3 posting types. Avoid a second gateway/CTA.
+   const frame=document.getElementById('frame');
+   try{
+     if(frame&&frame.contentWindow&&typeof frame.contentWindow.openPost==='function'){
+       frame.contentWindow.openPost();
+       return;
+     }
+   }catch(e){console.warn('Property form unavailable in current frame',e)}
+   alert('Property form load ho raha hai. Ek baar phir + Post Property dabayein.');
+   return;
+ }
  if(!n){openBiz();return}
  // Keep the current category window underneath the post form.
  // Back/close should return to the same window, not Home.
