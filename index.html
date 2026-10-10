@@ -6107,13 +6107,21 @@ function openBiz(category){
  updateBizLikeSummary(sel.value);modal.classList.add('show');syncAdminFreePostControls().then(()=>{syncPropertyEntryUi();if(!isProperty)updateBizPrice()})
 }
 function closeBiz(){document.getElementById('bizModal').classList.remove('show')}
+function ocsSyncPropertyPostingToolbar(formOpen){
+ if(currentModuleName!=='Property')return;
+ const btn=document.getElementById('windowManageBtn');
+ if(btn)btn.style.display=formOpen?'none':'block';
+}
 function manageCurrentWindow(){
  const n=currentModuleName;
  if(n==='Home Services')return;
  if(n==='Property'){
-   // One direct property wizard with its 3 posting types. Avoid a second gateway/CTA.
+   // One direct property wizard, not a reset of an already open form.
    const frame=document.getElementById('frame');
    try{
+     const state=frame&&frame.contentWindow&&typeof frame.contentWindow.ocsPropertyNavState==='function'?
+       frame.contentWindow.ocsPropertyNavState():null;
+     if(state&&state.overlay)return;
      if(frame&&frame.contentWindow&&typeof frame.contentWindow.openPost==='function'){
        frame.contentWindow.openPost();
        return;
