@@ -1309,10 +1309,11 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
     <span><b>Builder Project Profile</b><small style="display:block;color:#6b7f82;margin-top:3px">Full project profile • gallery / links • ₹499 / 28 days</small></span>
   </label>
 </div>
-<div id="bizAdminFreeWrap" class="free-box" style="display:none;margin:10px 0">
-  <label style="display:flex;align-items:center;gap:9px;margin:0"><input id="bizAdminFree" type="checkbox" style="width:auto" onchange="updateBizPrice()"> <b>Admin: Make this Listing FREE</b></label>
-  <div class="muted" style="margin-top:6px">₹0 payment • GST ₹0 • direct LIVE for selected plan.</div>
-</div>
+<details id="bizAdminFreeWrap" class="free-box" style="display:none;margin:10px 0">
+  <summary style="cursor:pointer;font-weight:800;color:#215259">Admin tools (optional)</summary>
+  <label style="display:flex;align-items:center;gap:9px;margin:12px 0 0"><input id="bizAdminFree" type="checkbox" style="width:auto" onchange="updateBizPrice()"> <b>Make this Listing FREE</b></label>
+  <div class="muted" style="margin-top:6px">Authorized Admin only • ₹0 payment and GST • publishing is checked on the server.</div>
+</details>
 <div id="bizCurrentPrice" class="price-now">Current 28-day plan: —</div>
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
@@ -5795,6 +5796,7 @@ function openBiz(category){
  const modal=document.getElementById('bizModal'),sel=document.getElementById('bizCat');
  if(category&&[...sel.options].some(o=>o.value===category||o.text===category))sel.value=category;
  const isProperty=sel.value==='Property';syncBizReadyForm(sel.value);syncPropertyEntryUi();const af=document.getElementById('bizAdminFree');if(af)af.checked=false;
+ const adminTools=document.getElementById('bizAdminFreeWrap');if(adminTools)adminTools.open=false;
  if(isProperty){
    const price=document.getElementById('bizCurrentPrice'),gst=document.getElementById('bizGstNote');
    if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹499';
@@ -5851,10 +5853,32 @@ async function continueBiz(){
  if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
  const base=adminFree?0:normalBase,tax=getGstBreakup(base);
  const postMeta={category:cat,business:name,area,type,about,phone,itemPrice,variant,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
- drafts[cat]={name,type,area,about,phone,itemPrice,variant,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'LIVE':'PAYMENT_PENDING',paymentStatus:base===0?'ADMIN_FREE':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:base===0?new Date().toISOString():null,expiresAt:base===0?addDaysIso(new Date().toISOString(),28):null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
+ drafts[cat]={name,type,area,about,phone,itemPrice,variant,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'PUBLISHING':'PAYMENT_PENDING',paymentStatus:base===0?'PENDING_ADMIN_CONFIRMATION':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:null,expiresAt:null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
  if(base===0&&adminFree){
-   await recordAdminFreePostBackend({sourceKind:'business_listing',category:cat,title:'OCS Business Listing • '+name,email:billingEmail,planLabel:'28 Days',durationDays:28,metadata:postMeta});
+   // Server acknowledgement is mandatory. A phone-local draft is never a LIVE listing.
+   const published=await recordAdminFreePostBackend({sourceKind:'business_listing',category:cat,title:'OCS Business Listing • '+name,email:billingEmail,planLabel:'28 Days',durationDays:28,metadata:postMeta});
+   if(!published||!published.id||String(published.status||'').toLowerCase()!=='live'){
+     const failed=readBizDrafts();
+     if(failed[cat]){
+       failed[cat].status='DRAFT';
+       failed[cat].paymentStatus='NOT_PUBLISHED';
+       failed[cat].activatedAt=null;
+       failed[cat].expiresAt=null;
+       localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(failed));
+     }
+     alert('Admin FREE post abhi LIVE nahi hua. Server ne publish confirm nahi kiya. Details draft mein saved hain; dobara try karein.');
+     return;
+   }
+   const confirmed=readBizDrafts();
+   if(confirmed[cat]){
+     confirmed[cat].status='LIVE';
+     confirmed[cat].paymentStatus='ADMIN_FREE_VERIFIED';
+     confirmed[cat].backendRecordId=published.id;
+     confirmed[cat].activatedAt=published.starts_at||new Date().toISOString();
+     confirmed[cat].expiresAt=published.expires_at||addDaysIso(confirmed[cat].activatedAt,28);
+     localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(confirmed));
+   }
  }
  if(base>0){
    try{
