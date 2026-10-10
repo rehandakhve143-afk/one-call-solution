@@ -4198,7 +4198,7 @@ function ocsEnquireAboutLivePost(meta){
    location.href='listing-enquiries.html';
    return;
  }
- const qs=new URLSearchParams({listing_id:id,kind:kind==='property_listing'?'property':'business',category:kind==='property_listing'?'Property':String(meta.__category||'')});
+ const qs=new URLSearchParams({listing_id:id,kind:'post',category:kind==='property_listing'?'Property':String(meta.__category||'')});
  location.href='listing-enquiries.html?'+qs.toString();
 }
 function livePostCall(meta){
