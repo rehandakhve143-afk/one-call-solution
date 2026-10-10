@@ -4434,8 +4434,13 @@ function livePostCall(meta){
  const n=String(meta.phone||meta.contactPhone||'').replace(/[^0-9+]/g,'');if(n)location.href='tel:'+n;else alert('Call number available nahi hai.');
 }
 function ocsListingWaNumber(v){const n=String(v||'').replace(/\D/g,'');return n.length===10?'91'+n:n}
+function livePostEmail(meta){
+ const email=String((meta||{}).email||'').trim();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){alert('Builder email available nahi hai.');return}
+ location.href='mailto:'+email+'?subject='+encodeURIComponent('OCS Property Enquiry');
+}
 function livePostWhatsApp(meta){
- const n=ocsListingWaNumber(meta.phone||meta.whatsapp||meta.contactWhatsapp);if(!n)return alert('WhatsApp number available nahi hai.');
+ const n=ocsListingWaNumber(meta.whatsapp||meta.contactWhatsapp||meta.phone);if(!n)return alert('WhatsApp number available nahi hai.');
  const name=String(meta.business||meta.name||meta.title||'OCS Listing').trim();
  window.open('https://wa.me/'+n+'?text='+encodeURIComponent('Hello '+name+', OCS par aapki listing dekhi. Product details aur final price bataiye.'),'_blank','noopener');
 }
@@ -4572,6 +4577,18 @@ async function injectLiveCategoryAds(cat){
  const priceHtml=(m.itemPrice!==null&&m.itemPrice!==undefined&&Number(m.itemPrice)>0)?'<div class="lfPrice">₹'+Number(m.itemPrice).toLocaleString('en-IN')+'</div>':'';
  const variantHtml=m.variant?'<div style="font-size:10px;font-weight:850;color:#516a70;margin:2px 0 7px">Variant: '+ocsSavedText(m.variant)+'</div>':'';
  const directShopNote=cat==='Local Shop'?'<p style="font-size:10px;color:#647b80;margin:6px 0 8px">Final price, stock, payment aur delivery shop se directly discuss karein. OCS sirf listing platform hai.</p>':'';
+ const isProperty=cat==='Property';
+ const propertyKind=String(m.poster||m.propertyCategory||'Single Property');
+ const propertyBuilder=/Builder Property|Builder Project Profile/i.test(propertyKind);
+ const propertyProjectProfile=/Builder Project Profile/i.test(propertyKind);
+ const propertyPrice=isProperty&&Number(m.price)>0?'<div class="lfPrice">₹'+Number(m.price).toLocaleString('en-IN')+(m.purpose==='Rent'?' / month':'')+'</div>':'';
+ const propertyFeatures=isProperty?'<p style="font-size:11px;color:#526c73;margin:3px 0 9px">'+[m.purpose,m.propertyType,m.bhk,Number(m.sqft)>0?(Number(m.sqft)+' sq ft'):'',m.projectStatus].filter(Boolean).map(ocsSavedText).join(' • ')+'</p>':'';
+ const propertyButtons=isProperty?'<div class="lfActions">'+
+   '<button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button>'+
+   (propertyBuilder?'<button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button>':'')+
+   '</div>'+
+   (propertyBuilder?'<button style="width:100%;border:1px solid #b2dfd7;background:#e3f6f2;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">💬 Chat / Enquiry with Builder</button>':'')+
+   (propertyProjectProfile&&m.email?'<button style="width:100%;border:1px solid #d9e7e5;background:#f5faf8;color:#22545a;border-radius:10px;padding:10px;font-weight:800;margin-top:6px" onclick="parent.livePostEmail(parent.__ocsLiveFeed['+i+'])">✉ Email Builder</button>':''):'';
  const isSample=/^XYZ Demo/i.test(String(x.title||''))||['true','1'].includes(String(m.is_demo||'').toLowerCase())||['true','1'].includes(String(m.sample||'').toLowerCase());
  const products=cat==='Local Shop'&&Array.isArray(m.products)?m.products.slice(0,20).map((p,j)=>Object.assign({__productIndex:j},p)).filter(p=>p&&p.name):[];
  const catalogHtml=products.length?'<div style="font-size:12px;font-weight:900;color:#163f46;margin-top:13px">Products ('+products.length+')</div><div class="lfProductGrid">'+products.map((p,pi)=>{
@@ -4589,7 +4606,7 @@ async function injectLiveCategoryAds(cat){
  const enquiryHtml=isSample
   ?'<div style="font-size:11px;background:#fff4df;color:#8c6618;padding:7px;border-radius:9px;margin-top:8px">SAMPLE • No real enquiry</div>'
   :'<button style="width:100%;background:#e3f6f2;border:1px solid #b2dfd7;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">✉ '+(cat==='Local Shop'?'Ask for Product':'Enquire with this Listing')+'</button>';
- return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?'SAMPLE • NOT A REAL SHOP':'LIVE')+'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'')+'</p>'+directShopNote+catalogHtml+(isSample?'':'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+enquiryHtml+itemWa+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
+ return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?'SAMPLE • NOT A REAL SHOP':'LIVE') +'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+propertyPrice+propertyFeatures+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'') +'</p>'+directShopNote+catalogHtml+(isSample?'':isProperty?propertyButtons:'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+(isProperty?'':enquiryHtml+itemWa)+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
  window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat,__sourceTitle:x.title||'',__isDemo:/^XYZ Demo/i.test(String(x.title||''))||['true','1'].includes(String(livePostMeta(x).is_demo||'').toLowerCase())||['true','1'].includes(String(livePostMeta(x).sample||'').toLowerCase())}));
  ocsPlaceCategoryListing(doc,cat,feed);
 
