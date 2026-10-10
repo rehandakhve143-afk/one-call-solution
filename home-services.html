@@ -1237,7 +1237,9 @@ async function ocsCreateLiveBooking(){
   return data;
 }
 async function ocsProviderDecisionLive(d){
-  if(!ocsSupabase||!S.activeBookingId)return false;
+  if(!ocsSupabase)throw new Error("OCS online booking connection not ready. Retry.");
+  if(!S.activeBookingId)throw new Error("Booking ID missing. Refresh Incoming Jobs before accepting or rejecting.");
+  if(!["accept","reject"].includes(d))throw new Error("Invalid Service Provider booking decision");
   const fn=d==="accept"?"accept_booking_v3":"reject_booking_v2";
   const args=d==="accept"?{p_booking_id:S.activeBookingId}:{p_booking_id:S.activeBookingId,p_reason:"Provider rejected"};
   const {data,error}=await ocsSupabase.rpc(fn,args);
@@ -1247,7 +1249,8 @@ async function ocsProviderDecisionLive(d){
   return true;
 }
 async function ocsProviderActionLive(action,otp){
-  if(!ocsSupabase||!S.activeBookingId)return false;
+  if(!ocsSupabase)throw new Error("OCS online booking connection not ready. Retry.");
+  if(!S.activeBookingId)throw new Error("Booking ID missing. Refresh Current Job before continuing.");
   const {data,error}=await ocsSupabase.rpc("provider_booking_action",{p_booking_id:S.activeBookingId,p_action:action,p_start_otp:otp||null});
   if(error)throw error;
   ocsApplyBackendBooking(data);
