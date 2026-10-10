@@ -63,7 +63,7 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 </head>
 <body>
 <div class="app">
-<header class="topbar"><button onclick="location.href='index.html?pwa=1&v=20261006-driver-ui4'">‹</button><b>Driver Service</b></header>
+<header class="topbar"><button onclick="backToPreviousOcs()">‹</button><b>Driver Service</b></header>
 <main class="wrap">
 <section class="hero">
   <small>OCS VERIFIED DRIVER</small>
@@ -313,6 +313,20 @@ async function confirmDone(){if(!current)return;const {error}=await sb.rpc('cust
 function support(){alert('OCS Support se Driver booking issue raise kiya jayega.')}
 function goTab(x){if(x==='home'){location.href='index.html?pwa=1&v=20261006-driver-ui4';return}if(x==='activity'){location.href='index.html?open=activity&v=20261006-driver-ui4';return}if(x==='wallet'){location.href='index.html?open=wallet&v=20261006-driver-ui4';return}if(x==='account'){location.href='index.html?open=account&v=20261006-driver-ui4'}}
 const first=roundToQuarter(new Date());selectedDate=isoDate(first);selectedTime=hhmm(first);updateScheduleLabel();updateSummary();loadBooking();setInterval(loadBooking,7000);
+function backToPreviousOcs(){
+ // A Back button returns to the real previous OCS page when known.
+ // Do not blindly go back to an unrelated external website.
+ try{
+   const prior=document.referrer?new URL(document.referrer,location.href):null;
+   const appDir=location.pathname.slice(0,location.pathname.lastIndexOf('/')+1);
+   if(prior&&prior.origin===location.origin&&prior.pathname.startsWith(appDir)&&
+      prior.pathname!==location.pathname&&history.length>1){
+     history.back();
+     return;
+   }
+ }catch(e){}
+ location.href='index.html?pwa=1&v=20261006-driver-ui4';
+}
 </script>
 </body>
 </html>
