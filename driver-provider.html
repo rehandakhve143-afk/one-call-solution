@@ -63,9 +63,9 @@ function jobCard(j){
  const r=j.booking_readiness||{};
  return '<div class="job"><div class="row"><span>Pickup</span><b>'+esc(r.pickup_address||'')+'</b></div><div class="row"><span>Drop</span><b>'+esc(r.drop_address||'')+'</b></div><div class="row"><span>Car</span><b>'+esc(r.car_type||'')+' • '+esc(r.transmission||'')+'</b></div><div class="row"><span>Trip</span><b>'+esc(r.trip_type||'')+'</b></div><div class="row"><span>Duration</span><b>'+esc(r.estimated_duration||'')+'</b></div><div class="row"><span>Schedule</span><b>'+esc(j.request_schedule||'')+'</b></div>'+(r.note?'<div class="row"><span>Note</span><b>'+esc(r.note)+'</b></div>':'')+'<div class="grid2"><button class="btn primary" onclick="acceptJob(\''+j.id+'\')">Accept</button><button class="btn gray" onclick="rejectJob(\''+j.id+'\')">Reject</button></div></div>';
 }
-async function acceptJob(id){try{const {error}=await sb.rpc('accept_booking_v3',{p_booking_id:id});if(error)throw error;await load();setTimeout(()=>promptQuote(id),100)}catch(e){alert(e.message||'Accept failed')}}
+async function acceptJob(id){try{const {error}=await sb.rpc('accept_booking_v3',{p_booking_id:id});if(error)throw error;await load()}catch(e){alert(e.message||'Accept failed')}}
 async function rejectJob(id){try{const {error}=await sb.rpc('reject_booking_v2',{p_booking_id:id,p_reason:'Driver unavailable'});if(error)throw error;await loadOpenJobs()}catch(e){alert(e.message||'Reject failed')}}
-async function promptQuote(id){const amt=Number(prompt('Pickup & Drop Driver charge ₹')||0);if(amt<=0)return;const note=(prompt('Quote note (optional)')||'Driver pickup & drop').trim();try{const {error}=await sb.rpc('provider_send_quote_v1',{p_booking_id:id,p_amount:amt,p_description:note,p_quote_kind:'initial',p_items:[]});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'Quote failed')}}
+// Hourly Driver fare is set by OCS and locked by the backend at booking; no manual quote.
 async function loadCurrent(){
  try{
    const {data,error}=await sb.rpc('provider_current_booking');if(error)throw error;
