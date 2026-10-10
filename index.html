@@ -5119,6 +5119,7 @@ async function openModule(n,role,serviceCat){
    if(!specialFlow){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS XYZ Demo',e)}}
    if(!specialFlow){injectLiveCategoryAds(n).then(()=>{if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch='';setTimeout(()=>runWindowSearch(q),120)}}).catch(e=>console.warn('OCS live feed',e))}
    if(!specialFlow){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
+   if(!specialFlow){try{injectCompactWindowEnquiry(n)}catch(e){console.warn('OCS compact enquiry UI',e)}}
    if(!specialFlow&&n!=='Property'){try{injectBusinessContactBar(n)}catch(e){console.warn('OCS Business Contact UI',e)}}
    if(!specialFlow){try{injectUniversalWindowNav(n)}catch(e){console.warn('OCS Window Navigation',e)}}
    if(!specialFlow&&n!=='Property'){
@@ -5656,6 +5657,114 @@ function injectBusinessLikeBar(cat){
  const btn=doc.getElementById('ocsBusinessLikeBtn');if(btn)btn.onclick=()=>parent.toggleBusinessLike(cat);
  refreshBusinessLikeUI(cat);
 }
+
+/* A small expandable business-window Enquiry, never a category-wide broadcast. */
+const OCS_WINDOW_ENQUIRY_NAMES={
+ 'Local Shop':'Ask for Product','Property':'Builder Enquiry',
+ 'Medical Store':'Medicine Enquiry','Diagnostic Lab':'Test Enquiry',
+ 'Sliding / Aluminium':'Get Quote','Welding / Fabrication':'Get Quote',
+ 'Modular Kitchen':'Get Quote','Beauty / Make-up':'Send Enquiry',
+ 'Used Vehicle':'Vehicle Enquiry','New Vehicle':'Vehicle Enquiry'
+};
+function ocsWindowEnquiryLabel(cat){return OCS_WINDOW_ENQUIRY_NAMES[cat]||'Send Enquiry'}
+function ocsWindowEnquiryTargetIsValid(row,cat){
+ if(!row||!['business_listing','property_listing'].includes(String(row.source_kind||'')))return false;
+ if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(row.id||'')))return false;
+ const meta=livePostMeta(row);
+ if(/^XYZ Demo/i.test(String(row.title||''))||['true','1'].includes(String(meta.is_demo||'').toLowerCase())||
+    ['true','1'].includes(String(meta.sample||'').toLowerCase()))return false;
+ if(cat==='Property'){
+   // A Single Owner listing stays Call Only.
+   const type=String(meta.poster||meta.propertyCategory||row.category||'');
+   return row.source_kind==='property_listing'&&['Builder Property','Builder Project Profile'].includes(type);
+ }
+ return row.source_kind==='business_listing'&&String(row.category||'')===cat;
+}
+function injectCompactWindowEnquiry(cat){
+ if(!cat||['Home Services','Tempo / Goods Transport','Driver Service'].includes(cat))return;
+ const frame=document.getElementById('frame'),doc=frame&&frame.contentDocument;
+ if(!doc||!doc.body||!doc.head)return;
+ if(!doc.getElementById('ocsCompactEnquiryCSS')){
+   const style=doc.createElement('style');style.id='ocsCompactEnquiryCSS';
+   style.textContent=[
+    '#ocsCompactEnquiryRoot{position:fixed;left:10px;bottom:calc(11px + env(safe-area-inset-bottom));z-index:12;font:12px system-ui,Arial,sans-serif;pointer-events:none}',
+    '#ocsCompactEnquiryRoot *{box-sizing:border-box}',
+    '#ocsCompactEnquiryRoot .compactTrigger{pointer-events:auto;background:#087b75;color:#fff;border:1px solid #0b8f85;border-radius:999px;box-shadow:0 6px 18px rgba(14,71,77,.20);padding:9px 13px;min-height:39px;font-weight:850;font-size:12px;white-space:nowrap}',
+    '#ocsCompactEnquiryRoot .compactPanel{pointer-events:auto;position:absolute;bottom:51px;left:0;width:min(370px,calc(100vw - 20px));max-height:min(65dvh,510px);overflow-y:auto;background:#fff;border:1px solid #d3e6e2;border-radius:16px;padding:13px;box-shadow:0 14px 40px rgba(5,46,50,.22);color:#173f43;overscroll-behavior:contain}',
+    '#ocsCompactEnquiryRoot .compactPanel[hidden]{display:none!important}',
+    '#ocsCompactEnquiryRoot .compactHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px}',
+    '#ocsCompactEnquiryRoot .compactHead b{font-size:15px;color:#134c50}',
+    '#ocsCompactEnquiryRoot .compactClose{background:#edf5f3;border:0;border-radius:9px;width:32px;height:32px;font-size:20px}',
+    '#ocsCompactEnquiryRoot .compactSub{font-size:11px;color:#648086;margin:5px 0 12px;line-height:1.5}',
+    '#ocsCompactEnquiryRoot .compactTargets{display:grid;gap:7px;max-height:245px;overflow-y:auto}',
+    '#ocsCompactEnquiryRoot .compactTarget{display:block;text-align:left;background:#f5faf8;border:1px solid #dbece5;border-radius:11px;padding:10px 11px;min-height:52px;width:100%}',
+    '#ocsCompactEnquiryRoot .compactTarget b{display:block;color:#174e4c;font-size:12px;margin-bottom:3px}',
+    '#ocsCompactEnquiryRoot .compactTarget span{display:block;color:#6c8081;font-size:10px}',
+    '#ocsCompactEnquiryRoot .compactFooter{border-top:1px solid #e4eded;padding-top:10px;margin-top:11px;display:flex;gap:7px}',
+    '#ocsCompactEnquiryRoot .compactFooter button{flex:1;min-height:37px;border:1px solid #d5e7e2;border-radius:9px;background:#eaf6f3;color:#14645d;font-size:11px;font-weight:850}',
+    'body:has(.modal.show) #ocsCompactEnquiryRoot,body:has(#overlay[style*="flex"]) #ocsCompactEnquiryRoot{display:none!important}'
+   ].join('\n');
+   doc.head.appendChild(style);
+ }
+ const prev=doc.getElementById('ocsCompactEnquiryRoot');if(prev)prev.remove();
+ const root=doc.createElement('aside');root.id='ocsCompactEnquiryRoot';
+ root.setAttribute('aria-label','OCS Enquiry');
+ root.innerHTML='<button type="button" class="compactTrigger" aria-expanded="false" aria-controls="ocsCompactEnquiryPanel">✉ Enquiry  ▴</button>'+
+   '<section id="ocsCompactEnquiryPanel" class="compactPanel" hidden>'+
+   '<div class="compactHead"><b>'+ocsSavedText(ocsWindowEnquiryLabel(cat))+'</b><button type="button" class="compactClose" aria-label="Close">×</button></div>'+
+   '<p class="compactSub">Choose a specific verified LIVE '+(cat==='Local Shop'?'shop':cat==='Property'?'builder':'listing')+'. Only its owner receives your request.</p>'+
+   '<div class="compactTargets" role="list"></div>'+
+   '<div class="compactFooter"><button type="button" data-tab="sent">My Enquiries</button><button type="button" data-tab="received">Received</button></div>'+
+   '</section>';
+ doc.body.appendChild(root);
+ const panel=root.querySelector('.compactPanel'),trigger=root.querySelector('.compactTrigger'),targets=root.querySelector('.compactTargets');
+ let requestToken=0;
+ function collapse(){
+   requestToken++;
+   panel.hidden=true;
+   trigger.setAttribute('aria-expanded','false');
+   trigger.textContent='✉ Enquiry  ▴';
+ }
+ root.querySelector('.compactClose').onclick=collapse;
+ root.querySelectorAll('[data-tab]').forEach(btn=>{
+   btn.onclick=()=>{location.href='listing-enquiries.html?tab='+encodeURIComponent(btn.dataset.tab)};
+ });
+ trigger.onclick=async()=>{
+   if(!panel.hidden){collapse();return}
+   panel.hidden=false;trigger.setAttribute('aria-expanded','true');trigger.textContent='✉ Enquiry  ▾';
+   targets.textContent='Loading LIVE listings…';
+   const token=++requestToken;
+   try{
+     const rows=await fetchPublicLivePosts(cat==='Property'?'Property':cat,150);
+     if(token!==requestToken||!root.isConnected||doc!==frame.contentDocument||currentModuleName!==cat)return;
+     const valid=rows.filter(row=>ocsWindowEnquiryTargetIsValid(row,cat));
+     targets.replaceChildren();
+     if(!valid.length){
+       const msg=doc.createElement('p');msg.className='compactSub';
+       msg.textContent=cat==='Property'?'No verified LIVE Builder listings yet. Single Property Owners have Call Only.':
+        'No verified LIVE listings here yet. XYZ samples cannot receive real enquiries.';
+       targets.appendChild(msg);return;
+     }
+     for(const row of valid){
+       const meta=livePostMeta(row),btn=doc.createElement('button');btn.type='button';btn.className='compactTarget';
+       const title=doc.createElement('b');title.textContent=livePostDisplayName(row);
+       const detail=doc.createElement('span');detail.textContent=[meta.area||meta.city||'',ocsWindowEnquiryLabel(cat)].filter(Boolean).join(' • ');
+       btn.append(title,detail);
+       btn.onclick=()=>{
+         collapse();
+         ocsEnquireAboutLivePost(Object.assign({},meta,{
+           __sourceRef:String(row.id),__sourceKind:String(row.source_kind),__category:cat,
+           __sourceTitle:String(row.title||''),__isDemo:false
+         }));
+       };
+       targets.appendChild(btn);
+     }
+   }catch(e){
+     if(token===requestToken&&root.isConnected)targets.textContent='Cannot load LIVE listings. Retry.';
+   }
+ };
+}
+
 function ocsFrameVisible(el){
  try{
    const s=el.ownerDocument.defaultView.getComputedStyle(el);
