@@ -5077,6 +5077,13 @@ function injectUniversalWindowNav(cat){
  if(!doc)return;
  doc.getElementById('ocsUniversalWindowNav')?.remove();
  doc.getElementById('ocsUniversalWindowNavStyle')?.remove();
+ let st=doc.getElementById('ocsSingleBackWizardStyle');
+ if(!st){
+   st=doc.createElement('style');
+   st.id='ocsSingleBackWizardStyle';
+   st.textContent='#ocsPostNav .ocsBack{display:none!important}#ocsPostNav{grid-template-columns:1fr!important}';
+   (doc.head||doc.documentElement).appendChild(st);
+ }
  // Native posting wizard has its real Continue/Next button.
  // Parent window header owns the single navigation Back button.
  const wizard=doc.getElementById('ocsPostNav');
