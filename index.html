@@ -4884,8 +4884,10 @@ async function ocsRestoreUiState(s){
 (function ocsInstallIndexBrowserHistory(){
  try{
    if(!/\/(?:index\.html)?$/i.test(location.pathname))return;
-   const initial=ocsCaptureUiState();
-   history.replaceState({ocsUi:true,state:initial},"",location.href);
+   const saved=history.state&&history.state.ocsUi?history.state.state:null;
+   const initial=saved||ocsCaptureUiState();
+   // Keep the prior page on browser Back; never overwrite its existing history entry.
+   if(!saved)history.replaceState({ocsUi:true,state:initial},"",location.href);
    ocsUiHistoryLast=ocsUiStateKey(initial);
    const observer=new MutationObserver(()=>ocsQueueUiHistory());
    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
@@ -4895,6 +4897,9 @@ async function ocsRestoreUiState(s){
      ocsUiHistoryLast=ocsUiStateKey(st);
      ocsRestoreUiState(st);
    });
+   if(saved&&(saved.module||saved.modals?.length)){
+     setTimeout(()=>ocsRestoreUiState(saved),80);
+   }
  }catch(e){console.warn('OCS browser history install',e)}
 })();
 async function getOcsReferralCode(){
