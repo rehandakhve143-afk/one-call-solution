@@ -624,11 +624,13 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
      if(!el.id||el.type==="file")return;
      data[el.id]=el.value;
    });
+   data.__builderExtraProjects=readBuilderExtraProjects();
    return data;
  }
  function restoreFields(data){
    if(!data)return;
    Object.keys(data).forEach(id=>{const el=$(id);if(el&&el.type!=="file")el.value=data[id]});
+   restoreBuilderExtraProjects(data.__builderExtraProjects);
    posterChange();typeChange();
  }
  function ownedCard(){return document.querySelector('#liveArea [data-ocs-owned="1"]')}
@@ -715,8 +717,31 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
    propertyPublicMedia=await window.parent.uploadOcsPublicMedia(files,'property-'+String(propertyPostingCategory()||'post').replace(/[^a-z0-9_-]/gi,'-'));
    return propertyPublicMedia;
  }
+ async function collectBuilderProjectMedia(){
+   if(!isBuilderProjectProfile())return;
+   const galleryPhotos=$('photos')?.files?Array.from($('photos').files):[];
+   const videos=$('projectVideos')?.files?Array.from($('projectVideos').files):[];
+   const extraUpload=builderExtraProjects.filter(x=>x.photoFile).length;
+   const existingPhotos=propertyPublicMedia.filter(x=>x.type==='image').length;
+   const galleryCount=galleryPhotos.length||existingPhotos;
+   if(galleryCount+extraUpload>20||videos.length>3){
+     throw new Error('Builder Project Profile mein gallery aur project covers milaakar max 20 photos aur 3 videos allowed hain.');
+   }
+   for(let i=0;i<builderExtraProjects.length;i++){
+     const pj=builderExtraProjects[i];
+     if(!pj.photoFile)continue;
+     if(!window.parent||typeof window.parent.uploadOcsPublicMedia!=='function')throw new Error('OCS photo upload unavailable');
+     const uploaded=await window.parent.uploadOcsPublicMedia([pj.photoFile],'builder-project-'+(i+2));
+     if(!uploaded||!uploaded[0]||!uploaded[0].url)throw new Error('Project '+(i+2)+' cover photo upload failed');
+     pj.image=uploaded[0].url;
+     delete pj.photoFile;
+   }
+ }
  function propertyPublicMeta(media){
    const m=Array.isArray(media)?media:[];
+   const projects=isBuilderProjectProfile()?collectBuilderProfileProjects():[];
+   if(projects.length&&m.some(x=>x.type==='image')&&!projects[0].image)
+     projects[0].image=m.find(x=>x.type==='image').url; 
    return {
      propertyType:$("ptype")?.value||"",
      purpose:$("purpose")?.value||"",
@@ -732,6 +757,8 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
      address:$("address")?.value||"",
      poster:$("poster")?.value||"",
      propertyCategory:propertyPostingCategory(),
+     projects:isBuilderProjectProfile()?projects:undefined,
+     projectCount:isBuilderProjectProfile()?projects.length:undefined,
      business:isBuilderPost()?($("builderCompany")?.value||""):($("poster")?.value||"Property Owner"),
      name:isBuilderPost()?($("project")?.value||"Builder Property"):(($("bhk")?.value||"")+" "+($("ptype")?.value||"Property")+" "+($("purpose")?.value||"")).trim(),
      about:$("desc")?.value||"",
@@ -763,7 +790,15 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
        if(!adminFree){alert("Admin FREE access allowed nahi hai.");return}
      }
      tax=adminFree?{base:0,rate:0,gst:0,total:0,enabled:false}:propertyPlanTax(propertyPlanDays);planLabel=ocsPropertyPlanLabel(propertyPlanDays);
-     try{await collectPropertyPublicMedia()}catch(e){alert("Property photo/video upload nahi hua: "+(e&&e.message?e.message:"Upload error"));return}
+     if(!validateBuilderProfileProjects()){go(2);return}
+     try{
+       const galleryCount=$('photos')?.files?.length||propertyPublicMedia.filter(x=>x.type==='image').length;
+       const newCoverCount=isBuilderProjectProfile()?builderExtraProjects.filter(x=>x.photoFile).length:0;
+       const allVideos=$('projectVideos')?.files?.length||propertyPublicMedia.filter(x=>x.type==='video').length;
+       if(galleryCount+newCoverCount>20||allVideos>3)throw new Error('Max 20 photos total and 3 videos per Builder Project Profile.');
+       await collectPropertyPublicMedia();
+       await collectBuilderProjectMedia();
+     }catch(e){alert("Property photo/video upload nahi hua: "+(e&&e.message?e.message:"Upload error"));return}
      const publicMeta=propertyPublicMeta(propertyPublicMedia);
      if(adminFree){
        // Admin-only FREE listing must be confirmed by server, never only localStorage.
