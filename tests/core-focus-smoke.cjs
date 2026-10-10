@@ -81,15 +81,16 @@ function roleRoute(skill){
   assert(provider.includes("'Driver profile load failed'"));
   assert(provider.includes('snap.full_name'));
  });
- await check('Driver only: hourly fare calculated from OCS central rate and manual quote removed',()=>{
-  assert(driver.includes("sb.rpc('ocs_driver_hourly_rate_v1')"));
-  assert(driver.includes("const hours=driverHours(),rate="));
-  assert(driver.includes("hours*rate"));
-  assert(driver.includes("sb.rpc('create_customer_driver_hourly_booking_v1'"));
-  assert(driver.includes("$('bookBtn').disabled=!permitted"));
+ await check('Driver only: package fare comes from central OCS rates; no manual driver quotes',()=>{
+  assert(driver.includes("sb.rpc('ocs_driver_packages_v1')"));
+  assert(driver.includes("driverPackage()"));
+  assert(driver.includes("sb.rpc('create_customer_driver_package_booking_v1'"));
+  assert(driver.includes("$('bookBtn').disabled=!enabled"));
   assert(!driver.includes("sb.rpc('create_customer_quote_request_v2'"));
   assert(!provider.includes("setTimeout(()=>promptQuote(id),100)"));
   assert(!provider.includes("async function promptQuote(id)"));
+  for(const v of [1,2,3,4,6,8,12])assert(driver.includes('data-value="'+v+' Hrs"'));
+  for(const v of [2.5,3.5,4.5,5])assert(!driver.includes('data-value="'+v+' Hrs"'));
  });
  console.log('OCS main-business smoke: '+successes+'/10 passed');
  if(successes!==10)process.exitCode=1;
