@@ -5134,7 +5134,7 @@ async function openModule(n,role,serviceCat){
  };
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
-   frame.src='property.html?v=20261010-buildermulti1';
+   frame.src='property.html?v=20261010-cleanenquiry1';
  }else if(n==='Tempo / Goods Transport'){
    frame.removeAttribute('srcdoc');
    frame.src='transport.html?v=20261006-driver-e2e1';
@@ -5672,9 +5672,16 @@ function injectBusinessLikeBar(cat){
    // Keep Like in the normal flow below filters instead of floating above Enquiry.
    const filters=doc.querySelector('.filters');
    if(filters&&filters.parentElement){
-     filters.insertAdjacentElement('afterend',bar);
-     bar.style.cssText='position:relative!important;inset:auto!important;transform:none!important;display:inline-flex!important;float:right;margin:1px 2px 8px auto;z-index:1;box-shadow:none;border:0;background:transparent;padding:0';
-     bar.querySelector('#ocsBusinessLikeCount').style.cssText='font-size:11px;color:#6d7f8d;font-weight:750';
+     let likeRow=doc.getElementById('ocsPropertyLikeRow');
+     if(!likeRow){
+       likeRow=doc.createElement('div');likeRow.id='ocsPropertyLikeRow';
+       likeRow.style.cssText='display:flex;justify-content:flex-end;align-items:center;min-height:35px;clear:both;margin:0 2px 7px';
+       filters.insertAdjacentElement('afterend',likeRow);
+     }
+     likeRow.appendChild(bar);
+     bar.style.cssText='position:static!important;inset:auto!important;transform:none!important;display:inline-flex!important;float:none!important;margin:0!important;z-index:1;box-shadow:none!important;border:0!important;background:transparent!important;padding:0!important';
+     const count=bar.querySelector('#ocsBusinessLikeCount');
+     if(count)count.style.cssText='font-size:11px;color:#6d7f8d;font-weight:750';
      if(btn)btn.style.cssText='font-size:11px;padding:7px 10px;border-radius:999px;background:#fff0f4;box-shadow:none';
    }
  }
