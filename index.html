@@ -544,6 +544,69 @@ body:has(#locationModal.show) .ocs-super-nav{visibility:hidden!important}
 body:has(#notificationsModal.show) {overflow:hidden!important}
 body:has(#notificationsModal.show) .ocs-super-nav {display:none!important}
 </style>
+
+<style id="ocs-module-viewport-align-20261010">
+/* Business modules occupy a single visible phone viewport: no blank top offset,
+   no clipped bottom. The iframe itself is the scroll container. */
+html body.module-open #viewer.show:not(.home-service-view) {
+ position:fixed!important;
+ inset:0!important;
+ top:0!important;bottom:0!important;left:0!important;right:0!important;
+ display:flex!important;
+ flex-direction:column!important;
+ width:100%!important;
+ max-width:none!important;
+ height:100vh!important;
+ height:100dvh!important;
+ max-height:100dvh!important;
+ margin:0!important;
+ padding:0!important;
+ overflow:hidden!important;
+ transform:none!important;
+ background:#f4f7f8!important;
+ z-index:30200!important;
+}
+html body.module-open #viewer.show:not(.home-service-view)>.bar {
+ box-sizing:border-box!important;
+ display:flex!important;
+ flex:0 0 56px!important;
+ height:56px!important;
+ min-height:56px!important;
+ max-height:56px!important;
+ width:100%!important;
+ margin:0!important;
+ padding:7px 12px!important;
+ border-radius:0!important;
+ align-items:center!important;
+ justify-content:space-between!important;
+ background:#00545d!important;
+}
+html body.module-open #viewer.show:not(.home-service-view)>.bar #title {
+ font-size:18px!important;
+ font-weight:850!important;
+ flex:1!important;
+ min-width:0!important;
+ margin:0 10px!important;
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+}
+html body.module-open #viewer.show:not(.home-service-view)>iframe {
+ box-sizing:border-box!important;
+ display:block!important;
+ position:relative!important;
+ flex:1 1 auto!important;
+ min-height:0!important;
+ max-height:none!important;
+ width:100%!important;
+ height:0!important;
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ overflow:auto!important;
+ background:#f4f7f8!important;
+}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
@@ -4837,6 +4900,46 @@ function setSuperSlide(n){
 }
 setTimeout(()=>{renderLivePaidBanners();renderXyzDemoBanner();refreshHomeLiveWindowPosters();setSuperSlide(0)},100);
 setInterval(()=>{refreshHomeLiveWindowPosters().catch(()=>{})},6000);
+
+function ocsAlignEmbeddedBusinessWindow(category,frame){
+ const doc=frame&&frame.contentDocument;
+ if(!doc||!doc.head||!doc.body)return;
+ const markerId='ocsEmbeddedCompactViewportFix';
+ let style=doc.getElementById(markerId);
+ if(!style){
+   style=doc.createElement('style');style.id=markerId;
+   style.textContent=[
+    'html,body{margin:0!important;padding:0!important;max-width:100%!important;overflow-x:hidden!important}',
+    'html{scroll-padding-top:0!important}',
+    'body>.app{max-width:100%!important;min-height:100%!important;box-sizing:border-box!important}',
+    'body>.app>nav.bottom{display:none!important}',
+    '.modal.show{inset:0!important;align-items:flex-start!important;justify-content:center!important;overflow-y:auto!important;padding:10px!important;box-sizing:border-box!important}',
+    '.modal.show>.sheet{box-sizing:border-box!important;margin:0 auto!important;width:min(520px,100%)!important;max-height:calc(100dvh - 20px)!important;overflow-y:auto!important;border-radius:18px!important}',
+    'body:has(.modal.show){overflow:hidden!important}'
+   ].join('\n');
+   doc.head.appendChild(style);
+ }
+ if(category==='Local Shop'){
+   let shop=doc.getElementById('ocsLocalShopSingleHeader');
+   if(!shop){
+     shop=doc.createElement('style');shop.id='ocsLocalShopSingleHeader';
+     shop.textContent=[
+       'body>.app>header{display:none!important}',
+       '#customer>.hero{display:none!important}',
+       '#customer>.sec>.head h1{display:none!important}',
+       '#customer>.sec{padding-top:12px!important;padding-bottom:32px!important}',
+       '#customer>.sec>.head{margin-top:0!important;margin-bottom:12px!important}',
+       /* Legacy global enquiry cannot identify the owner of an individual shop.
+          A real LIVE shop card uses the backend listing ID instead. */
+       '#customer .card.ask{display:none!important}',
+       '.app{padding-bottom:30px!important}'
+     ].join('\n');
+     doc.head.appendChild(shop);
+   }
+ }
+ try{frame.contentWindow.scrollTo(0,0)}catch(_){}
+}
+
 async function openModule(n,role,serviceCat){
  if(n==='Driver Service'){
    location.href='driver-service.html?v=20261006-driver-ui4';
@@ -4857,13 +4960,23 @@ async function openModule(n,role,serviceCat){
    location.href='customer-launch-v1.html?v=20261008-oneapp1'+(serviceCat?'&cat='+encodeURIComponent(serviceCat):'');
    return;
  }
- const frame=document.getElementById('frame');currentModuleName=n;document.getElementById('title').textContent=n;
+ const frame=document.getElementById('frame');
+ // Keep the fixed module at document root so scrolling/transformed home sections
+ // cannot displace it or leave a white strip above the business title.
+ const viewerRoot=document.getElementById('viewer');
+ if(viewerRoot&&viewerRoot.parentElement!==document.body)document.body.appendChild(viewerRoot);
+ currentModuleName=n;document.getElementById('title').textContent=n;
  const manageBtn=document.getElementById('windowManageBtn');if(manageBtn){manageBtn.style.display=(n==='Home Services'||n==='Tempo / Goods Transport')?'none':'block';manageBtn.textContent=n==='Property'?'+ Post Property':(n==='Local Shop'?'+ Post Shop':'+ Post Ad')};
  document.body.classList.add("module-open");
  const gs=document.getElementById("globalSearch");if(gs){gs.placeholder="Search in "+n+"...";if(pendingWindowSearch)gs.value=pendingWindowSearch}
  const ws=document.getElementById("windowSearch");if(ws){ws.placeholder="Search in "+n+"...";ws.value=pendingWindowSearch||""}
  const viewer=document.getElementById('viewer');if(viewer){viewer.classList.toggle('home-service-view',n==='Home Services');viewer.classList.add('show');}
  frame.onload=function(){
+   // New business window always starts at its own top, not at the scroll offset
+   // of the previously visited category.
+   if(n!=='Home Services'&&n!=='Property'){
+     try{ocsAlignEmbeddedBusinessWindow(n,frame)}catch(err){console.warn('OCS mobile alignment',err)}
+   }
    if(n==='Home Services'&&role){try{frame.contentWindow.showTab(role);if(role==='customer'&&serviceCat)frame.contentWindow.selectCategory(serviceCat)}catch(e){}}
    if(n==='Property'&&pendingPropertyPost){const postType=pendingPropertyPost;pendingPropertyPost='';setTimeout(()=>{try{if(typeof frame.contentWindow.openPostWithType==='function')frame.contentWindow.openPostWithType(postType);else frame.contentWindow.openPost()}catch(e){console.warn('Property post open',e)}},120)}
    const specialFlow=(n==='Home Services'||n==='Tempo / Goods Transport');
