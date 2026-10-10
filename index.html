@@ -5143,7 +5143,7 @@ async function openModule(n,role,serviceCat){
  };
  if(n==='Property'){
    frame.removeAttribute('srcdoc');
-   frame.src='property.html?v=20261010-cleanenquiry1';
+   frame.src='property.html?v=20261010-propertysamples3';
  }else if(n==='Tempo / Goods Transport'){
    frame.removeAttribute('srcdoc');
    frame.src='transport.html?v=20261006-driver-e2e1';
@@ -5753,7 +5753,7 @@ function injectCompactWindowEnquiry(cat){
    '<div class="compactHead"><b>'+ocsSavedText(ocsWindowEnquiryLabel(cat))+'</b><button type="button" class="compactClose" aria-label="Close">×</button></div>'+
    '<p class="compactSub">Choose a specific verified LIVE '+(cat==='Local Shop'?'shop':cat==='Property'?'builder':'listing')+'. Only its owner receives your request.</p>'+
    '<div class="compactTargets" role="list"></div>'+
-   '<div class="compactFooter"><button type="button" data-tab="sent">My Enquiries</button><button type="button" data-tab="received">Received</button></div>'+
+   '<div class="compactFooter"><button type="button" data-tab="sent" title="Requests sent by me">My Sent Requests</button><button type="button" data-tab="received" title="Customer requests for my own listings">For My Listings</button></div>'+
    '</section>';
  doc.body.appendChild(root);
  const panel=root.querySelector('.compactPanel'),trigger=root.querySelector('.compactTrigger'),targets=root.querySelector('.compactTargets');
