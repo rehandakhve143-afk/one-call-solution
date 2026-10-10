@@ -88,6 +88,17 @@ async function loadDashboard(){
      return;
    }
    const skills=Array.isArray(profile.skills)?profile.skills.filter(x=>x&&x.enabled_by_provider!==false):[];
+   // Driver/Transport partners must see their dedicated trip dashboard,
+   // never the generic Home Services job card.
+   const roleCategories=[...new Set(skills.map(x=>String(x.category||'').trim()).filter(Boolean))];
+   if(roleCategories.length===1&&roleCategories[0]==='Driver Service'){
+     location.replace('driver-provider.html?v=20261010-core-priority1');
+     return;
+   }
+   if(roleCategories.length===1&&roleCategories[0]==='Tempo / Goods Transport'){
+     location.replace('transport-driver.html?v=20261010-core-priority1');
+     return;
+   }
    const skillApproved=skills.some(x=>x.approved===true&&String(x.verification_status||'').toLowerCase()==='approved');
    let onboardingStatus='';
    try{
