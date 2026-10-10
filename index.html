@@ -7,8 +7,8 @@ html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#f7fa
 #ocsBootSplash small{display:block;margin-top:4px;color:#6b7f82;font-size:12px}
 .ocs-css-ready #ocsBootSplash{opacity:0;pointer-events:none}
 </style>
-<link rel="preload" href="assets/ocs-home.css?v=20261006-customer-tabs1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
-<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20261006-customer-tabs1"></noscript>
+<link rel="preload" href="assets/ocs-home.css?v=20261010-business-viewport1" as="style" onload="this.onload=null;this.rel='stylesheet';document.documentElement.classList.add('ocs-css-ready')">
+<noscript><link rel="stylesheet" href="assets/ocs-home.css?v=20261010-business-viewport1"></noscript>
 <link rel="icon" type="image/svg+xml" href="assets/ocs-logo-mark.svg?v=20260923-final2">
 
 
@@ -5280,7 +5280,13 @@ function injectUniversalWindowNav(cat){
  if(!st){
    st=doc.createElement('style');
    st.id='ocsSingleBackWizardStyle';
-   st.textContent='#ocsPostNav .ocsBack{display:none!important}#ocsPostNav{grid-template-columns:1fr!important}';
+   st.textContent=[
+     '#ocsPostNav .ocsBack{display:none!important}',
+     '#ocsPostNav{grid-template-columns:1fr!important}',
+     '/* Enquiry forms should open near the TOP of the visible mobile frame. */',
+     '#askM.show,#reqM.show{align-items:flex-start!important;justify-content:center!important;padding:12px 10px!important;overflow:hidden!important}',
+     '#askM.show>.sheet,#reqM.show>.sheet{width:min(720px,100%)!important;max-height:calc(100vh - 24px)!important;max-height:calc(100dvh - 24px)!important;margin:0 auto!important;overflow-y:auto!important;overscroll-behavior:contain!important;border-radius:18px!important;-webkit-overflow-scrolling:touch!important}'
+   ].join('');
    (doc.head||doc.documentElement).appendChild(st);
  }
  // Native posting wizard has its real Continue/Next button.
