@@ -4707,6 +4707,14 @@ async function openModule(n,role,serviceCat){
    if(!specialFlow){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
    if(!specialFlow&&n!=='Property'){try{injectBusinessContactBar(n)}catch(e){console.warn('OCS Business Contact UI',e)}}
    if(!specialFlow){try{injectUniversalWindowNav(n)}catch(e){console.warn('OCS Window Navigation',e)}}
+   if(!specialFlow&&n!=='Property'){
+     try{ocsWatchEmbeddedWindowNavigation(n)}catch(e){console.warn('OCS embedded Back',e)}
+   }
+   if(ocsPendingEmbeddedRestore&&ocsPendingEmbeddedRestore.module===n){
+     const target=ocsPendingEmbeddedRestore.state;
+     ocsPendingEmbeddedRestore=null;
+     setTimeout(()=>ocsRestoreEmbeddedWindowNavigation(target),70);
+   }
    if(n==='Home Services'&&pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch="";setTimeout(()=>runWindowSearch(q),180)}
  };
  if(n==='Property'){
@@ -4730,6 +4738,7 @@ async function openModule(n,role,serviceCat){
  }
 }
 function closeModule(){
+ ocsStopWatchingEmbeddedWindow();
  const v=document.getElementById('viewer');if(v){v.classList.remove('show');v.classList.remove('home-service-view')}const f=document.getElementById('frame');f.srcdoc='';f.removeAttribute('src');currentModuleName="";pendingWindowSearch="";
  document.body.classList.remove("module-open");
  const gs=document.getElementById("globalSearch");if(gs){gs.value="";gs.placeholder="Search services, shops, property, vehicle..."}
@@ -4789,6 +4798,85 @@ function ocsGetPropertyNavState(){
  }catch(e){}
  return null;
 }
+// Embedded marketplace windows contain their own enquiry and posting modals.
+// Record their visible step so phone Back restores that step instead of OCS Home.
+let ocsEmbeddedWindowObserver=null,ocsPendingEmbeddedRestore=null;
+function ocsStopWatchingEmbeddedWindow(){
+ if(ocsEmbeddedWindowObserver){ocsEmbeddedWindowObserver.disconnect();ocsEmbeddedWindowObserver=null}
+}
+function ocsEmbeddedCurrentStep(modal){
+ if(!modal||modal.id!=='postM')return null;
+ const active=modal.querySelector('.steps .step.on,.steps .step.active');
+ const found=String(active?.id||'').match(/(\d+)$/);
+ return found?Math.max(1,Math.min(6,Number(found[1]))):null;
+}
+function ocsEmbeddedWindowState(){
+ try{
+   if(!currentModuleName||currentModuleName==='Property')return null;
+   const d=document.getElementById('frame')?.contentDocument;
+   if(!d)return null;
+   const open=[...d.querySelectorAll('.modal.show')].filter(el=>el.id);
+   const modal=open[open.length-1];
+   if(!modal)return null;
+   return {dialog:modal.id,step:ocsEmbeddedCurrentStep(modal)};
+ }catch(e){return null}
+}
+function ocsWatchEmbeddedWindowNavigation(moduleName){
+ ocsStopWatchingEmbeddedWindow();
+ if(currentModuleName!==moduleName)return;
+ const f=document.getElementById('frame'),d=f&&f.contentDocument;
+ if(!d||!d.body||moduleName==='Property')return;
+ const observer=new MutationObserver(()=>{
+   if(currentModuleName===moduleName&&!ocsUiHistoryApplying)ocsQueueUiHistory();
+ });
+ observer.observe(d.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
+ ocsEmbeddedWindowObserver=observer;
+ // Setter changes only the visible wizard step on browser Forward: never clicks
+ // payment, publish or other actionable Next buttons.
+ try{
+   const script=d.createElement('script');
+   script.textContent="window.ocsRestoreWizardStepOnly=function(n){try{n=Math.max(1,Math.min(6,Number(n)||1));if(typeof step==='number'&&typeof post==='function'){step=n;post();return true}}catch(e){}return false};";
+   (d.body||d.documentElement).appendChild(script);
+   script.remove();
+ }catch(e){console.warn('OCS wizard step adapter unavailable',e)}
+}
+function ocsRestoreEmbeddedWindowNavigation(target){
+ try{
+   const f=document.getElementById('frame'),d=f&&f.contentDocument,w=f&&f.contentWindow;
+   if(!d||!w||!currentModuleName||currentModuleName==='Property')return;
+   const desired=target&&target.dialog?String(target.dialog):'';
+   const open=[...d.querySelectorAll('.modal.show')].filter(el=>el.id);
+   for(const m of open){
+     if(m.id===desired)continue;
+     if(typeof w.closeM==='function'){
+       try{w.closeM(m.id)}catch(e){m.classList.remove('show')}
+     }else m.classList.remove('show');
+   }
+   if(!desired)return;
+   const modal=d.getElementById(desired);
+   if(!modal||!modal.classList.contains('modal'))return;
+   if(!modal.classList.contains('show')){
+     if(desired==='postM'&&typeof w.openPost==='function'){
+       try{w.openPost()}catch(e){modal.classList.add('show')}
+     }else if(typeof w.showM==='function'){
+       try{w.showM(desired)}catch(e){modal.classList.add('show')}
+     }else modal.classList.add('show');
+   }
+   if(desired==='postM'&&Number.isFinite(Number(target?.step))){
+     const desiredStep=Math.max(1,Math.min(6,Number(target.step||1)));
+     let currentStep=ocsEmbeddedCurrentStep(modal);
+     if(currentStep&&desiredStep<currentStep&&typeof w.ocsWizardBack==='function'){
+       while(currentStep>desiredStep){
+         w.ocsWizardBack();
+         currentStep=ocsEmbeddedCurrentStep(modal);
+         if(!currentStep)break;
+       }
+     }else if(desiredStep!==currentStep&&typeof w.ocsRestoreWizardStepOnly==='function'){
+       w.ocsRestoreWizardStepOnly(desiredStep);
+     }
+   }
+ }catch(e){console.warn('OCS embedded history restore',e)}
+}
 function ocsCaptureUiState(){
  const viewer=document.getElementById('viewer');
  const moduleOpen=!!(viewer&&viewer.classList.contains('show')&&currentModuleName);
@@ -4802,6 +4890,7 @@ function ocsCaptureUiState(){
    module:moduleOpen?currentModuleName:"",
    modals,
    property:moduleOpen&&currentModuleName==='Property'?ocsGetPropertyNavState():null,
+   embedded:moduleOpen&&currentModuleName!=='Property'?ocsEmbeddedWindowState():null,
    pageScrollY:Number(window.scrollY||0),
    frameScrollY
  };
@@ -4814,7 +4903,8 @@ function ocsUiStateKey(s){
   return JSON.stringify({
    module:state.module||'',
    modals:Array.isArray(state.modals)?state.modals:[],
-   property:state.property||null
+   property:state.property||null,
+   embedded:state.embedded||null
   });
  }catch(e){return ''}
 }
@@ -4875,6 +4965,12 @@ async function ocsRestoreUiState(s){
      if(s.module==='Property'&&s.property){
        setTimeout(()=>{if(ocsUiHistoryApplying)ocsRestorePropertyNavState(s.property)},180);
        setTimeout(()=>{if(ocsUiHistoryApplying)ocsRestorePropertyNavState(s.property)},520);
+     }
+     if(s.module!=='Property'){
+       ocsPendingEmbeddedRestore={module:s.module,state:s.embedded||null};
+       ocsRestoreEmbeddedWindowNavigation(s.embedded||null);
+       setTimeout(()=>{if(ocsUiHistoryApplying)ocsRestoreEmbeddedWindowNavigation(s.embedded||null)},240);
+       setTimeout(()=>{if(ocsUiHistoryApplying)ocsRestoreEmbeddedWindowNavigation(s.embedded||null)},660);
      }
    }
  }catch(e){console.warn('OCS history restore',e)}
