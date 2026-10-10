@@ -50,7 +50,7 @@ function fakeNonAdminClient(){
  const browser=await chromium.launch({headless:true});
  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
  const routeFake=async(page,fn)=>{
-  await page.route('**/supabase-js@2*',route=>route.fulfill({
+  await page.route(/supabase-js@2/,route=>route.fulfill({
    status:200,contentType:'application/javascript',body:'('+fn.toString()+')();'
   }));
  };
