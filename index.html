@@ -4719,9 +4719,11 @@ async function injectLiveCategoryAds(cat){
  const enquiryHtml=isSample
   ?'<div style="font-size:11px;background:#fff4df;color:#8c6618;padding:7px;border-radius:9px;margin-top:8px">SAMPLE • No real enquiry</div>'
   :'<button style="width:100%;background:#e3f6f2;border:1px solid #b2dfd7;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">✉ '+(cat==='Local Shop'?'Ask for Product':'Enquire with this Listing')+'</button>';
- return '<article class="lfCard">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?(cat==='Local Shop'?'SAMPLE • NOT A REAL SHOP':'SAMPLE • NOT LIVE'):'LIVE') +'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+propertyPrice+propertyFeatures+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'') +'</p>'+directShopNote+projectCards+catalogHtml+(isSample?'':isProperty?propertyButtons:'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+(isProperty?'':enquiryHtml+itemWa)+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
+ return '<article class="lfCard'+(isSample&&cat!=='Property'?' ocs-sample-preview':'')+'">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?(cat==='Local Shop'?'SAMPLE • NOT A REAL SHOP':'SAMPLE • NOT LIVE'):'LIVE') +'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+propertyPrice+propertyFeatures+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'') +'</p>'+directShopNote+projectCards+catalogHtml+(isSample?'':isProperty?propertyButtons:'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+(isProperty?'':enquiryHtml+itemWa)+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
  window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat,__sourceTitle:x.title||'',__isDemo:ocsIsDemoPostRow(x)}));
  ocsPlaceCategoryListing(doc,cat,feed);
+ // A backend listing is the source of truth. Do not show a second injected XYZ poster.
+ if(cat!=='Property')doc.getElementById('ocsXyzDemoCard')?.remove();
 
  // One consistent full-screen gallery for every LIVE listing photo.
  let liveLb=doc.getElementById('ocsLivePhotoLightbox');
@@ -5189,7 +5191,7 @@ async function openModule(n,role,serviceCat){
    if(!specialFlow&&n!=='Property'){try{injectXyzDemoListing(n)}catch(e){console.warn('OCS XYZ Demo',e)}}
    if(!specialFlow){injectLiveCategoryAds(n).then(()=>{if(pendingWindowSearch){const q=pendingWindowSearch;pendingWindowSearch='';setTimeout(()=>runWindowSearch(q),120)}}).catch(e=>console.warn('OCS live feed',e))}
    if(!specialFlow){try{injectBusinessLikeBar(n)}catch(e){console.warn('OCS Like UI',e)}}
-   if(!specialFlow){try{injectCompactWindowEnquiry(n)}catch(e){console.warn('OCS compact enquiry UI',e)}}
+   // The enquiry CTA is on each verified LIVE listing, not a floating category-wide button.
    if(!specialFlow&&n!=='Property'){try{injectBusinessContactBar(n)}catch(e){console.warn('OCS Business Contact UI',e)}}
    if(!specialFlow){try{injectUniversalWindowNav(n)}catch(e){console.warn('OCS Window Navigation',e)}}
    if(!specialFlow&&n!=='Property'){
@@ -5754,6 +5756,14 @@ function injectBusinessLikeBar(cat){
      if(count)count.style.cssText='font-size:11px;color:#6d7f8d;font-weight:750';
      if(btn)btn.style.cssText='font-size:11px;padding:7px 10px;border-radius:999px;background:#fff0f4;box-shadow:none';
    }
+ }else{
+   // Keep feedback below the category masthead, away from scroll and form controls.
+   const mast=doc.getElementById('ocsPremiumCategoryHeader');
+   if(mast&&mast.parentNode){
+     let row=doc.getElementById('ocsCategoryLikeRow');
+     if(!row){row=doc.createElement('div');row.id='ocsCategoryLikeRow';row.style.cssText='display:flex;justify-content:flex-end;align-items:center;margin:2px 14px 9px;min-height:35px';mast.insertAdjacentElement('afterend',row)}
+     row.appendChild(bar);
+   }
  }
  refreshBusinessLikeUI(cat);
 }
@@ -6043,7 +6053,8 @@ function ocsShopRemoveProduct(i){
 }
 function ocsLoadShopCatalog(d){
  const products=Array.isArray(d&&d.products)?d.products.slice(0,OCS_SHOP_PRODUCT_LIMIT):[];
- ocsShopCatalog=products.map(p=>({name:String(p.name||''),price:p.price==null?'':String(p.price),variant:String(p.variant||''),details:String(p.details||''),image:String(p.image||'')}));
+ ocsShopCatalog=products.map(p=>({name:String(p.name||''),price:p.price==null?'':String(p.price),variant:String(p.variant||''),details:String(p.details||''),image:String(p.image||'')}))
+   .filter(p=>Boolean(p.name.trim()||p.price.trim()||p.variant.trim()||p.details.trim()||p.image.trim()));
  if(!ocsShopCatalog.length)ocsShopCatalog=[{name:'',price:'',variant:'',details:'',image:''}];
  ocsRenderShopProducts();
 }
@@ -6122,7 +6133,13 @@ function syncBizReadyForm(cat){
  const showVariant=(cat==='Used Vehicle'||cat==='New Vehicle');
  if(vw)vw.style.display=showVariant?'block':'none';
  if(pw&&isShop)pw.style.display='none';
- const productEditor=document.getElementById('ocsShopProductsEditor');if(productEditor)productEditor.style.display=isShop?'block':'none';
+ const productEditor=document.getElementById('ocsShopProductsEditor');
+ if(productEditor){
+   productEditor.style.display=isShop?'block':'none';
+   // Add the optional storefront catalogue AFTER essential contact/gallery fields.
+   // This keeps the start of the mobile posting form short and readable.
+   if(isShop&&productEditor.parentElement===fields)fields.appendChild(productEditor);
+ }
  if(vi&&!showVariant)vi.value='';
 }
 function syncPropertyEntryUi(){
@@ -6214,7 +6231,7 @@ async function continueBiz(){
    if(!ocsShopCatalog.length||ocsShopCatalog.length>OCS_SHOP_PRODUCT_LIMIT){alert('1 se 20 products add karein.');return}
    for(let i=0;i<ocsShopCatalog.length;i++){
      const p=ocsShopCatalog[i],pr=String(p.price==null?'':p.price).trim();
-     if(!String(p.name||'').trim()){alert('Product '+(i+1)+' ka naam required hai.');return}
+     if(!String(p.name||'').trim()){alert('Product '+(i+1)+' ka naam required hai.');document.getElementById('ocsShopProductsEditor')?.scrollIntoView({block:'start',behavior:'auto'});return}
      if(pr!==''&&(!Number.isFinite(Number(pr))||Number(pr)<0)){alert('Product '+(i+1)+' ki price valid nahi hai.');return}
    }
  }
