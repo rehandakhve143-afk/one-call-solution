@@ -5283,6 +5283,7 @@ function injectUniversalWindowNav(cat){
    st.textContent=[
      '#ocsPostNav .ocsBack{display:none!important}',
      '#ocsPostNav{grid-template-columns:1fr!important}',
+     'body:has(.modal.show) #ocsBusinessLikeBar{display:none!important}',
      '/* Enquiry forms should open near the TOP of the visible mobile frame. */',
      '#askM.show,#reqM.show{align-items:flex-start!important;justify-content:center!important;padding:12px 10px!important;overflow:hidden!important}',
      '#askM.show>.sheet,#reqM.show>.sheet{width:min(720px,100%)!important;max-height:calc(100vh - 24px)!important;max-height:calc(100dvh - 24px)!important;margin:0 auto!important;overflow-y:auto!important;overscroll-behavior:contain!important;border-radius:18px!important;-webkit-overflow-scrolling:touch!important}'
