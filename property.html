@@ -428,7 +428,14 @@ function restorePropertyDraft(){
 function clearPropertyDraft(){try{localStorage.removeItem(OCS_PROPERTY_DRAFT_KEY)}catch(e){}}
 let currentPropertyStep=1,ocsBuilderSampleMode=false;
 function ocsPropertyNotifyNav(){
- try{if(window.parent&&typeof window.parent.ocsNotifyFrameNavigation==='function')window.parent.ocsNotifyFrameNavigation()}catch(e){}
+ try{
+   if(window.parent&&window.parent!==window){
+     if(typeof window.parent.ocsSyncPropertyPostingToolbar==='function')
+       window.parent.ocsSyncPropertyPostingToolbar(!!($('overlay')&&$('overlay').style.display==='flex'));
+     if(typeof window.parent.ocsNotifyFrameNavigation==='function')
+       window.parent.ocsNotifyFrameNavigation();
+   }
+ }catch(e){}
 }
 function ocsPropertySetOverlayVisible(visible){
  const overlay=$('overlay');
@@ -453,6 +460,7 @@ function ocsPropertyRestoreNavState(state){
    }else{
      ocsPropertySetOverlayVisible(false);
    }
+   ocsPropertyNotifyNav();
  }catch(e){}
 }
 window.ocsPropertyNavState=ocsPropertyNavState;
