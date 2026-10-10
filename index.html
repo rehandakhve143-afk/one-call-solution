@@ -4723,11 +4723,23 @@ async function injectLiveCategoryAds(cat){
    '</div>';
  }).join('')+'</div>':'';
 
+ const photoServices=(cat!=='Local Shop'&&cat!=='Property'&&Array.isArray(m.photoServices))?m.photoServices.slice(0,20).map((p,j)=>Object.assign({__serviceIndex:j},p)).filter(p=>p&&p.name):[];
+ const photoServicesHtml=photoServices.length?'<div style="font-size:13px;font-weight:900;color:#163f46;margin:14px 0 9px">Services & Rates ('+photoServices.length+')</div>'+'<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">'+photoServices.map(p=>{
+  const price=p.price!==''&&p.price!=null&&Number.isFinite(Number(p.price))?'From ₹'+Number(p.price).toLocaleString('en-IN'):'Get Quote';
+  return '<div style="border:1px solid #e0e9e7;border-radius:14px;overflow:hidden;background:#fff;min-width:0">'+
+   (p.image?'<img src="'+ocsSavedText(p.image)+'" loading="lazy" alt="'+ocsSavedText(p.name)+'" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">':'')+
+   '<div style="padding:10px"><b style="display:block;font-size:12px;line-height:1.3;color:#173f46">'+ocsSavedText(p.name)+'</b>'+
+   '<b style="display:block;font-size:13px;color:#087a70;margin:5px 0">'+price+'</b>'+
+   (p.details?'<small style="font-size:10px;color:#688083;display:block">'+ocsSavedText(p.details)+'</small>':'')+
+   (isSample?'':'<button type="button" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'],parent.__ocsLiveFeed['+i+'].photoServices['+p.__serviceIndex+'])" style="display:block;width:100%;margin-top:9px;padding:9px 4px;border:0;border-radius:9px;background:#e1f4ef;color:#08746d;font-weight:850;font-size:11px">Enquire</button>')+
+   '</div></div>';
+ }).join('')+'</div>':'';
+
  const itemWa=(cat==='Local Shop'&&!isSample)?'<button class="lfItemWa" onclick="parent.livePostWhatsAppItem(parent.__ocsLiveFeed['+i+'])">🟢 WhatsApp this Product</button>':'';
  const enquiryHtml=isSample
   ?'<div style="font-size:11px;background:#fff4df;color:#8c6618;padding:7px;border-radius:9px;margin-top:8px">SAMPLE • No real enquiry</div>'
   :'<button style="width:100%;background:#e3f6f2;border:1px solid #b2dfd7;color:#006c66;border-radius:10px;padding:12px;font-weight:800;margin-top:8px" onclick="parent.ocsEnquireAboutLivePost(parent.__ocsLiveFeed['+i+'])">✉ '+(cat==='Local Shop'?'Ask for Product':'Enquire with this Listing')+'</button>';
- return '<article class="lfCard'+(isSample&&cat!=='Property'?' ocs-sample-preview':'')+'">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?(cat==='Local Shop'?'SAMPLE • NOT A REAL SHOP':'SAMPLE • NOT LIVE'):'LIVE') +'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+propertyPrice+propertyFeatures+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'') +'</p>'+directShopNote+projectCards+catalogHtml+(isSample?'':isProperty?propertyButtons:'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+(isProperty?'':enquiryHtml+itemWa)+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
+ return '<article class="lfCard'+(isSample&&cat!=='Property'?' ocs-sample-preview':'')+'">'+slider(upper,'upper')+'<div class="lfBody"><span class="lfBadge" style="position:static;display:inline-block;margin-bottom:7px;'+(isSample?'background:#fff3d6;color:#8f651a;':'')+'">'+(isSample?(cat==='Local Shop'?'SAMPLE • NOT A REAL SHOP':'SAMPLE • NOT LIVE'):'LIVE') +'</span><h3>'+ocsSavedText(name)+'</h3>'+priceHtml+propertyPrice+propertyFeatures+variantHtml+'<p>'+ocsSavedText(m.area||m.city||'')+(m.about?' • '+ocsSavedText(m.about):'') +'</p>'+directShopNote+projectCards+catalogHtml+photoServicesHtml+(isSample?'':isProperty?propertyButtons:'<div class="lfActions"><button class="lfCall" onclick="parent.livePostCall(parent.__ocsLiveFeed['+i+'])">📞 Call</button><button class="lfWa" onclick="parent.livePostWhatsApp(parent.__ocsLiveFeed['+i+'])">WhatsApp</button></div>')+(isProperty?'':enquiryHtml+itemWa)+'</div>'+slider(lower,'lower')+videoHtml+'</article>'}).join('')+'</div>';
  window.__ocsLiveFeed=rows.map(x=>Object.assign({},livePostMeta(x),{__sourceRef:x.source_ref||x.id||'',__sourceKind:x.source_kind||'',__category:(x.source_kind==='property_listing'?'Property':x.category)||cat,__sourceTitle:x.title||'',__isDemo:ocsIsDemoPostRow(x)}));
  ocsPlaceCategoryListing(doc,cat,feed);
  // A backend listing is the source of truth. Do not show a second injected XYZ poster.
