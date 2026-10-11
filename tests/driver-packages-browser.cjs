@@ -4,15 +4,23 @@ const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 
 function fakeDriverClient(){
- window.supabase={createClient:()=>({
+ window.__driverRateReadModes=[];
+ window.supabase={createClient:(_url,_key,opts)=>({
   auth:{getSession:async()=>({data:{session:null}})},
   rpc:async name=>{
-   if(name==='ocs_driver_packages_v1')return {data:{
+   if(name==='ocs_driver_packages_v1'&&opts.auth.persistSession!==false){
+     window.__driverRateReadModes.push('stale-signed-in-token');
+     return {data:null,error:{message:'JWT issued at future'}};
+   }
+   if(name==='ocs_driver_packages_v1'){
+    window.__driverRateReadModes.push('public-anon');
+    return {data:{
     service:'driver_only_own_vehicle',rate_type:'duration_package',
     packages:[{hours:1,price:null,enabled:false},{hours:2,price:359,enabled:true},
       {hours:3,price:null,enabled:false},{hours:4,price:519,enabled:true},
       {hours:6,price:null,enabled:false},{hours:8,price:null,enabled:false},
       {hours:12,price:null,enabled:false}]},error:null};
+   }
    if(name==='ocs_customer_active_driver_booking_v1')return {data:null,error:null};
    return {data:null,error:null};
   }
@@ -61,6 +69,12 @@ function fakeNonAdminClient(){
   await customer.waitForFunction(()=>document.getElementById('driverHourlyRate').textContent.includes('₹359'),null,{timeout:15000});
   assert.equal(await customer.locator('#durationChoices button').count(),11);
   assert.equal(await customer.locator('#driverTotalFare').innerText(),'₹359');
+  assert.deepEqual(await customer.evaluate(()=>window.__driverRateReadModes),['public-anon'],
+    'Public fare must never be loaded through the potentially invalid login JWT');
+  assert.equal(await customer.locator('#status').isVisible(),false,
+    'Stale login token should not show fare-loading error');
+  console.log('PASS Driver public rate read: stale logged-in JWT cannot block fare section');
+
   assert.equal(await customer.locator('#bookBtn').isDisabled(),false);
   await customer.locator('#durationChoices button[data-value="4 Hrs"]').click();
   assert.equal(await customer.locator('#driverTotalFare').innerText(),'₹519');
