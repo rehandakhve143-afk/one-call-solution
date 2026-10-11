@@ -83,6 +83,11 @@ function roleRoute(skill){
   assert(provider.includes("$('workBtn').hidden=true"));
   assert(provider.includes("Current category: "));
   assert(provider.includes("Admin approval pending"));
+  assert(provider.includes('driverCategoryConflict=!!(gate?.current_category'));
+  assert(provider.includes('startSeparateDriverAccount()'));
+  assert(provider.includes('index.html?fresh=1&login=1&open=sp-profile&join=driver'));
+  assert(provider.includes('Existing SP category ko mat badlein'));
+
  });
  await check('Driver profile errors are visible instead of hidden',()=>{
   assert(provider.includes("Driver eligibility unavailable"));
