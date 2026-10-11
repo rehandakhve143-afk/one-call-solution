@@ -84,7 +84,7 @@ function roleRoute(skill){
  await check('Driver only: package fare comes from central OCS rates; no manual driver quotes',()=>{
   assert(driver.includes("sb.rpc('ocs_driver_packages_v1')"));
   assert(driver.includes("driverPackage()"));
-  assert(driver.includes("sb.rpc('create_customer_driver_package_booking_v1'"));
+  assert(driver.includes("sb.rpc('create_customer_driver_package_booking_v2'"));
   assert(driver.includes("$('bookBtn').disabled=!enabled"));
   assert(!driver.includes("sb.rpc('create_customer_quote_request_v2'"));
   assert(!provider.includes("setTimeout(()=>promptQuote(id),100)"));
