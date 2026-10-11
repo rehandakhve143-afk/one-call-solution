@@ -175,6 +175,8 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 const SB_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
 const SB_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+// Public prices do not need the customer's JWT. Booking still uses the signed-in client above.
+const publicRates=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'ocs-driver-public-fares'}});
 const $=id=>document.getElementById(id);
 let current=null,mode='PLAN',tripType='One Way',carType='Hatchback',transmission='Manual',duration='2 Hrs',payment='ONLINE';
 let driverTariff=null;
@@ -202,7 +204,21 @@ function updateDriverFare(){
  $('bookBtn').disabled=!enabled;
  $('bookBtn').textContent=enabled?'Confirm Driver Booking':'Booking Opens After Rate Approval';
 }
-async function loadDriverTariff(){try{const {data,error}=await sb.rpc('ocs_driver_packages_v1');if(error)throw error;driverTariff=data&&typeof data==='object'?data:null}catch(e){driverTariff=null;show('Package rate load nahi hua: '+(e.message||'Retry'),true)}updateDriverFare()}
+async function loadDriverTariff(){
+ try{
+  const {data,error}=await publicRates.rpc('ocs_driver_packages_v1');
+  if(error)throw error;
+  if(!data||!Array.isArray(data.packages))throw new Error('Invalid rate response');
+  driverTariff=data;
+  if($('status').dataset.rateError==='1'){$('status').style.display='none';$('status').dataset.rateError='';}
+ }catch(e){
+  driverTariff=null;
+  $('status').dataset.rateError='1';
+  show('Driver rates load nahi ho rahe. Refresh karein. Booking filhaal band hai.',true);
+  console.warn('Driver public rate load:',e&&e.message||e);
+ }
+ updateDriverFare();
+}
 function updateSummary(){
  $('sumWay').textContent=tripType;$('sumCar').textContent=carType+' • '+transmission;$('sumDuration').textContent=duration;$('sumSchedule').textContent=selectedDate&&selectedTime?prettyDateTime(selectedDate,selectedTime):'Not selected';updateDriverFare();
 }
@@ -312,6 +328,7 @@ async function bookDriver(){
  }catch(e){show(e&&e.message?e.message:'Driver request create nahi hui.',true);$('bookBtn').disabled=false;$('bookBtn').textContent='Confirm Driver Booking'}
 }
 function statusLabel(s){const x=String(s||'').toLowerCase();return({searching:'Searching Driver',accepted:'Driver Assigned',on_way:'Driver On the Way',reached:'Driver Reached Pickup',working:'Trip In Progress',completion_requested:'Driver marked Complete',payment_pending:'Payment Pending',cash_wait:'Cash Confirmation',completed:'Completed'})[x]||String(s||'').replaceAll('_',' ')}
+let driverSessionRefreshTried=false;
 async function loadBooking(){
  try{
    const {data,error}=await sb.rpc('ocs_customer_active_driver_booking_v1');if(error)throw error;const b=Array.isArray(data)?data[0]:data;
@@ -327,7 +344,17 @@ async function loadBooking(){
     (Number(b.booking_amount||0)>0?'<div class="row"><span>Amount</span><b>₹'+Number(b.booking_amount).toFixed(0)+'</b></div>':'');
    const s=String(b.status||'').toLowerCase();$('otpBox').innerHTML=s==='reached'&&b.start_otp?'<div class="otp"><small>START TRIP OTP</small><b>'+esc(b.start_otp)+'</b></div>':'';
    $('tripActions').innerHTML=s==='completion_requested'?'<div class="actions"><button class="primary" onclick="confirmDone()">Confirm Complete</button><button class="gray" onclick="support()">Need Help</button></div>':'';
- }catch(e){console.error(e)}
+ }catch(e){
+  console.error('Driver booking status load:',e);
+  if(/jwt issued at future/i.test(String(e&&e.message||''))&&!driverSessionRefreshTried){
+   driverSessionRefreshTried=true;
+   try{
+    const result=await sb.auth.refreshSession();
+    if(!result.error&&result.data&&result.data.session)await loadBooking();
+    else show('Session refresh nahi hua. Mobile ki Automatic Date & Time ON karke login dobara karein.',true);
+   }catch(_e){show('Session update nahi hua. Automatic Date & Time check karke dobara login karein.',true)}
+  }
+ }
 }
 async function confirmDone(){if(!current)return;const {error}=await sb.rpc('customer_confirm_completion_v2',{p_booking_id:current.id});if(error){show(error.message,true);return}await loadBooking()}
 async function support(){
