@@ -191,6 +191,22 @@ async function loadOcsDriverOperations(){
   const total=document.createElement('p');total.className='muted';
   total.textContent=rows.length+' recent Driver bookings • '+tickets.filter(t=>t.status==='open').length+' open support tickets';
   dest.appendChild(total);
+  const changes=Array.isArray(data.provider_changes)?data.provider_changes:[];
+  if(changes.length){
+   const heading=document.createElement('h3');heading.textContent='Replacement Requests • Operator Review';heading.style.margin='16px 0 8px';dest.appendChild(heading);
+   for(const c of changes){
+    const card=document.createElement('div');card.className='card';card.style.marginTop='9px';
+    const title=document.createElement('b');title.textContent=(c.customer_name||'Customer')+' • Driver did not arrive';card.appendChild(title);
+    const note=document.createElement('p');note.className='muted';note.textContent=(c.reason||'No reason')+' • Ticket '+(c.ticket_no||'Pending');card.appendChild(note);
+    const ops=document.createElement('div');ops.className='actions';
+    for(const v of [{ok:true,label:'Approve Replacement'},{ok:false,label:'Keep Original Driver'}]){
+     const button=document.createElement('button');button.type='button';button.className=v.ok?'ok':'red';button.textContent=v.label;
+     button.onclick=()=>decideOcsDriverReplacement(c.id,v.ok);
+     ops.appendChild(button);
+    }
+    card.appendChild(ops);dest.appendChild(card);
+   }
+  }
   if(!rows.length){const empty=document.createElement('p');empty.textContent='No Driver booking yet. Rates are still inactive.';dest.appendChild(empty)}
   for(const b of rows){
    const card=document.createElement('div');card.className='card';card.style.marginTop='9px';
@@ -208,6 +224,19 @@ async function loadOcsDriverOperations(){
    }
   }
  }catch(e){dest.textContent='Operator data load failed: '+(e.message||'Retry')}
+}
+async function decideOcsDriverReplacement(id,approve){
+ const action=approve?'Approve replacement search? Original Driver assignment will be released and booking returns to matching.':'Keep original Driver assigned and release the review hold?';
+ if(!confirm(action))return;
+ const note=(prompt('OCS Operator review note (optional):')||'').trim();
+ try{
+  const r=await sb.rpc('ocs_admin_driver_no_show_decision_v1',{
+    p_request_id:id,p_approve:approve,p_note:note
+  });
+  if(r.error)throw r.error;
+  alert(r.data&&r.data.message||'Operator review saved');
+  await loadOcsDriverOperations();
+ }catch(e){alert('Operator action failed: '+(e.message||'Retry'))}
 }
 async function loadOcsCompanyInbox(){
  const panel=document.getElementById('ocsCompanyInbox');
