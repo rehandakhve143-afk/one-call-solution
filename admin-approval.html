@@ -54,6 +54,7 @@
   <button id="adminTabChat" type="button" data-admin-view="chat" onclick="setAdminView('chat')">Company Chat</button>
   <button id="adminTabRates" type="button" data-admin-view="rates" onclick="setAdminView('rates')">Driver Rates</button>
  </nav>
+ <a id="ocsTestLabLink" hidden href="ocs-test-lab.html?v=20261011-testlab1" style="display:block;background:#fff8dc;color:#6a541c;border:1px solid #e8d895;border-radius:13px;padding:13px;text-decoration:none;font-size:13px;font-weight:850;margin-bottom:12px" >🧪 Demo Test Lab → <small style="display:block;margin-top:4px;font-weight:400">Same Admin login se Customer, SP, Driver aur Shop ka sample flow check karein. No real bookings.</small></a>
  <section id="ocsDriverOperations" hidden><div class="card"><h2>Driver Operator • Bookings</h2><div class="muted">OCS Company monitoring • Read-only. No automatic payment or reassignment.</div><div id="ocsDriverOperatorRows">Loading…</div></div></section>
  <div id="content"><div class="card">Loading Admin approval queue...</div></div>
  <section id="ocsCompanyInbox" hidden><div class="card"><h2>OCS Company Chat Inbox</h2><div id="ocsCompanyInboxRows">Loading…</div></div></section>
@@ -138,6 +139,7 @@ async function verifyAdminOtp(){
 }
 async function loadQueue(){
  document.getElementById('ocsAdminSections').hidden=true;
+ document.getElementById('ocsTestLabLink').hidden=true;
  document.getElementById('ocsAdminPageTitle').textContent='OCS Admin';
  document.getElementById('ocsAdminPageHelp').textContent='Only authorized OCS Admin can manage these controls.';
  window.ocsHideDriverRateAdmin?.();
@@ -162,6 +164,7 @@ async function loadQueue(){
    await loadOcsDriverOperations();
    await loadOcsCompanyInbox();
    document.getElementById('ocsAdminSections').hidden=false;
+   document.getElementById('ocsTestLabLink').hidden=false;
    setAdminView('operator');
    const q=await sb.rpc('admin_pending_provider_onboarding_v1');
    if(q.error)throw q.error;
