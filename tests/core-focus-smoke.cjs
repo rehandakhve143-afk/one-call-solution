@@ -89,8 +89,8 @@ function roleRoute(skill){
   assert(!driver.includes("sb.rpc('create_customer_quote_request_v2'"));
   assert(!provider.includes("setTimeout(()=>promptQuote(id),100)"));
   assert(!provider.includes("async function promptQuote(id)"));
-  for(const v of [1,2,3,4,6,8,12])assert(driver.includes('data-value="'+v+' Hrs"'));
-  for(const v of [2.5,3.5,4.5,5])assert(!driver.includes('data-value="'+v+' Hrs"'));
+  for(const v of [2,2.5,3,3.5,4,4.5,5,5.5,6,8,12])assert(driver.includes('data-value="'+v+' Hrs"'));
+  assert(!driver.includes('data-value="1 Hrs"'));
  });
  console.log('OCS main-business smoke: '+successes+'/10 passed');
  if(successes!==10)process.exitCode=1;
