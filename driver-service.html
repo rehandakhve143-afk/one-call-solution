@@ -343,7 +343,11 @@ async function loadBooking(){
     '<div class="row"><span>Schedule</span><b>'+esc(b.request_schedule||'')+'</b></div>'+
     (Number(b.booking_amount||0)>0?'<div class="row"><span>Amount</span><b>₹'+Number(b.booking_amount).toFixed(0)+'</b></div>':'');
    const s=String(b.status||'').toLowerCase();$('otpBox').innerHTML=s==='reached'&&b.start_otp?'<div class="otp"><small>START TRIP OTP</small><b>'+esc(b.start_otp)+'</b></div>':'';
-   $('tripActions').innerHTML=s==='completion_requested'?'<div class="actions"><button class="primary" onclick="confirmDone()">Confirm Complete</button><button class="gray" onclick="support()">Need Help</button></div>':'';
+   const noShowAllowed=['accepted','on_way'].includes(s);
+   $('tripActions').innerHTML=s==='completion_requested'?'<div class="actions"><button class="primary" onclick="confirmDone()">Confirm Complete</button><button class="gray" onclick="support()">Need Help</button></div>':
+     noShowAllowed?'<div class="actions"><button class="gray" onclick="reportDriverNoShow()">Driver nahi aaya • OCS Help</button></div>':
+     s==='provider_change_hold'?'<div class="sub" style="padding:12px">OCS Operator replacement request review kar raha hai. Current Driver trip start nahi kar sakta.</div>':'';
+
  }catch(e){
   console.error('Driver booking status load:',e);
   if(/jwt issued at future/i.test(String(e&&e.message||''))&&!driverSessionRefreshTried){
@@ -355,6 +359,19 @@ async function loadBooking(){
    }catch(_e){show('Session update nahi hua. Automatic Date & Time check karke dobara login karein.',true)}
   }
  }
+}
+async function reportDriverNoShow(){
+ if(!current||!['accepted','on_way'].includes(String(current.status||'')))return;
+ const reason=(prompt('Driver nahi aaya? OCS Company ko problem likhein:','Assigned Driver pickup par nahi aaya aur contact nahi ho raha.')||'').trim();
+ if(!reason)return;
+ if(reason.length<8){show('Problem detail kam se kam 8 characters likhein.',true);return}
+ if(!confirm('OCS Operator ko complaint bhejni hai? Booking review hold mein jayegi. Replacement automatic guarantee nahi hai.'))return;
+ try{
+  const result=await sb.rpc('ocs_customer_driver_no_show_v1',{p_booking_id:current.id,p_reason:reason});
+  if(result.error)throw result.error;
+  show('OCS Operator request sent'+(result.data&&result.data.ticket_no?' • '+result.data.ticket_no:''),false);
+  await loadBooking();
+ }catch(e){show('Driver issue report nahi hua: '+(e.message||'Retry'),true)}
 }
 async function confirmDone(){if(!current)return;const {error}=await sb.rpc('customer_confirm_completion_v2',{p_booking_id:current.id});if(error){show(error.message,true);return}await loadBooking()}
 async function support(){
