@@ -86,7 +86,7 @@ function roleRoute(skill){
  });
  await check('Driver profile errors are visible instead of hidden',()=>{
   assert(provider.includes("Driver eligibility unavailable"));
-  assert(provider.includes('snap.full_name'));
+  assert(provider.includes('snap?.full_name'));
  });
  await check('Driver only: package fare comes from central OCS rates; no manual driver quotes',()=>{
   assert(driver.includes("publicRates.rpc('ocs_driver_packages_v1')"));
