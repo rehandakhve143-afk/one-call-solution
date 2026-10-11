@@ -106,15 +106,19 @@ function fakeNonAdminClient(){
   await admin.goto('http://127.0.0.1:8765/admin-approval.html',{waitUntil:'domcontentloaded'});
   await admin.locator('#ocsAdminSections').waitFor({state:'visible',timeout:15000});
   assert.equal(await admin.locator('#ocsDriverOperations').isVisible(),true);
+  assert.equal(await admin.locator('#ocsAdminPageTitle').innerText(),'Admin • Driver Operator');
   assert.equal(await admin.locator('#driverPackagesPanel').isHidden(),true);
   assert.match(await admin.locator('#ocsDriverOperatorRows').innerText(),/Demo Customer/);
   await admin.locator('#adminTabChat').click();
   assert.equal(await admin.locator('#ocsCompanyInbox').isVisible(),true);
+  assert.equal(await admin.locator('#ocsAdminPageTitle').innerText(),'Admin • Company Chat');
   assert.match(await admin.locator('#ocsCompanyInboxRows').innerText(),/Please help with my driver/);
   await admin.locator('#adminTabApproval').click();
   assert.equal(await admin.locator('#content').isVisible(),true);
+  assert.equal(await admin.locator('#ocsAdminPageTitle').innerText(),'Admin • SP Approval');
   await admin.locator('#adminTabRates').click();
   assert.equal(await admin.locator('#driverPackagesPanel').isVisible(),true);
+  assert.equal(await admin.locator('#ocsAdminPageTitle').innerText(),'Admin • Driver Rates');
   console.log('PASS Admin sections: Operator default, Company Chat, SP Approval, Driver Rates tabs');
   try{await admin.locator('#driverPackageRate-2').waitFor({state:'visible',timeout:15000})}
   catch(e){
