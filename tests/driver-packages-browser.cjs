@@ -20,7 +20,7 @@ function fakeDriverClient(){
 }
 function fakeAdminClient(){
  window.__rateCalls=[];
- window.__rates=[1,2,3,4,6,8,12].map(hours=>({hours,price:null,enabled:false}));
+ window.__rates=[2,2.5,3,3.5,4,4.5,5,5.5,6,8,12].map(hours=>({hours,price:null,enabled:false}));
  window.supabase={createClient:()=>({
   auth:{getSession:async()=>({data:{session:{user:{id:'mock-admin'}}}})},
   rpc:async (name,p={})=>{
@@ -59,7 +59,7 @@ function fakeNonAdminClient(){
   await routeFake(customer,fakeDriverClient);
   await customer.goto('http://127.0.0.1:8765/driver-service.html',{waitUntil:'domcontentloaded'});
   await customer.waitForFunction(()=>document.getElementById('driverHourlyRate').textContent.includes('₹359'),null,{timeout:15000});
-  assert.equal(await customer.locator('#durationChoices button').count(),7);
+  assert.equal(await customer.locator('#durationChoices button').count(),11);
   assert.equal(await customer.locator('#driverTotalFare').innerText(),'₹359');
   assert.equal(await customer.locator('#bookBtn').isDisabled(),false);
   await customer.locator('#durationChoices button[data-value="4 Hrs"]').click();
@@ -86,7 +86,7 @@ function fakeNonAdminClient(){
     }))));
     throw e
   }
-  assert.equal(await admin.locator('.driver-rate-row').count(),7);
+  assert.equal(await admin.locator('.driver-rate-row').count(),11);
   assert.equal(await admin.locator('#driverPackagesPanel .driver-rate-status.on').count(),0);
   await admin.locator('#driverPackageRate-2').fill('399');
   await admin.locator('button[data-driver-save="2"]').click();
