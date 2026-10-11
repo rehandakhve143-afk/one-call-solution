@@ -13,7 +13,7 @@ function fakeDriverClient(){
       {hours:3,price:null,enabled:false},{hours:4,price:519,enabled:true},
       {hours:6,price:null,enabled:false},{hours:8,price:null,enabled:false},
       {hours:12,price:null,enabled:false}]},error:null};
-   if(name==='customer_active_booking')return {data:null,error:null};
+   if(name==='ocs_customer_active_driver_booking_v1')return {data:null,error:null};
    return {data:null,error:null};
   }
  })};
