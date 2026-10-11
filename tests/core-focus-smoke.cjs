@@ -85,7 +85,7 @@ function roleRoute(skill){
   assert(provider.includes("Admin approval pending"));
  });
  await check('Driver profile errors are visible instead of hidden',()=>{
-  assert(provider.includes("'Driver profile load failed'"));
+  assert(provider.includes("Driver eligibility unavailable"));
   assert(provider.includes('snap.full_name'));
  });
  await check('Driver only: package fare comes from central OCS rates; no manual driver quotes',()=>{
