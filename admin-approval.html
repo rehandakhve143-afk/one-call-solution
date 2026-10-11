@@ -44,7 +44,8 @@
  <div class="info"><b>Only Admin:</b> Pehle private SP verification details check karein, phir Approve/Reject karein. Approval ke baad hi Work ON allowed hai.</div>
  <div id="content"><div class="card">Loading Admin approval queue...</div></div>
  <section id="driverPackagesPanel" hidden aria-label="Driver Hire package fare management"></section>
- <button class="btn" onclick="loadQueue()">↻ Refresh</button>
+ <section id="ocsCompanyInbox" hidden><div class="card"><h2>OCS Company Chat Inbox</h2><div id="ocsCompanyInboxRows">Loading…</div></div></section>
+  <button class="btn" onclick="loadQueue()">↻ Refresh</button>
 </main>
 </div>
 <script>
@@ -103,6 +104,7 @@ async function verifyAdminOtp(){
 }
 async function loadQueue(){
  window.ocsHideDriverRateAdmin?.();
+ document.getElementById("ocsCompanyInbox").hidden=true;
  box.innerHTML='<div class="card">Loading Admin approval queue...</div>';
  try{
    const ses=await sb.auth.getSession();
@@ -129,6 +131,24 @@ async function loadQueue(){
  }catch(e){
    box.innerHTML='<div class="error"><b>Admin page load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>';
  }
+}
+async function loadOcsCompanyInbox(){
+ const panel=document.getElementById('ocsCompanyInbox');
+ panel.hidden=false;
+ const dest=document.getElementById('ocsCompanyInboxRows');
+ try{
+ const r=await sb.rpc('ocs_driver_company_inbox_v1');if(r.error)throw r.error;
+ const rows=Array.isArray(r.data)?r.data:[];
+ dest.replaceChildren();
+ if(!rows.length){dest.textContent='No customer company chats yet.';return}
+ for(const item of rows){
+  const button=document.createElement('button');button.type='button';button.className='btn';
+  button.style.margin='7px 0';
+  button.textContent=(item.customer_name||'Customer')+' • '+String(item.last_message||'').slice(0,60);
+  button.onclick=()=>window.ocsOpenCompanyChat(item.customer_id);
+  dest.appendChild(button)
+ }
+ }catch(e){dest.textContent=e.message||'Inbox unavailable'}
 }
 const ocsAdminReviewChecked={};
 box.addEventListener('click',e=>{
@@ -222,5 +242,6 @@ async function adminSignOut(){
 </script>
 <script src="assets/ocs-driver-admin-rates.js?v=20261011-admin-rates1"></script>
 <script>loadQueue();</script>
+<script src="assets/ocs-company-chat.js?v=20261011-company1"></script>
 </body>
 </html>
