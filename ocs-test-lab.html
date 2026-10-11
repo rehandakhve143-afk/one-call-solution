@@ -95,7 +95,7 @@ function render(){
  categoryField()+'<span class="pill">'+esc(c.type)+' · Demo</span></section>'+
  (c.kind==="job"?jobScreen(c):listingScreen(c))+
  (role==="admin"?logs():'' );
- $("category").addEventListener("change",e=>{data.category=e.target.value;save();render()});
+ $("category").addEventListener("change",e=>{if(data.category!==e.target.value){data.category=e.target.value;data.booking=null;data.listing=null;data.enquiry=null;note("Switched demo category");}render()});
  wire();
 }
 function jobScreen(c){
