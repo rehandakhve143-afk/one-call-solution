@@ -313,7 +313,7 @@ async function bookDriver(){
 function statusLabel(s){const x=String(s||'').toLowerCase();return({searching:'Searching Driver',accepted:'Driver Assigned',on_way:'Driver On the Way',reached:'Driver Reached Pickup',working:'Trip In Progress',completion_requested:'Driver marked Complete',payment_pending:'Payment Pending',cash_wait:'Cash Confirmation',completed:'Completed'})[x]||String(s||'').replaceAll('_',' ')}
 async function loadBooking(){
  try{
-   const {data,error}=await sb.rpc('customer_active_booking');if(error)throw error;const b=Array.isArray(data)?data[0]:data;
+   const {data,error}=await sb.rpc('ocs_customer_active_driver_booking_v1');if(error)throw error;const b=Array.isArray(data)?data[0]:data;
    if(!b||String(b.category||'').trim()!=='Driver Service'){current=null;$('tripCard').style.display='none';if($('bookBtn').textContent.includes('Booking Sent')){$('bookBtn').disabled=false;$('bookBtn').textContent='Confirm Driver Booking'}return}
    current=b;$('tripCard').style.display='block';const r=b.booking_readiness||{};$('tripSub').textContent=statusLabel(b.status);
    $('tripRows').innerHTML='<div class="row"><span>Status</span><b>'+esc(statusLabel(b.status))+'</b></div>'+
