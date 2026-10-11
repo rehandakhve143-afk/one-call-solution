@@ -83,7 +83,7 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 <section class="card">
   <div class="stephead"><div><h2>Pickup & Drop</h2><div class="sub">Driver kaha se aur kaha tak chahiye</div></div><span>STEP 2</span></div>
   <div class="field"><label>Pickup Location *</label><div class="locrow"><input id="pickup" placeholder="Pickup address / landmark"><button onclick="useCurrentLocation()">⌖</button></div></div>
-  <div class="field"><label>Drop Location *</label><input id="drop" placeholder="Drop address / landmark"></div>
+  <div class="field"><label>Drop Location *</label><input id="drop" placeholder="Drop address / landmark"></div><div class="field"><label>Callback Number *</label><input id="driverContactPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="15" placeholder="10-digit mobile number"><div class="sub">Sirf assigned Driver call kar sakega. Chat reply OCS Company degi.</div></div>
 </section>
 
 <section class="card">
@@ -146,7 +146,7 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 
 <section class="card trip" id="tripCard">
   <h2>Your Driver Booking</h2><div class="sub" id="tripSub">Live status</div>
-  <div id="tripRows"></div><div id="otpBox"></div><div id="tripActions"></div>
+  <div id="tripRows"></div><div id="otpBox"></div><div id="tripActions"></div><button type="button" class="btn gray" onclick="support()" style="width:100%;margin-top:12px">Chat with OCS Company</button>
 </section>
 </main>
 <nav class="bottom"><button class="on" onclick="goTab('home')"><b>⌂</b>Home</button><button onclick="goTab('activity')"><b>▤</b>Activity</button><button onclick="goTab('wallet')"><b>₹</b>Wallet</button><button onclick="goTab('account')"><b>♙</b>Account</button></nav>
@@ -294,6 +294,8 @@ async function bookDriver(){
  if(!driverPackage()||!driverPackage().enabled||!(Number(driverPackage().price)>0)){show('Selected Driver package rate abhi activate nahi hua.',true);return}
  if(current&&current.id&&!['completed','cancelled','cancelled_settled'].includes(String(current.status||'').toLowerCase())){show('Ek Driver request already active hai. Pehle current trip complete karein.',true);$('tripCard').scrollIntoView({behavior:'smooth',block:'start'});return}
  const pickup=$('pickup').value.trim(),drop=$('drop').value.trim();
+ const customerPhone=$('driverContactPhone').value.replace(/\D/g,'').replace(/^91(?=[6-9]\d{9}$)/,'');
+ if(!/^[6-9]\d{9}$/.test(customerPhone)){show('Valid 10-digit callback number daalein.',true);return}
  if(!pickup||!drop){show('Pickup aur Drop required hain.',true);return}
  if(!Number.isFinite(pickupLat)||!Number.isFinite(pickupLng)){show('Matching Driver ke liye pehle Use Current Location se pickup GPS pin set karein.',true);return}
  if(!selectedDate||!selectedTime){show('Date & Time choose karein.',true);openSchedule();return}
@@ -304,7 +306,7 @@ async function bookDriver(){
    const boot=await sb.rpc('ensure_customer_account_v1');if(boot.error)throw boot.error;
    const readiness={module:'driver_service',pickup_address:pickup,drop_address:drop,car_type:carType,transmission,trip_type:tripType,estimated_duration:duration,booking_mode:mode,payment_preference:payment,note:$('note').value.trim()};
    const desc=['Driver Service','Pickup: '+pickup,'Drop: '+drop,'Car: '+carType,'Transmission: '+transmission,'Trip: '+tripType,'Duration: '+duration,'Mode: '+mode,'Payment: '+payment,'Note: '+($('note').value.trim()||'None')].join('\n');
-   const {data:booking,error}=await sb.rpc('create_customer_driver_package_booking_v1',{p_duration_hours:driverHours(),p_schedule:selectedDate+' '+selectedTime,p_address:pickup,p_drop_address:drop,p_latitude:pickupLat,p_longitude:pickupLng,p_readiness:readiness,p_payment_method:payment.toLowerCase()});
+   const {data:booking,error}=await sb.rpc('create_customer_driver_package_booking_v2',{p_contact_phone:customerPhone,p_duration_hours:driverHours(),p_schedule:selectedDate+' '+selectedTime,p_address:pickup,p_drop_address:drop,p_latitude:pickupLat,p_longitude:pickupLng,p_readiness:readiness,p_payment_method:payment.toLowerCase()});
    if(error)throw error;if(!booking||!booking.id)throw new Error('Booking confirmation not received');show('✓ Driver booking created • ₹'+Number(booking.booking_amount||0).toFixed(0)+' • Matching verified Drivers.',false);$('bookBtn').textContent='Booking Sent ✓';await loadBooking()
  }catch(e){show(e&&e.message?e.message:'Driver request create nahi hui.',true);$('bookBtn').disabled=false;$('bookBtn').textContent='Confirm Driver Booking'}
 }
@@ -333,7 +335,7 @@ async function support(){
  try{
   const {data,error}=await sb.rpc('create_support_ticket_v1',{
    p_role:'customer',p_category:'Driver Service',p_message:message,
-   p_callback:false,p_booking_id:current&&current.id||null
+   p_callback:true,p_booking_id:current&&current.id||null
   });
   if(error)throw error;
   show('✓ Support request submitted'+(data&&data.ticket_no?' • Ticket '+data.ticket_no:''),false);
