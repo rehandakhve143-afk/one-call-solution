@@ -92,6 +92,16 @@ function roleRoute(skill){
   for(const v of [2,2.5,3,3.5,4,4.5,5,5.5,6,8,12])assert(driver.includes('data-value="'+v+' Hrs"'));
   assert(!driver.includes('data-value="1 Hrs"'));
  });
- console.log('OCS main-business smoke: '+successes+'/10 passed');
- if(successes!==10)process.exitCode=1;
+ await check('Driver acceptance, customer callback, Start OTP and completion use backend transitions',()=>{
+  assert(provider.includes("sb.rpc('accept_booking_v3'"),'Driver must accept using verified backend');
+  assert(provider.includes("sb.rpc('provider_booking_action'"),'Driver must use backend status transitions');
+  assert(provider.includes("p_action:'start',p_start_otp:otp"),'Driver sends customer OTP for verification');
+  assert(provider.includes("ocs_assigned_driver_customer_phone_v1"),'Callback is assigned Driver only');
+  assert(driver.includes("s==='reached'&&b.start_otp"),'Customer receives start OTP after arrival');
+  assert(driver.includes("customer_confirm_completion_v2"),'Customer confirms completed job');
+  assert(driver.includes("ocs_customer_driver_no_show_v1"),'Customer can request company intervention');
+  assert(driver.includes("create_customer_driver_package_booking_v2"),'Customer booking uses server-side fare');
+ });
+ console.log('OCS main-business smoke: '+successes+'/11 passed');
+ if(successes!==11)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});
