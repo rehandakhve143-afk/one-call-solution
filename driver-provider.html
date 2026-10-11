@@ -11,7 +11,7 @@
 <header class="top"><div class="brand"><div class="logo">OCS</div><div><h1>Driver Dashboard</h1><p>4-Wheeler Driver • Pickup & Drop</p></div></div></header>
 <main class="wrap">
 <div id="driverHome" class="driver-view">
-<section class="card"><h2 id="driverName">Driver</h2><div class="sub" id="driverMeta">OCS Driver Service</div><span class="statuspill" id="workState">Work OFF</span><button class="btn yellow full" id="workBtn" onclick="toggleWork()">Turn Work ON</button></section>
+<section class="card"><h2 id="driverName">Driver</h2><div class="sub" id="driverMeta">OCS Driver Service</div><span class="statuspill" id="workState">Checking Profile</span><div id="driverEligibilityHelp" class="sub" style="margin-top:10px"></div><button class="btn yellow full" id="workBtn" onclick="toggleWork()" disabled>Checking…</button><button class="btn gray full" type="button" id="driverProfileLink" onclick="tab('account')" hidden>Open Driver Profile & Verification</button></section>
 <section class="card" id="currentCard"><h3>Current Trip</h3><div id="currentBody" class="empty">No active trip</div></section>
 <section class="card" id="openCard"><h3>Driver Requests</h3><div class="sub">Nearby pickup & drop requests</div><div id="openJobs" class="empty">Checking requests…</div></section>
 </div>
@@ -29,27 +29,54 @@
 <script>
 const SB_URL='https://uipmkrsggpkupgbgoxkg.supabase.co',SB_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let workOn=false,current=null;
+let workOn=false,current=null,driverEligible=false;
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 async function load(){
- const sess=await sb.auth.getSession();const session=sess.data&&sess.data.session;if(!session){location.href='index.html?login=1&open=sp-profile';return}
+ const sess=await sb.auth.getSession();
+ if(!sess.data?.session){location.href='index.html?login=1&open=sp-profile';return}
+ $('workBtn').disabled=true;
  try{
-   const {data:snap,error:pe}=await sb.rpc('provider_profile_snapshot_v1');if(pe)throw pe;
-   const skills=Array.isArray(snap&&snap.skills)?snap.skills:[];
-   if(!skills.some(s=>String(s.category||'')==='Driver Service'&&s.enabled_by_provider!==false)){
-     $('openJobs').innerHTML='<div class="empty">Driver Service category profile me select/approve karein.</div>';return;
-   }
-   $('driverName').textContent=String(snap.full_name||(snap.profile&&snap.profile.full_name)||'Driver');
- }catch(e){$('openJobs').innerHTML='<div class="empty">'+esc(e&&e.message||'Driver profile load failed')+'</div>';return}
- try{
-   const {data:ps}=await sb.from('provider_status').select('available_for_work,wallet_balance,admin_paused').maybeSingle();
-   workOn=!!(ps&&ps.available_for_work);$('workState').textContent=(ps&&ps.admin_paused)?'ADMIN HOLD':(workOn?'WORK ON':'WORK OFF');$('workBtn').textContent=workOn?'Turn Work OFF':'Turn Work ON';
-   $('driverMeta').textContent='Wallet ₹'+Number(ps&&ps.wallet_balance||0).toFixed(2)+' • Jobs wallet low/negative hone se auto-block nahi hongi';
- }catch(e){}
- await loadCurrent();await loadOpenJobs();
+  const {data:gate,error:ge}=await sb.rpc('ocs_driver_account_eligibility_v1');
+  if(ge)throw ge;
+  const {data:snap,error:pe}=await sb.rpc('provider_profile_snapshot_v1');if(pe)throw pe;
+  driverEligible=!!gate?.can_work;
+  $('driverName').textContent=String(snap?.full_name||snap?.profile?.full_name||'Driver');
+  $('driverProfileLink').hidden=driverEligible;
+  if(!driverEligible){
+   workOn=false;
+   $('workState').textContent='Approval Required';
+   $('workBtn').hidden=true;
+   let detail='';
+   if(!gate?.registered)detail='Pehle Service Provider profile register karein.';
+   else if(!gate?.driver_selected)detail='Abhi Driver Service selected nahi hai. Current category: '+String(gate?.current_category||'None')+'. Profile se category change karein; existing category automatically change nahi hogi.';
+   else if(!gate?.driver_approved||gate?.onboarding_status!=='approved')detail='Driver Service verification/Admin approval pending hai. Work ON approval ke baad milega.';
+   else if(!gate?.location_set)detail='Driver Service pickup matching ke liye work location set karein.';
+   else if(gate?.admin_paused)detail='OCS Admin ne nayi bookings hold par rakhi hain.';
+   else detail='Driver Service currently unavailable.';
+   $('driverEligibilityHelp').textContent=detail;
+   $('openJobs').textContent='Driver requests tabhi milengi jab Driver category approved aur work location ready ho.';
+   $('currentBody').textContent='No available Driver trip';
+   return;
+  }
+  $('driverEligibilityHelp').textContent='Driver Service approved • Verified work location';
+  $('workBtn').hidden=false;
+  const {data:ps,error:se}=await sb.from('provider_status').select('available_for_work,wallet_balance,admin_paused').maybeSingle();if(se)throw se;
+  workOn=!!ps?.available_for_work;
+  $('workState').textContent=workOn?'WORK ON':'WORK OFF';
+  $('workBtn').textContent=workOn?'Turn Work OFF':'Turn Work ON';
+  $('workBtn').disabled=false;
+  $('driverMeta').textContent='Wallet ₹'+Number(ps?.wallet_balance||0).toFixed(2);
+  await loadCurrent();await loadOpenJobs();
+ }catch(e){
+  driverEligible=false;$('workBtn').hidden=true;
+  $('workState').textContent='Profile Check Failed';
+  $('driverEligibilityHelp').textContent=e?.message||'Driver eligibility unavailable';
+  $('openJobs').textContent='Please refresh after checking profile.';
+ }
 }
 async function toggleWork(){
+ if(!driverEligible){alert('Driver Service verification aur Admin approval zaroori hai.');return}
  try{const {error}=await sb.rpc('set_provider_available',{p_available:!workOn});if(error)throw error;await load()}catch(e){alert(e.message||'Work status update failed')}
 }
 async function loadOpenJobs(){
