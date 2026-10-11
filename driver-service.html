@@ -146,7 +146,7 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 
 <section class="card trip" id="tripCard">
   <h2>Your Driver Booking</h2><div class="sub" id="tripSub">Live status</div>
-  <div id="tripRows"></div><div id="otpBox"></div><div id="tripActions"></div><button type="button" class="btn gray" onclick="support()" style="width:100%;margin-top:12px">Chat with OCS Company</button>
+  <div id="tripRows"></div><div id="otpBox"></div><div id="tripActions"></div><button type="button" class="btn gray" onclick="ocsOpenCompanyChat()" style="width:100%;margin-top:12px">Chat with OCS Company</button>
 </section>
 </main>
 <nav class="bottom"><button class="on" onclick="goTab('home')"><b>⌂</b>Home</button><button onclick="goTab('activity')"><b>▤</b>Activity</button><button onclick="goTab('wallet')"><b>₹</b>Wallet</button><button onclick="goTab('account')"><b>♙</b>Account</button></nav>
@@ -358,5 +358,6 @@ function backToPreviousOcs(){
  location.href='index.html?pwa=1&v=20261006-driver-ui4';
 }
 </script>
+<script src="assets/ocs-company-chat.js?v=20261011-company1"></script>
 </body>
 </html>
