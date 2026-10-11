@@ -11,12 +11,13 @@
 <header class="top"><div class="brand"><div class="logo">OCS</div><div><h1>Driver Dashboard</h1><p>4-Wheeler Driver • Pickup & Drop</p></div></div></header>
 <main class="wrap">
 <div id="driverHome" class="driver-view">
-<section class="card"><h2 id="driverName">Driver</h2><div class="sub" id="driverMeta">OCS Driver Service</div><span class="statuspill" id="workState">Checking Profile</span><div id="driverEligibilityHelp" class="sub" style="margin-top:10px"></div><button class="btn yellow full" id="workBtn" onclick="toggleWork()" disabled>Checking…</button><button class="btn gray full" type="button" id="driverProfileLink" onclick="tab('account')" hidden>Open Driver Profile & Verification</button></section>
+<section class="card"><h2 id="driverName">Driver</h2><div class="sub" id="driverMeta">OCS Driver Service</div><span class="statuspill" id="workState">Checking Profile</span><div id="driverEligibilityHelp" class="sub" style="margin-top:10px"></div><button class="btn yellow full" id="workBtn" onclick="toggleWork()" disabled>Checking…</button><button class="btn gray full" type="button" id="driverProfileLink" onclick="tab('account')" hidden>Open Driver Profile & Verification</button>
+<button class="btn gray full" type="button" id="driverSeparateAccountBtn" hidden onclick="startSeparateDriverAccount()">Use Separate Driver Test Account</button></section>
 <section class="card" id="currentCard"><h3>Current Trip</h3><div id="currentBody" class="empty">No active trip</div></section>
 <section class="card" id="openCard"><h3>Driver Requests</h3><div class="sub">Nearby pickup & drop requests</div><div id="openJobs" class="empty">Checking requests…</div></section>
 </div>
 <section class="driver-view" id="driverAccount" hidden>
- <div class="card"><h2>Driver Profile</h2><p class="sub" style="margin-top:8px">Your 4-Wheeler Driver Service account. DL, ID and selfie verification belongs here; vehicle RC is only for Transport.</p></div>
+ <div class="card"><h2>Driver Profile</h2><p class="sub" style="margin-top:8px">4-Wheeler Driver account • Driving Licence, ID and selfie verification required. Vehicle RC is for Transport, not Driver Hire.</p><p class="sub" style="margin-top:9px">If your current Service Provider account has Appliance Repair or another job category, do not change that profile for Driver testing. Use a separate email and OCS Driver account.</p><button class="btn gray full" type="button" onclick="startSeparateDriverAccount()">Use Separate Driver Account</button></div>
  <div class="driver-account-menu">
   <button type="button" onclick="location.href='index.html?open=sp-profile&v=20261006-bank1'"><b>👤 Driver Profile & Verification</b><small>Name, area, selected Driver Service and onboarding</small><span>›</span></button>
   <button type="button" onclick="location.href='payout-details.html?from=driver&v=20261006-bank1'"><b>🏦 Bank & Payout Details</b><small>Optional now • verified bank needed before payout</small><span>›</span></button>
@@ -30,6 +31,7 @@
 const SB_URL='https://uipmkrsggpkupgbgoxkg.supabase.co',SB_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 let workOn=false,current=null,driverEligible=false;
+let driverCategoryConflict=false;
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 async function load(){
@@ -41,6 +43,8 @@ async function load(){
   if(ge)throw ge;
   const {data:snap,error:pe}=await sb.rpc('provider_profile_snapshot_v1');if(pe)throw pe;
   driverEligible=!!gate?.can_work;
+  driverCategoryConflict=!!(gate?.current_category&&gate.current_category!=='Driver Service');
+  $('driverSeparateAccountBtn').hidden=!driverCategoryConflict;
   $('driverName').textContent=String(snap?.full_name||snap?.profile?.full_name||'Driver');
   $('driverProfileLink').hidden=driverEligible;
   if(!driverEligible){
@@ -49,7 +53,7 @@ async function load(){
    $('workBtn').hidden=true;
    let detail='';
    if(!gate?.registered)detail='Pehle Service Provider profile register karein.';
-   else if(!gate?.driver_selected)detail='Abhi Driver Service selected nahi hai. Current category: '+String(gate?.current_category||'None')+'. Profile se category change karein; existing category automatically change nahi hogi.';
+   else if(!gate?.driver_selected)detail='Driver Service selected nahi hai. Current category: '+String(gate?.current_category||'None')+'. Existing SP category ko mat badlein. Driver test ke liye separate email se naya account use karein.';
    else if(!gate?.driver_approved||gate?.onboarding_status!=='approved')detail='Driver Service verification/Admin approval pending hai. Work ON approval ke baad milega.';
    else if(!gate?.location_set)detail='Driver Service pickup matching ke liye work location set karein.';
    else if(gate?.admin_paused)detail='OCS Admin ne nayi bookings hold par rakhi hain.';
@@ -74,6 +78,10 @@ async function load(){
   $('driverEligibilityHelp').textContent=e?.message||'Driver eligibility unavailable';
   $('openJobs').textContent='Please refresh after checking profile.';
  }
+}
+function startSeparateDriverAccount(){
+ if(!confirm('Driver test ke liye alag email se login karna hai? Is mobile browser se current account logout hoga, lekin aapka existing Service Provider profile, bank aur wallet backend mein safe rahega.'))return;
+ location.href='index.html?fresh=1&login=1&open=sp-profile&join=driver&v=20261011-driver-separate1';
 }
 async function toggleWork(){
  if(!driverEligible){alert('Driver Service verification aur Admin approval zaroori hai.');return}
