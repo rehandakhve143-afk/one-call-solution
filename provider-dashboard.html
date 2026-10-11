@@ -57,6 +57,12 @@ const SB_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
 const SB_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let profile=null,available=true,currentJob=null;
+let dashboardBusy=false;
+function setStableDashboardHtml(el,markup){
+ if(!el||el.dataset.ocsRenderedMarkup===markup)return;
+ el.innerHTML=markup;
+ el.dataset.ocsRenderedMarkup=markup;
+}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function money(n){return '₹'+Number(n||0).toLocaleString('en-IN')}
 function shortId(v){return '#'+String(v||'').replace(/[^a-z0-9]/ig,'').slice(0,8).toUpperCase()}
@@ -69,8 +75,9 @@ function skillLabel(x){
  return c||s||'Skill';
 }
 async function loadDashboard(){
+ if(dashboardBusy)return;
+ dashboardBusy=true;
  const pb=document.getElementById('profileBox'),jb=document.getElementById('jobBox');
- jb.innerHTML='<div class="card loading">Checking matching jobs...</div>';
  try{
    const ses=await sb.auth.getSession();
    if(!(ses.data&&ses.data.session)){
@@ -83,7 +90,7 @@ async function loadDashboard(){
    if(profile.registered!==true){
      document.getElementById('verifyPill').textContent='PROFILE REQUIRED';
      document.getElementById('workToggle').disabled=true;
-     pb.innerHTML='<div class="error"><b>Service Provider profile not registered.</b><br>SP profile complete karke Admin approval ke liye submit karein.</div><button class="primary" style="width:100%;margin-top:10px" onclick="location.href=\'index.html?v=20261008-oneapp1&open=sp-profile\'">Complete SP Profile</button>';
+     setStableDashboardHtml(pb,'<div class="error"><b>Service Provider profile not registered.</b><br>SP profile complete karke Admin approval ke liye submit karein.</div><button class="primary" style="width:100%;margin-top:10px" onclick="location.href=\'index.html?v=20261008-oneapp1&open=sp-profile\'">Complete SP Profile</button>');
      jb.innerHTML='';
      return;
    }
@@ -116,7 +123,7 @@ async function loadDashboard(){
      if(!st.error&&Array.isArray(st.data)&&st.data.length)available=st.data[0].available_for_work!==false;
    }catch(e){}
    syncToggle();
-   pb.innerHTML='<div class="profile"><div><b>'+esc(profile.full_name||'Service Provider')+'</b><small>'+esc(profile.phone||'Mobile not added')+'</small></div><div class="wallet">'+money(profile.wallet_balance||0)+'<small>OCS Wallet</small></div></div><div class="chips">'+(skills.length?skills.map(x=>'<span class="chip">'+esc(skillLabel(x))+(x.approved===true?' ✓':'')+'</span>').join(''):'<span class="chip">No skill selected</span>')+'</div>';
+   setStableDashboardHtml(pb,'<div class="profile"><div><b>'+esc(profile.full_name||'Service Provider')+'</b><small>'+esc(profile.phone||'Mobile not added')+'</small></div><div class="wallet">'+money(profile.wallet_balance||0)+'<small>OCS Wallet</small></div></div><div class="chips">'+(skills.length?skills.map(x=>'<span class="chip">'+esc(skillLabel(x))+(x.approved===true?' ✓':'')+'</span>').join(''):'<span class="chip">No skill selected</span>')+'</div>');
 
    let booking=null;
    const cur=await sb.rpc('provider_current_booking');
@@ -130,9 +137,12 @@ async function loadDashboard(){
    currentJob=booking;
    renderJob();
  }catch(e){
-   pb.innerHTML='<div class="error"><b>SP dashboard load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>';
-   jb.innerHTML='';
- }
+   console.warn('SP dashboard refresh failed',e);
+   if(!pb.dataset.ocsRenderedMarkup){
+     setStableDashboardHtml(pb,'<div class="error"><b>SP dashboard load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>');
+     jb.innerHTML='';
+   }
+ }finally{dashboardBusy=false}
 }
 function syncToggle(){
  const b=document.getElementById('workToggle');
@@ -156,13 +166,13 @@ async function toggleWork(){
 function renderJob(){
  const box=document.getElementById('jobBox');
  if(!currentJob){
-   box.innerHTML='<div class="card empty"><div class="ico">✓</div><h3>No matching job right now</h3><div class="muted">Work ON rakhein. Matching customer request aate hi yahan dikhegi.</div></div>';
+   setStableDashboardHtml(box,'<div class="card empty"><div class="ico">✓</div><h3>No matching job right now</h3><div class="muted">Work ON rakhein. Matching customer request aate hi yahan dikhegi.</div></div>');
    return;
  }
  const b=currentJob,st=String(b.status||'searching').toLowerCase();
  const incoming=st==='searching';
  const items=Array.isArray(b.selected_items)?b.selected_items:[];
- box.innerHTML='<div class="job"><span class="badge">'+(incoming?'NEW REQUEST':'CURRENT JOB')+'</span><h2>'+esc(b.service_name||b.category||'Home Service')+'</h2><div class="meta">'+shortId(b.id)+' • '+esc(b.category||'Home Service')+(b.distance_km!=null?' • '+Number(b.distance_km).toFixed(1)+' km':'')+'</div><div class="amount">'+money(b.booking_amount||0)+'</div>'+(items.length?'<div class="items">'+items.map(x=>'<div class="item">'+esc(x.name||'Service')+' × '+Number(x.qty||1)+'</div>').join('')+'</div>':'')+(incoming?'<div class="actions"><button class="accept" onclick="decision(\'accept\')">Accept</button><button class="reject" onclick="decision(\'reject\')">Reject</button></div>':'<div class="muted" style="margin-top:12px">Status: '+esc(String(b.status||'').replaceAll('_',' '))+'</div>')+'</div>';
+ setStableDashboardHtml(box,'<div class="job"><span class="badge">'+(incoming?'NEW REQUEST':'CURRENT JOB')+'</span><h2>'+esc(b.service_name||b.category||'Home Service')+'</h2><div class="meta">'+shortId(b.id)+' • '+esc(b.category||'Home Service')+(b.distance_km!=null?' • '+Number(b.distance_km).toFixed(1)+' km':'')+'</div><div class="amount">'+money(b.booking_amount||0)+'</div>'+(items.length?'<div class="items">'+items.map(x=>'<div class="item">'+esc(x.name||'Service')+' × '+Number(x.qty||1)+'</div>').join('')+'</div>':'')+(incoming?'<div class="actions"><button class="accept" onclick="decision(\'accept\')">Accept</button><button class="reject" onclick="decision(\'reject\')">Reject</button></div>':'<div class="muted" style="margin-top:12px">Status: '+esc(String(b.status||'').replaceAll('_',' '))+'</div>')+'</div>');
 }
 async function decision(d){
  if(!currentJob||!currentJob.id)return;
@@ -178,7 +188,8 @@ async function decision(d){
  }catch(e){alert((d==='accept'?'Accept':'Reject')+' failed: '+(e&&e.message?e.message:'Unknown error'))}
 }
 loadDashboard();
-setInterval(loadDashboard,10000);
+setInterval(()=>{if(!document.hidden)loadDashboard()},10000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadDashboard()});
 </script>
 </body>
 </html>
