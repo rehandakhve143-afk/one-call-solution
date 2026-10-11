@@ -34,10 +34,11 @@ function fakeAdminClient(){
   rpc:async (name,p={})=>{
    if(name==='admin_access_snapshot_v1')return {data:{is_admin:true},error:null};
    if(name==='admin_pending_provider_onboarding_v1')return {data:[],error:null};
+   if(name==='ocs_admin_driver_no_show_decision_v1')return {data:{status:'approved',message:'Replacement search reopened'},error:null};
    if(name==='ocs_admin_driver_operations_v1')return {data:{
     bookings:[{id:'demo-booking',status:'searching',customer_name:'Demo Customer',driver_name:'Unassigned',
       pickup:'Demo Pickup',destination:'Demo Drop',request_schedule:'2026-10-17 16:00'}],
-    tickets:[]},error:null};
+    tickets:[],provider_changes:[{id:'mock-replace-id',booking_id:'demo-booking',customer_name:'Demo Customer',reason:'Driver did not arrive',ticket_no:'TEST-1'}]},error:null};
    if(name==='ocs_driver_company_inbox_v1')return {data:[
     {customer_id:'demo-customer',customer_name:'Demo Customer',last_message:'Please help with my driver'}
    ],error:null};
@@ -109,6 +110,7 @@ function fakeNonAdminClient(){
   assert.equal(await admin.locator('#ocsAdminPageTitle').innerText(),'Admin • Driver Operator');
   assert.equal(await admin.locator('#driverPackagesPanel').isHidden(),true);
   assert.match(await admin.locator('#ocsDriverOperatorRows').innerText(),/Demo Customer/);
+  assert.match(await admin.locator('#ocsDriverOperatorRows').innerText(),/Approve Replacement/);
   await admin.locator('#adminTabChat').click();
   assert.equal(await admin.locator('#ocsCompanyInbox').isVisible(),true);
   assert.equal(await admin.locator('#ocsAdminPageTitle').innerText(),'Admin • Company Chat');
