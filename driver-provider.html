@@ -77,8 +77,25 @@ async function loadCurrent(){
    if(s==='on_way')action='<button class="btn primary full" onclick="act(\'reached\')">Reached Pickup</button>';
    if(s==='reached')action='<button class="btn yellow full" onclick="startOtp()">Enter Start OTP</button>';
    if(s==='working')action='<button class="btn primary full" onclick="act(\'complete\')">Complete Trip</button>';
-   $('currentBody').innerHTML='<div class="row"><span>Status</span><b>'+esc(current.status)+'</b></div><div class="row"><span>Pickup</span><b>'+esc(r.pickup_address||current.address||'')+'</b></div><div class="row"><span>Drop</span><b>'+esc(r.drop_address||'')+'</b></div><div class="row"><span>Car</span><b>'+esc(r.car_type||'')+' • '+esc(r.transmission||'')+'</b></div><div class="row"><span>Trip</span><b>'+esc(r.trip_type||'')+'</b></div><div class="row"><span>Duration</span><b>'+esc(r.estimated_duration||'')+'</b></div><div class="row"><span>Schedule</span><b>'+esc(current.request_schedule||'')+'</b></div><div class="row"><span>Amount</span><b>₹'+Number(current.booking_amount||0).toFixed(0)+'</b></div>'+(r.note?'<div class="row"><span>Customer Note</span><b>'+esc(r.note)+'</b></div>':'')+action;
+   $('currentBody').innerHTML='<div id="driverCallbackCall" style="padding:8px 0">Customer contact loading…</div>'+'<div class="row"><span>Status</span><b>'+esc(current.status)+'</b></div><div class="row"><span>Pickup</span><b>'+esc(r.pickup_address||current.address||'')+'</b></div><div class="row"><span>Drop</span><b>'+esc(r.drop_address||'')+'</b></div><div class="row"><span>Car</span><b>'+esc(r.car_type||'')+' • '+esc(r.transmission||'')+'</b></div><div class="row"><span>Trip</span><b>'+esc(r.trip_type||'')+'</b></div><div class="row"><span>Duration</span><b>'+esc(r.estimated_duration||'')+'</b></div><div class="row"><span>Schedule</span><b>'+esc(current.request_schedule||'')+'</b></div><div class="row"><span>Amount</span><b>₹'+Number(current.booking_amount||0).toFixed(0)+'</b></div>'+(r.note?'<div class="row"><span>Customer Note</span><b>'+esc(r.note)+'</b></div>':'')+action;
+  await loadAssignedCustomerPhone(current.id);
  }catch(e){$('currentBody').innerHTML='<div class="empty">'+esc(e.message||'Current trip load failed')+'</div>'}
+}
+async function loadAssignedCustomerPhone(id){
+ const el=$('driverCallbackCall');if(!el)return;
+ try{
+  const result=await sb.rpc('ocs_assigned_driver_customer_phone_v1',{p_booking_id:id});
+  if(result.error)throw result.error;
+  const phone=String(result.data||'').replace(/[^0-9]/g,'');
+  if(phone.length!==10)throw Error('No callback');
+  const a=document.createElement('a');
+  a.href='tel:+91'+phone;
+  a.textContent='Call Customer';
+  a.className='btn primary full';
+  a.style.display='block';
+  a.style.textAlign='center';
+  el.replaceChildren(a);
+ }catch(e){el.textContent='Callback number available only for assigned active Driver.'}
 }
 async function act(a){try{const {error}=await sb.rpc('provider_booking_action',{p_booking_id:current.id,p_action:a,p_start_otp:null});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'Update failed')}}
 async function startOtp(){const otp=(prompt('Customer ka Start OTP enter karein')||'').trim();if(!otp)return;try{const {error}=await sb.rpc('provider_booking_action',{p_booking_id:current.id,p_action:'start',p_start_otp:otp});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'OTP invalid')}}
