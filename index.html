@@ -2109,31 +2109,36 @@ async function ocsFreshLoginStart(){
   return true;
 }
 
-async function openLogin(){
+async function openLogin(preferredRole){
+  // Respect the selected Customer / Service Provider testing role before OTP.
+  const isProvider=preferredRole==='provider'||(!preferredRole&&(ocsRequestedSpProfile()||ocsRequestedSpDashboard()));
+  const role=isProvider?'provider':'customer';
   const session=await getOcsSession();
   if(session&&session.user){
-    if(ocsRequestedSpProfile()){await openAccount('provider',true);return}
-    bottomHome();return
+    if(isProvider){await openAccount('provider',true);return}
+    bottomHome();return;
   }
+  try{localStorage.setItem('ocsLoginIntentRole',role)}catch(e){}
   const pill=document.getElementById('accountRolePill');
   const title=document.getElementById('accountTitle');
   const sub=document.getElementById('accountSub');
   const cf=document.getElementById('customerAccountForm');
   const pf=document.getElementById('providerAccountForm');
-  const auth=document.getElementById('customerAuthBox');
-  const setup=document.getElementById('customerProfileSetup');
-  if(pill)pill.textContent='OCS ACCOUNT';
-  if(title)title.textContent='Login to One Call Solution';
-  if(sub)sub.textContent='Email ID ya Mobile Number → OTP → direct OCS Home';
-  if(cf)cf.style.display='block';
-  if(pf)pf.style.display='none';
+  const auth=document.getElementById(isProvider?'providerAuthBox':'customerAuthBox');
+  const setup=document.getElementById(isProvider?'providerProfileSetup':'customerProfileSetup');
+  if(pill)pill.textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
+  if(title)title.textContent=isProvider?'Service Provider Login':'Login to One Call Solution';
+  if(sub)sub.textContent=isProvider?'Email / Mobile → OTP → SP Profile or Dashboard':'Email / Mobile → OTP → OCS Home';
+  if(cf)cf.style.display=isProvider?'none':'block';
+  if(pf)pf.style.display=isProvider?'block':'none';
   if(auth)auth.style.display='block';
   if(setup)setup.style.display='none';
-  resetSimpleOcsOtp('customer');
-  updateOcsAccountRoleChooser('customer',null);
+  resetSimpleOcsOtp(role);
+  updateOcsAccountRoleChooser(role,null);
   document.body.classList.add('ocs-account-open');
   document.getElementById('accountModal').classList.add('show');
 }
+
 function ocsStartSupabaseHooks(){
   if(!ocsSupabase||ocsSupabaseHooksStarted)return;
   ocsSupabaseHooksStarted=true;
@@ -2147,7 +2152,7 @@ function ocsStartSupabaseHooks(){
   });
   setTimeout(refreshOcsEmailStatus,0);
   setTimeout(()=>renderHomeDashboardShortcuts(),120);
-  setTimeout(()=>{try{const q=new URLSearchParams(location.search||'');if(q.get('fresh')!=='1'&&q.get('login')==='1')openLogin()}catch(e){}},150);
+  setTimeout(()=>{try{const q=new URLSearchParams(location.search||'');if(q.get('fresh')!=='1'&&q.get('login')==='1')openLogin(q.get('role')==='provider'?'provider':undefined)}catch(e){}},150);
   setTimeout(async()=>{
     try{
       if(ocsProviderProfileMenuIntent){
@@ -2166,7 +2171,7 @@ function ocsStartSupabaseHooks(){
       if(ocsRequestedSpProfile()){
         const s=await getOcsSession();
         if(s&&s.user)await openAccount('provider',true);
-        else await openLogin();
+        else await openLogin('provider');
       }
     }catch(e){console.error('SP route failed',e)}
   },120);
@@ -2181,7 +2186,7 @@ async function openHomeCustomerDashboard(){
 }
 async function openHomeProviderDashboard(){
   const session=await getOcsSession();
-  if(!session||!session.user){ocsProviderProfileMenuIntent=true;openLogin();return}
+  if(!session||!session.user){ocsProviderProfileMenuIntent=true;openLogin('provider');return}
   const hasSp=await ocsUserHasRole('service_provider');
   if(!hasSp){await openAccount('provider',true);return}
   try{
@@ -2393,7 +2398,7 @@ function updateOcsAccountRoleChooser(role,session){
  const switcher=document.getElementById('ocsAccountRoleSwitcher');
  const identity=document.getElementById('ocsAccountIdentity');
  const signedIn=!!(session&&session.user);
- if(switcher)switcher.style.display=signedIn?'grid':'none';
+ if(switcher)switcher.style.display='grid';
  if(identity){
    const id=signedIn?String(session.user.email||session.user.phone||'OCS Account'):'';
    identity.style.display=signedIn?'block':'none';
@@ -2463,7 +2468,7 @@ async function openAccount(role,forceProviderSetup){
  const signedIn=await getOcsSession();
  if(!signedIn||!signedIn.user){
    try{localStorage.setItem('ocsLoginIntentRole',isProvider?'provider':'customer')}catch(e){}
-   await openLogin();
+   await openLogin(isProvider?'provider':'customer');
    return;
  }
  forceProviderSetup=forceProviderSetup===true;
