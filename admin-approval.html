@@ -45,9 +45,9 @@
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="brand"><div class="logo">OCS</div><div><b>Admin • SP Approval</b><small>One Call Solution internal control</small></div></div></header>
+<header class="top"><div class="brand"><div class="logo">OCS</div><div><b id="ocsAdminPageTitle">OCS Admin</b><small>One Call Solution internal control</small></div></div></header>
 <main class="main">
- <div class="info"><b>Only Admin:</b> Pehle private SP verification details check karein, phir Approve/Reject karein. Approval ke baad hi Work ON allowed hai.</div>
+ <div class="info" id="ocsAdminPageHelp"><b>Only Admin:</b> Booking, Service Provider aur Support management.</div>
  <nav class="admin-sections" id="ocsAdminSections" aria-label="Admin control sections" hidden>
   <button id="adminTabOperator" type="button" data-admin-view="operator" onclick="setAdminView('operator')">Driver Operator</button>
   <button id="adminTabApproval" type="button" data-admin-view="approval" onclick="setAdminView('approval')">SP Approval</button>
@@ -74,7 +74,11 @@ function setAdminView(view){
  const nav=document.getElementById('ocsAdminSections');
  if(nav.hidden)return;
  const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel'};
+ const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates'};
+ const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.'};
  if(!Object.prototype.hasOwnProperty.call(map,view))return;
+ document.getElementById('ocsAdminPageTitle').textContent=titles[view];
+ document.getElementById('ocsAdminPageHelp').innerHTML=helps[view];
  for(const [key,id] of Object.entries(map)){
   document.getElementById(id).hidden=(view!==key);
  }
@@ -134,6 +138,8 @@ async function verifyAdminOtp(){
 }
 async function loadQueue(){
  document.getElementById('ocsAdminSections').hidden=true;
+ document.getElementById('ocsAdminPageTitle').textContent='OCS Admin';
+ document.getElementById('ocsAdminPageHelp').textContent='Only authorized OCS Admin can manage these controls.';
  window.ocsHideDriverRateAdmin?.();
  document.getElementById('ocsCompanyInbox').hidden=true;
  document.getElementById('ocsDriverOperations').hidden=true;
