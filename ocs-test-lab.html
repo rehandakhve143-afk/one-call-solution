@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="cache-control" content="no-store">
+<title>OCS Demo Test Lab</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6f7;color:#153740;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+.app{max-width:550px;margin:auto;min-height:100vh;padding-bottom:35px}
+header{background:#07505a;color:white;border-radius:0 0 25px 25px;padding:18px 18px 21px}
+.brand{display:flex;align-items:center;gap:12px}.logo{border-radius:14px;background:#111;width:48px;height:48px;display:grid;place-items:center;font-weight:900}
+h1{margin:0;font-size:21px;letter-spacing:-.4px}h2{margin:0 0 10px;font-size:18px}h3{font-size:15px;margin:0 0 6px}
+p{line-height:1.55}small,.muted{color:#667e85;font-size:12px;line-height:1.5}
+header small{color:#c5e3e5}main{padding:14px 14px 30px}
+.card{background:white;border:1px solid #dce7e9;border-radius:19px;padding:16px;margin-bottom:12px;box-shadow:0 6px 16px #114e5910}
+.demo{background:#fff8e8;border:1px solid #eddb9b;border-radius:13px;padding:12px;color:#6b5623;font-size:12px;line-height:1.5;margin-bottom:12px}
+.steps{display:flex;gap:7px;margin-bottom:13px}.step{flex:1;background:#e4edef;padding:8px 4px;border-radius:9px;font-size:10px;text-align:center;color:#527079;font-weight:800}.step.on{background:#0b7f78;color:white}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+.tabs button{min-height:48px;border-radius:13px;background:white;border:1px solid #cfdfe1;color:#38565d;font-weight:800;font-size:12px}
+.tabs button.active{background:#077b77;color:white;border-color:#077b77}
+button{cursor:pointer;touch-action:manipulation;font-family:inherit}
+.btn{display:block;text-align:center;width:100%;min-height:48px;padding:13px;border:0;border-radius:12px;background:#087e78;color:white;font-size:14px;font-weight:850;text-decoration:none}
+.btn.alt{background:#eef5f5;color:#28545a;border:1px solid #d5e3e4}.btn.warn{background:#fff3eb;color:#993d30;border:1px solid #f1d3ca}
+.btn:disabled{background:#d1dddf;color:#7c9197;cursor:default}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions>*{min-width:0}
+.field{margin-bottom:12px}.field label{display:block;margin-bottom:5px;color:#385a62;font-size:12px;font-weight:750}
+input,select,textarea{width:100%;min-height:47px;background:white;color:#143b43;font:inherit;font-size:14px;border:1px solid #cbdadd;border-radius:11px;padding:10px 11px}
+textarea{min-height:86px;resize:vertical}.pill{display:inline-block;background:#e1f5ec;color:#0d7356;font-size:11px;border-radius:99px;font-weight:800;padding:6px 9px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #edf1f2;font-size:12px}.row:last-child{border-bottom:0}.row strong{text-align:right;max-width:66%;overflow-wrap:anywhere}
+.flow{background:#eff8f6;border:1px solid #cfe8e2;border-radius:13px;padding:12px;font-size:12px;line-height:1.5;margin:10px 0}
+.warning{background:#fff2e9;border:1px solid #f2d4c6;color:#854332;padding:12px;border-radius:13px;font-size:12px;margin:10px 0}
+.spacer{height:8px}.link{color:#096a6e;text-decoration:none;font-size:12px;font-weight:700}.header-actions{display:flex;justify-content:space-between;align-items:center;margin-top:9px}
+#gate{text-align:center;padding-top:36px}.log{margin:4px 0;border-left:2px solid #b4dad5;padding:7px 0 7px 11px;color:#5b7278;font-size:11px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:11px;background:#e7f4f2;margin-right:8px;font-weight:900;color:#14726d}
+</style></head><body>
+<div class="app"><header><div class="brand"><div class="logo">OCS</div><div><h1>Demo Test Lab</h1><small>One Call Solution · Admin only</small></div></div></header>
+<main><div class="demo"><b>🧪 DEMO ONLY · No real booking or money</b><div>Yahan Customer, SP, Driver aur business owner ka sample flow ek hi Admin login se test karein. Live accounts, rates, bank, wallet, approval aur data nahi badlenge.</div></div>
+<div id="gate" class="card"><h2>Checking Admin Login…</h2><p class="muted">Test Lab authorized OCS Admin ke liye hai.</p></div>
+<div id="lab" hidden>
+ <nav class="tabs" aria-label="Demo role" id="roles">
+  <button type="button" data-role="customer" class="active">🏠 Customer</button>
+  <button type="button" data-role="provider">🧰 SP / Driver</button>
+  <button type="button" data-role="admin">🛡 Admin</button>
+ </nav>
+ <div class="steps" id="steps"></div>
+ <div id="screen"></div>
+ <div class="card"><div class="actions"><a class="btn alt" href="admin-approval.html?v=20261011-testlab1">← Admin Panel</a><button type="button" class="btn warn" id="reset">Reset Demo</button></div><p class="muted" style="margin:12px 0 0">Is page ka sample browser mein hi rehta hai. Logout, asli SP verification ya real E2E testing ke liye alag authorized users ki zarurat hoti hai.</p></div>
+</div></main></div>
+<script>
+"use strict";
+const SB_URL="https://uipmkrsggpkupgbgoxkg.supabase.co";
+const SB_KEY="sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto";
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const $=id=>document.getElementById(id);
+const categories={
+ "Electrical":{kind:"job",type:"Home Services",item:"Fan fitting",sp:"Demo Electrician"},
+ "Plumbing":{kind:"job",type:"Home Services",item:"Tap repair",sp:"Demo Plumber"},
+ "AC Service":{kind:"job",type:"Home Services",item:"AC inspection",sp:"Demo AC Technician"},
+ "Refrigerator Repair":{kind:"job",type:"Home Services",item:"Fridge cooling issue",sp:"Demo Appliance Technician"},
+ "Cleaning":{kind:"job",type:"Home Services",item:"Bathroom cleaning",sp:"Demo Cleaner"},
+ "Driver Service":{kind:"job",type:"Driver Service",item:"Drive customer's own car",sp:"Demo Driver"},
+ "Transport Service":{kind:"job",type:"Transport Service",item:"Tempo / Goods Transport",sp:"Demo Transport Provider"},
+ "Local Shop":{kind:"listing",type:"Listing & Enquiry",item:"Ask for a Product",sp:"XYZ Demo Shop"},
+ "Property Owner":{kind:"listing",type:"Listing & Enquiry",item:"Property Enquiry",sp:"XYZ Demo Owner"},
+ "Builder Property":{kind:"listing",type:"Listing & Enquiry",item:"Builder Project Enquiry",sp:"XYZ Demo Builder"},
+ "Medical Store":{kind:"listing",type:"Listing & Enquiry",item:"Medicine Enquiry",sp:"XYZ Demo Medical"},
+ "Diagnostic Lab":{kind:"listing",type:"Listing & Enquiry",item:"Test Enquiry",sp:"XYZ Demo Lab"},
+ "Modular Kitchen":{kind:"listing",type:"Listing & Enquiry",item:"Get Quote",sp:"XYZ Demo Kitchen"},
+ "Beauty & Make-up":{kind:"listing",type:"Listing & Enquiry",item:"Service Enquiry",sp:"XYZ Demo Beauty"},
+ "Welding / Aluminium":{kind:"listing",type:"Listing & Enquiry",item:"Fabrication Enquiry",sp:"XYZ Demo Fabrication"}
+};
+const KEY="ocs_demo_test_lab_20261011";
+const empty=()=>({category:"Driver Service",booking:null,listing:null,enquiry:null,log:[]});
+let data=empty(),role="customer";
+try{const x=JSON.parse(localStorage.getItem(KEY)||"null");if(x && categories[x.category] && Array.isArray(x.log)){data=x}}catch(_){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(_){}}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
+function note(t){data.log.unshift({text:t,time:new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})});data.log=data.log.slice(0,14);save()}
+function choice(k){return '<option value="'+esc(k)+'"'+(k===data.category?" selected":"")+'>'+esc(k)+'</option>'}
+function categoryField(){return '<div class="field"><label for="category">Choose Service / Window</label><select id="category">'+Object.keys(categories).map(choice).join("")+'</select></div>'}
+function row(a,b){return '<div class="row"><span>'+esc(a)+'</span><strong>'+esc(b)+'</strong></div>'}
+function stepStatus(){const c=categories[data.category],b=data.booking;
+ if(c.kind==="listing")return data.enquiry?(data.enquiry.status==="replied"?3:2):(data.listing?1:0);
+ if(!b)return 0;
+ return b.status==="completed"?3:([ "working","reached","on_way","accepted"].includes(b.status)?2:1);
+}
+function render(){
+ if($("lab").hidden)return;
+ document.querySelectorAll("#roles button").forEach(b=>{b.classList.toggle("active",b.dataset.role===role);b.setAttribute("aria-pressed",String(b.dataset.role===role))});
+ const labels=["Select","Customer","Provider","Complete"],at=stepStatus();
+ $("steps").innerHTML=labels.map((x,i)=>'<div class="step'+(i===at?" on":"")+'">'+esc(x)+'</div>').join("");
+ const c=categories[data.category];
+ $("screen").innerHTML='<section class="card"><h2>'+({customer:"Customer Preview",provider:c.kind==="job"?"Service Provider / Driver Preview":"Business Owner Preview",admin:"Admin Demo Monitor"})[role]+'</h2>'+
+ '<p class="muted" style="margin:0 0 14px">Screen switch ke liye email ya OTP nahi lagega. Ye sirf demo simulation hai.</p>'+
+ categoryField()+'<span class="pill">'+esc(c.type)+' · Demo</span></section>'+
+ (c.kind==="job"?jobScreen(c):listingScreen(c))+
+ (role==="admin"?logs():'' );
+ $("category").addEventListener("change",e=>{data.category=e.target.value;save();render()});
+ wire();
+}
+function jobScreen(c){
+ const b=data.booking;
+ if(!b)return '<div class="card"><h2>Sample '+esc(data.category)+' Booking</h2>'+
+ (role==="customer"?'<p class="muted">Nayi demo request banayein. SP tab par jaakar usko Accept karke dekhein.</p>'+
+ '<div class="field"><label>Required work</label><input id="jobItem" maxlength="120" value="'+esc(c.item)+'"></div>'+
+ '<div class="field"><label>Location / pickup (Demo)</label><input id="jobPlace" maxlength="120" value="Khopoli, Maharashtra"></div>'+
+ '<button class="btn" id="book">Create Demo Booking →</button>':
+ (role==="provider"?'<p class="muted">Abhi koi demo request nahi hai. Customer tab se booking banayein.</p>':
+ '<p class="muted">No demo booking. Customer tab se request create karein.</p>'))+'</div>';
+ const stateNames={requested:"Searching for SP",accepted:"Accepted",on_way:"On the Way",reached:"Reached Location",working:"Work Started",completed:"Completed",cancelled:"Cancelled"};
+ const detail='<div class="row"><span>Booking</span><strong>DEMO-001</strong></div>'+
+ row("Service",data.category)+row("Work",b.item)+row("Area",b.place)+row("Demo SP",c.sp)+row("Status",stateNames[b.status]||b.status)+
+ '<div class="flow">Sirf sample progress — real customer ya SP ko notification nahi jayega.</div>';
+ let actions="";
+ if(role==="customer"){
+  if(b.status==="requested")actions='<p class="muted">SP tab kholkar request Accept karein.</p>';
+  else if(b.status==="reached")actions='<div class="flow"><b>Start OTP (Demo): 1234</b><div>Ye code demo SP screen par enter karke trip/job start karein.</div></div>';
+  else if(b.status==="completed")actions='<div class="pill">✓ Demo work complete</div>';
+  else actions='<p class="muted">SP tab par next action karein. Customer yahan status dekh sakta hai.</p>';
+ }else if(role==="provider"){
+  if(b.status==="requested")actions='<div class="actions"><button class="btn" id="accept">Accept Demo Job</button><button class="btn warn" id="reject">Reject Demo</button></div>';
+  if(b.status==="accepted")actions='<button class="btn" id="onway">On the Way →</button>';
+  if(b.status==="on_way")actions='<button class="btn" id="reached">Reached Location →</button>';
+  if(b.status==="reached")actions='<div class="field"><label>Enter Customer Start OTP (Demo)</label><input id="otp" inputmode="numeric" maxlength="4" placeholder="4-digit OTP"></div><button class="btn" id="start">Verify OTP & Start</button><p class="muted" id="otpErr"></p>';
+  if(b.status==="working")actions='<button class="btn" id="finish">Complete Demo Job</button>';
+  if(b.status==="completed")actions='<div class="pill">✓ Completed</div>';
+  if(b.status==="cancelled")actions='<p class="muted">Rejected. Demo reset se phir try karein.</p>';
+ }else{
+  actions='<div class="flow"><b>Admin Monitoring</b><div>Booking ID: DEMO-001 · Test only</div><div>9% OCS Platform Charges rule ko live transactions ke bina illustrate kiya ja raha hai. Is demo mein payment create nahi hota.</div></div>';
+ }
+ return '<section class="card"><h2>'+esc(role==="provider"?"Demo Job":role==="admin"?"Demo Booking Monitor":"My Demo Booking")+'</h2>'+detail+actions+'</section>';
+}
+function listingScreen(c){
+ const l=data.listing,e=data.enquiry;
+ let html='<section class="card"><h2>'+esc(c.sp)+'</h2><p class="muted">Demo self-posting window • Owner ko wahi enquiry milegi jiski listing open hai.</p>'+
+ row("Category",data.category)+row("Listing",l?"Live in Demo":"Not Posted");
+ if(role==="provider"&&!l)html+='<div class="field"><label>Demo Listing Title</label><input id="listingTitle" maxlength="120" value="'+esc(c.sp)+'"></div><button class="btn" id="post">Post Demo Listing (No Payment)</button>';
+ if(l)html+=row("Name",l.title);
+ if(role==="customer" && l && !e)html+='<div class="field"><label>Ask / Enquiry</label><textarea id="ask" maxlength="250" placeholder="'+esc(c.item)+'">Please share details and availability.</textarea></div><button class="btn" id="enquire">Send Demo Enquiry</button>';
+ if(role==="customer"&&!l)html+='<p class="muted">SP / Business Owner tab par demo listing post karein, phir enquiry bhejein.</p>';
+ if(e)html+='<div class="flow"><b>'+esc(e.status==="replied"?"Reply received (Demo)":"Demo Enquiry Sent")+'</b>'+row("Request",e.message)+(e.reply?row("Owner Reply",e.reply):"")+'</div>';
+ if(role==="provider"&&e&&e.status==="open")html+='<div class="field"><label>Owner Reply</label><textarea id="reply" maxlength="250">Thank you! Please call or WhatsApp for details.</textarea></div><button class="btn" id="replyBtn">Reply to Demo Enquiry</button>';
+ if(role==="admin")html+='<p class="muted">Admin ko demo listing aur enquiry ka status dikh raha hai. Asli listing/payment mein koi badlav nahi.</p>';
+ return html+'</section>';
+}
+function logs(){return '<section class="card"><h2>Demo Activity</h2>'+(data.log.length?data.log.map(x=>'<div class="log">'+esc(x.time)+' · '+esc(x.text)+'</div>').join(""):'<p class="muted">No demo actions yet.</p>')+'</section>'}
+function go(status,label){if(!data.booking)return;data.booking.status=status;note(label+" · "+data.category);render()}
+function wire(){
+ const click=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
+ click("book",()=>{const item=($("jobItem").value||"").trim(),place=($("jobPlace").value||"").trim();if(!item||!place){alert("Work aur location bharna hai.");return}data.booking={item:item.slice(0,120),place:place.slice(0,120),status:"requested"};note("Customer created demo request");render()});
+ click("accept",()=>go("accepted","SP accepted demo request"));
+ click("reject",()=>go("cancelled","SP rejected demo request"));
+ click("onway",()=>go("on_way","SP on the way"));
+ click("reached",()=>go("reached","SP reached location"));
+ click("start",()=>{if(($("otp").value||"").trim()!=="1234"){$("otpErr").textContent="Wrong demo OTP. Customer tab par dikhaya gaya 1234 enter karein.";return}go("working","Demo Start OTP verified")});
+ click("finish",()=>go("completed","Demo job completed"));
+ click("post",()=>{const title=($("listingTitle").value||"").trim();if(!title){alert("Listing title likhein.");return}data.listing={title:title.slice(0,120)};note("Demo listing posted");render()});
+ click("enquire",()=>{const message=($("ask").value||"").trim();if(!message){alert("Enquiry likhein.");return}data.enquiry={message:message.slice(0,250),status:"open",reply:""};note("Customer sent demo enquiry");render()});
+ click("replyBtn",()=>{const reply=($("reply").value||"").trim();if(!reply){alert("Reply likhein.");return}data.enquiry.reply=reply.slice(0,250);data.enquiry.status="replied";note("Business owner replied");render()});
+}
+$("roles").addEventListener("click",e=>{const btn=e.target.closest("button[data-role]");if(!btn)return;role=btn.dataset.role;render()});
+$("reset").addEventListener("click",()=>{if(!confirm("Sirf Test Lab ka sample data reset karein? Real app data safe rahega."))return;data=empty();note("Demo reset");render()});
+(async()=>{
+ try{
+  const {data:session,error:authError}=await sb.auth.getSession();
+  if(authError)throw authError;
+  if(!session.session){$("gate").innerHTML='<h2>Admin login required</h2><p class="muted">Pehle OCS Admin panel mein apne existing Admin Email se login karein. Nayi email nahi chahiye.</p><a class="btn" href="admin-approval.html?v=20261011-testlab1">Open Admin Login →</a>';return}
+  const result=await sb.rpc("admin_access_snapshot_v1");if(result.error)throw result.error;
+  if(!result.data?.is_admin){$("gate").innerHTML='<h2>Admin access required</h2><p class="muted">Current account OCS Admin nahi hai. Is test lab mein asliyat ke kisi SP ka role change nahi hoga.</p><a class="btn" href="admin-approval.html?v=20261011-testlab1">Go to Admin Login →</a>';return}
+  $("gate").hidden=true;$("lab").hidden=false;render();
+ }catch(e){$("gate").innerHTML='<h2>Could not verify Admin</h2><p class="muted" id="gateError"></p><a class="btn" href="admin-approval.html?v=20261011-testlab1">Back to Admin →</a>';$("gateError").textContent=e?.message||"Please sign in to Admin."}
+})();
+</script></body></html>
