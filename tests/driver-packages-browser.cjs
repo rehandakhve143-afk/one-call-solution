@@ -68,7 +68,16 @@ function fakeNonAdminClient(){
   await customer.locator('#durationChoices button[data-value="12 Hrs"]').click();
   assert.equal(await customer.locator('#driverTotalFare').innerText(),'Not available');
   assert.equal(await customer.locator('#bookBtn').isDisabled(),true);
-  console.log('PASS Driver customer: seven packages, backend package prices, unpriced booking disabled');
+  assert.match(await customer.locator('#bookBtn').innerText(),/Rate Approval/);
+  const ctaStyle=await customer.locator('.cta').evaluate(el=>({
+    position:getComputedStyle(el).position,
+    parent:el.parentElement.tagName
+  }));
+  assert.equal(ctaStyle.position,'static','Booking button must not float over fare details');
+  assert.equal(ctaStyle.parent,'SECTION');
+  console.log('PASS Driver mobile: rates-off CTA stays in normal flow below fare');
+
+  console.log('PASS Driver customer: package fares, backend package prices, unpriced booking disabled');
 
   const admin=await context.newPage();
   admin.on('pageerror',e=>console.log('Admin browser pageerror:',e.message));
