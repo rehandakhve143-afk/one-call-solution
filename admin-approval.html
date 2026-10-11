@@ -44,6 +44,7 @@
  <div class="info"><b>Only Admin:</b> Pehle private SP verification details check karein, phir Approve/Reject karein. Approval ke baad hi Work ON allowed hai.</div>
  <div id="content"><div class="card">Loading Admin approval queue...</div></div>
  <section id="driverPackagesPanel" hidden aria-label="Driver Hire package fare management"></section>
+ <section id="ocsDriverOperations" hidden><div class="card"><h2>Driver Operator • Bookings</h2><div class="muted">OCS Company monitoring • Read-only. No automatic payment or reassignment.</div><div id="ocsDriverOperatorRows">Loading…</div></div></section>
  <section id="ocsCompanyInbox" hidden><div class="card"><h2>OCS Company Chat Inbox</h2><div id="ocsCompanyInboxRows">Loading…</div></div></section>
   <button class="btn" onclick="loadQueue()">↻ Refresh</button>
 </main>
@@ -105,6 +106,7 @@ async function verifyAdminOtp(){
 async function loadQueue(){
  window.ocsHideDriverRateAdmin?.();
  document.getElementById("ocsCompanyInbox").hidden=true;
+ document.getElementById("ocsDriverOperations").hidden=true;
  box.innerHTML='<div class="card">Loading Admin approval queue...</div>';
  try{
    const ses=await sb.auth.getSession();
@@ -131,6 +133,34 @@ async function loadQueue(){
  }catch(e){
    box.innerHTML='<div class="error"><b>Admin page load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>';
  }
+}
+async function loadOcsDriverOperations(){
+ const panel=document.getElementById('ocsDriverOperations'), dest=document.getElementById('ocsDriverOperatorRows');
+ panel.hidden=false;
+ try{
+  const r=await sb.rpc('ocs_admin_driver_operations_v1');if(r.error)throw r.error;
+  const data=r.data||{}, rows=Array.isArray(data.bookings)?data.bookings:[],tickets=Array.isArray(data.tickets)?data.tickets:[];
+  dest.replaceChildren();
+  const total=document.createElement('p');total.className='muted';
+  total.textContent=rows.length+' recent Driver bookings • '+tickets.filter(t=>t.status==='open').length+' open support tickets';
+  dest.appendChild(total);
+  if(!rows.length){const empty=document.createElement('p');empty.textContent='No Driver booking yet. Rates are still inactive.';dest.appendChild(empty)}
+  for(const b of rows){
+   const card=document.createElement('div');card.className='card';card.style.marginTop='9px';
+   const title=document.createElement('b');title.textContent=(b.customer_name||'Customer')+' • '+(b.status||'Unknown');
+   const details=document.createElement('div');details.className='muted';details.style.marginTop='6px';
+   details.textContent='Driver: '+(b.driver_name||'Unassigned')+' • '+(b.request_schedule||'No schedule')+' • '+(b.pickup||'No pickup')+' → '+(b.destination||'No drop');
+   const id=document.createElement('small');id.style.display='block';id.style.marginTop='7px';id.textContent='Booking ID: '+b.id;
+   card.append(title,details,id);dest.appendChild(card);
+  }
+  if(tickets.length){
+   const head=document.createElement('h3');head.textContent='Driver Support Tickets';head.style.marginTop='20px';dest.appendChild(head);
+   for(const t of tickets){
+    const d=document.createElement('div');d.className='card';d.style.marginTop='8px';
+    d.textContent=(t.ticket_no||'Ticket')+' • '+(t.status||'open')+' • '+(t.message||'');dest.appendChild(d)
+   }
+  }
+ }catch(e){dest.textContent='Operator data load failed: '+(e.message||'Retry')}
 }
 async function loadOcsCompanyInbox(){
  const panel=document.getElementById('ocsCompanyInbox');
