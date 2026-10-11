@@ -77,6 +77,13 @@ function roleRoute(skill){
   assert(driver.includes("p_role:'customer',p_category:'Driver Service'"));
   assert(!driver.includes("alert('OCS Support se Driver booking issue raise kiya jayega.')"));
  });
+ await check('Unapproved Driver cannot turn work ON or receive requests',()=>{
+  assert(provider.includes("ocs_driver_account_eligibility_v1"));
+  assert(provider.includes("if(!driverEligible){alert("));
+  assert(provider.includes("$('workBtn').hidden=true"));
+  assert(provider.includes("Current category: "));
+  assert(provider.includes("Admin approval pending"));
+ });
  await check('Driver profile errors are visible instead of hidden',()=>{
   assert(provider.includes("'Driver profile load failed'"));
   assert(provider.includes('snap.full_name'));
@@ -102,6 +109,6 @@ function roleRoute(skill){
   assert(driver.includes("ocs_customer_driver_no_show_v1"),'Customer can request company intervention');
   assert(driver.includes("create_customer_driver_package_booking_v2"),'Customer booking uses server-side fare');
  });
- console.log('OCS main-business smoke: '+successes+'/11 passed');
- if(successes!==11)process.exitCode=1;
+ console.log('OCS main-business smoke: '+successes+'/12 passed');
+ if(successes!==12)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});
