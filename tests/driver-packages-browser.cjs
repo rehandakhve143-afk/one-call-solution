@@ -34,6 +34,13 @@ function fakeAdminClient(){
   rpc:async (name,p={})=>{
    if(name==='admin_access_snapshot_v1')return {data:{is_admin:true},error:null};
    if(name==='admin_pending_provider_onboarding_v1')return {data:[],error:null};
+   if(name==='ocs_admin_driver_operations_v1')return {data:{
+    bookings:[{id:'demo-booking',status:'searching',customer_name:'Demo Customer',driver_name:'Unassigned',
+      pickup:'Demo Pickup',destination:'Demo Drop',request_schedule:'2026-10-17 16:00'}],
+    tickets:[]},error:null};
+   if(name==='ocs_driver_company_inbox_v1')return {data:[
+    {customer_id:'demo-customer',customer_name:'Demo Customer',last_message:'Please help with my driver'}
+   ],error:null};
    if(name==='ocs_driver_packages_v1')return {data:{packages:window.__rates},error:null};
    if(name==='ocs_admin_set_driver_package_v1'){
     window.__rateCalls.push(p);
@@ -97,6 +104,18 @@ function fakeNonAdminClient(){
   admin.on('pageerror',e=>console.log('Admin browser pageerror:',e.message));
   await routeFake(admin,fakeAdminClient);
   await admin.goto('http://127.0.0.1:8765/admin-approval.html',{waitUntil:'domcontentloaded'});
+  await admin.locator('#ocsAdminSections').waitFor({state:'visible',timeout:15000});
+  assert.equal(await admin.locator('#ocsDriverOperations').isVisible(),true);
+  assert.equal(await admin.locator('#driverPackagesPanel').isHidden(),true);
+  assert.match(await admin.locator('#ocsDriverOperatorRows').innerText(),/Demo Customer/);
+  await admin.locator('#adminTabChat').click();
+  assert.equal(await admin.locator('#ocsCompanyInbox').isVisible(),true);
+  assert.match(await admin.locator('#ocsCompanyInboxRows').innerText(),/Please help with my driver/);
+  await admin.locator('#adminTabApproval').click();
+  assert.equal(await admin.locator('#content').isVisible(),true);
+  await admin.locator('#adminTabRates').click();
+  assert.equal(await admin.locator('#driverPackagesPanel').isVisible(),true);
+  console.log('PASS Admin sections: Operator default, Company Chat, SP Approval, Driver Rates tabs');
   try{await admin.locator('#driverPackageRate-2').waitFor({state:'visible',timeout:15000})}
   catch(e){
     console.log('Admin page diagnostic:',JSON.stringify(await admin.evaluate(()=>({
@@ -132,6 +151,9 @@ function fakeNonAdminClient(){
   await unauthorized.goto('http://127.0.0.1:8765/admin-approval.html',{waitUntil:'domcontentloaded'});
   await unauthorized.waitForFunction(()=>document.getElementById('content').textContent.includes('not Admin'),null,{timeout:15000});
   assert.equal(await unauthorized.locator('#driverPackagesPanel').isHidden(),true);
+  assert.equal(await unauthorized.locator('#ocsAdminSections').isHidden(),true);
+  assert.equal(await unauthorized.locator('#ocsDriverOperations').isHidden(),true);
+  assert.equal(await unauthorized.locator('#ocsCompanyInbox').isHidden(),true);
   console.log('PASS Driver Admin: non-admin cannot see pricing editor');
   console.log('OCS Driver packages mobile browser tests PASSED');
  }finally{await browser.close()}
