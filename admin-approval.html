@@ -35,6 +35,11 @@
 .driver-rate-actions button:disabled{opacity:.45}
 .driver-rate-message{padding-top:10px;font-size:11px;color:#056d50}
 .driver-rate-message.bad{color:#a52d29}
+.admin-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.admin-sections button{min-height:46px;border:1px solid #cfdde0;border-radius:12px;background:#fff;color:#244951;font-size:12px;font-weight:800;padding:8px}
+.admin-sections button.on{color:#fff;background:#086f77;border-color:#086f77}
+.admin-sections button:focus-visible{outline:3px solid #f1df38;outline-offset:2px}
+#ocsDriverOperations .card,#ocsCompanyInbox .card{overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -42,11 +47,17 @@
 <header class="top"><div class="brand"><div class="logo">OCS</div><div><b>Admin • SP Approval</b><small>One Call Solution internal control</small></div></div></header>
 <main class="main">
  <div class="info"><b>Only Admin:</b> Pehle private SP verification details check karein, phir Approve/Reject karein. Approval ke baad hi Work ON allowed hai.</div>
- <div id="content"><div class="card">Loading Admin approval queue...</div></div>
- <section id="driverPackagesPanel" hidden aria-label="Driver Hire package fare management"></section>
+ <nav class="admin-sections" id="ocsAdminSections" aria-label="Admin control sections" hidden>
+  <button id="adminTabOperator" type="button" data-admin-view="operator" onclick="setAdminView('operator')">Driver Operator</button>
+  <button id="adminTabApproval" type="button" data-admin-view="approval" onclick="setAdminView('approval')">SP Approval</button>
+  <button id="adminTabChat" type="button" data-admin-view="chat" onclick="setAdminView('chat')">Company Chat</button>
+  <button id="adminTabRates" type="button" data-admin-view="rates" onclick="setAdminView('rates')">Driver Rates</button>
+ </nav>
  <section id="ocsDriverOperations" hidden><div class="card"><h2>Driver Operator • Bookings</h2><div class="muted">OCS Company monitoring • Read-only. No automatic payment or reassignment.</div><div id="ocsDriverOperatorRows">Loading…</div></div></section>
+ <div id="content"><div class="card">Loading Admin approval queue...</div></div>
  <section id="ocsCompanyInbox" hidden><div class="card"><h2>OCS Company Chat Inbox</h2><div id="ocsCompanyInboxRows">Loading…</div></div></section>
-  <button class="btn" onclick="loadQueue()">↻ Refresh</button>
+ <section id="driverPackagesPanel" hidden aria-label="Driver Hire package fare management"></section>
+ <button class="btn" onclick="loadQueue()" id="ocsAdminRefresh">↻ Refresh Admin Data</button>
 </main>
 </div>
 <script>
@@ -58,6 +69,23 @@ const sb=window.supabase.createClient(
 const box=document.getElementById('content');
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 let adminOtpEmail='';
+function setAdminView(view){
+ const nav=document.getElementById('ocsAdminSections');
+ if(nav.hidden)return;
+ const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel'};
+ if(!Object.prototype.hasOwnProperty.call(map,view))return;
+ for(const [key,id] of Object.entries(map)){
+  document.getElementById(id).hidden=(view!==key);
+ }
+ nav.querySelectorAll('button[data-admin-view]').forEach(btn=>{
+  const on=btn.dataset.adminView===view;
+  btn.classList.toggle('on',on);
+  btn.setAttribute('aria-pressed',on?'true':'false');
+ });
+ // Company messages only load when Admin has authenticated.
+ document.getElementById('ocsAdminRefresh').textContent='↻ Refresh Admin Data';
+}
+
 function renderAdminLogin(){
  box.innerHTML=
  '<div class="card login">'+
@@ -104,9 +132,11 @@ async function verifyAdminOtp(){
  }catch(e){msg.textContent='OTP verify failed: '+(e&&e.message?e.message:'Unknown error')}
 }
 async function loadQueue(){
+ document.getElementById('ocsAdminSections').hidden=true;
  window.ocsHideDriverRateAdmin?.();
- document.getElementById("ocsCompanyInbox").hidden=true;
- document.getElementById("ocsDriverOperations").hidden=true;
+ document.getElementById('ocsCompanyInbox').hidden=true;
+ document.getElementById('ocsDriverOperations').hidden=true;
+ box.hidden=false;
  box.innerHTML='<div class="card">Loading Admin approval queue...</div>';
  try{
    const ses=await sb.auth.getSession();
@@ -120,7 +150,12 @@ async function loadQueue(){
      box.innerHTML='<div class="card login"><h3>This account is not Admin</h3><div class="muted">Current login se SP approval allowed nahi hai. Admin account se login karein.</div><button class="ok btn" onclick="adminSignOut()">Switch to Admin Login</button></div>';
      return;
    }
+   // Load each admin-only panel once, then display the short Operator overview by default.
    await window.ocsLoadDriverRateAdmin?.();
+   await loadOcsDriverOperations();
+   await loadOcsCompanyInbox();
+   document.getElementById('ocsAdminSections').hidden=false;
+   setAdminView('operator');
    const q=await sb.rpc('admin_pending_provider_onboarding_v1');
    if(q.error)throw q.error;
    const rows=Array.isArray(q.data)?q.data:[];
@@ -131,7 +166,12 @@ async function loadQueue(){
    }
    box.innerHTML=rows.map((x,i)=>'<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><h3>'+esc(x.provider_name||'Service Provider')+'</h3><div class="muted">'+esc(x.phone||'')+'</div></div><span class="badge">PENDING</span></div><div class="row"><span>Job Category</span><b>'+esc(x.service_name||x.category||'Not set')+'</b></div><div class="row"><span>Service Area</span><b>'+esc(x.service_area||'Not set')+' • '+Number(x.service_radius_km||12)+' km</b></div><div class="row"><span>Bank</span><b>'+esc(x.bank_name||'Not added')+'</b></div><button class="btn" type="button" style="margin-top:12px" data-ocs-action="verify" data-sp-id="'+esc(x.provider_id)+'">🔍 View Verification</button><div id="ocs-verification-'+esc(x.provider_id)+'"></div></div>').join('');
  }catch(e){
-   box.innerHTML='<div class="error"><b>Admin page load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>';
+   document.getElementById('ocsAdminSections').hidden=true;
+  document.getElementById('ocsDriverOperations').hidden=true;
+  document.getElementById('ocsCompanyInbox').hidden=true;
+  window.ocsHideDriverRateAdmin?.();
+  box.hidden=false;
+  box.innerHTML='<div class="error"><b>Admin page load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>';
  }
 }
 async function loadOcsDriverOperations(){
