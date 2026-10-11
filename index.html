@@ -2147,7 +2147,11 @@ function ocsStartSupabaseHooks(){
     setTimeout(refreshOcsEmailStatus,0);
     setTimeout(()=>renderHomeDashboardShortcuts(),120);
     if(event==='PASSWORD_RECOVERY')setTimeout(openResetPassword,0);
-    if(event==='SIGNED_IN'){setTimeout(()=>routeAfterOcsLogin(),0);setTimeout(()=>renderHomeDashboardShortcuts(),100)}
+    if(event==='SIGNED_IN'){
+      // Supabase fires SIGNED_IN again when a mobile tab regains focus.
+      // OTP success already routes explicitly; session refresh must never open Home.
+      setTimeout(()=>renderHomeDashboardShortcuts(),100);
+    }
     if(event==='SIGNED_OUT'){setTimeout(()=>updateSettingsLoginState(),0);setTimeout(()=>renderHomeDashboardShortcuts(),100)}
   });
   setTimeout(refreshOcsEmailStatus,0);
@@ -4646,14 +4650,20 @@ function livePostEnquiry(meta,cat,imageUrl){
 }
 let ocsWindowPosterTick=0;
 async function refreshHomeLiveWindowPosters(){
- const rows=await fetchPublicLivePosts(null,160);if(!rows.length)return;
+ if(document.hidden)return;
+ const rows=await fetchPublicLivePosts(null,160);
+ if(document.hidden||!rows.length)return;
  const groups={};
  rows.forEach(x=>{const cat=x.source_kind==='property_listing'?'Property':x.category;(groups[cat]||(groups[cat]=[])).push(x)});
  document.querySelectorAll('.ocs-market-card[onclick*="openModule"]').forEach(card=>{
    const oc=String(card.getAttribute('onclick')||''),m=oc.match(/openModule\('([^']+)'/);if(!m)return;
    const cat=m[1],arr=groups[cat]||[];if(!arr.length)return;
    const x=arr[ocsWindowPosterTick%arr.length],meta=livePostMeta(x),media=livePostMedia(meta),img=(media.find(z=>z.type==='image')||{}).url||meta.image||'';
-   const photo=card.querySelector('.photo');if(photo&&img)photo.style.backgroundImage='url('+JSON.stringify(img)+')';
+   const photo=card.querySelector('.photo');
+   if(photo&&img&&photo.dataset.ocsLivePosterUrl!==img){
+     photo.style.backgroundImage='url('+JSON.stringify(img)+')';
+     photo.dataset.ocsLivePosterUrl=img;
+   }
    let badge=card.querySelector('.ocs-market-badge');if(!badge){badge=document.createElement('span');badge.className='ocs-market-badge';card.insertBefore(badge,card.querySelector('.ocs-market-copy'))}
    badge.textContent='LIVE AD';
  });
@@ -5136,10 +5146,14 @@ function setSuperSlide(n){
  slides.forEach((s,i)=>s.classList.toggle('on',i===ocsSuperSlideIndex));
  dots.forEach((d,i)=>d.classList.toggle('on',i===ocsSuperSlideIndex));
  clearInterval(ocsSuperSlideTimer);
- ocsSuperSlideTimer=setInterval(()=>setSuperSlide(ocsSuperSlideIndex+1),5000);
+ ocsSuperSlideTimer=setInterval(()=>{
+   if(!document.hidden&&!document.getElementById('viewer')?.classList.contains('show'))setSuperSlide(ocsSuperSlideIndex+1);
+ },5000);
 }
 setTimeout(()=>{renderLivePaidBanners();renderXyzDemoBanner();refreshHomeLiveWindowPosters();setSuperSlide(0)},100);
-setInterval(()=>{refreshHomeLiveWindowPosters().catch(()=>{})},6000);
+setInterval(()=>{
+ if(!document.hidden&&!document.getElementById('viewer')?.classList.contains('show'))refreshHomeLiveWindowPosters().catch(()=>{});
+},20000);
 
 function ocsAlignEmbeddedBusinessWindow(category,frame){
  const doc=frame&&frame.contentDocument;
@@ -5671,6 +5685,18 @@ async function ocsRestoreUiState(s){
    const observer=new MutationObserver(()=>ocsQueueUiHistory());
    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
    ocsUiHistoryReady=true;
+   // Keep the current module, modal and scroll position through an Android pause.
+   const ocsSaveScreenOnPause=()=>{
+     try{
+       if(ocsUiHistoryApplying)return;
+       clearTimeout(ocsUiHistoryTimer);
+       const current=ocsCaptureUiState();
+       history.replaceState({ocsUi:true,state:current},'',location.href);
+       ocsUiHistoryLast=ocsUiStateKey(current);
+     }catch(e){console.warn('OCS paused screen save failed',e)}
+   };
+   window.addEventListener('pagehide',ocsSaveScreenOnPause);
+   document.addEventListener('visibilitychange',()=>{if(document.hidden)ocsSaveScreenOnPause()});
    window.addEventListener('popstate',ev=>{
      const st=ev.state&&ev.state.ocsUi?ev.state.state:{module:"",modals:[],property:null};
      ocsUiHistoryLast=ocsUiStateKey(st);
