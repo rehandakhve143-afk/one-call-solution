@@ -135,7 +135,7 @@
   <h3>End-to-End OCS Trip Flow</h3>
   <div class="sub">Same booking, payment and safety record from start to finish</div>
   <div class="transport-stage-box"><p>Get Quote → Driver quote accept → Driver On the Way → Reached Pickup → Customer Start OTP → Trip In Progress → Driver Complete Trip → Customer Confirmation → Online / Cash Payment → Rating & History.</p></div>
-  <div class="future">OCS platform charge: 9%. Low / negative Driver wallet se jobs auto-block nahi hongi.</div>
+  <div class="future">OCS platform charge: 9%. Naye Transport job ke liye Driver wallet me minimum ₹200 aur OCS approval chahiye. Accepted trip continue rahegi.</div>
  </section>
  <div class="foot">One Call Solution • One for All, All for One</div>
 </main>
@@ -143,7 +143,7 @@
 const SUPA_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
 const SUPA_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let pickupLat=null,pickupLng=null,mode='GOODS_DELIVERY',sending=false,currentTrip=null,previousTrip=null,selectedTransportRating=0;
+let pickupLat=null,pickupLng=null,mode='GOODS_DELIVERY',sending=false,currentTrip=null,previousTrip=null,selectedTransportRating=0,verifiedClosedTransportId=null;
 function $(id){return document.getElementById(id)}
 function setMode(v){
  mode=v;
@@ -276,10 +276,8 @@ async function loadTransportTrip(){
   previousTrip=before||previousTrip;
   currentTrip=data||null;
   if(!currentTrip||!currentTrip.has_booking){
-    if(previousTrip&&previousTrip.booking_id&&['payment_pending','cash_wait','completion_requested','working','reached','on_way','accepted'].includes(String(previousTrip.status||'').toLowerCase())){
-      try{localStorage.setItem('ocsTransportLastClosed',previousTrip.booking_id)}catch(e){}
-      renderTransportClosed(previousTrip.booking_id);
-    }
+    // An absent active trip does not prove completion.
+    await maybeShowClosedTransport();
     return;
   }
   try{localStorage.setItem('ocsTransportLastBooking',currentTrip.booking_id)}catch(e){}
@@ -378,6 +376,7 @@ async function transportPayOnline(){
  }catch(e){show(e&&e.message?e.message:'Online payment start nahi hua',true)}
 }
 function renderTransportClosed(id){
+ if(!id||verifiedClosedTransportId!==id)return;
  const panel=$('tripPanel');if(!panel)return;
  panel.style.display='block';$('tripSub').textContent='Trip completed • Rate your Driver';
  $('tripDetails').innerHTML='<div class="trip-row"><span>Status</span><b>COMPLETED</b></div><div class="trip-row"><span>Booking</span><b>'+esc(String(id||'OCS Transport'))+'</b></div>';
@@ -394,8 +393,35 @@ async function submitTransportRating(id){
   show('✓ Rating submitted. Thank you.',false);localStorage.removeItem('ocsTransportLastClosed');selectedTransportRating=0;
  }catch(e){show(e&&e.message?e.message:'Rating save nahi hui',true)}
 }
-function maybeShowClosedTransport(){
- try{const id=localStorage.getItem('ocsTransportLastClosed');if(id&&!currentTrip?.has_booking)renderTransportClosed(id)}catch(e){}
+async function maybeShowClosedTransport(){
+ if(currentTrip?.has_booking)return;
+ let id='';
+ try{id=localStorage.getItem('ocsTransportLastClosed')||previousTrip?.booking_id||''}catch(e){id=previousTrip?.booking_id||''}
+ if(!id){const panel=$('tripPanel');if(panel)panel.style.display='none';return}
+ if(verifiedClosedTransportId===id){renderTransportClosed(id);return}
+ try{
+  const res=await sb.rpc('booking_history_v2',{p_role:'customer'});
+  if(res.error)throw res.error;
+  if(currentTrip?.has_booking)return;
+  const record=(Array.isArray(res.data)?res.data:[]).find(x=>String(x.id)===String(id));
+  const status=String(record?.status||'').toLowerCase();
+  if(['completed','done'].includes(status)){
+   verifiedClosedTransportId=id;
+   try{localStorage.setItem('ocsTransportLastClosed',id)}catch(e){}
+   renderTransportClosed(id);
+  }else{
+   verifiedClosedTransportId=null;
+   try{localStorage.removeItem('ocsTransportLastClosed')}catch(e){}
+   const panel=$('tripPanel');
+   if(panel&&['cancelled','cancelled_settled'].includes(status)){
+    panel.style.display='block';
+    $('tripSub').textContent='Transport booking cancelled';
+    $('tripDetails').textContent='Booking #'+String(id).slice(0,8)+' • '+status.replaceAll('_',' ');
+    $('tripContactGrid').style.display='none';
+    $('tripStageActions').textContent='Cancelled trips cannot be rated as completed.';
+   }else if(panel)panel.style.display='none';
+  }
+ }catch(e){console.warn('Transport closed status not verified',e);const panel=$('tripPanel');if(panel)panel.style.display='none'}
 }
 
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
