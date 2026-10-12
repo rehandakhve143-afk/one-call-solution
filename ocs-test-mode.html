@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#064e57"><title>OCS Safe Test Mode</title>
+<style>
+:root{font-family:Arial,system-ui,sans-serif;color:#15343b;background:#f3f7f7}*{box-sizing:border-box}body{margin:0;padding-bottom:86px}
+header{padding:20px 16px 25px;background:#07515c;color:white;border-radius:0 0 22px 22px}header .top{display:flex;align-items:center;gap:12px}
+header .logo{background:#111;color:white;border-radius:13px;padding:13px;font-size:17px;font-weight:900}header h1{margin:0;font-size:21px;line-height:1.15}header small{display:block;color:#cce8e7;margin-top:4px}
+header .back{margin-left:auto;color:white;text-decoration:none;font-size:12px;padding:10px;background:#ffffff21;border-radius:12px}
+.testnotice{background:#fff4ce;color:#755511;font-size:12px;font-weight:700;line-height:1.5;border-radius:14px;padding:12px 14px;margin-top:16px}
+main{max-width:550px;margin:auto;padding:15px}.switch{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px}
+button{cursor:pointer;font:inherit}button:disabled{opacity:.5;cursor:not-allowed}.switch button{border:1px solid #ccdddc;background:white;border-radius:14px;padding:12px 8px;font-weight:800;color:#24565e}
+.switch button.active{background:#e5f5f1;color:#006b67;border:2px solid #078578}
+.card{border:1px solid #deeaeb;background:white;border-radius:18px;padding:16px;margin-bottom:13px;box-shadow:0 4px 20px #16353d09}
+.card h2{font-size:18px;margin:0 0 12px}.card h3{font-size:15px;margin:12px 0 8px}
+.muted{color:#6d8388;font-size:12px;line-height:1.55;margin:7px 0 12px}.pill{display:inline-block;background:#e2f7f0;color:#087764;font-size:11px;font-weight:900;padding:7px 10px;border-radius:99px;margin-bottom:10px}
+.preview{font-size:13px;background:#f5faf9;border-radius:12px;padding:13px;line-height:1.7;margin-bottom:11px}
+.money{font-weight:900;color:#006e6e;font-size:25px;margin:4px 0 12px}
+label{display:block;font-size:12px;font-weight:800;margin:12px 0 6px}input,select,textarea{width:100%;padding:12px 13px;min-height:44px;border:1px solid #d4e2e3;border-radius:12px;background:#fff;color:#1e3c43;font:inherit;font-size:14px}
+input:focus,textarea:focus{outline:2px solid #62bbb2}
+.actions{display:grid;gap:9px;margin-top:14px}.btn{width:100%;min-height:47px;padding:12px;border-radius:13px;border:0;background:#007d75;color:white;font-weight:800;font-size:13px;text-align:center}
+.btn.alt{background:#e9f4f2;color:#006d69}.btn.yellow{background:#f4ec00;color:#183a41}.btn.warn{background:#ffede8;color:#9d3932}.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #edf1f2;font-size:13px}
+.row:last-child{border:0}.row b{color:#153a42;text-align:right}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.grid2 button{border-radius:12px;padding:12px 10px;font-weight:800;border:1px solid #dae5e6;background:#fff}
+.grid2 button.on{border:2px solid #008478;background:#e8f8f5;color:#067469}
+.otp{font-size:34px;letter-spacing:10px;font-weight:900;background:#ecfaf6;padding:18px 12px;border:1px dashed #008779;border-radius:14px;text-align:center;color:#006963}
+.timeline{margin:14px 0 0;padding-left:20px;color:#607a81;font-size:12px;line-height:1.8}
+footer{position:fixed;bottom:0;left:0;right:0;background:#064e57;color:#fff;display:flex;justify-content:center;gap:14px;padding:13px 16px max(14px,env(safe-area-inset-bottom));z-index:9}
+footer a,footer button{border:0;background:#ffffff20;color:white;text-decoration:none;padding:10px 12px;border-radius:12px;font-size:12px;font-weight:800}
+#toast{display:none;position:sticky;top:5px;z-index:10;background:#edf9f5;border:1px solid #a4d7c9;color:#096b5c;border-radius:11px;padding:12px;font-size:12px;font-weight:700;margin-bottom:11px}
+#toast.bad{background:#fff0ed;border-color:#f6c9be;color:#993e35}
+</style></head><body>
+<header><div class="top"><div class="logo">OCS</div><div><h1>Safe Test Mode</h1><small>One Call Solution • Customer ↔ Test SP</small></div><a class="back" href="index.html">← OCS Home</a></div>
+<div class="testnotice">🧪 DEMO ONLY — No real booking, no real Service Provider, no Razorpay charge, no SMS, no payout. Nothing is sent to the OCS backend. All activity is simulated on this browser only.</div></header>
+<main><div id="toast" role="status"></div><div class="switch"><button id="customerTab" onclick="setRole('customer')">🏠 Customer</button><button id="spTab" onclick="setRole('sp')">🛠 Test SP</button></div><div id="screen"></div></main>
+<footer><button onclick="resetDemo()">↻ Reset Demo</button><a href="customer-launch-v1.html">View Real Rates</a></footer>
+<script>
+(function(){
+'use strict';
+const KEY='ocs_test_mode_demo_v1';
+const sample=[{name:'Fan Fitting / Capacitor Change',qty:1,price:239},{name:'Fan Hook / Anchor Fastener Fitting',qty:1,price:300}];
+const byId=x=>document.getElementById(x);
+const rupees=x=>'₹'+Number(x||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function moneyTotal(items){return (items||[]).reduce((n,x)=>n+(Number(x.qty)||1)*Number(x.price||0),0)}
+function fresh(){return{version:1,role:'customer',mode:'fixed',category:'Electrical',items:sample.map(x=>({...x})),pay:'online',workOn:true,booking:null,events:[]}}
+function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&x.version===1&&['customer','sp'].includes(x.role)&&Array.isArray(x.items))return x}catch(e){}return fresh()}
+let state=read(),busy=false;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function toast(msg,bad){const el=byId('toast');el.textContent=msg;el.className=bad?'bad':'';el.style.display='block'}
+function log(msg){state.events.unshift({msg,time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})});state.events=state.events.slice(0,24)}
+function row(k,v){return'<div class="row"><span>'+esc(k)+'</span><b>'+esc(v)+'</b></div>'}
+function button(t,fn,cl){return'<button type="button" class="btn '+(cl||'')+'" onclick="'+fn+'">'+esc(t)+'</button>'}
+function card(title,body){return'<section class="card"><h2>'+esc(title)+'</h2>'+body+'</section>'}
+function stageName(s){return({searching:'Waiting for Test SP',accepted:'Accepted',on_way:'On The Way',reached:'Reached • Start OTP',working:'Work In Progress',completion_requested:'Customer Confirmation Pending',payment_pending:'Payment Pending',cash_wait:'Cash Confirmation Pending',completed:'Completed (Demo)',support_review:'Support Review (Demo)'})[s]||s}
+function logHtml(){return state.events.length?'<ul class="timeline">'+state.events.map(x=>'<li>'+esc(x.time)+' • '+esc(x.msg)+'</li>').join('')+'</ul>':'<p class="muted">No test actions yet.</p>'}
+function setRole(role){if(!['customer','sp'].includes(role))return;state.role=role;save();render()}
+function randomDigits(){const arr=new Uint32Array(1);crypto.getRandomValues(arr);return String(1000+(arr[0]%9000))}
+function newId(){const a=new Uint32Array(1);crypto.getRandomValues(a);return 'TEST-'+(a[0]%100000000).toString().padStart(8,'0')}
+function render(){
+ byId('customerTab').classList.toggle('active',state.role==='customer');
+ byId('spTab').classList.toggle('active',state.role==='sp');
+ byId('screen').innerHTML=state.role==='customer'?customerHTML():spHTML();
+}
+function startCart(){
+ const opt='<div class="grid2"><button class="'+(state.mode==='fixed'?'on':'')+'" onclick="selectMode(\'fixed\')">2 Fixed Services</button><button class="'+(state.mode==='quote'?'on':'')+'" onclick="selectMode(\'quote\')">Get Quote</button></div>';
+ const items=state.mode==='fixed'?'<div class="preview">'+state.items.map(x=>'<div class="row"><span>'+esc(x.name)+' × '+Number(x.qty||1)+'</span><b>'+esc(rupees(Number(x.qty||1)*x.price))+'</b></div>').join('')+'</div><div class="money">'+rupees(moneyTotal(state.items))+'</div>':'<p class="muted">Test SP will send a quote; Customer must accept it before work starts.</p><label>Describe Test Work</label><textarea id="testDescription" rows="2" placeholder="Example: Main distribution board work">Electrical fault inspection and repair (demo)</textarea>';
+ return card('1. Create Safe Test Booking','<p class="muted">Aapki ₹539 wali Electrical selection pehle se ready hai. Koi real request nahi jayegi.</p>'+opt+items+
+ '<label>Demo Address (not shared)</label><input value="OCS Test Address, Khopoli" disabled>'+
+ '<label>Simulated Payment Method</label><div class="grid2"><button class="'+(state.pay==='online'?'on':'')+'" onclick="setPay(\'online\')">Online (Demo)</button><button class="'+(state.pay==='cash'?'on':'')+'" onclick="setPay(\'cash\')">Cash (Demo)</button></div>'+
+ '<div class="actions">'+button('Create TEST Booking — ₹0 Real Charge','makeBooking()','yellow')+'</div>');
+}
+function bookingDetails(){
+ const b=state.booking;
+ return card('Test Booking', '<span class="pill">'+esc(stageName(b.status))+'</span>'+
+ row('Reference',b.id)+row('Category',b.category)+row('Service',b.mode==='quote'?'Get Quote':b.items.map(x=>x.name+' × '+x.qty).join(', '))+
+ row('Booking Amount',b.mode==='quote'&&!b.quoteAccepted?'Awaiting Test Quote':rupees(b.amount))+
+ row('Payment',b.pay==='online'?'Online Simulation':'Cash Simulation')+
+ (b.mode==='quote'&&b.quote!=null?'<div class="preview">Test SP Quote: <b>'+rupees(b.quote)+'</b> • '+(b.quoteAccepted?'Customer accepted':'Awaiting Customer approval')+'</div>':''));
+}
+function customerHTML(){
+ if(!state.booking)return startCart()+card('How To Test','<p class="muted">Create Test Booking → switch to Test SP → Accept → On The Way → Reached → switch Customer for OTP → Test SP starts work → Customer confirms → simulated payment.</p>');
+ const b=state.booking;
+ let html=bookingDetails(), actions='', message='';
+ if(b.status==='searching'){message='Switch to Test SP to Accept this request.';actions=button('Switch to Test SP',"setRole('sp')");}
+ if(b.status==='accepted'||b.status==='on_way'){message='Test SP ko next action karne dein.';actions=button('Switch to Test SP',"setRole('sp')");}
+ if(b.mode==='quote'&&b.status==='accepted'){
+  if(b.quote!==null&&!b.quoteAccepted){message='Test SP ne quote diya hai. Accept karne ke baad hi work shuru hoga.';actions=button('Accept Quote '+rupees(b.quote),'acceptQuote()')+button('Reject Quote','rejectQuote()','warn')}
+  else if(b.quote===null){message='Test SP ke quotation ka wait karein.'}
+ }
+ if(b.status==='reached'){message='Sirf Test SP ke Reached karne ke baad OTP visible hota hai. Yeh completion proof nahi hai.';html+=card('Start Work OTP • Customer Only','<div class="otp">'+esc(b.otp)+'</div><p class="muted">Test SP par switch karke OTP enter karein.</p>');actions=button('Switch to Test SP',"setRole('sp')");}
+ if(b.status==='working'){message='Test SP kaam complete request karega.';actions=button('Switch to Test SP',"setRole('sp')");}
+ if(b.status==='completion_requested'){message='Check work before you confirm (simulation).';actions=button('Yes, Test Work Completed','confirmWork()')+button('Report Issue (Demo)','reportIssue()','warn');}
+ if(b.status==='payment_pending'){message='This is NOT Razorpay or a real transaction.';actions=button(b.pay==='cash'?'Mark Simulated Cash Paid':'Simulate Online Payment — ₹0 charged','simulatePayment()','yellow');}
+ if(b.status==='cash_wait'){message='Cash simulated. Test SP must confirm cash receipt. No money should be paid.';actions=button('Switch to Test SP',"setRole('sp')");}
+ if(b.status==='completed'){message='Complete flow finished. All amounts below are estimates only; no payment or wallet change happened.';html+=card('Demo Settlement',row('Total simulated amount',rupees(b.amount))+row('OCS 9% (simulation)',rupees(Math.round(b.amount*9)/100))+row('Test SP 91% (simulation)',rupees(b.amount-Math.round(b.amount*9)/100)));}
+ if(b.status==='support_review')message='Customer dispute recorded only on this device. No real support ticket raised.';
+ return html+card('Customer Next Action','<p class="muted">'+esc(message)+'</p>'+(actions?'<div class="actions">'+actions+'</div>':''))+
+ card('Demo Activity',logHtml());
+}
+function spHTML(){
+ if(!state.booking)return card('No Test Booking Yet','<p class="muted">Customer side par test booking create karein. Real SP requests is screen par kabhi nahi aayengi.</p>'+button('Open Customer',"setRole('customer')"));
+ const b=state.booking;
+ let next='',hint='';
+ if(b.status==='searching'){
+  hint=state.workOn?'A simulated matching request is waiting.':'Work OFF hai. Accept ke liye Work ON karein.';
+  next=button('Accept TEST Booking','spAccept()',state.workOn?'':'alt');
+ }else if(b.status==='accepted'){
+  if(b.mode==='quote'&&!b.quoteAccepted){
+   hint=b.quote===null?'Official demo quote bhejein.':'Customer quote approval pending.';
+   next=b.quote===null?'<label>Quotation ₹</label><input type="number" min="1" id="quoteAmount" placeholder="Enter labour quote">'+button('Send TEST Quote','spQuote()'):'';
+  }else{hint='Test SP customer ke address par nikal sakta hai.';next=button('On The Way',"spStep('on_way')");}
+ }else if(b.status==='on_way'){hint='Reached tabhi mark karein jab simulated arrival ho.';next=button('Reached Customer',"spStep('reached')");}
+ else if(b.status==='reached'){hint='Customer side par Start OTP dikhega. SP side par secret show nahi hoga.';next='<label>Customer se 4-digit OTP</label><input id="spOtp" type="text" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4-digit Start OTP">'+button('Verify OTP & Start Work',"spStep('start')");}
+ else if(b.status==='working'){hint='Work finish hone par Customer confirmation request karein.';next=button('Request Work Completion',"spStep('complete')");}
+ else if(b.status==='completion_requested'){hint='Waiting for Customer confirmation.';next=button('Switch to Customer',"setRole('customer')");}
+ else if(b.status==='payment_pending'){hint='Customer payment simulation pending.';next=button('Switch to Customer',"setRole('customer')");}
+ else if(b.status==='cash_wait'){hint='Only simulated cash. This does NOT credit money or debit wallet.';next=button('Confirm DEMO Cash Received','spCashReceived()','yellow');}
+ else if(b.status==='completed'){hint='Demo job completed. No actual payment or commission applied.';}
+ else if(b.status==='support_review'){hint='Demo support hold. No actual ticket sent.';}
+ return card('Test SP Dashboard','<span class="pill">TEST PROVIDER ONLY</span>'+row('Account','OCS Demo Service Provider')+row('Work Availability',state.workOn?'ON':'OFF')+'<div class="actions">'+button(state.workOn?'Turn Work OFF (Demo)':'Turn Work ON (Demo)','toggleWork()','alt')+'</div>')+
+ bookingDetails()+card('Service Provider Next Action','<p class="muted">'+esc(hint)+'</p>'+(next?'<div class="actions">'+next+'</div>':''))+card('Demo Activity',logHtml());
+}
+function selectMode(mode){if(state.booking){toast('Reset Demo before changing mode.',true);return}state.mode=mode==='quote'?'quote':'fixed';save();render()}
+function setPay(p){if(state.booking)return;state.pay=p==='cash'?'cash':'online';save();render()}
+function makeBooking(){
+ if(state.booking){toast('Reset Demo first.',true);return}
+ const description=state.mode==='quote'?String(byId('testDescription')?.value||'').trim():'';
+ if(state.mode==='quote'&&description.length<5){toast('Test work description likhein.',true);return}
+ const amount=state.mode==='fixed'?moneyTotal(state.items):0;
+ state.booking={id:newId(),mode:state.mode,items:state.items.map(x=>({...x})),category:state.category,
+   amount,description,pay:state.pay,status:'searching',quote:null,quoteAccepted:false,otp:null};
+ log('Customer created isolated demo booking '+state.booking.id);save();toast('Safe test booking created. No real request sent.');render();
+}
+function toggleWork(){state.workOn=!state.workOn;log('Demo SP Work '+(state.workOn?'ON':'OFF'));save();render()}
+function spAccept(){const b=state.booking;if(!b||b.status!=='searching'||!state.workOn)return;b.status='accepted';log('Test SP accepted booking');save();render()}
+function spQuote(){const b=state.booking;if(!b||b.mode!=='quote'||b.status!=='accepted'||b.quote!==null)return;const value=Number(byId('quoteAmount')?.value);if(!Number.isFinite(value)||value<=0||value>10000000){toast('Enter a valid test quotation amount.',true);return}b.quote=Math.round(value*100)/100;log('Test SP sent quotation '+rupees(b.quote));save();render()}
+function acceptQuote(){const b=state.booking;if(!b||b.quote===null||b.status!=='accepted')return;b.quoteAccepted=true;b.amount=b.quote;log('Customer accepted test quote '+rupees(b.quote));save();render()}
+function rejectQuote(){const b=state.booking;if(!b||b.quote===null||b.quoteAccepted||b.status!=='accepted')return;b.quote=null;log('Customer rejected test quotation');save();render()}
+function spStep(action){
+ const b=state.booking;if(!b)return;
+ if(action==='on_way'){if(b.status!=='accepted'||(b.mode==='quote'&&!b.quoteAccepted))return;b.status='on_way';log('Test SP on the way')}
+ else if(action==='reached'){if(b.status!=='on_way')return;b.status='reached';b.otp=randomDigits();log('Test SP reached: Customer received demo Start OTP')}
+ else if(action==='start'){if(b.status!=='reached')return;const pin=String(byId('spOtp')?.value||'').trim();if(!/^\d{4}$/.test(pin)||pin!==b.otp){toast('Wrong demo OTP. Customer screen par OTP check karein.',true);return}b.status='working';b.otp=null;log('Start OTP verified • demo work started')}
+ else if(action==='complete'){if(b.status!=='working')return;b.status='completion_requested';log('Test SP requested completion confirmation')}
+ else return;
+ save();render();
+}
+function confirmWork(){const b=state.booking;if(!b||b.status!=='completion_requested')return;b.status='payment_pending';log('Customer confirmed demo work complete');save();render()}
+function reportIssue(){const b=state.booking;if(!b||b.status!=='completion_requested')return;b.status='support_review';log('Customer reported demo issue; mock support hold');save();render()}
+function simulatePayment(){const b=state.booking;if(!b||b.status!=='payment_pending')return;
+ if(b.pay==='cash'){b.status='cash_wait';log('Customer marked simulated cash (no real money)')}
+ else{b.status='completed';log('Online demo payment simulated • ₹0 actually charged')}
+ save();render();
+}
+function spCashReceived(){const b=state.booking;if(!b||b.status!=='cash_wait')return;b.status='completed';log('Test SP confirmed simulated cash • no real money');save();render()}
+function resetDemo(){if(!confirm('Only this device ka test booking clear karna hai? Real OCS data untouched.'))return;state=fresh();save();toast('Demo reset. No real booking touched.');render()}
+Object.assign(window,{setRole,selectMode,setPay,makeBooking,toggleWork,spAccept,spQuote,acceptQuote,rejectQuote,spStep,confirmWork,reportIssue,simulatePayment,spCashReceived,resetDemo});
+try{const imported=JSON.parse(sessionStorage.getItem('ocsSafeTestCartTransfer')||'null');
+ if(imported&&Array.isArray(imported.items)&&imported.items.length&&!state.booking){
+  const items=imported.items.filter(x=>typeof x.name==='string'&&Number(x.qty)>0&&Number(x.price)>=0).slice(0,15).map(x=>({name:String(x.name).slice(0,120),qty:Math.max(1,Math.min(30,Math.floor(Number(x.qty)))),price:Math.min(1000000,Number(x.price))}));
+  if(items.length){state.category=String(imported.category||'Electrical').slice(0,60);state.items=items;state.mode=imported.mode==='quote'?'quote':'fixed';save()}
+  sessionStorage.removeItem('ocsSafeTestCartTransfer');
+ }
+}catch(e){}
+render();
+})();
+</script></body></html>
