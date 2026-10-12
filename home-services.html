@@ -1240,6 +1240,7 @@ async function ocsStartLive(role){
   if(role==="customer"&&ok===false){
     if(String(S.status||"").toUpperCase()==="READY")S.status="SELECT_SERVICE";
     renderCore();updateSelectionTray();
+    ocsLoadWaitingReview();
     return false;
   }
   if(ok===true){renderCore();updateSelectionTray()}
