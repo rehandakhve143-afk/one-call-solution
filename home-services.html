@@ -768,6 +768,8 @@ body:not(.sp-only-route):not(.admin-route-only) .customer-dashboard-card{margin-
       <button type="button" onclick="loadAdminPlatformRecords()">↻ Refresh</button>
     </div>
     <div id="adminPlatformRecords"><div class="admin-records-empty">Loading records…</div></div>
+    <div class="admin-records-section-title">SP WALLET MONITORING</div>
+    <div id="adminSpWalletMonitor"><div class="admin-records-empty">Loading wallet audit…</div></div>
   </section>
 
   <section class="admin-panel-card admin-live-card" id="adminLiveCard">
@@ -2607,9 +2609,9 @@ async function openProviderWalletQuick(){
       '<div class="provider-wallet-grid">'+
         '<div class="box"><small>Wallet Balance</small><b>'+moneyText(bal)+'</b></div>'+
         '<div class="box"><small>OCS Commission</small><b>'+commissionRate+'%</b></div>'+
-        '<div class="box"><small>Job Access</small><b>'+(d.admin_paused?'Admin Hold':'Active')+'</b></div>'+
+        '<div class="box"><small>New Job Access</small><b>'+(d.admin_paused?'Admin Hold':bal<200?'Recharge Required':!d.available_for_work?'Work OFF':'Eligible')+'</b></div>'+
       '</div>'+
-      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. Recharge reminder rahega; Work ON ho to jobs continue rahenge. Sirf Admin hold par new jobs rukenge.</div>':'')+
+      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. NEW jobs accept nahi hongi. Already accepted job continue rahegi. Recharge to ₹200.</div>':'')+
       (d.admin_paused?'<div class="notice bad"><b>Admin Hold</b><br>New jobs OCS Admin ne pause ki hain.</div>':'')+
       '<div class="provider-wallet-actions"><button class="btn" onclick="rechargeWallet()">Add Money</button><button class="btn alt" onclick="openProviderPayoutPanel()">Bank &amp; Payout</button></div>'+
       '<div class="provider-payout-summary"><div class="rowline"><span>Today Credit</span><b>₹'+todayCredit.toFixed(2)+'</b></div><div class="rowline"><span>Today Debit</span><b>₹'+todayDebit.toFixed(2)+'</b></div></div>'+
@@ -2929,11 +2931,17 @@ function choosePayment(v){
 }
 
 async function rechargeWallet(){
- const current=Math.round((Number(S.wallet||0))*100)/100;
- const suggested=Math.max(100,Math.round(Math.max(0,-current)+100));
+ let current;
+ try{
+   const snap=await ocsSupabase.rpc("provider_wallet_snapshot_v2");
+   if(snap.error)throw snap.error;
+   if(!Array.isArray(snap.data)||!snap.data.length)throw new Error("Wallet unavailable");
+   current=Math.round(Number(snap.data[0].wallet_balance||0)*100)/100;
+ }catch(e){alert("Wallet balance check failed: "+(e.message||"Retry"));return}
+ const suggested=Math.max(50,Math.ceil(Math.max(0,200-current)));
  const currentText=current<0?"−₹"+Math.abs(current).toFixed(2):"₹"+current.toFixed(2);
- let a=Number(prompt("OCS Wallet\nCurrent balance: "+currentText+"\nRecommended wallet balance ₹200. ₹200 se niche bhi matching jobs aayengi; recharge reminder rahega. Admin can pause/resume new jobs.\nTop-up amount enter karein.",suggested.toFixed(2)));
- if(!a||a<50){alert("Minimum wallet top-up ₹50.");return}
+ let a=Number(prompt("OCS Wallet\nCurrent balance: "+currentText+"\nMinimum wallet ₹200 for NEW jobs. Existing jobs continue.\nTop-up amount enter karein.",suggested.toFixed(2)));
+ if(!Number.isFinite(a)||a<50){alert("Minimum wallet top-up ₹50.");return}
  try{
    const {data:intent,error:ie}=await ocsSupabase.rpc("create_wallet_topup_intent_v1",{p_amount:a});
    if(ie)throw ie;
@@ -4809,6 +4817,24 @@ async function adminRemovePendingCategory(providerId,category){
 }
 
 let adminPlatformRecordsCache=null;
+async function loadAdminSpWalletMonitor(){
+ const box=document.getElementById("adminSpWalletMonitor");if(!box||!ocsSupabase)return;
+ try{
+  const {data,error}=await ocsSupabase.rpc("admin_sp_wallet_monitor_v1",{p_limit:20});
+  if(error)throw error;
+  const d=data||{},a=d.summary||{},t=d.recharges||{},w=d.withdrawals||{},low=d.low_wallet_providers||[],recent=d.recent_topups||[];
+  box.innerHTML='<div class="admin-records-kpis">'+
+   '<div class="admin-records-kpi"><span>Wallet Below ₹200</span><b>'+Number(a.below_200||0)+'</b></div>'+
+   '<div class="admin-records-kpi"><span>Verified Recharges</span><b>'+adminMoney(t.verified_total||0)+'</b><small>'+Number(t.verified_count||0)+' paid • '+Number(t.pending_count||0)+' pending</small></div>'+
+   '<div class="admin-records-kpi"><span>Withdrawals Pending</span><b>'+Number(w.pending_count||0)+'</b></div>'+
+   '<div class="admin-records-kpi"><span>SP Wallet Total</span><b>'+adminMoney(a.total_wallet_balance||0)+'</b></div></div>'+
+   '<div class="admin-records-section-title">LOW WALLET SERVICE PROVIDERS</div>'+
+   (low.length?low.map(x=>'<div class="admin-recent-row"><b>'+ocsSafe(x.name||"SP")+'</b><small>'+adminMoney(x.balance)+' • '+(x.admin_paused?'Admin Hold':x.work_on?'Work ON':'Work OFF')+'</small></div>').join(""):'<div class="admin-records-empty">No low wallet SPs.</div>')+
+   '<div class="admin-records-section-title">RECENT WALLET RECHARGES</div>'+
+   (recent.length?recent.map(x=>'<div class="admin-recent-row"><b>'+ocsSafe(x.name||"SP")+'</b><small>'+adminMoney(x.amount)+' • '+ocsSafe(x.status||"created")+'</small></div>').join(""):'<div class="admin-records-empty">No top-ups yet.</div>');
+ }catch(e){console.error("Admin wallet audit",e);box.innerHTML='<div class="admin-records-empty">Wallet monitoring unavailable • Refresh</div>'}
+}
+
 function adminMoney(v){return "₹"+Number(v||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
 async function adminSetPlatformPostStatus(id,action){
  if(!id||!ocsSupabase)return;
@@ -4864,6 +4890,7 @@ async function loadAdminPlatformRecords(){
    if(error)throw error;
    adminPlatformRecordsCache=data||{};
    renderAdminPlatformRecords(adminPlatformRecordsCache);
+   await loadAdminSpWalletMonitor();
    return data||{};
  }catch(e){
    console.error("Admin platform records failed",e);
@@ -6050,7 +6077,7 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
      const d=res.data||{},bal=Number(d.wallet_balance||0),credit=Number(d.today_credit||0),debit=Number(d.today_debit||0),tx=Array.isArray(d.transactions)?d.transactions:[];
      function money(n){return (n<0?'−₹':'₹')+Math.abs(Number(n)||0).toFixed(2)}
      function label(k){const x=String(k||'').toLowerCase();if(x==='topup')return 'Add Money';if(x==='commission')return 'Job Settlement';if(x==='online_settlement')return 'Online Job Settlement';if(x==='withdrawal')return 'Withdrawal';if(x==='withdrawal_reversal')return 'Withdrawal Reversal';if(x==='welcome_bonus')return 'Wallet Credit';return 'Wallet Transaction'}
-     const warning=(bal<200||d.wallet_warning)?'<div class="ocs-sp-notice"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. Recharge reminder rahega; Work ON ho to jobs continue rahenge. Sirf Admin hold par new jobs rukenge.</div>':'';
+     const warning=(bal<200||d.wallet_warning)?'<div class="ocs-sp-notice"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. NEW jobs accept nahi hongi. Already accepted job continue rahegi. Recharge to ₹200.</div>':'';
      const txHtml=tx.length?tx.map(function(x){const a=Number(x.amount||0);let dt='';try{dt=x.created_at?new Date(x.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):''}catch(e){}return '<div class="provider-tx"><div class="meta"><b>'+esc(label(x.kind))+'</b><small>'+esc(x.service_name||'OCS Wallet')+' • '+esc(dt)+'</small></div><div class="amt">'+(a>=0?'+':'')+money(a)+'</div></div>'}).join(''):'<div class="ocs-sp-empty"><b>No wallet transactions yet</b></div>';
      body.innerHTML=
        '<div class="ocs-sp-balance"><small>Wallet Balance</small><strong>'+money(bal)+'</strong><div class="minirow"><div class="mini"><small>OCS Commission</small><b>9%</b></div><div class="mini"><small>Job Access</small><b>'+(d.admin_paused?'Admin Hold':'Active')+'</b></div></div></div>'+
