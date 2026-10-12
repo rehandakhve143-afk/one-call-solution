@@ -3143,14 +3143,29 @@ function ocsShortBookingId(v){
 async function renderBottomBookings(){
  const body=document.getElementById('bottomBookingsBody');if(!body)return;
  if(bottomBookingsTab==='ACTIVE'){
-  const b=getCurrentBooking();
-  const inactive=['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED','DONE','COMPLETED'];
-  const s=String(b?.status||b?.state||'').toUpperCase();
-  if(!b||inactive.includes(s)){
-   body.innerHTML='<div class="bottom-hub-card"><span class="ocs-booking-state">ACTIVE</span><b>No active booking</b><small>Abhi koi running Home Service booking nahi hai.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button></div></div>';
-  }else{
-   const service=b.service||b.category||b.task||'Home Service',label=dashStatusLabel(s),id=ocsShortBookingId(b.id||b.bookingId||'');
-   body.innerHTML='<div class="bottom-hub-card"><span class="ocs-booking-state">ACTIVE</span><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+'<br>Status: <b style="display:inline">'+ocsSavedText(label)+'</b></small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Track Booking</button></div></div>';
+  // Live Supabase booking is authoritative; never trust stale browser cache for status.
+  const session=await getOcsSession();
+  if(bottomBookingsTab!=='ACTIVE')return;
+  if(!session||!session.user||!ocsSupabase){
+    body.innerHTML='<div class="bottom-hub-card"><b>Login required</b><small>Customer account se login karke live booking track karein.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openLogin(\'customer\')">Login</button></div></div>';
+    return;
+  }
+  try{
+    body.innerHTML='<div class="bottom-hub-card"><b>Checking live booking...</b></div>';
+    const {data,error}=await ocsSupabase.rpc('customer_active_booking');
+    if(error)throw error;
+    if(bottomBookingsTab!=='ACTIVE')return;
+    const b=Array.isArray(data)?data[0]||null:null;
+    if(!b){
+      body.innerHTML='<div class="bottom-hub-card"><span class="ocs-booking-state">ACTIVE</span><b>No active booking</b><small>No current Home Service booking on this account.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button></div></div>';
+    }else{
+      const status=dashStatusLabel(String(b.status||'').toUpperCase());
+      const service=b.service_name||b.category||'Home Service',id=ocsShortBookingId(b.id);
+      body.innerHTML='<div class="bottom-hub-card"><span class="ocs-booking-state">ACTIVE</span><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+'<br>Status: <b style="display:inline">'+ocsSavedText(status)+'</b></small><div class="bottom-hub-actions"><button class="main" onclick="location.href=\'home-services.html?tab=customer&v=20261012-bookingtrack1\'">Track • OTP • Complete • Payment</button></div></div>';
+    }
+  }catch(e){
+    console.error('Live Activity status unavailable',e);
+    body.innerHTML='<div class="bottom-hub-card"><b>Cannot load booking right now</b><small>Try again after checking internet. Stale status hidden.</small><div class="bottom-hub-actions"><button class="main" onclick="renderBottomBookings()">Retry</button></div></div>';
   }
   return;
  }
