@@ -42,7 +42,7 @@ const byId=x=>document.getElementById(x);
 const rupees=x=>'₹'+Number(x||0).toLocaleString('en-IN',{maximumFractionDigits:2});
 const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function moneyTotal(items){return (items||[]).reduce((n,x)=>n+(Number(x.qty)||1)*Number(x.price||0),0)}
-function fresh(){return{version:1,role:'customer',mode:'fixed',category:'Electrical',items:sample.map(x=>({...x})),pay:'online',workOn:true,booking:null,events:[]}}
+function fresh(){return{version:1,role:'customer',mode:'fixed',category:'Electrical',items:sample.map(x=>({...x})),pay:'online',draftDescription:'',workOn:true,booking:null,events:[]}}
 function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&x.version===1&&['customer','sp'].includes(x.role)&&Array.isArray(x.items))return x}catch(e){}return fresh()}
 let state=read(),busy=false;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
@@ -63,7 +63,7 @@ function render(){
 }
 function startCart(){
  const opt='<div class="grid2"><button class="'+(state.mode==='fixed'?'on':'')+'" onclick="selectMode(\'fixed\')">2 Fixed Services</button><button class="'+(state.mode==='quote'?'on':'')+'" onclick="selectMode(\'quote\')">Get Quote</button></div>';
- const items=state.mode==='fixed'?'<div class="preview">'+state.items.map(x=>'<div class="row"><span>'+esc(x.name)+' × '+Number(x.qty||1)+'</span><b>'+esc(rupees(Number(x.qty||1)*x.price))+'</b></div>').join('')+'</div><div class="money">'+rupees(moneyTotal(state.items))+'</div>':'<p class="muted">Test SP will send a quote; Customer must accept it before work starts.</p><label>Describe Test Work</label><textarea id="testDescription" rows="2" placeholder="Example: Main distribution board work">Electrical fault inspection and repair (demo)</textarea>';
+ const items=state.mode==='fixed'?'<div class="preview">'+state.items.map(x=>'<div class="row"><span>'+esc(x.name)+' × '+Number(x.qty||1)+'</span><b>'+esc(rupees(Number(x.qty||1)*x.price))+'</b></div>').join('')+'</div><div class="money">'+rupees(moneyTotal(state.items))+'</div>':'<p class="muted">Test SP will send a quote; Customer must accept it before work starts.</p><label>Describe Test Work</label><textarea id="testDescription" rows="2" placeholder="Example: Main distribution board work">'+esc(state.draftDescription||"Electrical fault inspection and repair (demo)")+'</textarea>';
  return card('1. Create Safe Test Booking','<p class="muted">Aapki ₹539 wali Electrical selection pehle se ready hai. Koi real request nahi jayegi.</p>'+opt+items+
  '<label>Demo Address (not shared)</label><input value="OCS Test Address, Khopoli" disabled>'+
  '<label>Simulated Payment Method</label><div class="grid2"><button class="'+(state.pay==='online'?'on':'')+'" onclick="setPay(\'online\')">Online (Demo)</button><button class="'+(state.pay==='cash'?'on':'')+'" onclick="setPay(\'cash\')">Cash (Demo)</button></div>'+
@@ -155,13 +155,29 @@ function simulatePayment(){const b=state.booking;if(!b||b.status!=='payment_pend
 function spCashReceived(){const b=state.booking;if(!b||b.status!=='cash_wait')return;b.status='completed';log('Test SP confirmed simulated cash • no real money');save();render()}
 function resetDemo(){if(!confirm('Only this device ka test booking clear karna hai? Real OCS data untouched.'))return;state=fresh();save();toast('Demo reset. No real booking touched.');render()}
 Object.assign(window,{setRole,selectMode,setPay,makeBooking,toggleWork,spAccept,spQuote,acceptQuote,rejectQuote,spStep,confirmWork,reportIssue,simulatePayment,spCashReceived,resetDemo});
-try{const imported=JSON.parse(sessionStorage.getItem('ocsSafeTestCartTransfer')||'null');
- if(imported&&Array.isArray(imported.items)&&imported.items.length&&!state.booking){
-  const items=imported.items.filter(x=>typeof x.name==='string'&&Number(x.qty)>0&&Number(x.price)>=0).slice(0,15).map(x=>({name:String(x.name).slice(0,120),qty:Math.max(1,Math.min(30,Math.floor(Number(x.qty)))),price:Math.min(1000000,Number(x.price))}));
-  if(items.length){state.category=String(imported.category||'Electrical').slice(0,60);state.items=items;state.mode=imported.mode==='quote'?'quote':'fixed';save()}
-  sessionStorage.removeItem('ocsSafeTestCartTransfer');
+try{
+ const imported=JSON.parse(sessionStorage.getItem('ocsSafeTestCartTransfer')||'null');
+ if(imported&&!state.booking){
+   const quote=imported.mode==='quote';
+   const incoming=Array.isArray(imported.items)?imported.items:[];
+   const items=incoming.filter(x=>typeof x.name==='string'&&Number(x.qty)>0&&Number(x.price)>=0)
+     .slice(0,15).map(x=>({
+       name:String(x.name).slice(0,120),
+       qty:Math.max(1,Math.min(30,Math.floor(Number(x.qty)))),
+       price:Math.min(1000000,Number(x.price))
+     }));
+   if(quote||items.length){
+     state.category=String(imported.category||'Electrical').slice(0,60);
+     if(items.length)state.items=items;
+     state.mode=quote?'quote':'fixed';
+     state.pay=imported.pay==='cash'?'cash':'online';
+     state.draftDescription=String(imported.description||'').slice(0,500);
+     save();
+   }
  }
+ sessionStorage.removeItem('ocsSafeTestCartTransfer');
 }catch(e){}
+
 render();
 })();
 </script></body></html>
