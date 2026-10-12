@@ -344,6 +344,14 @@ async function decision(d){
    if(box)box.querySelectorAll('button').forEach(b=>b.disabled=false);
  }
 }
+async function refreshSpUnreadCount(){
+ const el=document.getElementById('ocsSpInboxCount');if(!el)return;
+ try{
+  const r=await sb.rpc('ocs_my_unread_notifications_count_v1');
+  if(r.error)throw r.error;
+  const n=Number(r.data||0);el.textContent=n?'• '+n+' unread':'';
+ }catch(e){console.warn('SP unread count not available',e)}
+}
 async function loadSpActivity(){
  const panel=document.getElementById('ocsSpActivityContent'),count=document.getElementById('ocsSpInboxCount');if(!panel)return;
  panel.textContent='Loading OCS records…';
@@ -352,7 +360,7 @@ async function loadSpActivity(){
   if(results.some(x=>x.error))throw results.find(x=>x.error).error;
   const notes=Array.isArray(results[0].data)?results[0].data:[],history=Array.isArray(results[1].data)?results[1].data:[];
   panel.replaceChildren();
-  const unread=notes.filter(x=>!x.read_at).length;if(count)count.textContent=unread?'• '+unread+' new (latest 30)':'';
+  const unread=notes.filter(x=>!x.read_at).length;await refreshSpUnreadCount();
   const date=x=>x?new Date(x).toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric'}):'Date not recorded';
   const section=(label,items,getTimestamp,format)=>{
    const h=document.createElement('h3');h.textContent=label+' ('+items.length+')';h.style.cssText='font-size:14px;margin:15px 0 8px';panel.appendChild(h);
@@ -373,6 +381,8 @@ async function loadSpActivity(){
 document.getElementById('ocsSpActivityPanel')?.addEventListener('toggle',e=>{if(e.target.open)loadSpActivity()});
 loadDashboard();
 setInterval(()=>{if(!document.hidden)loadDashboard()},10000);
+setInterval(()=>{if(!document.hidden)refreshSpUnreadCount()},30000);
+refreshSpUnreadCount();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadDashboard()});
 </script>
 </body>
