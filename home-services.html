@@ -1244,7 +1244,7 @@ async function ocsLoadCustomerActivity(){
   if(n.error)throw n.error;if(h.error)throw h.error;
   const notes=Array.isArray(n.data)?n.data:[],history=Array.isArray(h.data)?h.data:[];
   const unread=notes.filter(x=>!x.read_at).length;
-  if(label)label.textContent=unread?'• '+unread+' unread':'';
+  if(label)label.textContent=unread?'• '+unread+' new (latest 30)':'';
   box.replaceChildren();
   const date=x=>x?new Date(x).toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric'}):'Date not recorded';
   const section=(heading,items,getTimestamp,format)=>{
