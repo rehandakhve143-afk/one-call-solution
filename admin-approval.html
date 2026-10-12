@@ -349,6 +349,10 @@ async function loadOcsMemberDetail(memberId){
     const hd=document.createElement('h3');hd.textContent='Working Record & Payment History';finance.appendChild(hd);
     const line=(k,v)=>finance.appendChild(ocsMemberField(k,v));
     line('Completed jobs',Number(ws.completed||0));line('Active jobs',Number(ws.active||0));line('Cancelled jobs',Number(ws.cancelled||0));
+    const sums=fh.payment_summary||{};
+    line('Cash Confirmed',Number(sums.cash_confirmed_count||0)+' • '+money(sums.cash_confirmed_total));
+    line('Online Verified',Number(sums.online_verified_count||0)+' • '+money(sums.online_verified_total));
+    if(fh.customer_wallet)line('Customer Rewards Wallet',money(fh.customer_wallet.balance));
     datedRecords(finance,'Date-wise Service Payments',fh.service_payments||[],x=>x.paid_at||x.created_at,
       x=>money(x.amount)+' • '+(x.method||'Method not recorded')+' • '+String(x.status||'Pending').toUpperCase()+
         ' • OCS commission '+money(x.commission_amount)+' • Booking #'+String(x.booking_id||'').slice(0,8));
@@ -356,7 +360,9 @@ async function loadOcsMemberDetail(memberId){
       x=>money(x.amount)+' • '+String(x.status||'Pending').toUpperCase());
     datedRecords(finance,'Date-wise SP Withdrawals',fh.withdrawals||[],x=>x.paid_at||x.created_at,
       x=>money(x.amount)+' • '+String(x.status||'Pending').toUpperCase());
-  }catch(err){finance.textContent='Payment history unavailable: '+(err.message||'Retry')}
+    datedRecords(finance,'Customer Rewards Wallet History',fh.customer_wallet_history||[],x=>x.created_at,x=>money(x.amount)+' • '+(x.kind||'Reward'));
+    datedRecords(finance,'Business and Ad Payments',fh.listing_payment_history||[],x=>x.verified_at||x.created_at,x=>(x.title||'Listing')+' • '+money(x.total_amount)+' • '+(x.status||'Pending'));
+  }catch(err){if(activeRequest===memberSearchVersion)finance.textContent='Payment history unavailable: '+(err.message||'Retry')}
   const lc=d.listing_counts||{};add('Own Listings','Shops '+(lc.shops||0)+' • Property '+(lc.property||0)+' • Posts '+(lc.posts||0));
  }catch(e){body.textContent='Member detail failed: '+(e.message||'Retry')}
 }
