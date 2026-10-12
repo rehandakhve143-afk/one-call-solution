@@ -3948,7 +3948,7 @@ const OCS_PRICING_DEFAULTS={
  localShop:99,localShop6m:499,
  propertyOwner:199,propertyOwner6m:999,
  propertyBuilder:499,propertyBuilder6m:2499,
- propertyBuilderProfile:799,propertyBuilderProfile6m:2499,
+ propertyBuilderProfile:499,propertyBuilderProfile6m:2499,
  sliding:199,sliding6m:999,
  welding:199,welding6m:999,
  beauty:199,beauty6m:999,
@@ -3963,16 +3963,16 @@ const OCS_PRICING_DEFAULTS={
 };
 const OCS_GST_DEFAULTS={enabled:true,rate:18,gstin:'',legalName:'One Call Solution',businessAddress:''};
 // Migration: device-local admin pricing from before the Builder Project Profile update
-// could keep ₹499 even after the new ₹799 default is deployed.
+// could keep ₹799 even after the finalized ₹499 default is deployed.
 // Run once, then respect any later intentional Admin edits (including ₹499).
-const OCS_BUILDER_PROJECT_PRICE_MIGRATED='ocsBuilderProjectPrice799MigratedV1';
+const OCS_BUILDER_PROJECT_PRICE_MIGRATED='ocsBuilderProjectPrice499MigratedV2';
 function getPricing(){
  try{
    const saved=JSON.parse(localStorage.getItem('ocsPricing')||'{}');
    const price=saved&&typeof saved==='object'&&!Array.isArray(saved)?saved:{};
    if(localStorage.getItem(OCS_BUILDER_PROJECT_PRICE_MIGRATED)!=='1'){
-     if(Number(price.propertyBuilderProfile)===499){
-       price.propertyBuilderProfile=799;
+     if(Number(price.propertyBuilderProfile)===799){
+       price.propertyBuilderProfile=499;
        localStorage.setItem('ocsPricing',JSON.stringify(price));
      }
      localStorage.setItem(OCS_BUILDER_PROJECT_PRICE_MIGRATED,'1');
@@ -6274,7 +6274,7 @@ function openBiz(category){
  const adminTools=document.getElementById('bizAdminFreeWrap');if(adminTools)adminTools.open=false;
  if(isProperty){
    const price=document.getElementById('bizCurrentPrice'),gst=document.getElementById('bizGstNote');
-   if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹799';
+   if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹499';
    if(gst)gst.textContent='Continue karke Single Property / Builder Property / Builder Project Profile choose karein.';
  }else{loadBizDraft(sel.value);ocsSyncShopTypeFromDraft(sel.value);updateBizPrice()}
  updateBizLikeSummary(sel.value);modal.classList.add('show');syncAdminFreePostControls().then(()=>{syncPropertyEntryUi();if(!isProperty)updateBizPrice()})
@@ -6313,7 +6313,7 @@ document.getElementById('bizCat').onchange=function(){
  syncBizReadyForm(this.value);syncPropertyEntryUi();
  const price=document.getElementById('bizCurrentPrice'),gst=document.getElementById('bizGstNote');
  if(isProperty){
-   if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹799';
+   if(price)price.innerHTML='<b>Property has 3 ready-made post types</b> • ₹199 / ₹499 / ₹499';
    if(gst)gst.textContent='Continue karke Single Property / Builder Property / Builder Project Profile choose karein.';
  }else{loadBizDraft(this.value);ocsSyncShopTypeFromDraft(this.value);updateBizPrice()}
  updateBizLikeSummary(this.value);
