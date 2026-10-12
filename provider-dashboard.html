@@ -57,6 +57,7 @@ const SB_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
 const SB_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let profile=null,available=true,currentJob=null;
+let latestJobQuote=null,providerActionBusy=false;
 let dashboardBusy=false;
 function setStableDashboardHtml(el,markup){
  if(!el||el.dataset.ocsRenderedMarkup===markup)return;
@@ -135,6 +136,11 @@ async function loadDashboard(){
      if(Array.isArray(jobs.data)&&jobs.data.length)booking=jobs.data[0];
    }
    currentJob=booking;
+   latestJobQuote=null;
+   if(booking&&booking.request_type==='quote'&&booking.status==='accepted'){
+     const qr=await sb.rpc('latest_booking_quote_v1',{p_booking_id:booking.id});
+     if(!qr.error)latestJobQuote=Array.isArray(qr.data)?qr.data[0]||null:null;
+   }
    renderJob();
  }catch(e){
    console.warn('SP dashboard refresh failed',e);
@@ -170,10 +176,114 @@ function renderJob(){
    return;
  }
  const b=currentJob,st=String(b.status||'searching').toLowerCase();
- const incoming=st==='searching';
+ const quote=String(b.request_type||'').toLowerCase()==='quote';
  const items=Array.isArray(b.selected_items)?b.selected_items:[];
- setStableDashboardHtml(box,'<div class="job"><span class="badge">'+(incoming?'NEW REQUEST':'CURRENT JOB')+'</span><h2>'+esc(b.service_name||b.category||'Home Service')+'</h2><div class="meta">'+shortId(b.id)+' • '+esc(b.category||'Home Service')+(b.distance_km!=null?' • '+Number(b.distance_km).toFixed(1)+' km':'')+'</div><div class="amount">'+money(b.booking_amount||0)+'</div>'+(items.length?'<div class="items">'+items.map(x=>'<div class="item">'+esc(x.name||'Service')+' × '+Number(x.qty||1)+'</div>').join('')+'</div>':'')+(incoming?'<div class="actions"><button class="accept" onclick="decision(\'accept\')">Accept</button><button class="reject" onclick="decision(\'reject\')">Reject</button></div>':'<div class="muted" style="margin-top:12px">Status: '+esc(String(b.status||'').replaceAll('_',' '))+'</div>')+'</div>');
+ const button=(label,fn,cls)=>'<button class="'+(cls||'primary')+'" style="padding:11px 12px;min-height:46px;flex:1" onclick="'+fn+'">'+label+'</button>';
+ const actions=[];
+ let note='';
+ if(st==='searching'){
+   actions.push(button('Accept Request',"decision('accept')",'accept'),button('Reject',"decision('reject')",'reject'));
+ }else if(st==='next_accepted'){
+   note='Next job reserved. Current job complete hone ke baad hi kaam shuru karein.';
+ }else if(st==='accepted'){
+   if(quote){
+     if(!latestJobQuote){
+       note='Get Quote request accepted. Official quote customer ko bhejein.';
+       actions.push(button('Send Official Quote','sendInitialQuote()'));
+     }else if(latestJobQuote.status==='pending'){
+       note='Quote '+money(latestJobQuote.amount)+' sent. Customer approval pending.';
+     }else if(latestJobQuote.status==='accepted'){
+       note='Customer accepted quote '+money(latestJobQuote.amount)+'.';
+       actions.push(button('On The Way',"runProviderStep('on_way')"));
+     }else{
+       note='Customer rejected the quote. Send a revised quotation.';
+       actions.push(button('Send Revised Quote','sendInitialQuote()'));
+     }
+   }else actions.push(button('On The Way',"runProviderStep('on_way')"));
+ }else if(st==='on_way'){
+   actions.push(button('Reached Customer',"runProviderStep('reached')"));
+ }else if(st==='reached'){
+   note='Customer ke mobile par OCS Activity me 4-digit Start OTP visible hai. OTP sirf customer se lein.';
+   actions.push(button('Start Work • Enter OTP',"runProviderStep('start')"));
+ }else if(st==='working'){
+   note='Work khatam hone ke baad hi Complete dabayein. Final confirmation Customer karega.';
+   actions.push(button('Request Work Completion',"runProviderStep('complete')"));
+ }else if(st==='completion_requested'){
+   note='Customer completion confirm karega. Tab payment due hoga.';
+ }else if(st==='payment_pending'){
+   note='Customer payment selection / online payment pending.';
+ }else if(st==='cash_wait'||st==='visit_cash_wait'){
+   note='Customer ne Cash payment select kiya hai. Paise milne ke baad hi Cash Received dabayein.';
+   actions.push(button('Confirm Cash Received','confirmProviderCash()'));
+ }else if(st==='support_review'){
+   note='OCS Support review in progress. Customer approval ke bina payment final na karein.';
+ }else{
+   note='Booking status: '+st.replaceAll('_',' ');
+ }
+ const summary='<div class="job"><span class="badge">'+(st==='searching'?'NEW REQUEST':(st==='next_accepted'?'NEXT JOB':'CURRENT JOB'))+'</span><h2>'+esc(b.service_name||b.category||'Home Service')+'</h2>'+
+  '<div class="meta">'+shortId(b.id)+' • '+esc(b.category||'Home Service')+
+  (b.distance_km!=null?' • '+Number(b.distance_km).toFixed(1)+' km':'')+'</div>'+
+  '<div class="amount">'+(quote&&!b.booking_amount?'Get Quote':money(b.booking_amount||0))+'</div>'+
+  (items.length?'<div class="items">'+items.map(x=>'<div class="item">'+esc(x.name||'Service')+' × '+Number(x.qty||1)+'</div>').join('')+'</div>':'')+
+  (quote&&b.request_details?'<div class="item" style="margin-top:10px">Customer request: '+esc(b.request_details)+'</div>':'')+
+  (note?'<p class="meta" style="margin-top:12px;font-size:12px">'+esc(note)+'</p>':'')+
+  (actions.length?'<div class="actions" style="display:flex;flex-wrap:wrap">'+actions.join('')+'</div>':'')+
+  '</div>';
+ setStableDashboardHtml(box,summary);
 }
+async function runProviderStep(action){
+ if(providerActionBusy||!currentJob||!currentJob.id)return;
+ const bookingId=currentJob.id;
+ let otp=null;
+ if(action==='start'){
+   otp=prompt('Customer ka 4-digit Start OTP enter karein:');
+   if(otp===null)return;
+   otp=String(otp).trim();
+   if(!/^\d{4}$/.test(otp)){alert('Customer ka 4-digit Start OTP daalein.');return}
+ }
+ if(action==='complete'&&!confirm('Kaam sach me complete ho gaya hai? Customer se alag confirmation li jayegi.'))return;
+ providerActionBusy=true;
+ try{
+   const {error}=await sb.rpc('provider_booking_action',{p_booking_id:bookingId,p_action:action,p_start_otp:otp});
+   if(error)throw error;
+   await loadDashboard();
+ }catch(e){alert('Action failed: '+(e.message||'Please try again'))}
+ finally{providerActionBusy=false}
+}
+async function sendInitialQuote(){
+ if(providerActionBusy||!currentJob||currentJob.status!=='accepted'||currentJob.request_type!=='quote')return;
+ const value=prompt('Official quotation amount (₹):');
+ if(value===null)return;
+ const amount=Number(value);
+ if(!Number.isFinite(amount)||amount<=0||amount>10000000){alert('Valid quote amount daalein.');return}
+ const note=prompt('Work description / labour-material details (optional):')||'';
+ if(!confirm('Customer ko '+money(amount)+' ka official quotation bhejna hai?'))return;
+ providerActionBusy=true;
+ try{
+   const {error}=await sb.rpc('provider_send_quote_v1',{p_booking_id:currentJob.id,p_amount:amount,p_description:note,p_quote_kind:'initial',p_items:[]});
+   if(error)throw error;
+   alert('Quote customer ko bhej diya hai. Acceptance ka wait karein.');
+   await loadDashboard();
+ }catch(e){alert('Quote send failed: '+(e.message||'Please retry'))}
+ finally{providerActionBusy=false}
+}
+async function confirmProviderCash(){
+ if(providerActionBusy||!currentJob||!['cash_wait','visit_cash_wait'].includes(currentJob.status))return;
+ if(!confirm('Customer se cash payment WAKAI receive ho gaya? Galat confirmation mat karein.'))return;
+ providerActionBusy=true;
+ try{
+   const {data,error}=await sb.rpc('payment_snapshot_v1',{p_booking_id:currentJob.id});
+   if(error)throw error;
+   const pay=data&&data.payment;
+   if(!pay||pay.method!=='cash'||pay.status!=='cash_marked')throw new Error('Cash payment pending record nahi mila.');
+   const done=await sb.rpc('confirm_cash_received_v1',{p_payment_id:pay.id});
+   if(done.error)throw done.error;
+   alert('Cash received recorded. Booking completed.');
+   await loadDashboard();
+ }catch(e){alert('Cash confirmation failed: '+(e.message||'Please retry'))}
+ finally{providerActionBusy=false}
+}
+
 async function decision(d){
  if(!currentJob||!currentJob.id)return;
  try{
