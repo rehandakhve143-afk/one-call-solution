@@ -1181,27 +1181,46 @@ async function ocsLoadLive(role){
       }
     }
     return true;
-  }catch(e){console.error("OCS live load failed",e);return false}
+  }catch(e){console.error("OCS live load failed",e);return null}
+}
+function ocsLiveUiFingerprint(){
+  // Rebuild only if backend booking details actually change.
+  return JSON.stringify({
+    id:S.activeBookingId,status:S.status,amount:S.bookingAmount,otp:S.startOtp,
+    quote:S.quote,quoteDecision:S.quoteDecision,payment:S.payment,paymentStatus:S.paymentBackendStatus,
+    provider:S.provider,available:S.available,wallet:S.wallet,
+    reschedule:S.reschedule,visitCharge:S.visitCharge,supportTicket:S.supportTicket,
+    chatCount:Array.isArray(S.chatMessages)?S.chatMessages.length:0
+  });
 }
 async function ocsStartLive(role){
   OCS_LIVE_ROLE=role;
   if(OCS_LIVE_POLL){clearInterval(OCS_LIVE_POLL);OCS_LIVE_POLL=null}
   const ok=await ocsLoadLive(role);
-  if(role==="customer"&&!ok){
+  if(role==="customer"&&ok===false){
     if(String(S.status||"").toUpperCase()==="READY")S.status="SELECT_SERVICE";
     renderCore();updateSelectionTray();
     return false;
   }
-  renderCore();updateSelectionTray();
+  if(ok===true){renderCore();updateSelectionTray()}
+  let lastRendered=ocsLiveUiFingerprint();
   OCS_LIVE_POLL=setInterval(async()=>{
+    if(document.hidden)return;
     const live=await ocsLoadLive(OCS_LIVE_ROLE);
-    if(live){renderCore();updateSelectionTray()}
-    else if(OCS_LIVE_ROLE==="customer"){
+    if(live===null)return; // Temporary network errors must not wipe an active booking.
+    const now=ocsLiveUiFingerprint();
+    if(live===true){
+      if(lastRendered!==now){
+        const tag=(document.activeElement&&document.activeElement.tagName||'').toUpperCase();
+        if(['INPUT','TEXTAREA','SELECT'].includes(tag))return;
+        renderCore();updateSelectionTray();lastRendered=now;
+      }
+    }else if(OCS_LIVE_ROLE==="customer"){
       clearInterval(OCS_LIVE_POLL);OCS_LIVE_POLL=null;
       if(String(S.status||"").toUpperCase()==="READY")S.status="SELECT_SERVICE";
       renderCore();updateSelectionTray();
     }
-  },5000);
+  },10000);
   return ok;
 }
 async function ocsCreateLiveBooking(){
