@@ -188,6 +188,16 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Demo/test data must **not** count in real paid collections or GST collection totals.
 - Remove/disable the entire XYZ demo set when the user asks to delete the examples.
 
+## OCS intellectual property and app security (12 Oct 2026)
+- Keep OCS UI clean and easy for customers, but enforce authorization, price locking, payment verification and Admin access on the server.
+- The public website necessarily exposes downloaded HTML/CSS/JavaScript. Do not place payment secrets, service-role tokens, admin passwords or private database credentials in the website or a publicly readable repository.
+- Current source repository was confirmed **public** on 12 Oct 2026. Plan a controlled move to private source hosting, with a verified independent production deployment first. Changing GitHub visibility may affect GitHub Pages/build availability and does not erase copies already downloaded.
+- Prefer a private repository with least-privilege collaborator access, protected default branch, mandatory two-factor authentication, recovery codes and automated backup of the source and database.
+- Keep confidential business operations, Admin authorization, sensitive calculations, payments, and security-critical decisions in Supabase backend / trusted server APIs. Supabase publishable/anon client keys are not equivalent to secret service-role keys.
+- Apply separate private storage/row access controls for government ID, KYC images, bank details, customer/provider chats, address and booking data.
+- Register and protect the One Call Solution brand, logo, domain, source ownership, contractor IP transfer agreements and use appropriate copyright notices; legal registrations require separately verified paperwork.
+- Security changes must be code-reviewed and tested on the deployed Customer, Service Provider and Admin app; a successful database migration alone is not a complete launch security certification.
+
 ## Deployment note
 - **Live GitHub Pages entry file: `index.html`**
 - Files named old/backup/earlier final variants are references only unless explicitly promoted.
