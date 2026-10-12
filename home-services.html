@@ -1246,15 +1246,22 @@ async function ocsLoadCustomerActivity(){
   const unread=notes.filter(x=>!x.read_at).length;
   if(label)label.textContent=unread?'• '+unread+' unread':'';
   box.replaceChildren();
-  const date=x=>x?new Date(x).toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'}):'No date';
-  const section=(heading,items,format)=>{
-   const title=document.createElement('h3');title.textContent=heading+' ('+items.length+')';box.appendChild(title);
-   if(!items.length){const no=document.createElement('p');no.textContent='No records yet';box.appendChild(no)}
-   for(const item of items.slice(0,25)){const row=document.createElement('div');row.style.cssText='padding:10px 0;border-bottom:1px solid #e9eeee;overflow-wrap:anywhere';row.textContent=format(item);box.appendChild(row)}
+  const date=x=>x?new Date(x).toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric'}):'Date not recorded';
+  const section=(heading,items,getTimestamp,format)=>{
+   const title=document.createElement('h3');title.textContent=heading+' ('+items.length+')';title.style.cssText='margin:15px 0 8px;font-size:14px';box.appendChild(title);
+   if(!items.length){const no=document.createElement('p');no.textContent='No records yet';box.appendChild(no);return}
+   let previous='';
+   const ordered=items.slice().sort((a,b)=>new Date(getTimestamp(b)||0)-new Date(getTimestamp(a)||0));
+   for(const item of ordered.slice(0,50)){
+    const day=date(getTimestamp(item));
+    if(day!==previous){const separator=document.createElement('div');separator.textContent='📅 '+day;separator.style.cssText='background:#ecf7f5;color:#14685e;font-weight:800;font-size:11px;border-radius:9px;padding:8px 10px;margin:12px 0 4px';box.appendChild(separator);previous=day}
+    const row=document.createElement('div');row.style.cssText='padding:10px 4px;border-bottom:1px solid #e9eeee;overflow-wrap:anywhere;font-size:12px;line-height:1.55';row.textContent=format(item);box.appendChild(row);
+   }
+   if(items.length>50){const limit=document.createElement('small');limit.textContent='Showing latest 50 of '+items.length+' records';box.appendChild(limit)}
   };
-  section('Notifications',notes,x=>date(x.created_at)+' • '+(x.title||'OCS Update')+' • '+(x.body||'')+(x.read_at?'':' • NEW'));
+  section('Notifications • Latest 30',notes,x=>x.created_at,x=>(x.read_at?'':'● NEW • ')+(x.title||'OCS Update')+' • '+(x.body||''));
   if(unread){const mark=document.createElement('button');mark.className='btn gray';mark.textContent='Mark All Read';mark.onclick=async()=>{const res=await ocsSupabase.rpc('mark_notifications_read_v1');if(res.error){alert('Could not mark read');return}await ocsLoadCustomerActivity()};box.appendChild(mark)}
-  section('Closed Bookings • Date-wise',history,x=>date(x.closed_at||x.created_at)+' • '+(x.service_name||x.category||'Service')+' • '+String(x.status||'').toUpperCase()+' • ₹'+Number(x.booking_amount||0)+' • Payment: '+(x.payment_status||'not recorded'));
+  section('Closed Bookings • Date-wise',history,x=>x.closed_at||x.created_at,x=>(x.service_name||x.category||'Service')+' • '+String(x.status||'').toUpperCase()+' • Job Amount ₹'+Number(x.booking_amount||0)+' • Payment: '+(x.payment_status||'not recorded'));
  }catch(e){box.textContent='Activity unavailable: '+(e.message||'Retry')}
 }
 document.getElementById('ocsCustomerActivityPanel')?.addEventListener('toggle',e=>{if(e.target.open)ocsLoadCustomerActivity()});
