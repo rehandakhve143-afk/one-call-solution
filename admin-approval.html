@@ -14,7 +14,7 @@
 .brand b{display:block;font-size:20px}.brand small{display:block;margin-top:2px;color:#cee2e5;font-size:10px}
 .main{padding:14px 16px}.card{background:#fff;border:1px solid #e0e7e9;border-radius:18px;padding:14px;margin-bottom:11px}
 .card h2,.card h3{margin:0 0 8px}.muted{font-size:10px;line-height:1.45;color:#7c8d92}
-.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid #edf1f2;font-size:10px}.row:first-of-type{margin-top:9px}.row b{text-align:right}
+.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid #edf1f2;font-size:10px}.row:first-of-type{margin-top:9px}.row b{text-align:right;min-width:0;overflow-wrap:anywhere;word-break:break-word}
 .badge{display:inline-block;padding:6px 9px;border-radius:999px;background:#fff3d9;color:#94651d;font-size:9px;font-weight:900}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.actions button,.btn{min-height:44px;border:0;border-radius:12px;font-weight:900;font-size:10px}
 .ok{background:#07877d;color:#fff}.red{background:#fff0ed;color:#a63a2c;border:1px solid #f0d0c9!important}.btn{width:100%;background:#fff;border:1px solid #d9e3e5;color:#27454d}
@@ -202,12 +202,15 @@ function refreshCurrentAdminView(){
  });
 }
 let memberSearchTimer=null;
+let memberSearchVersion=0;
 async function loadOcsMemberRegister(){
  const box=document.getElementById('ocsMemberRows');if(!box)return;
+ const requestVersion=++memberSearchVersion;
  box.textContent='Searching members…';
  const q=String(document.getElementById('ocsMemberSearch')?.value||'').trim();
  try{
   const r=await sb.rpc('admin_member_search_v2',{p_search:q,p_limit:100});
+  if(requestVersion!==memberSearchVersion)return;
   if(r.error)throw r.error;
   const rows=Array.isArray(r.data?.members)?r.data.members:[];
   box.replaceChildren();
@@ -222,7 +225,7 @@ async function loadOcsMemberRegister(){
    c.append(title,desc,id,open);box.appendChild(c);
   }
   if(!rows.length)box.appendChild(document.createTextNode('No matching member found.'));
- }catch(e){box.textContent='Search failed: '+(e.message||'Retry')}
+ }catch(e){if(requestVersion===memberSearchVersion)box.textContent='Search failed: '+(e.message||'Retry')}
 }
 function ocsMemberField(label,value){
  const div=document.createElement('div');div.className='row';
@@ -232,7 +235,10 @@ function ocsMemberField(label,value){
 }
 async function loadOcsMemberDetail(memberId){
  const box=document.getElementById('ocsMemberRows');if(!box)return;
+ clearTimeout(memberSearchTimer);++memberSearchVersion;
+ document.getElementById('ocsMemberSearch')?.blur();
  box.replaceChildren();
+ document.getElementById('ocsMemberRegister')?.scrollIntoView({block:'start',behavior:'auto'});
  const back=document.createElement('button');back.className='btn';back.textContent='← Back to Search';back.onclick=loadOcsMemberRegister;box.appendChild(back);
  const body=document.createElement('div');body.className='card';body.style.marginTop='12px';body.textContent='Loading full OCS record…';box.appendChild(body);
  try{
