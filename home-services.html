@@ -680,6 +680,7 @@ body:not(.sp-only-route):not(.admin-route-only) .customer-dashboard-card{margin-
     <span class="status" id="cStatus">READY</span>
   </div>
   <div id="cBody"></div>
+  <div id="ocsWaitingReviewPanel"></div>
   <div id="homeFlowNav"></div>
   <div id="customerAddWorkMount"></div>
 </div>
@@ -1195,6 +1196,43 @@ function ocsLiveUiFingerprint(){
     chatCount:Array.isArray(S.chatMessages)?S.chatMessages.length:0
   });
 }
+async function ocsLoadWaitingReview(){
+ const box=document.getElementById('ocsWaitingReviewPanel');
+ if(!box||!ocsSupabase)return;
+ try{
+  const session=await ocsSession();
+  if(!session?.user){box.replaceChildren();return}
+  const r=await ocsSupabase.rpc('customer_waiting_booking_review_v1');
+  if(r.error)throw r.error;
+  const waiting=Array.isArray(r.data)?r.data:[];
+  const old=waiting.filter(x=>x.needs_review===true);
+  box.replaceChildren();
+  if(!old.length)return;
+  const card=document.createElement('div');card.className='card';
+  const heading=document.createElement('b');heading.textContent='Waiting Requests • Admin Review ('+old.length+')';
+  const note=document.createElement('p');note.className='muted';note.textContent='These requests are older than 24 hours and have no assigned SP. No automatic cancellation. You may cancel one request at a time.';
+  card.append(heading,note);
+  for(const x of old){
+   const row=document.createElement('div');row.className='card';
+   const name=document.createElement('b');name.textContent=x.service_name||x.category||'Service';
+   const info=document.createElement('p');info.className='muted';
+   info.textContent=new Date(x.created_at).toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'})+' • #'+String(x.id||'').slice(0,8)+' • ₹'+Number(x.booking_amount||0)+' • Waiting for SP';
+   const cancel=document.createElement('button');cancel.className='btn gray';cancel.textContent='Cancel This Request';
+   cancel.onclick=async()=>{
+    if(!confirm('Cancel only this selected waiting request?'))return;
+    cancel.disabled=true;
+    try{
+     const out=await ocsSupabase.rpc('cancel_customer_searching_booking_v1',{p_booking_id:x.id,p_reason:'Customer cancelled old unassigned request'});
+     if(out.error)throw out.error;
+     await ocsLoadWaitingReview();
+     await ocsStartLive('customer');
+    }catch(e){alert('Cancellation failed: '+(e.message||'Retry'));cancel.disabled=false}
+   };
+   row.append(name,info,cancel);card.appendChild(row);
+  }
+  box.appendChild(card);
+ }catch(e){console.warn('Waiting review not available',e)}
+}
 async function ocsStartLive(role){
   OCS_LIVE_ROLE=role;
   if(OCS_LIVE_POLL){clearInterval(OCS_LIVE_POLL);OCS_LIVE_POLL=null}
@@ -1205,6 +1243,7 @@ async function ocsStartLive(role){
     return false;
   }
   if(ok===true){renderCore();updateSelectionTray()}
+  if(role==="customer")ocsLoadWaitingReview();
   let lastRendered=ocsLiveUiFingerprint();
   OCS_LIVE_POLL=setInterval(async()=>{
     if(document.hidden)return;
