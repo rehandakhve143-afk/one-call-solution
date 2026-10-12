@@ -54,9 +54,11 @@
   <button id="adminTabApproval" type="button" data-admin-view="approval" onclick="setAdminView('approval')">SP Approval</button>
   <button id="adminTabChat" type="button" data-admin-view="chat" onclick="setAdminView('chat')">Company Chat</button>
   <button id="adminTabBookings" type="button" data-admin-view="bookings" onclick="setAdminView('bookings')">Bookings & Wallet</button>
+  <button id="adminTabMembers" type="button" data-admin-view="members" onclick="setAdminView('members')">All Members</button>
   <button id="adminTabRates" type="button" data-admin-view="rates" onclick="setAdminView('rates')">Driver Rates</button>
  </nav>
  <a id="ocsTestLabLink" hidden href="ocs-test-lab.html?v=20261011-testlab1" style="background:#fff8dc;color:#6a541c;border:1px solid #e8d895;border-radius:13px;padding:13px;text-decoration:none;font-size:13px;font-weight:850;margin-bottom:12px" >🧪 Demo Test Lab → <small style="display:block;margin-top:4px;font-weight:400">Same Admin login se Customer, SP, Driver aur Shop ka sample flow check karein. No real bookings.</small></a>
+ <section id="ocsMemberRegister" hidden><div class="card"><h2>OCS Member Register</h2><div class="muted">Customer • Service Provider • Driver • Tempo / Truck • Business owners. One account = one unique ID. Admin only.</div><input id="ocsMemberSearch" placeholder="Search name, role, category or ID" style="width:100%;height:43px;margin:12px 0;border:1px solid #d9e3e5;border-radius:10px;padding:10px"><div id="ocsMemberRows">Loading members…</div></div></section>
  <section id="ocsHomeMonitor" hidden><div class="card"><h2>Home Services • Bookings</h2><div class="muted">Live database • Read-only</div><div id="ocsHomeBookingRows"></div></div><div class="card"><h2>SP Wallet Monitoring</h2><div id="ocsHomeWalletRows"></div></div></section>
  <section id="ocsDriverOperations" hidden><div class="card"><h2>Driver Operator • Bookings</h2><div class="muted">OCS Company monitoring • Read-only. No automatic payment or reassignment.</div><div id="ocsDriverOperatorRows">Loading…</div></div></section>
  <div id="content"><div class="card">Loading Admin approval queue...</div></div>
@@ -77,9 +79,9 @@ let adminOtpEmail='';
 function setAdminView(view){
  const nav=document.getElementById('ocsAdminSections');
  if(nav.hidden)return;
- const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor'};
- const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet'};
- const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>Home Services:</b> Live bookings, payment status aur SP wallet.'};
+ const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',members:'ocsMemberRegister'};
+ const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',members:'Admin • All Members'};
+ const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>Home Services:</b> Live bookings, payment status aur SP wallet.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.'};
  if(!Object.prototype.hasOwnProperty.call(map,view))return;
  document.getElementById('ocsAdminPageTitle').textContent=titles[view];
  document.getElementById('ocsAdminPageHelp').innerHTML=helps[view];
@@ -94,6 +96,7 @@ function setAdminView(view){
  // Company messages only load when Admin has authenticated.
  document.getElementById('ocsAdminRefresh').textContent='↻ Refresh Admin Data';
   if(view==='bookings')loadOcsHomeMonitor();
+  if(view==='members')loadOcsMemberRegister();
 }
 
 function renderAdminLogin(){
@@ -192,11 +195,36 @@ function refreshCurrentAdminView(){
  const on=document.querySelector('#ocsAdminSections button.on');
  const view=on?on.dataset.adminView:'operator';
  if(view==='bookings'){loadOcsHomeMonitor();return}
+ if(view==='members'){loadOcsMemberRegister();return}
  loadQueue().then(()=>{
   const nav=document.getElementById('ocsAdminSections');
   if(nav&&!nav.hidden&&view!=='operator')setAdminView(view);
  });
 }
+async function loadOcsMemberRegister(){
+ const box=document.getElementById('ocsMemberRows');if(!box)return;
+ box.textContent='Loading member records…';
+ try{
+  const r=await sb.rpc('admin_member_register_v1',{p_limit:100});
+  if(r.error)throw r.error;
+  const rows=Array.isArray(r.data?.members)?r.data.members:[];
+  const q=String(document.getElementById('ocsMemberSearch')?.value||'').toLowerCase().trim();
+  const filtered=rows.filter(x=>!q||[x.name,x.member_id,x.profile_role,(x.roles||[]).join(' '),(x.categories||[]).join(' ')].join(' ').toLowerCase().includes(q));
+  box.replaceChildren();
+  const head=document.createElement('div');head.className='info';head.textContent='Registered profiles: '+rows.length+' • Showing: '+filtered.length+' • Secure Admin list';box.appendChild(head);
+  for(const x of filtered){
+    const c=document.createElement('div');c.className='card';c.style.marginTop='10px';
+    const title=document.createElement('b');title.textContent=x.name||'OCS Member';
+    const roles=[...(Array.isArray(x.roles)?x.roles:[])];if(x.transport)roles.push('Tempo / Truck Driver');
+    const desc=document.createElement('div');desc.className='muted';desc.style.marginTop='6px';desc.textContent='Role: '+(roles.join(', ')||x.profile_role||'Member')+' • Category: '+((x.categories||[]).join(', ')||'Not selected')+' • Approval: '+(x.approval||'Not applicable');
+    const id=document.createElement('div');id.className='muted';id.style.marginTop='6px';id.textContent='Member ID: '+x.member_id;
+    const copy=document.createElement('button');copy.className='btn';copy.style.marginTop='8px';copy.textContent='Copy Member ID';copy.onclick=()=>{if(navigator.clipboard?.writeText)navigator.clipboard.writeText(x.member_id);else alert('Member ID: '+x.member_id)};
+    c.append(title,desc,id,copy);box.appendChild(c);
+  }
+  if(!filtered.length){const p=document.createElement('p');p.textContent='No matching members.';box.appendChild(p)}
+ }catch(e){box.textContent='Member records unavailable: '+(e.message||'Retry')}
+}
+document.getElementById('ocsMemberSearch')?.addEventListener('input',()=>{if(!document.getElementById('ocsMemberRegister').hidden)loadOcsMemberRegister()});
 async function loadOcsHomeMonitor(){
  const b=document.getElementById('ocsHomeBookingRows'),w=document.getElementById('ocsHomeWalletRows');
  if(!b||!w)return;b.textContent='Loading bookings…';w.textContent='Loading wallets…';
