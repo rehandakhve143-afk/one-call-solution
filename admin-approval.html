@@ -201,30 +201,73 @@ function refreshCurrentAdminView(){
   if(nav&&!nav.hidden&&view!=='operator')setAdminView(view);
  });
 }
+let memberSearchTimer=null;
 async function loadOcsMemberRegister(){
  const box=document.getElementById('ocsMemberRows');if(!box)return;
- box.textContent='Loading member records…';
+ box.textContent='Searching members…';
+ const q=String(document.getElementById('ocsMemberSearch')?.value||'').trim();
  try{
-  const r=await sb.rpc('admin_member_register_v1',{p_limit:100});
+  const r=await sb.rpc('admin_member_search_v2',{p_search:q,p_limit:100});
   if(r.error)throw r.error;
   const rows=Array.isArray(r.data?.members)?r.data.members:[];
-  const q=String(document.getElementById('ocsMemberSearch')?.value||'').toLowerCase().trim();
-  const filtered=rows.filter(x=>!q||[x.name,x.member_id,x.profile_role,(x.roles||[]).join(' '),(x.categories||[]).join(' ')].join(' ').toLowerCase().includes(q));
   box.replaceChildren();
-  const head=document.createElement('div');head.className='info';head.textContent='Registered profiles: '+rows.length+' • Showing: '+filtered.length+' • Secure Admin list';box.appendChild(head);
-  for(const x of filtered){
-    const c=document.createElement('div');c.className='card';c.style.marginTop='10px';
-    const title=document.createElement('b');title.textContent=x.name||'OCS Member';
-    const roles=[...(Array.isArray(x.roles)?x.roles:[])];if(x.transport)roles.push('Tempo / Truck Driver');
-    const desc=document.createElement('div');desc.className='muted';desc.style.marginTop='6px';desc.textContent='Role: '+(roles.join(', ')||x.profile_role||'Member')+' • Category: '+((x.categories||[]).join(', ')||'Not selected')+' • Approval: '+(x.approval||'Not applicable');
-    const id=document.createElement('div');id.className='muted';id.style.marginTop='6px';id.textContent='Member ID: '+x.member_id;
-    const copy=document.createElement('button');copy.className='btn';copy.style.marginTop='8px';copy.textContent='Copy Member ID';copy.onclick=()=>{if(navigator.clipboard?.writeText)navigator.clipboard.writeText(x.member_id);else alert('Member ID: '+x.member_id)};
-    c.append(title,desc,id,copy);box.appendChild(c);
+  const head=document.createElement('div');head.className='info';head.textContent='Matching members: '+Number(r.data?.total_matching||0)+' • Showing '+rows.length;box.appendChild(head);
+  for(const x of rows){
+   const c=document.createElement('div');c.className='card';c.style.marginTop='10px';
+   const title=document.createElement('b');title.textContent=x.name||'OCS Member';
+   const roles=Array.isArray(x.roles)?x.roles.slice():[];if(x.transport)roles.push('Truck / Tempo Driver');
+   const desc=document.createElement('div');desc.className='muted';desc.style.marginTop='6px';desc.textContent='Role: '+roles.join(', ')+' • Category: '+(x.categories||[]).join(', ')+' • Approval: '+(x.approval||'Not submitted');
+   const id=document.createElement('div');id.className='muted';id.style.marginTop='6px';id.textContent='Member ID: '+x.member_id;
+   const open=document.createElement('button');open.className='btn';open.style.marginTop='9px';open.textContent='View Full OCS Record';open.onclick=()=>loadOcsMemberDetail(x.member_id);
+   c.append(title,desc,id,open);box.appendChild(c);
   }
-  if(!filtered.length){const p=document.createElement('p');p.textContent='No matching members.';box.appendChild(p)}
- }catch(e){box.textContent='Member records unavailable: '+(e.message||'Retry')}
+  if(!rows.length)box.appendChild(document.createTextNode('No matching member found.'));
+ }catch(e){box.textContent='Search failed: '+(e.message||'Retry')}
 }
-document.getElementById('ocsMemberSearch')?.addEventListener('input',()=>{if(!document.getElementById('ocsMemberRegister').hidden)loadOcsMemberRegister()});
+function ocsMemberField(label,value){
+ const div=document.createElement('div');div.className='row';
+ const k=document.createElement('span');k.textContent=label;
+ const v=document.createElement('b');v.textContent=String(value==null||value===''?'Not recorded':value);
+ div.append(k,v);return div;
+}
+async function loadOcsMemberDetail(memberId){
+ const box=document.getElementById('ocsMemberRows');if(!box)return;
+ box.replaceChildren();
+ const back=document.createElement('button');back.className='btn';back.textContent='← Back to Search';back.onclick=loadOcsMemberRegister;box.appendChild(back);
+ const body=document.createElement('div');body.className='card';body.style.marginTop='12px';body.textContent='Loading full OCS record…';box.appendChild(body);
+ try{
+  const r=await sb.rpc('admin_member_detail_v1',{p_member_id:memberId});if(r.error)throw r.error;
+  const d=r.data||{},p=d.profile||{},ob=d.onboarding||{},st=d.provider_status||{},bank=d.bank_status||{},tr=d.transport||{};
+  body.replaceChildren();
+  const title=document.createElement('h2');title.textContent=p.full_name||'OCS Member';body.appendChild(title);
+  const add=(k,v)=>body.appendChild(ocsMemberField(k,v));
+  const money=v=>'₹'+Number(v||0).toFixed(2);
+  add('Member ID',p.member_id);add('Mobile',p.contact_mobile||p.phone);add('Email',p.contact_email);
+  add('Joined',p.joined_at?new Date(p.joined_at).toLocaleDateString('en-IN'):'');
+  add('Roles',(d.roles||[]).join(', '));add('Verification',ob.status||'Not submitted');
+  add('Service Area',ob.service_area);add('Service Radius',ob.service_radius_km!=null?ob.service_radius_km+' km':null);
+  add('Selfie on file',ob.selfie_on_file?'Yes':'No');
+  add('Work ON',st.available_for_work?'Yes':'No');add('Admin Hold',st.admin_paused?'Yes':'No');
+  if(d.provider_status)add('SP Wallet',money(st.wallet_balance));
+  add('Bank Verification',bank.verification_status);add('Bank',bank.bank_name);add('Account',bank.masked_account);
+  if(d.transport){add('Vehicle',tr.vehicle_type+' • '+(tr.vehicle_number||''));add('Driving Licence on file',tr.driving_licence_on_file?'Yes':'No');add('RC on file',tr.rc_on_file?'Yes':'No');add('Insurance on file',tr.insurance_on_file?'Yes':'No')}
+  const section=(heading,arr,format)=>{
+    const h=document.createElement('h3');h.style.marginTop='18px';h.textContent=heading+' ('+arr.length+')';body.appendChild(h);
+    if(!arr.length){const p=document.createElement('p');p.className='muted';p.textContent='No records available';body.appendChild(p)}
+    for(const x of arr){const p=document.createElement('div');p.className='row';p.textContent=format(x);body.appendChild(p)}
+  };
+  section('Approved / Selected Skills',d.skills||[],x=>(x.category||'')+' • '+(x.service_name||'')+' • '+(x.approved?'Approved':'Not approved'));
+  section('Recent Bookings',d.bookings||[],x=>'#'+String(x.id||'').slice(0,8)+' • '+(x.member_role||'')+' • '+(x.service_name||'')+' • '+(x.status||'')+' • '+money(x.booking_amount));
+  section('Ratings',d.ratings||[],x=>x.stars+'★ • '+(x.comment||'No comment'));
+  section('Support Tickets',d.support||[],x=>(x.ticket_no||'Ticket')+' • '+(x.category||'')+' • '+(x.status||''));
+  section('Wallet Transactions',d.wallet_history||[],x=>(x.kind||'')+' • '+money(x.amount));
+  const lc=d.listing_counts||{};add('Own Listings','Shops '+(lc.shops||0)+' • Property '+(lc.property||0)+' • Posts '+(lc.posts||0));
+ }catch(e){body.textContent='Member detail failed: '+(e.message||'Retry')}
+}
+document.getElementById('ocsMemberSearch')?.addEventListener('input',()=>{
+ clearTimeout(memberSearchTimer);
+ memberSearchTimer=setTimeout(()=>{if(!document.getElementById('ocsMemberRegister').hidden)loadOcsMemberRegister()},280);
+});
 async function loadOcsHomeMonitor(){
  const b=document.getElementById('ocsHomeBookingRows'),w=document.getElementById('ocsHomeWalletRows');
  if(!b||!w)return;b.textContent='Loading bookings…';w.textContent='Loading wallets…';
