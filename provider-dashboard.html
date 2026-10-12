@@ -285,18 +285,27 @@ async function confirmProviderCash(){
  finally{providerActionBusy=false}
 }
 
+let providerDecisionBusy=false;
 async function decision(d){
- if(!currentJob||!currentJob.id)return;
+ if(providerDecisionBusy||!currentJob||!currentJob.id||currentJob.status!=='searching')return;
+ const jobId=currentJob.id;
+ providerDecisionBusy=true;
+ const box=document.getElementById('jobBox');
  try{
+   if(box)box.querySelectorAll('button').forEach(b=>b.disabled=true);
    if(d==='accept'){
-     const r=await sb.rpc('accept_booking_v3',{p_booking_id:currentJob.id});
+     const r=await sb.rpc('accept_booking_v3',{p_booking_id:jobId});
      if(r.error)throw r.error;
    }else{
-     const r=await sb.rpc('reject_booking_v2',{p_booking_id:currentJob.id,p_reason:'Provider rejected'});
+     const r=await sb.rpc('reject_booking_v2',{p_booking_id:jobId,p_reason:'Provider rejected'});
      if(r.error)throw r.error;
    }
    await loadDashboard();
  }catch(e){alert((d==='accept'?'Accept':'Reject')+' failed: '+(e&&e.message?e.message:'Unknown error'))}
+ finally{
+   providerDecisionBusy=false;
+   if(box)box.querySelectorAll('button').forEach(b=>b.disabled=false);
+ }
 }
 loadDashboard();
 setInterval(()=>{if(!document.hidden)loadDashboard()},10000);
