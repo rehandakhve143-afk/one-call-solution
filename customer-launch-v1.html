@@ -265,9 +265,22 @@ async function createCleanBooking(){
    alert("Booking se pehle Home screen par Use current location set karein.");
    return;
  }
- const btn=document.getElementById("findSpBtn");if(btn){btn.disabled=true;btn.textContent="Finding Service Provider..."}
+ const btn=document.getElementById("findSpBtn");if(btn){btn.disabled=true;btn.textContent="Checking verified SP..."}
  try{
    try{await ocsSupabase.rpc("ensure_customer_account_v1")}catch(e){}
+   const match=await ocsSupabase.rpc("customer_fixed_sp_match_preview_v1",{
+     p_category:category,
+     p_selected_items:selected.map(x=>({name:x.name,price:Number(x.price||0),qty:Number(x.qty||1)})),
+     p_latitude:Number(loc.lat),
+     p_longitude:Number(loc.lng)
+   });
+   if(match.error)throw new Error("SP availability check failed: "+match.error.message);
+   if(!match.data||match.data.checked!==true)throw new Error("Could not verify SP availability.");
+   if(match.data.available!==true){
+     alert("Abhi is location par sabhi selected services ke liye verified available SP nahi hai. Koi live booking create nahi hui.");
+     return;
+   }
+   if(btn)btn.textContent="Finding Service Provider...";
    const total=selected.reduce((a,x)=>a+Number(x.price||0)*Number(x.qty||1),0);
    const readiness={material_status:bookingMaterial||null,power_point:bookingPower||null,contact_mobile:mobile};
    const {data,error}=await ocsSupabase.rpc("create_customer_booking_v4",{
@@ -294,7 +307,9 @@ async function createCleanBooking(){
  }catch(e){
    console.error(e);
    alert("Booking create nahi hui: "+(e&&e.message?e.message:"Unknown error"));
-   if(btn){btn.disabled=false;btn.textContent="Find Service Provider"}
+   if(btn){btn.disabled=false;btn.textContent="Find Service Provider (LIVE)"}
+ }finally{
+   if(btn&&!ocsHomeSuccess){btn.disabled=false;btn.textContent="Find Service Provider (LIVE)"}
  }
 }
 function renderBookingSuccess(id,total){
