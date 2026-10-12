@@ -240,7 +240,12 @@ async function loadTransportOffers(){
    const sess=await sb.auth.getSession();const session=sess.data&&sess.data.session;if(!session)return;
    const {data:trip,error:te}=await sb.rpc('transport_customer_trip_snapshot_v1');if(te)throw te;
    currentTrip=trip||null;
-   if(!currentTrip||!currentTrip.has_booking)return;
+   if(!currentTrip||!currentTrip.has_booking){
+    const panel=$('quoteOffersPanel'),list=$('quoteOffersList');
+    if(panel)panel.style.display='none';
+    if(list)list.innerHTML='';
+    return;
+   }
    const bookingId=currentTrip.booking_id;
    const {data,error}=await sb.rpc('customer_transport_offers_v1',{p_booking_id:bookingId});if(error)throw error;
    const rows=Array.isArray(data)?data:[];
@@ -365,10 +370,16 @@ async function transportPayOnline(){
   const rz=new Razorpay({
     key,amount:order.amount,currency:order.currency||'INR',name:'One Call Solution',description:'OCS Transport Payment',order_id:order.id,
     handler:async function(resp){
-      const {data:vr,error:ve}=await sb.functions.invoke('ocs-verify-razorpay-payment',{body:{kind:'booking',id:intent.id,razorpay_order_id:resp.razorpay_order_id,razorpay_payment_id:resp.razorpay_payment_id,razorpay_signature:resp.razorpay_signature}});
-      if(ve)throw ve;if(vr&&vr.error)throw new Error(vr.error);
-      try{localStorage.setItem('ocsTransportLastClosed',bookingId)}catch(e){}
-      show('✓ Online payment verified. Trip completed.',false);await loadTransportTrip();
+      try{
+        const {data:vr,error:ve}=await sb.functions.invoke('ocs-verify-razorpay-payment',{body:{kind:'booking',id:intent.id,razorpay_order_id:resp.razorpay_order_id,razorpay_payment_id:resp.razorpay_payment_id,razorpay_signature:resp.razorpay_signature}});
+        if(ve)throw ve;if(vr&&vr.error)throw new Error(vr.error);
+        try{localStorage.setItem('ocsTransportLastClosed',bookingId)}catch(e){}
+        show('✓ Online payment verified. Trip completed.',false);
+      }catch(e){
+        console.error('Transport online payment verification failed',e);
+        show('Payment verification confirm nahi hui. Dobara payment karne se pehle OCS booking history ya Support me check karein.',true);
+      }
+      await loadTransportTrip();
     },
     modal:{ondismiss:function(){show('Payment cancelled. Aap dobara Pay Online kar sakte hain.',true)}}
   });
@@ -386,6 +397,7 @@ function renderTransportClosed(id){
 }
 function selectTransportRating(n){selectedTransportRating=Number(n)||0;const id=localStorage.getItem('ocsTransportLastClosed')||localStorage.getItem('ocsTransportLastBooking');renderTransportClosed(id)}
 async function submitTransportRating(id){
+ if(!id||verifiedClosedTransportId!==id||currentTrip?.has_booking){show('Completed trip verify hone ke baad hi rating di ja sakti hai.',true);return}
  if(selectedTransportRating<1){show('1 se 5 star select karein.',true);return}
  const comment=(prompt('Comment optional')||'').trim();
  try{
@@ -396,7 +408,7 @@ async function submitTransportRating(id){
 async function maybeShowClosedTransport(){
  if(currentTrip?.has_booking)return;
  let id='';
- try{id=localStorage.getItem('ocsTransportLastClosed')||previousTrip?.booking_id||''}catch(e){id=previousTrip?.booking_id||''}
+ try{id=localStorage.getItem('ocsTransportLastClosed')||previousTrip?.booking_id||localStorage.getItem('ocsTransportLastBooking')||''}catch(e){id=previousTrip?.booking_id||''}
  if(!id){const panel=$('tripPanel');if(panel)panel.style.display='none';return}
  if(ratedTransportId===id)return;
  if(verifiedClosedTransportId===id){renderTransportClosed(id);return}
