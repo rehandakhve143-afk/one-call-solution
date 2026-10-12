@@ -132,11 +132,23 @@ async function loadDashboard(){
      currentJob=null;
      return;
    }
-   setStableDashboardHtml(pb,'<div class="profile"><div><b>'+esc(profile.full_name||'Service Provider')+'</b><small>'+esc(profile.phone||'Mobile not added')+'</small></div><div class="wallet">'+money(profile.wallet_balance||0)+'<small>OCS Wallet</small></div></div><div class="chips">'+(skills.length?skills.map(x=>'<span class="chip">'+esc(skillLabel(x))+(x.approved===true?' ✓':'')+'</span>').join(''):'<span class="chip">No skill selected</span>')+'</div>');
+   const walletBalance=Number(profile.wallet_balance||0);
+   const canReceiveNewJobs=walletBalance>=200&&profile.service_location_set===true&&profile.admin_paused!==true;
+   const walletNotice=walletBalance<200
+     ?'<div class="error" style="margin-top:12px">OCS Wallet '+money(walletBalance)+' • Minimum ₹200 required to accept NEW jobs. Current accepted work can continue. Recharge Wallet to receive new jobs.</div>'
+     :(profile.service_location_set!==true
+       ?'<div class="error" style="margin-top:12px">Service location pin is missing. Set location before accepting NEW jobs.</div>'
+       :(profile.admin_paused===true?'<div class="error" style="margin-top:12px">New jobs are paused by OCS Admin. Existing work can continue.</div>':''));
+   setStableDashboardHtml(pb,'<div class="profile"><div><b>'+esc(profile.full_name||'Service Provider')+'</b><small>'+esc(profile.phone||'Mobile not added')+'</small></div><div class="wallet">'+money(walletBalance)+'<small>OCS Wallet</small></div></div><div class="chips">'+(skills.length?skills.map(x=>'<span class="chip">'+esc(skillLabel(x))+(x.approved===true?' ✓':'')+'</span>').join(''):'<span class="chip">No skill selected</span>')+'</div>'+walletNotice);
 
    let booking=null;
    const cur=await sb.rpc('provider_current_booking');
    if(!cur.error&&Array.isArray(cur.data)&&cur.data.length)booking=cur.data[0];
+   if(!booking&&!canReceiveNewJobs){
+     currentJob=null;
+     setStableDashboardHtml(jb,'<div class="card empty"><div class="ico">🔒</div><h3>New Jobs On Hold</h3><div class="muted">Wallet minimum ₹200, current-location pin and Admin clearance are required for new bookings. Ongoing accepted jobs are unaffected.</div></div>');
+     return;
+   }
    if(!booking){
      // V4 validates every selected item against approved SP skills.
      // V5 currently misses multi-item jobs because it compares a combined service label.
