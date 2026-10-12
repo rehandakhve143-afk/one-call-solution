@@ -251,6 +251,22 @@ function renderJob(){
   (actions.length?'<div class="actions" style="display:flex;flex-wrap:wrap">'+actions.join('')+'</div>':'')+
   '</div>';
  setStableDashboardHtml(box,summary);
+ loadProviderBookingTimeline(b.id);
+}
+async function loadProviderBookingTimeline(bookingId){
+ const box=document.getElementById('jobBox');if(!box||!bookingId)return;
+ try{
+  const res=await sb.rpc('booking_status_timeline_v1',{p_booking_id:bookingId});
+  if(res.error||currentJob?.id!==bookingId)return;
+  const d=res.data||{},events=Array.isArray(d.activity)?d.activity:[];
+  let panel=box.querySelector('[data-ocs-timeline]');
+  if(!panel){panel=document.createElement('details');panel.dataset.ocsTimeline='1';panel.style.cssText='margin-top:12px;padding:12px;border:1px solid #dfe8ea;border-radius:12px';box.appendChild(panel)}
+  const opened=panel.open;panel.replaceChildren();
+  const h=document.createElement('summary');h.style.fontWeight='800';h.textContent='Live Status: '+(d.status_title||d.status||'Unknown');panel.appendChild(h);
+  const stamp=document.createElement('p');stamp.className='muted';stamp.textContent='Updated '+(d.updated_at?new Date(d.updated_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}):'Not recorded');panel.appendChild(stamp);
+  for(const e of events){const line=document.createElement('p');line.className='muted';line.textContent=new Date(e.created_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})+' • '+String(e.status||'').replaceAll('_',' ');panel.appendChild(line)}
+  panel.open=opened;
+ }catch(e){console.warn('SP timeline unavailable',e)}
 }
 async function runProviderStep(action){
  if(providerActionBusy||!currentJob||!currentJob.id)return;
