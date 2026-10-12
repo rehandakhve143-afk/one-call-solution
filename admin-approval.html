@@ -59,7 +59,7 @@
  </nav>
  <a id="ocsTestLabLink" hidden href="ocs-test-lab.html?v=20261011-testlab1" style="background:#fff8dc;color:#6a541c;border:1px solid #e8d895;border-radius:13px;padding:13px;text-decoration:none;font-size:13px;font-weight:850;margin-bottom:12px" >🧪 Demo Test Lab → <small style="display:block;margin-top:4px;font-weight:400">Same Admin login se Customer, SP, Driver aur Shop ka sample flow check karein. No real bookings.</small></a>
  <section id="ocsMemberRegister" hidden><div class="card"><h2>OCS Member Register</h2><div class="muted">Customer • Service Provider • Driver • Tempo / Truck • Business owners. One account = one unique ID. Admin only.</div><input id="ocsMemberSearch" placeholder="Search name, role, category or ID" style="width:100%;height:43px;margin:12px 0;border:1px solid #d9e3e5;border-radius:10px;padding:10px"><div id="ocsMemberRows">Loading members…</div></div></section>
- <section id="ocsHomeMonitor" hidden><div class="card"><h2>Home Services • Bookings</h2><div class="muted">Live database • Read-only</div><select id="ocsBookingFilterStatus"><option value="all">All</option><option value="stale">Old Unassigned</option><option value="searching">Searching</option><option value="active">Active</option><option value="payment">Payment Due</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select><input id="ocsBookingFilterSearch" placeholder="Booking ID, name, service"><input id="ocsBookingFilterFrom" type="date"><input id="ocsBookingFilterTo" type="date"><button class="btn" onclick="loadAdminBookingsPage(0)">Search Bookings</button><div id="ocsHomeBookingRows"></div><div id="ocsBookingPager"></div></div><div class="card"><h2>SP Wallet Monitoring</h2><div id="ocsHomeWalletRows"></div></div></section>
+ <section id="ocsHomeMonitor" hidden><div class="card"><h2>All OCS Bookings</h2><div class="muted">Home Services • Driver • Tempo / Goods Transport • Live database, Admin read-only</div><div id="ocsBookingOverview" class="info" style="margin:10px 0">Loading OCS summary…</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('Tempo / Goods Transport')">Tempo / Truck</button><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('')">All Categories</button></div><select id="ocsBookingFilterStatus"><option value="all">All</option><option value="stale">Old Unassigned</option><option value="searching">Searching</option><option value="active">Active</option><option value="payment">Payment Due</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select><input id="ocsBookingFilterSearch" placeholder="Booking ID, name, service or category"><input id="ocsBookingFilterFrom" type="date"><input id="ocsBookingFilterTo" type="date"><button class="btn" onclick="loadAdminBookingsPage(0)">Search Bookings</button><div id="ocsHomeBookingRows"></div><div id="ocsBookingPager"></div></div><div class="card"><h2>SP Wallet Monitoring</h2><div id="ocsHomeWalletRows"></div></div></section>
  <section id="ocsDriverOperations" hidden><div class="card"><h2>Driver Operator • Bookings</h2><div class="muted">OCS Company monitoring • Read-only. No automatic payment or reassignment.</div><div id="ocsDriverOperatorRows">Loading…</div></div></section>
  <div id="content"><div class="card">Loading Admin approval queue...</div></div>
  <section id="ocsCompanyInbox" hidden><div class="card"><h2>OCS Company Chat Inbox</h2><div id="ocsCompanyInboxRows">Loading…</div></div></section>
@@ -81,7 +81,7 @@ function setAdminView(view){
  if(nav.hidden)return;
  const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',members:'ocsMemberRegister'};
  const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',members:'Admin • All Members'};
- const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>Home Services:</b> Live bookings, payment status aur SP wallet.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.'};
+ const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>OCS Bookings:</b> Home Services, Driver aur Tempo booking status, payment records aur SP wallet.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.'};
  if(!Object.prototype.hasOwnProperty.call(map,view))return;
  document.getElementById('ocsAdminPageTitle').textContent=titles[view];
  document.getElementById('ocsAdminPageHelp').innerHTML=helps[view];
@@ -370,52 +370,117 @@ document.getElementById('ocsMemberSearch')?.addEventListener('input',()=>{
  clearTimeout(memberSearchTimer);
  memberSearchTimer=setTimeout(()=>{if(!document.getElementById('ocsMemberRegister').hidden)loadOcsMemberRegister()},280);
 });
+
+let ocsAdminBookingRequestVersion=0;
+function ocsAdminBookingQuickSearch(term){
+ const input=document.getElementById('ocsBookingFilterSearch');
+ if(!input)return;
+ input.value=term;
+ loadAdminBookingsPage(0);
+}
 async function loadAdminBookingsPage(page=0){
- const box=document.getElementById('ocsHomeBookingRows'),pager=document.getElementById('ocsBookingPager');if(!box)return;
- box.textContent='Searching…';if(pager)pager.replaceChildren();
+ const box=document.getElementById('ocsHomeBookingRows'),pager=document.getElementById('ocsBookingPager');
+ if(!box)return;
+ const request=++ocsAdminBookingRequestVersion;
+ box.textContent='Searching bookings…';
+ if(pager)pager.replaceChildren();
  try{
-  const r=await sb.rpc('admin_bookings_search_v1',{p_status:document.getElementById('ocsBookingFilterStatus')?.value||'all',p_search:document.getElementById('ocsBookingFilterSearch')?.value||'',p_from:document.getElementById('ocsBookingFilterFrom')?.value||null,p_to:document.getElementById('ocsBookingFilterTo')?.value||null,p_limit:20,p_offset:page*20});
+  const r=await sb.rpc('admin_bookings_search_v1',{
+   p_status:document.getElementById('ocsBookingFilterStatus')?.value||'all',
+   p_search:document.getElementById('ocsBookingFilterSearch')?.value||'',
+   p_from:document.getElementById('ocsBookingFilterFrom')?.value||null,
+   p_to:document.getElementById('ocsBookingFilterTo')?.value||null,
+   p_limit:20,p_offset:page*20
+  });
+  if(request!==ocsAdminBookingRequestVersion)return;
   if(r.error)throw r.error;
   box.replaceChildren();
-  const list=r.data?.records||[],total=Number(r.data?.matching||0);
-  const title=document.createElement('p');title.textContent='Matching bookings: '+total;box.appendChild(title);
+  const list=Array.isArray(r.data?.records)?r.data.records:[],total=Number(r.data?.matching||0);
+  const title=document.createElement('p');
+  title.textContent='Matching bookings: '+total+' • Page '+(page+1);
+  box.appendChild(title);
+  let lastDate='';
   for(const x of list){
-    const card=document.createElement('div');card.className='card';
-    const name=document.createElement('b');name.textContent=(x.service_name||'Service')+' • '+x.status;
-    const info=document.createElement('p');info.className='muted';info.textContent=new Date(x.created_at).toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'})+' • #'+String(x.booking_id||'').slice(0,8)+' • '+x.customer+' → '+x.provider+' • ₹'+Number(x.booking_amount||0)+' • '+x.payment_status;
-    card.append(name,info);if(x.needs_review){const w=document.createElement('p');w.textContent='Old unassigned request • Admin review required';card.appendChild(w)}box.appendChild(card);
+   const dt=new Date(x.created_at);
+   const date=Number.isNaN(dt.getTime())?'Date not available':new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric'}).format(dt);
+   if(date!==lastDate){
+    const heading=document.createElement('h3');
+    heading.textContent=date;heading.style.cssText='font-size:13px;margin:15px 0 8px;color:#48656b';
+    box.appendChild(heading);lastDate=date;
+   }
+   const card=document.createElement('div');card.className='card';
+   const name=document.createElement('b');
+   name.textContent=(x.category||'OCS Service')+' • '+(x.service_name||'Booking');
+   const status=document.createElement('div');status.className='muted';
+   status.textContent='Booking '+String(x.status||'Unknown').toUpperCase()+
+     ' • Payment '+String(x.payment_status||'not_started').toUpperCase()+
+     ' • '+(x.payment_method||'Method not selected');
+   const info=document.createElement('p');info.className='muted';
+   info.textContent='#'+String(x.booking_id||'').slice(0,8)+' • '+
+      (x.customer||'Customer')+' → '+(x.provider||'Not assigned')+
+      ' • ₹'+Number(x.booking_amount||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+   card.append(name,status,info);
+   if(x.needs_review){
+    const w=document.createElement('p');w.className='error';w.textContent='Old unassigned request • Admin review required';
+    card.appendChild(w);
+   }
+   box.appendChild(card);
   }
-  if(pager){for(const [label,p,disabled] of [['Previous',page-1,page===0],['Next',page+1,(page+1)*20>=total]]){const btn=document.createElement('button');btn.className='btn';btn.textContent=label;btn.disabled=disabled;btn.onclick=()=>loadAdminBookingsPage(p);pager.appendChild(btn)}}
- }catch(e){box.textContent='Search failed: '+(e.message||'Retry')}
+  if(!list.length){const p=document.createElement('p');p.className='muted';p.textContent='No bookings found for selected filters.';box.appendChild(p)}
+  if(pager){
+   for(const [label,p,disabled] of [['Previous',page-1,page===0],['Next',page+1,(page+1)*20>=total]]){
+    const btn=document.createElement('button');btn.type='button';btn.className='btn';btn.textContent=label;
+    btn.disabled=disabled;btn.onclick=()=>loadAdminBookingsPage(p);pager.appendChild(btn);
+   }
+  }
+ }catch(e){if(request===ocsAdminBookingRequestVersion)box.textContent='Search failed: '+(e.message||'Retry')}
 }
 async function loadOcsHomeMonitor(){
- const b=document.getElementById('ocsHomeBookingRows'),w=document.getElementById('ocsHomeWalletRows');
- if(!b||!w)return;b.textContent='Loading bookings…';w.textContent='Loading wallets…';
+ const overview=document.getElementById('ocsBookingOverview'),
+       wallet=document.getElementById('ocsHomeWalletRows');
+ if(!overview||!wallet)return;
+ overview.textContent='Loading OCS summary…';
+ wallet.textContent='Loading wallet overview…';
+ // Search and overview stay independent, so one delayed response cannot erase the other.
+ loadAdminBookingsPage(0);
  const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
- try{
-  const [br,wr]=await Promise.all([sb.rpc('admin_home_services_monitor_v1',{p_limit:30}),sb.rpc('admin_sp_wallet_monitor_v1',{p_limit:20})]);
-  if(br.error)throw br.error;if(wr.error)throw wr.error;
-  const bd=br.data||{},c=bd.counts||{},rows=Array.isArray(bd.recent)?bd.recent:[];
-  b.replaceChildren();const summary=document.createElement('div');summary.className='info';
-  summary.textContent='Searching '+Number(c.searching||0)+' • Assigned '+Number(c.assigned_active||0)+' • Payment due '+Number(c.awaiting_payment||0)+' • Completed '+Number(c.completed||0)+' • Old requests '+Number(c.stale_searching||0)+' • Ready SP '+Number(bd.ready_sp_count||0);b.appendChild(summary);
-  for(const x of rows){const item=document.createElement('div');item.className='card';const h=document.createElement('b');h.textContent=(x.service_name||x.category||'Home Service')+' • '+String(x.status||'').toUpperCase();
-   const d=document.createElement('div');d.className='muted';d.style.marginTop='6px';d.textContent='#'+String(x.booking_id||'').slice(0,8)+' • '+(x.customer||'Customer')+' → '+(x.provider||'Not assigned')+' • '+money(x.booking_amount)+' • Payment '+(x.payment_status||'not started');item.append(h,d);
-   if(x.needs_review){const flag=document.createElement('div');flag.className='error';flag.textContent='Old unassigned request • Admin review needed';item.appendChild(flag)}b.appendChild(item)}
-  if(!rows.length)b.appendChild(document.createTextNode('No booking records.'));
-  const wd=wr.data||{},ps=wd.summary||{},t=wd.recharges||{},withdraw=wd.withdrawals||{};
-  w.replaceChildren();const info=document.createElement('div');info.className='info';info.textContent='Wallets '+Number(ps.provider_wallets||0)+' • Below ₹200: '+Number(ps.below_200||0)+' • Verified top-ups '+money(t.verified_total)+' • Pending '+Number(t.pending_count||0)+' • Withdrawals pending '+Number(withdraw.pending_count||0);w.appendChild(info);
-  await loadAdminBookingsPage(0);
-  for(const x of (Array.isArray(wd.low_wallet_providers)?wd.low_wallet_providers:[])){
-    const line=document.createElement('div');line.className='row';
-    const n=document.createElement('span'),amt=document.createElement('b');
-    const id=String(x.provider_id||'').replace(/[^a-f0-9]/ig,'').slice(0,8).toUpperCase();
-    n.textContent=(x.name||'SP')+(id?' • SP #'+id:'');
-    const balance=Number(x.balance||0),need=Math.max(0,Math.ceil((200-balance)*100)/100);
-    amt.textContent=money(balance)+' • Need '+money(need);
-    amt.title='New jobs on hold until wallet reaches ₹200 and other verification is complete';
-    line.append(n,amt);w.appendChild(line)
-  }
- }catch(e){b.textContent='Records unavailable: '+(e.message||'Retry');w.textContent='Try refresh'}
+ const [br,wr]=await Promise.allSettled([
+  sb.rpc('admin_home_services_monitor_v1',{p_limit:30}),
+  sb.rpc('admin_sp_wallet_monitor_v1',{p_limit:20})
+ ]);
+ if(br.status==='fulfilled'&&!br.value.error){
+  const bd=br.value.data||{},c=bd.counts||{};
+  overview.textContent='All '+Number(c.all||0)+
+   ' • Searching '+Number(c.searching||0)+
+   ' • Assigned '+Number(c.assigned_active||0)+
+   ' • Payment due '+Number(c.awaiting_payment||0)+
+   ' • Completed '+Number(c.completed||0)+
+   ' • Old requests '+Number(c.stale_searching||0)+
+   ' • Ready SP '+Number(bd.ready_sp_count||0);
+ }else overview.textContent='Summary unavailable. Use Search Bookings below.';
+ if(wr.status==='rejected'||wr.value.error){
+  wallet.textContent='Wallet overview unavailable. Try Refresh.';
+  return;
+ }
+ const wd=wr.value.data||{},ps=wd.summary||{},t=wd.recharges||{},withdraw=wd.withdrawals||{};
+ wallet.replaceChildren();
+ const info=document.createElement('div');info.className='info';
+ info.textContent='Wallets '+Number(ps.provider_wallets||0)+
+   ' • Below ₹200: '+Number(ps.below_200||0)+
+   ' • Verified top-ups '+money(t.verified_total)+
+   ' • Pending '+Number(t.pending_count||0)+
+   ' • Withdrawals pending '+Number(withdraw.pending_count||0);
+ wallet.appendChild(info);
+ for(const x of (Array.isArray(wd.low_wallet_providers)?wd.low_wallet_providers:[])){
+  const line=document.createElement('div');line.className='row';
+  const name=document.createElement('span'),amt=document.createElement('b');
+  const id=String(x.provider_id||'').replace(/[^a-f0-9]/ig,'').slice(0,8).toUpperCase();
+  name.textContent=(x.name||'SP')+(id?' • SP #'+id:'');
+  const balance=Number(x.balance||0),need=Math.max(0,Math.ceil((200-balance)*100)/100);
+  amt.textContent=money(balance)+' • Need '+money(need);
+  amt.title='New jobs on hold until wallet reaches ₹200 and other verification is complete';
+  line.append(name,amt);wallet.appendChild(line);
+ }
 }
 async function loadOcsDriverOperations(){
  const panel=document.getElementById('ocsDriverOperations'), dest=document.getElementById('ocsDriverOperatorRows');
