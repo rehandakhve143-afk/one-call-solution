@@ -2732,11 +2732,11 @@ async function openProviderHistoryQuick(){
     body.innerHTML='<div class="ocs-action-note"><b>Completed & closed jobs</b><br>Payment/earning records OCS history me safe rahenge.</div><div class="ocs-history-list">'+rows.slice(0,30).map(r=>{
       const service=ocsSafe(r.service_name||r.service||r.category||"Home Service");
       const status=String(r.status||"").toUpperCase().replaceAll("_"," ");
-      const amount=Number(r.provider_earning??r.booking_amount??r.amount??0);
+      const amount=Number(r.booking_amount??0);
       const dt=r.closed_at||r.completed_at||r.updated_at||r.created_at||"";
       let date="—";try{if(dt)date=new Date(dt).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}catch(e){}
       const payment=ocsSafe(String(r.payment_status||r.payment_method||"—").toUpperCase());
-      return '<div class="ocs-history-item"><div class="ocs-history-top"><b>'+service+'</b><span class="ocs-history-status">'+ocsSafe(status||"CLOSED")+'</span></div><div class="ocs-history-meta">'+ocsSafe(date)+' • Payment: '+payment+'</div><div class="ocs-history-amount">₹'+amount.toFixed(2)+'</div></div>';
+      return '<div class="ocs-history-item"><div class="ocs-history-top"><b>'+service+'</b><span class="ocs-history-status">'+ocsSafe(status||"CLOSED")+'</span></div><div class="ocs-history-meta">'+ocsSafe(date)+' • Payment: '+payment+'</div><div class="ocs-history-amount">Job Amount ₹'+amount.toFixed(2)+'</div></div>';
     }).join("")+'</div>';
     return;
   }
@@ -6184,7 +6184,7 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
  };
 
  window.openProviderHistoryQuick=async function(){
-   show(simpleShell('WORK HISTORY','Jobs & Earnings','<div class="ocs-sp-empty"><b>Loading work history…</b><span>Please wait</span></div>',2),2);
+   show(simpleShell('WORK HISTORY','Jobs & Payment Status','<div class="ocs-sp-empty"><b>Loading work history…</b><span>Please wait</span></div>',2),2);
    const body=page.querySelector('.ocs-sp-simple-body');if(!body)return;
    let rows=[];
    try{
@@ -6197,7 +6197,7 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
      }
    }catch(e){}
    if(rows.length){
-     body.innerHTML='<div class="ocs-sp-notice good"><b>Completed & closed jobs</b><br>Payment aur earning records OCS history me safe rahenge.</div><div class="ocs-sp-history-list">'+rows.slice(0,30).map(function(r){const service=esc(r.service_name||r.service||r.category||'Home Service');const status=esc(String(r.status||'CLOSED').toUpperCase().replaceAll('_',' '));const amount=Number(r.provider_earning??r.booking_amount??r.amount??0);const dt=r.closed_at||r.completed_at||r.updated_at||r.created_at||'';let date='—';try{if(dt)date=new Date(dt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}catch(e){}const payment=esc(String(r.payment_status||r.payment_method||'—').toUpperCase());return '<div class="ocs-sp-job"><div class="ocs-sp-job-top"><b>'+service+'</b><span class="ocs-sp-job-status">'+status+'</span></div><div class="ocs-sp-job-meta">'+esc(date)+' • Payment: '+payment+'</div><div class="ocs-sp-job-money">₹'+amount.toFixed(2)+'</div></div>'}).join('')+'</div>';
+     body.innerHTML='<div class="ocs-sp-notice good"><b>Completed & closed jobs</b><br>Payment aur earning records OCS history me safe rahenge.</div><div class="ocs-sp-history-list">'+rows.slice(0,30).map(function(r){const service=esc(r.service_name||r.service||r.category||'Home Service');const status=esc(String(r.status||'CLOSED').toUpperCase().replaceAll('_',' '));const amount=Number(r.booking_amount??0);const dt=r.closed_at||r.completed_at||r.updated_at||r.created_at||'';let date='—';try{if(dt)date=new Date(dt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}catch(e){}const payment=esc(String(r.payment_status||r.payment_method||'—').toUpperCase());return '<div class="ocs-sp-job"><div class="ocs-sp-job-top"><b>'+service+'</b><span class="ocs-sp-job-status">'+status+'</span></div><div class="ocs-sp-job-meta">'+esc(date)+' • Payment: '+payment+'</div><div class="ocs-sp-job-money">Job Amount ₹'+amount.toFixed(2)+'</div></div>'}).join('')+'</div>';
      return;
    }
    const logs=(typeof S!=='undefined'&&Array.isArray(S.logs))?S.logs.slice(0,20):[];
