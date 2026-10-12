@@ -130,8 +130,9 @@ async function loadDashboard(){
    const cur=await sb.rpc('provider_current_booking');
    if(!cur.error&&Array.isArray(cur.data)&&cur.data.length)booking=cur.data[0];
    if(!booking){
-     let jobs=await sb.rpc('provider_open_jobs_v5');
-     if(jobs.error)jobs=await sb.rpc('provider_open_jobs_v4');
+     // V4 validates every selected item against approved SP skills.
+     // V5 currently misses multi-item jobs because it compares a combined service label.
+     let jobs=await sb.rpc('provider_open_jobs_v4');
      if(jobs.error)throw jobs.error;
      if(Array.isArray(jobs.data)&&jobs.data.length)booking=jobs.data[0];
    }
