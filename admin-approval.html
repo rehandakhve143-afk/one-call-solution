@@ -62,7 +62,7 @@
  <div id="content"><div class="card">Loading Admin approval queue...</div></div>
  <section id="ocsCompanyInbox" hidden><div class="card"><h2>OCS Company Chat Inbox</h2><div id="ocsCompanyInboxRows">Loading…</div></div></section>
  <section id="driverPackagesPanel" hidden aria-label="Driver Hire package fare management"></section>
- <button class="btn" onclick="loadQueue()" id="ocsAdminRefresh">↻ Refresh Admin Data</button>
+ <button class="btn" onclick="refreshCurrentAdminView()" id="ocsAdminRefresh">↻ Refresh Admin Data</button>
 </main>
 </div>
 <script>
@@ -188,6 +188,15 @@ async function loadQueue(){
   box.innerHTML='<div class="error"><b>Admin page load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>';
  }
 }
+function refreshCurrentAdminView(){
+ const on=document.querySelector('#ocsAdminSections button.on');
+ const view=on?on.dataset.adminView:'operator';
+ if(view==='bookings'){loadOcsHomeMonitor();return}
+ loadQueue().then(()=>{
+  const nav=document.getElementById('ocsAdminSections');
+  if(nav&&!nav.hidden&&view!=='operator')setAdminView(view);
+ });
+}
 async function loadOcsHomeMonitor(){
  const b=document.getElementById('ocsHomeBookingRows'),w=document.getElementById('ocsHomeWalletRows');
  if(!b||!w)return;b.textContent='Loading bookings…';w.textContent='Loading wallets…';
@@ -204,7 +213,16 @@ async function loadOcsHomeMonitor(){
   if(!rows.length)b.appendChild(document.createTextNode('No booking records.'));
   const wd=wr.data||{},ps=wd.summary||{},t=wd.recharges||{},withdraw=wd.withdrawals||{};
   w.replaceChildren();const info=document.createElement('div');info.className='info';info.textContent='Wallets '+Number(ps.provider_wallets||0)+' • Below ₹200: '+Number(ps.below_200||0)+' • Verified top-ups '+money(t.verified_total)+' • Pending '+Number(t.pending_count||0)+' • Withdrawals pending '+Number(withdraw.pending_count||0);w.appendChild(info);
-  for(const x of (Array.isArray(wd.low_wallet_providers)?wd.low_wallet_providers:[])){const line=document.createElement('div');line.className='row';const n=document.createElement('span');n.textContent=x.name||'SP';const amt=document.createElement('b');amt.textContent=money(x.balance)+' • New jobs on hold';line.append(n,amt);w.appendChild(line)}
+  for(const x of (Array.isArray(wd.low_wallet_providers)?wd.low_wallet_providers:[])){
+    const line=document.createElement('div');line.className='row';
+    const n=document.createElement('span'),amt=document.createElement('b');
+    const id=String(x.provider_id||'').replace(/[^a-f0-9]/ig,'').slice(0,8).toUpperCase();
+    n.textContent=(x.name||'SP')+(id?' • SP #'+id:'');
+    const balance=Number(x.balance||0),need=Math.max(0,Math.ceil((200-balance)*100)/100);
+    amt.textContent=money(balance)+' • Need '+money(need);
+    amt.title='New jobs on hold until wallet reaches ₹200 and other verification is complete';
+    line.append(n,amt);w.appendChild(line)
+  }
  }catch(e){b.textContent='Records unavailable: '+(e.message||'Retry');w.textContent='Try refresh'}
 }
 async function loadOcsDriverOperations(){
