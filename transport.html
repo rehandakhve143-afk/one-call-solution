@@ -406,6 +406,19 @@ async function maybeShowClosedTransport(){
   if(currentTrip?.has_booking)return;
   const record=(Array.isArray(res.data)?res.data:[]).find(x=>String(x.id)===String(id));
   const status=String(record?.status||'').toLowerCase();
+  if(['completed','done'].includes(status)&&record?.rating!=null){
+   verifiedClosedTransportId=id;ratedTransportId=id;
+   try{localStorage.removeItem('ocsTransportLastClosed')}catch(e){}
+   const panel=$('tripPanel');
+   if(panel){
+    panel.style.display='block';
+    $('tripSub').textContent='Trip completed • Rating saved';
+    $('tripDetails').textContent='Booking #'+String(id).slice(0,8)+' • COMPLETED';
+    $('tripContactGrid').style.display='none';
+    $('tripStageActions').textContent='✓ Your '+Number(record.rating)+'-star rating is saved. Thank you.';
+   }
+   return;
+  }
   if(['completed','done'].includes(status)){
    verifiedClosedTransportId=id;
    try{localStorage.setItem('ocsTransportLastClosed',id)}catch(e){}
