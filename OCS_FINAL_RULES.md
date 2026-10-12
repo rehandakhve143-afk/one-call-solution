@@ -1,6 +1,6 @@
 # One Call Solution — FINAL RULES (Authoritative)
 
-Last audited: 27 Sep 2026
+Last audited: 12 Oct 2026 — wallet/payout status aligned with verified backend
 
 This file is the source of truth for business rules. If any HTML/demo file conflicts with this file, update the HTML/demo file — do not change these rules from an older build.
 
@@ -8,10 +8,10 @@ This file is the source of truth for business rules. If any HTML/demo file confl
 - Platform commission: **9%** from the **first completed job**.
 - New verified Service Provider gets **₹100 OCS Wallet Welcome Bonus**.
 - Welcome Bonus is **wallet credit, non-withdrawable**.
-- **No fixed ₹200 minimum wallet balance.**
+- **Minimum ₹200 OCS Service Provider Wallet balance is required to receive/accept NEW jobs, including Tempo / Goods Transport.** The backend enforces this at discovery/acceptance; recharge can restore new-job eligibility after other checks pass.
 - **No fixed ₹500 Company Due threshold.**
-- If the provider wallet becomes zero / negative after OCS charge, the Service Provider may still receive jobs by default. Show wallet warning/email reminders.
-- OCS Admin may manually pause/temporarily block new-job access when required; recharge/payment can restore access. Do **not** permanently delete/close the provider account.
+- A wallet below ₹200 (including zero or negative) places **NEW jobs on hold**. Show a recharge warning and amount needed to reach ₹200; do not cancel an already accepted/ongoing job.
+- OCS Admin may also pause/temporarily block **NEW** jobs for safety or verification. Work OFF, Admin hold, unapproved skill/KYC, or an occupied Transport current trip can independently stop new matching. Recharge alone does not bypass those checks. Do **not** permanently delete/close an account for low wallet.
 - Already accepted / ongoing jobs are **not cancelled** when Admin pauses new-job access.
 
 ## 2) Payments
@@ -19,8 +19,8 @@ This file is the source of truth for business rules. If any HTML/demo file confl
 - **Cash is allowed as network/payment fallback.**
 - Customer bank account details are **not mandatory** for normal booking/payment. Customer chooses supported payment method; collect bank details only when genuinely required for an exceptional refund/transfer flow.
 - Service Provider bank details are **not required to create the basic SP profile**, but verified bank/payout details are **mandatory before OCS releases payout/settlement**.
-- Online settlement: OCS receives the customer payment, retains the applicable **9% commission**, and settles the remaining **91%** to the Service Provider's verified payout account. Do **not** debit the SP wallet again for the same online job.
-- Cash job: customer pays the Service Provider directly; applicable **9% OCS commission** is deducted from the Service Provider OCS Wallet. Wallet may reach ₹0 or go negative; Admin warning/email and manual hold rules apply.
+- Online job accounting: OCS retains **9%** and recognizes **91%** as the Service Provider's share. **Do not debit the SP wallet again** for the same online job. Automatic bank settlement/payout through RazorpayX or another approved payout API is **not yet verified active**; showing a wallet credit or withdrawal request is not proof that money reached a bank account. Verified bank details are mandatory before releasing an actual payout.
+- Cash job: after the assigned Service Provider confirms receiving cash, the applicable **9% OCS commission** is deducted from the Service Provider Wallet. Wallet may then fall below ₹200 or become negative; **the accepted job remains complete**, but new jobs remain on hold until the wallet again reaches ₹200 and other eligibility checks pass.
 - Customer may switch from Cash to OCS Online / Company QR / Payment Link.
 
 ## 2A) Customer Referral Rewards / OCS Wallet
