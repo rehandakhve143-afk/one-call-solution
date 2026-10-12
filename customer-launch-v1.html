@@ -188,7 +188,9 @@ function continueBooking(){
    (labourOnly(category)?'<div class="readybox"><b>Material / parts status *</b><div class="readyopts"><button id="matReady" onclick="setMaterial(\'READY\')">Material / parts ready hain</button><button id="matInspect" onclick="setMaterial(\'INSPECTION\')">Material clear nahi / Inspection chahiye</button></div></div>':'')+
    (category==="Electrical"?'<div class="readybox"><b>Nearby working power point available? *</b><div class="readyopts"><button id="powerYes" onclick="setPower(\'YES\')">Yes</button><button id="powerNo" onclick="setPower(\'NO\')">No</button><button id="powerUnsure" onclick="setPower(\'NOT_SURE\')">Not sure</button></div></div>':'')+
    '<div class="field"><label>Payment Method</label><div class="payrow"><button id="payOnline" class="on" onclick="setPay(\'ONLINE\')">Online</button><button id="payCash" onclick="setPay(\'CASH\')">Cash</button></div><div class="policy" style="margin-top:9px"><b>Online payment preferred.</b> Network ya payment issue ho to Cash use kar sakte hain.</div></div>'+
-   '<button class="primary" id="findSpBtn" onclick="createCleanBooking()">Find Service Provider</button>'+
+   '<button class="primary" style="background:#fbef00;color:#123d42" onclick="openSafeTestMode(\'fixed\')">🧪 Start Safe TEST Booking • No Real Payment</button>'+
+   '<div class="policy" style="margin-top:6px;margin-bottom:10px">Demo SP, demo OTP, ₹0 charged. No real service request is created.</div>'+
+   '<button class="primary" id="findSpBtn" onclick="createCleanBooking()">Find Service Provider (LIVE)</button>'+
    '<button class="secondary" onclick="homeServiceBack()">← Back to Rate List</button>'+
  '</div>';
  ocsAutofillBookingMobile();
@@ -217,6 +219,22 @@ function setPower(v){
  document.getElementById("powerNo")?.classList.toggle("on",v==="NO");
  document.getElementById("powerUnsure")?.classList.toggle("on",v==="NOT_SURE");
  ocsHomeSave();
+}
+function openSafeTestMode(mode){
+  // Only service labels and amounts cross into the isolated demo. No PII.
+  const isQuote=mode==='quote';
+  const items=isQuote?[]:selected.map(x=>({name:String(x.name||''),qty:Number(x.qty||1),price:Number(x.price||0)}));
+  const transfer={
+    category:category||'Electrical',
+    mode:isQuote?'quote':'fixed',
+    items,
+    pay:String(bookingPayment||'ONLINE').toLowerCase(),
+    description:isQuote?String(document.getElementById('quoteDetails')?.value||''):''
+  };
+  try{
+    sessionStorage.setItem('ocsSafeTestCartTransfer',JSON.stringify(transfer));
+    location.href='ocs-test-mode.html?v=20261012-safe1';
+  }catch(e){alert('Test Mode open nahi hua. Retry karein.')}
 }
 async function createCleanBooking(){
  const address=String(document.getElementById("bookingAddress")?.value||"").trim();
@@ -314,7 +332,9 @@ function handoffQuote(i){
     '<div class="field"><label>Full Service Address *</label><input id="bookingAddress" placeholder="House/Flat, Building, Area, Landmark"></div>'+
     '<div class="field"><label>Contact Mobile *</label><input id="bookingMobile" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number"></div>'+
     '<div class="field"><label>Payment Method</label><div class="payrow"><button id="payOnline" class="on" onclick="setPay(\'ONLINE\')">Online</button><button id="payCash" onclick="setPay(\'CASH\')">Cash</button></div></div>'+
-    '<button class="primary" id="findSpBtn" onclick="createQuoteBooking()">Find Service Provider</button>'+
+    '<button class="primary" style="background:#fbef00;color:#123d42" onclick="openSafeTestMode(\'quote\')">🧪 Test Get Quote • ₹0 Real Payment</button>'+
+    '<div class="policy" style="margin-top:6px;margin-bottom:10px">Demo only. No real service request will be sent.</div>'+
+    '<button class="primary" id="findSpBtn" onclick="createQuoteBooking()">Find Service Provider (LIVE)</button>'+
     '<button class="secondary" onclick="homeServiceBack()">← Back to Rate List</button>'+
   '</div>';
  ocsAutofillBookingMobile();
