@@ -946,12 +946,12 @@ function ocsApplyBackendBooking(b){
   S.category=b.category||S.category;
   S.service=b.service_name||S.service;
   S.serviceName=b.service_name||S.serviceName;
-  S.base=Number(b.booking_amount||S.base||0);
-  S.total=Number(b.booking_amount||S.total||0);
-  S.bookingAmount=Number(b.booking_amount||S.bookingAmount||0);
+  S.base=Number(b.booking_amount??0);
+  S.total=Number(b.booking_amount??0);
+  S.bookingAmount=Number(b.booking_amount??0);
   S.paymentChoice=String(b.payment_method||"online").toUpperCase()==="CASH"?"CASH":"ONLINE";
   S.address=b.address||S.address;
-  S.startOtp=b.start_otp||S.startOtp;
+  S.startOtp=String(b.status||'').toLowerCase()==='reached'?(b.start_otp||null):null;
   S.requestType=b.request_type||S.requestType||"fixed";
   S.customDescription=b.request_details||S.customDescription||"";
   S.customSchedule=b.request_schedule||S.customSchedule||"";
