@@ -29,7 +29,7 @@ function roleRoute(skill){
    if(name==='provider_profile_snapshot_v1')return {data:{registered:true,skills:[{category:skill,enabled_by_provider:true,approved:true,verification_status:'approved'}]},error:null};
    throw Error('Unexpected RPC '+name);
  }};
- const ctx={sb,profile:null,document:{getElementById:dom},
+ const ctx={sb,profile:null,dashboardBusy:false,document:{getElementById:dom},
            location:{replace:x=>urls.push(x)}};
  vm.createContext(ctx);vm.runInContext(code,ctx,{timeout:2500});
  return Promise.resolve(ctx.loadDashboard()).then(()=>urls);
