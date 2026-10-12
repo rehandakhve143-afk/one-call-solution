@@ -5248,15 +5248,15 @@ const providerIdle=["SELECT_SERVICE","SELECT_ITEM","CUSTOM_REQUEST"].includes(S.
 const providerHasSkills=Array.isArray(S.registeredProviderSkills)&&S.registeredProviderSkills.length>0;
 const providerVerification=String(S.providerVerificationStatus||"").toLowerCase();
 const onboardingState=String(S.providerOnboardingStatus||"not_submitted").toLowerCase();
-$("pStatus").textContent=!S.providerProfileAvailable
- ?"PROFILE REQUIRED"
- :(onboardingState!=="approved"
-   ?(onboardingState==="pending"?"APPROVAL PENDING":onboardingState==="rejected"?"APPROVAL REJECTED":"APPROVAL REQUIRED")
-   :(transportBusy
-     ?"BUSY • TRANSPORT TRIP"
-     :(providerIdle&&!providerHasSkills
-       ?"SKILLS REQUIRED"
-       :(providerIdle?(S.adminPaused||!S.jobAccess?"ADMIN HOLD":(S.available?"WAITING FOR JOB":"WORK OFF")):S.status)));
+let providerStatusText='WAITING FOR JOB';
+if(!S.providerProfileAvailable)providerStatusText='PROFILE REQUIRED';
+else if(onboardingState!=='approved')providerStatusText=onboardingState==='pending'?'APPROVAL PENDING':onboardingState==='rejected'?'APPROVAL REJECTED':'APPROVAL REQUIRED';
+else if(transportBusy)providerStatusText='BUSY • TRANSPORT TRIP';
+else if(providerIdle&&!providerHasSkills)providerStatusText='SKILLS REQUIRED';
+else if(!providerIdle)providerStatusText=S.status;
+else if(S.adminPaused||!S.jobAccess)providerStatusText='ADMIN HOLD';
+else providerStatusText=S.available?'WAITING FOR JOB':'WORK OFF';
+$("pStatus").textContent=providerStatusText;
 const pt=$("ptab");const normalBookingNew=S.status==="REQUESTED";const extraWorkNew=S.customerExtraStatus==="SENT_TO_PROVIDER"&&S.customerExtraRequest;const nextWorkNew=!!S.pendingNextRequest;if(pt)pt.textContent=(normalBookingNew||extraWorkNew||nextWorkNew)?"Service Provider • NEW":"Service Provider";
 $("cBody").innerHTML=customerHTML();
 const customerBrowseMode=["SELECT_SERVICE","SELECT_ITEM","CUSTOM_REQUEST","READY"].includes(S.status);
