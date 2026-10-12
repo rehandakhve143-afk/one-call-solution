@@ -682,6 +682,7 @@ body:not(.sp-only-route):not(.admin-route-only) .customer-dashboard-card{margin-
   <div id="cBody"></div>
   <div id="ocsCustomerBookingTimeline"></div>
   <div id="ocsWaitingReviewPanel"></div>
+  <details class="card" id="ocsCustomerActivityPanel"><summary style="font-weight:900">OCS Inbox & Booking History <span id="ocsCustomerInboxCount"></span></summary><div id="ocsCustomerActivityRows" class="muted" style="margin-top:10px">Open to load records</div><button class="btn gray" type="button" onclick="ocsLoadCustomerActivity()">↻ Refresh Records</button></details>
   <div id="homeFlowNav"></div>
   <div id="customerAddWorkMount"></div>
 </div>
@@ -1234,6 +1235,29 @@ async function ocsLoadWaitingReview(){
   box.appendChild(card);
  }catch(e){console.warn('Waiting review not available',e)}
 }
+async function ocsLoadCustomerActivity(){
+ const box=document.getElementById('ocsCustomerActivityRows'),label=document.getElementById('ocsCustomerInboxCount');if(!box||!ocsSupabase)return;
+ box.textContent='Loading activity…';
+ try{
+  const session=await ocsSession();if(!session?.user){box.textContent='Log in to see your OCS records';return}
+  const [n,h]=await Promise.all([ocsSupabase.rpc('list_notifications_v1',{p_limit:30}),ocsSupabase.rpc('booking_history_v2',{p_role:'customer'})]);
+  if(n.error)throw n.error;if(h.error)throw h.error;
+  const notes=Array.isArray(n.data)?n.data:[],history=Array.isArray(h.data)?h.data:[];
+  const unread=notes.filter(x=>!x.read_at).length;
+  if(label)label.textContent=unread?'• '+unread+' unread':'';
+  box.replaceChildren();
+  const date=x=>x?new Date(x).toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'}):'No date';
+  const section=(heading,items,format)=>{
+   const title=document.createElement('h3');title.textContent=heading+' ('+items.length+')';box.appendChild(title);
+   if(!items.length){const no=document.createElement('p');no.textContent='No records yet';box.appendChild(no)}
+   for(const item of items.slice(0,25)){const row=document.createElement('div');row.style.cssText='padding:10px 0;border-bottom:1px solid #e9eeee;overflow-wrap:anywhere';row.textContent=format(item);box.appendChild(row)}
+  };
+  section('Notifications',notes,x=>date(x.created_at)+' • '+(x.title||'OCS Update')+' • '+(x.body||'')+(x.read_at?'':' • NEW'));
+  if(unread){const mark=document.createElement('button');mark.className='btn gray';mark.textContent='Mark All Read';mark.onclick=async()=>{const res=await ocsSupabase.rpc('mark_notifications_read_v1');if(res.error){alert('Could not mark read');return}await ocsLoadCustomerActivity()};box.appendChild(mark)}
+  section('Closed Bookings • Date-wise',history,x=>date(x.closed_at||x.created_at)+' • '+(x.service_name||x.category||'Service')+' • '+String(x.status||'').toUpperCase()+' • ₹'+Number(x.booking_amount||0)+' • Payment: '+(x.payment_status||'not recorded'));
+ }catch(e){box.textContent='Activity unavailable: '+(e.message||'Retry')}
+}
+document.getElementById('ocsCustomerActivityPanel')?.addEventListener('toggle',e=>{if(e.target.open)ocsLoadCustomerActivity()});
 async function ocsRefreshCustomerBookingTimeline(){
  const box=document.getElementById('ocsCustomerBookingTimeline');
  if(!box||!ocsSupabase)return;
