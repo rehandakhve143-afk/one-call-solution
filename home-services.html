@@ -680,6 +680,7 @@ body:not(.sp-only-route):not(.admin-route-only) .customer-dashboard-card{margin-
     <span class="status" id="cStatus">READY</span>
   </div>
   <div id="cBody"></div>
+  <div id="ocsCustomerBookingTimeline"></div>
   <div id="ocsWaitingReviewPanel"></div>
   <div id="homeFlowNav"></div>
   <div id="customerAddWorkMount"></div>
@@ -1233,6 +1234,24 @@ async function ocsLoadWaitingReview(){
   box.appendChild(card);
  }catch(e){console.warn('Waiting review not available',e)}
 }
+async function ocsRefreshCustomerBookingTimeline(){
+ const box=document.getElementById('ocsCustomerBookingTimeline');
+ if(!box||!ocsSupabase)return;
+ const id=S.activeBookingId;
+ if(!id||OCS_LIVE_ROLE!=='customer'){box.replaceChildren();return}
+ try{
+  const r=await ocsSupabase.rpc('booking_status_timeline_v1',{p_booking_id:id});
+  if(r.error||S.activeBookingId!==id||OCS_LIVE_ROLE!=='customer')return;
+  const d=r.data||{},list=Array.isArray(d.activity)?d.activity:[];
+  let panel=box.querySelector('details');
+  if(!panel){panel=document.createElement('details');panel.style.cssText='margin:10px 0;padding:12px;background:#fff;border:1px solid #dfebeb;border-radius:13px';box.replaceChildren(panel)}
+  const wasOpen=panel.open;panel.replaceChildren();
+  const title=document.createElement('summary');title.style.fontWeight='800';title.textContent='Booking Status: '+(d.status_title||d.status||'Unknown');panel.appendChild(title);
+  const date=document.createElement('p');date.className='muted';date.textContent='Updated: '+(d.updated_at?new Date(d.updated_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}):'Not recorded');panel.appendChild(date);
+  for(const e of list){const p=document.createElement('p');p.className='muted';p.textContent=new Date(e.created_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})+' • '+String(e.status||'').replaceAll('_',' ');panel.appendChild(p)}
+  panel.open=wasOpen;
+ }catch(e){console.warn('Customer booking timeline unavailable',e)}
+}
 async function ocsStartLive(role){
   OCS_LIVE_ROLE=role;
   if(OCS_LIVE_POLL){clearInterval(OCS_LIVE_POLL);OCS_LIVE_POLL=null}
@@ -1241,14 +1260,17 @@ async function ocsStartLive(role){
     if(String(S.status||"").toUpperCase()==="READY")S.status="SELECT_SERVICE";
     renderCore();updateSelectionTray();
     ocsLoadWaitingReview();
+    ocsRefreshCustomerBookingTimeline();
     return false;
   }
   if(ok===true){renderCore();updateSelectionTray()}
+  if(role==="customer")ocsRefreshCustomerBookingTimeline();
   if(role==="customer")ocsLoadWaitingReview();
   let lastRendered=ocsLiveUiFingerprint();
   OCS_LIVE_POLL=setInterval(async()=>{
     if(document.hidden)return;
     const live=await ocsLoadLive(OCS_LIVE_ROLE);
+    if(OCS_LIVE_ROLE==="customer")ocsRefreshCustomerBookingTimeline();
     if(live===null)return; // Temporary network errors must not wipe an active booking.
     const now=ocsLiveUiFingerprint();
     if(live===true){
