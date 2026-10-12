@@ -240,8 +240,29 @@ async function loadOcsMemberDetail(memberId){
   const d=r.data||{},p=d.profile||{},ob=d.onboarding||{},st=d.provider_status||{},bank=d.bank_status||{},tr=d.transport||{};
   body.replaceChildren();
   const title=document.createElement('h2');title.textContent=p.full_name||'OCS Member';body.appendChild(title);
-  const overview=document.createElement('div');overview.className='info';overview.textContent='OCS Member Record • Verified database activity only • Dates shown in India time';body.appendChild(overview);
-  const add=(k,v)=>body.appendChild(ocsMemberField(k,v));
+  const verification=ob.status||'Not submitted';
+  const topInfo=document.createElement('div');topInfo.className='info';
+  topInfo.style.cssText='padding:12px;margin:10px 0;line-height:1.75';
+  const memberRoles=Array.isArray(d.roles)?d.roles.join(' • '):'';
+  const walletAlert=d.provider_status&&Number(st.wallet_balance||0)<200?' • Wallet below ₹200':'';
+  topInfo.textContent='Member ID: '+String(p.member_id||'Not recorded')+'\n'+
+    'Role: '+(memberRoles||p.role||'Not recorded')+' • Approval: '+verification+walletAlert;
+  topInfo.style.whiteSpace='pre-wrap';
+  body.appendChild(topInfo);
+  const quickSummary=document.createElement('div');quickSummary.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0';
+  const quickBox=(label,value)=>{
+    const item=document.createElement('div');item.style.cssText='padding:11px;border-radius:13px;background:#f4f8f8;min-width:0';
+    const hint=document.createElement('small');hint.className='muted';hint.textContent=label;hint.style.display='block';
+    const val=document.createElement('b');val.textContent=String(value);val.style.cssText='display:block;margin-top:5px;font-size:14px;overflow-wrap:anywhere';
+    item.append(hint,val);quickSummary.appendChild(item);
+  };
+  quickBox('Selected Skills',Array.isArray(d.skills)?d.skills.length:0);
+  quickBox('SP Wallet',d.provider_status?'₹'+Number(st.wallet_balance||0).toFixed(2):'Not applicable');
+  body.appendChild(quickSummary);
+  const profileDetails=document.createElement('details');profileDetails.style.cssText='margin:12px 0;padding:11px;border:1px solid #dfe7e9;border-radius:12px';
+  const profileSummary=document.createElement('summary');profileSummary.textContent='View Profile, Contact & Verification';profileSummary.style.cssText='cursor:pointer;font-weight:850;font-size:14px';
+  profileDetails.appendChild(profileSummary);body.appendChild(profileDetails);
+  const add=(k,v)=>profileDetails.appendChild(ocsMemberField(k,v));
   const money=v=>'₹'+Number(v||0).toFixed(2);
   const dateLabel=value=>{
     if(!value)return 'Date not recorded';
@@ -285,14 +306,20 @@ async function loadOcsMemberDetail(memberId){
   add('Bank Verification',bank.verification_status);add('Bank',bank.bank_name);add('Account',bank.masked_account);
   if(d.transport){add('Vehicle',tr.vehicle_type+' • '+(tr.vehicle_number||''));add('Driving Licence on file',tr.driving_licence_on_file?'Yes':'No');add('RC on file',tr.rc_on_file?'Yes':'No');add('Insurance on file',tr.insurance_on_file?'Yes':'No')}
   const section=(heading,arr,format)=>{
-    const h=document.createElement('h3');h.style.marginTop='18px';h.textContent=heading+' ('+arr.length+')';body.appendChild(h);
-    if(!arr.length){const p=document.createElement('p');p.className='muted';p.textContent='No records available';body.appendChild(p)}
-    for(const x of arr){const p=document.createElement('div');p.className='row';p.textContent=format(x);body.appendChild(p)}
+    const list=Array.isArray(arr)?arr:[];
+    const panel=document.createElement('details');panel.style.cssText='margin-top:12px;padding:11px;border:1px solid #dfe7e9;border-radius:12px';
+    const h=document.createElement('summary');h.textContent=heading+' ('+list.length+')';h.style.cssText='cursor:pointer;font-weight:850;font-size:14px';
+    panel.appendChild(h);body.appendChild(panel);
+    if(!list.length){const p=document.createElement('p');p.className='muted';p.textContent='No records available';panel.appendChild(p)}
+    for(const x of list){const p=document.createElement('div');p.className='row';p.textContent=format(x);panel.appendChild(p)}
   };
   datedRecords(body,'Date-wise Work / Booking Record • Latest 30',d.bookings||[],x=>x.completed_at||x.latest_status_date||x.created_at,
     x=>(x.member_role||'Member')+' • '+(x.service_name||x.category||'Service')+' • '+String(x.status||'Unknown').toUpperCase()+' • '+money(x.booking_amount)+' • Booking #'+String(x.id||'').slice(0,8));
   const skillsDetails=document.createElement('details');skillsDetails.style.cssText='margin-top:16px;padding:12px;border:1px solid #dfe7e9;border-radius:12px';
-  const skillsTitle=document.createElement('summary');skillsTitle.textContent='View Selected Skills ('+(d.skills||[]).length+')';skillsTitle.style.cssText='font-weight:850;cursor:pointer';
+  const approvedSkills=(d.skills||[]).filter(x=>x.approved===true&&x.verification_status==='approved').length;
+  const skillsTitle=document.createElement('summary');
+  skillsTitle.textContent='View Skills ('+(d.skills||[]).length+' selected • '+approvedSkills+' verified)';
+  skillsTitle.style.cssText='font-weight:850;cursor:pointer';
   skillsDetails.appendChild(skillsTitle);body.appendChild(skillsDetails);
   const skillsMount=document.createElement('div');skillsDetails.appendChild(skillsMount);
   const skillItems=Array.isArray(d.skills)?d.skills:[];
@@ -301,7 +328,8 @@ async function loadOcsMemberDetail(memberId){
   section('Ratings',d.ratings||[],x=>x.stars+'★ • '+(x.comment||'No comment'));
   section('Support Tickets',d.support||[],x=>(x.ticket_no||'Ticket')+' • '+(x.category||'')+' • '+(x.status||''));
   datedRecords(body,'Wallet Transactions',d.wallet_history||[],x=>x.created_at,x=>(x.kind||'Wallet activity')+' • '+money(x.amount));
-  const finance=document.createElement('div');finance.className='card';finance.style.marginTop='14px';finance.textContent='Loading payment and work summary…';body.appendChild(finance);
+  const finance=document.createElement('div');finance.className='card';finance.style.cssText='margin-top:12px;padding:14px;border-radius:16px';finance.textContent='Loading payment and work summary…';
+  body.insertBefore(finance,skillsDetails);
   try{
     const fr=await sb.rpc('admin_member_payment_history_v1',{p_member_id:memberId});
     if(fr.error)throw fr.error;
