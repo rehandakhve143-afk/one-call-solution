@@ -261,6 +261,24 @@ async function loadOcsMemberDetail(memberId){
   section('Ratings',d.ratings||[],x=>x.stars+'★ • '+(x.comment||'No comment'));
   section('Support Tickets',d.support||[],x=>(x.ticket_no||'Ticket')+' • '+(x.category||'')+' • '+(x.status||''));
   section('Wallet Transactions',d.wallet_history||[],x=>(x.kind||'')+' • '+money(x.amount));
+  const finance=document.createElement('div');finance.className='card';finance.style.marginTop='14px';finance.textContent='Loading payment and work summary…';body.appendChild(finance);
+  try{
+    const fr=await sb.rpc('admin_member_payment_history_v1',{p_member_id:memberId});
+    if(fr.error)throw fr.error;
+    const fh=fr.data||{},ws=fh.work_summary||{};
+    finance.replaceChildren();
+    const hd=document.createElement('h3');hd.textContent='Working Record & Payment History';finance.appendChild(hd);
+    const line=(k,v)=>finance.appendChild(ocsMemberField(k,v));
+    line('Completed jobs',Number(ws.completed||0));line('Active jobs',Number(ws.active||0));line('Cancelled jobs',Number(ws.cancelled||0));
+    const show=(label,arr,format)=>{
+      const h=document.createElement('h3');h.textContent=label+' ('+arr.length+')';h.style.marginTop='15px';finance.appendChild(h);
+      if(!arr.length){const no=document.createElement('div');no.className='muted';no.textContent='No records yet';finance.appendChild(no)}
+      for(const x of arr){const el=document.createElement('div');el.className='row';el.style.display='block';el.textContent=format(x);finance.appendChild(el)}
+    };
+    show('Service Payments',fh.service_payments||[],x=>money(x.amount)+' • '+(x.method||'')+' • '+(x.status||'')+' • Commission '+money(x.commission_amount)+' • Booking #'+String(x.booking_id||'').slice(0,8));
+    show('SP Wallet Recharge',fh.recharges||[],x=>money(x.amount)+' • '+(x.status||''));
+    show('SP Withdrawals',fh.withdrawals||[],x=>money(x.amount)+' • '+(x.status||''));
+  }catch(err){finance.textContent='Payment history unavailable: '+(err.message||'Retry')}
   const lc=d.listing_counts||{};add('Own Listings','Shops '+(lc.shops||0)+' • Property '+(lc.property||0)+' • Posts '+(lc.posts||0));
  }catch(e){body.textContent='Member detail failed: '+(e.message||'Retry')}
 }
