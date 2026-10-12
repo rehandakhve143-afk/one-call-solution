@@ -240,6 +240,7 @@ async function loadOcsMemberDetail(memberId){
   const d=r.data||{},p=d.profile||{},ob=d.onboarding||{},st=d.provider_status||{},bank=d.bank_status||{},tr=d.transport||{};
   body.replaceChildren();
   const title=document.createElement('h2');title.textContent=p.full_name||'OCS Member';body.appendChild(title);
+  const overview=document.createElement('div');overview.className='info';overview.textContent='OCS Member Record • Verified database activity only • Dates shown in India time';body.appendChild(overview);
   const add=(k,v)=>body.appendChild(ocsMemberField(k,v));
   const money=v=>'₹'+Number(v||0).toFixed(2);
   const dateLabel=value=>{
@@ -288,7 +289,7 @@ async function loadOcsMemberDetail(memberId){
     if(!arr.length){const p=document.createElement('p');p.className='muted';p.textContent='No records available';body.appendChild(p)}
     for(const x of arr){const p=document.createElement('div');p.className='row';p.textContent=format(x);body.appendChild(p)}
   };
-  datedRecords(body,'Date-wise Work / Booking Record • Latest 30',d.bookings||[],x=>x.created_at,
+  datedRecords(body,'Date-wise Work / Booking Record • Latest 30',d.bookings||[],x=>x.completed_at||x.latest_status_date||x.created_at,
     x=>(x.member_role||'Member')+' • '+(x.service_name||x.category||'Service')+' • '+String(x.status||'Unknown').toUpperCase()+' • '+money(x.booking_amount)+' • Booking #'+String(x.id||'').slice(0,8));
   const skillsDetails=document.createElement('details');skillsDetails.style.cssText='margin-top:16px;padding:12px;border:1px solid #dfe7e9;border-radius:12px';
   const skillsTitle=document.createElement('summary');skillsTitle.textContent='View Selected Skills ('+(d.skills||[]).length+')';skillsTitle.style.cssText='font-weight:850;cursor:pointer';
