@@ -2266,7 +2266,8 @@ async function customerCancelBeforeStartConfirmed(reason){
 
  if(effectiveStatus==="REQUESTED"&&S.activeBookingId&&ocsSupabase){
    try{
-     const {data,error}=await ocsSupabase.rpc("cancel_all_customer_searching_bookings_v1",{
+     const {data,error}=await ocsSupabase.rpc("cancel_customer_searching_booking_v1",{
+       p_booking_id:S.activeBookingId,
        p_reason:reason
      });
      if(error)throw error;
