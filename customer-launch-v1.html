@@ -289,7 +289,7 @@ function renderBookingSuccess(id,total){
    '<div class="success"><div class="tick">✓</div><h2>Request sent</h2><p>OCS nearby matching verified Service Providers check kar raha hai.</p>'+
    (id?'<div class="bid">#'+esc(String(id).replace(/[^a-z0-9]/ig,"").slice(0,8).toUpperCase())+'</div>':'')+
    '<div class="summary" style="text-align:left;margin-top:8px"><div class="sum-row"><span>Service</span><b>'+esc(category)+'</b></div><div class="sum-row"><span>Amount</span><b>'+money(total)+'</b></div><div class="sum-row"><span>Payment</span><b>'+esc(bookingPayment)+'</b></div></div>'+
-   '<button class="primary" style="margin-top:12px" onclick="location.href=\'index.html?open=activity&v=20261008-cleanroutes1\'">View Activity</button>'+
+   '<button class="primary" style="margin-top:12px" onclick="location.href=\'home-services.html?tab=customer&v=20261012-bookingtrack1\'">View Activity</button>'+
    '<button class="secondary" style="margin-top:8px" onclick="goHome()">Back to Home</button></div>';
  ocsHomeReplace('success');
  window.scrollTo(0,0);
@@ -348,14 +348,15 @@ async function createQuoteBooking(){
  const btn=document.getElementById("findSpBtn");if(btn){btn.disabled=true;btn.textContent="Finding Service Provider..."}
  try{
    try{await ocsSupabase.rpc("ensure_customer_account_v1")}catch(e){}
-   const {data,error}=await ocsSupabase.rpc("create_customer_booking_v4",{
+   // Quotes MUST create request_type='quote' on the backend, not a ₹0 fixed-price job.
+   const {data,error}=await ocsSupabase.rpc("create_customer_quote_request_v2",{
      p_category:category||"Custom / Other",
      p_service_name:quoteServiceName||"New Service Request",
-     p_booking_amount:0,
-     p_payment_method:bookingPayment.toLowerCase(),
+     p_description:details,
+     p_schedule:"As soon as possible",
      p_address:address,
-     p_selected_items:[],
-     p_readiness:{contact_mobile:mobile,request_type:"quote",request_details:details},
+     p_media:[],
+     p_readiness:{contact_mobile:mobile},
      p_latitude:Number(loc.lat),
      p_longitude:Number(loc.lng)
    });
