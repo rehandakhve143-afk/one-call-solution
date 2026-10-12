@@ -143,7 +143,7 @@
 const SUPA_URL='https://uipmkrsggpkupgbgoxkg.supabase.co';
 const SUPA_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let pickupLat=null,pickupLng=null,mode='GOODS_DELIVERY',sending=false,currentTrip=null,previousTrip=null,selectedTransportRating=0,verifiedClosedTransportId=null;
+let pickupLat=null,pickupLng=null,mode='GOODS_DELIVERY',sending=false,currentTrip=null,previousTrip=null,selectedTransportRating=0,verifiedClosedTransportId=null,ratedTransportId=null;
 function $(id){return document.getElementById(id)}
 function setMode(v){
  mode=v;
@@ -376,7 +376,7 @@ async function transportPayOnline(){
  }catch(e){show(e&&e.message?e.message:'Online payment start nahi hua',true)}
 }
 function renderTransportClosed(id){
- if(!id||verifiedClosedTransportId!==id)return;
+ if(!id||verifiedClosedTransportId!==id||ratedTransportId===id)return;
  const panel=$('tripPanel');if(!panel)return;
  panel.style.display='block';$('tripSub').textContent='Trip completed • Rate your Driver';
  $('tripDetails').innerHTML='<div class="trip-row"><span>Status</span><b>COMPLETED</b></div><div class="trip-row"><span>Booking</span><b>'+esc(String(id||'OCS Transport'))+'</b></div>';
@@ -390,7 +390,7 @@ async function submitTransportRating(id){
  const comment=(prompt('Comment optional')||'').trim();
  try{
   const {error}=await sb.rpc('submit_provider_rating_v1',{p_booking_id:id,p_stars:selectedTransportRating,p_comment:comment||null});if(error)throw error;
-  show('✓ Rating submitted. Thank you.',false);localStorage.removeItem('ocsTransportLastClosed');selectedTransportRating=0;
+  show('✓ Rating submitted. Thank you.',false);ratedTransportId=id;localStorage.removeItem('ocsTransportLastClosed');selectedTransportRating=0;const panel=$('tripPanel');if(panel){$('tripSub').textContent='Rating submitted';$('tripStageActions').textContent='Thank you. Aapki rating record ho gayi.';}
  }catch(e){show(e&&e.message?e.message:'Rating save nahi hui',true)}
 }
 async function maybeShowClosedTransport(){
@@ -398,6 +398,7 @@ async function maybeShowClosedTransport(){
  let id='';
  try{id=localStorage.getItem('ocsTransportLastClosed')||previousTrip?.booking_id||''}catch(e){id=previousTrip?.booking_id||''}
  if(!id){const panel=$('tripPanel');if(panel)panel.style.display='none';return}
+ if(ratedTransportId===id)return;
  if(verifiedClosedTransportId===id){renderTransportClosed(id);return}
  try{
   const res=await sb.rpc('booking_history_v2',{p_role:'customer'});
