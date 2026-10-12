@@ -124,6 +124,14 @@ async function loadDashboard(){
      if(!st.error&&Array.isArray(st.data)&&st.data.length)available=st.data[0].available_for_work!==false;
    }catch(e){}
    syncToggle();
+   if(!onboardingApproved||!skillApproved){
+     available=false;
+     syncToggle();
+     setStableDashboardHtml(jb,'<div class="card empty"><div class="ico">🔒</div><h3>SP approval pending</h3><div class="muted">OCS Admin verification aur approved matching skill ke baad hi new jobs dikhengi. Profile status: '+esc(onboardingStatus||'not submitted')+'.</div></div>');
+     setStableDashboardHtml(pb,'<div class="profile"><div><b>'+esc(profile.full_name||'Service Provider')+'</b><small>'+esc(profile.phone||'Mobile not added')+'</small></div></div>');
+     currentJob=null;
+     return;
+   }
    setStableDashboardHtml(pb,'<div class="profile"><div><b>'+esc(profile.full_name||'Service Provider')+'</b><small>'+esc(profile.phone||'Mobile not added')+'</small></div><div class="wallet">'+money(profile.wallet_balance||0)+'<small>OCS Wallet</small></div></div><div class="chips">'+(skills.length?skills.map(x=>'<span class="chip">'+esc(skillLabel(x))+(x.approved===true?' ✓':'')+'</span>').join(''):'<span class="chip">No skill selected</span>')+'</div>');
 
    let booking=null;
