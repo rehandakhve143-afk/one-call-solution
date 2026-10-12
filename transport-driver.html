@@ -17,7 +17,7 @@
 .main{padding:14px}.card{background:#fff;border:1px solid #e5e9ed;border-radius:21px;padding:15px;margin-bottom:12px;box-shadow:0 6px 18px rgba(8,45,55,.05)}
 .avail{display:flex;justify-content:space-between;gap:12px;align-items:center}.toggle{border:0;border-radius:999px;padding:10px 15px;font-weight:900;background:#e4e8ea;color:#53616a}.toggle.on{background:#f3ef00;color:#17343c}.muted{font-size:12px;color:#667080;line-height:1.45}.vehicle{display:flex;justify-content:space-between;margin-top:12px;padding:11px;background:#f7fafb;border-radius:14px;font-size:12px}.vehicle span{display:block;color:#667080}.vehicle b{display:block;margin-top:2px}
 h3{font-size:18px;margin:17px 2px 9px}.request h4,.trip h4{margin:0 0 4px;font-size:16px}.money{font-size:24px;font-weight:950;color:#064d59}.tag{display:inline-block;border:1px solid #dce4e6;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800;margin:5px 4px 0 0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.btn{border:0;border-radius:13px;padding:12px;font-weight:900}.primary{background:#087887;color:#fff}.yellow{background:#f3ef00;color:#17343c}.gray{background:#edf1f3;color:#34444c}.red{background:#fbecec;color:#a23636}.green{background:#e4f7ef;color:#147858}.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.stat{background:#fff;border:1px solid #e5e9ed;border-radius:18px;padding:13px}.stat small{display:block;color:#667080}.stat b{display:block;font-size:18px;margin-top:3px}
-.view{display:none}.view.active{display:block}.history{background:#fff;border:1px solid #e5e9ed;border-radius:18px;padding:13px;margin-bottom:9px}.history .r{display:flex;justify-content:space-between;gap:8px}.history small{display:block;color:#667080;margin-top:3px}.wallet{background:#064d59;color:#fff;border-radius:23px;padding:18px}.wallet b{display:block;font-size:33px;margin:4px 0}.menu{display:grid;gap:9px}.menu button{background:#fff;border:1px solid #e5e9ed;border-radius:17px;padding:15px;text-align:left;font-weight:850}.menu small{display:block;color:#667080;font-weight:500;margin-top:2px}
+.view{display:none}.view.active{display:block}.history{background:#fff;border:1px solid #e5e9ed;border-radius:18px;padding:13px;margin-bottom:9px}.history .r{display:flex;justify-content:space-between;gap:8px} .history small{display:block;color:#667080;margin-top:3px}.trip-date{margin:14px 2px 8px;font-size:12px;font-weight:900;color:#34535b}.wallet{background:#064d59;color:#fff;border-radius:23px;padding:18px}.wallet b{display:block;font-size:33px;margin:4px 0}.menu{display:grid;gap:9px}.menu button{background:#fff;border:1px solid #e5e9ed;border-radius:17px;padding:15px;text-align:left;font-weight:850}.menu small{display:block;color:#667080;font-weight:500;margin-top:2px}
 .empty{text-align:center;padding:25px 12px;color:#667080}.empty b{display:block;color:#263740;font-size:16px;margin-bottom:4px}
 .bottom{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(480px,100%);background:#064d59;display:grid;grid-template-columns:repeat(4,1fr);padding:8px 5px max(8px,env(safe-area-inset-bottom));z-index:50}.bottom button{border:0;background:transparent;color:#dcebee;padding:7px 3px;font-size:10px;font-weight:850}.bottom button b{display:block;font-size:20px;margin-bottom:2px}.bottom button.active{color:#f3ef00}
 .active-strip{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);width:min(452px,calc(100% - 28px));background:#fff;border:1px solid #dfe7ea;border-radius:18px;box-shadow:0 8px 26px rgba(8,45,55,.20);z-index:45;padding:10px 12px;display:none;align-items:center;gap:10px}.active-strip.show{display:flex}.active-strip button{margin-left:auto;border:0;border-radius:999px;padding:10px 13px;background:#087887;color:#fff;font-weight:900}
@@ -58,26 +58,35 @@ async function load(){
  const ses=await sb.auth.getSession();if(!(ses.data&&ses.data.session)){location.replace('index.html?login=1');return}
  const {data,error}=await sb.rpc('transport_driver_dashboard_v1');if(error){$('work').innerHTML='<div class="card">Driver dashboard load failed: '+esc(error.message)+'</div>';return}
  D=data||{};render();
- const {data:jobs,error:je}=await sb.rpc('provider_open_jobs_v4');if(!je){OPEN=(jobs||[]).find(x=>x.category==='Tempo / Goods Transport')||null;renderWork()}
+ const {data:jobs,error:je}=await sb.rpc('provider_open_jobs_v4');OPEN=!je&&Array.isArray(jobs)?jobs.find(x=>String(x.category||'').trim().toLowerCase()==='tempo / goods transport')||null:null;renderWork()
 }
 function render(){
- const p=D.profile||{},t=D.transport||{},w=D.wallet||{},r=D.rating||{},h=Array.isArray(D.history)?D.history:[],c=D.current||{};
+ const p=D.profile||{},t=D.transport||{},w=D.wallet||{},r=D.rating||{},h=transportTripHistory(),c=transportCurrent();
  $('name').textContent=p.full_name||'Transport Driver';$('phone').textContent=p.phone||'';$('accountName').textContent=p.full_name||'Transport Driver';
  $('rating').textContent='⭐ '+Number(r.average||0).toFixed(1);$('accountRating').textContent='⭐ '+Number(r.average||0).toFixed(1);$('ratingStat').textContent='⭐ '+Number(r.average||0).toFixed(1);
  $('vehicle').textContent=t.vehicle_type||'Not set';$('vehicleNo').textContent=t.vehicle_number||'—';$('kycBadge').textContent=t.kyc_complete?'KYC VERIFIED':'KYC PENDING';
- const on=!!p.available_for_work&&!p.admin_paused;$('toggle').classList.toggle('on',on);$('toggle').textContent=on?'ON':'OFF';$('availText').textContent=p.admin_paused?'Paused by OCS Admin':(on?'Receiving matching requests':'Work ON to receive matching requests');
+ const on=!!p.available_for_work&&!p.admin_paused,bal=Number(p.wallet_balance??w.wallet_balance??0);
+ $('toggle').classList.toggle('on',on);$('toggle').textContent=p.available_for_work?'ON':'OFF';
+ $('availText').textContent=p.admin_paused?'New trips paused by OCS Admin':p.onboarding_status!=='approved'?'OCS Admin approval required':!t.kyc_complete?'Complete Transport KYC for new trips':bal<200?'New trips on hold • Recharge ₹'+Math.ceil(200-bal)+' to reach ₹200':on?'Receiving matching Transport requests':'Work ON to receive matching Transport requests';
  $('walletBal').textContent=money(w.wallet_balance);$('walletStat').textContent=money(w.wallet_balance);$('withdraw').textContent=money(w.withdrawable_amount);
  $('completed').textContent=h.filter(x=>['completed','done'].includes(String(x.status||'').toLowerCase())).length;$('pastCount').textContent=h.length;
  renderWork();renderActivity();
  if(c.has_booking){$('activeStrip').classList.add('show');$('stripStatus').textContent=statusLabel(c.status);$('stripSub').textContent=(c.booking_readiness&&c.booking_readiness.vehicle_type)||'Transport trip'}else $('activeStrip').classList.remove('show');
 }
+function isTransportTrip(b){return String(b?.category||'').trim().toLowerCase()==='tempo / goods transport'}
+function transportCurrent(){const c=D?.current||{};return c.has_booking&&isTransportTrip(c)?c:{has_booking:false}}
+function transportTripHistory(){return (Array.isArray(D?.history)?D.history:[]).filter(isTransportTrip)}
+function dateLabel(x){const t=Date.parse(x.closed_at||x.updated_at||x.created_at||'');return Number.isFinite(t)?new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric'}).format(new Date(t)):'Date unavailable'}
 function statusLabel(s){const x=String(s||'').toLowerCase();return({accepted:'Assigned Trip',on_way:'On the Way',reached:'Reached Pickup • Start OTP',working:'Trip In Progress',completion_requested:'Trip Complete • Waiting Customer',payment_pending:'Customer Payment Pending',cash_wait:'Cash Confirmation',completed:'Completed'})[x]||String(s||'').replaceAll('_',' ').toUpperCase()}
 function readyText(b){const r=b.booking_readiness||{};return [r.vehicle_type,r.goods_type,r.loading_service,r.approx_weight].filter(Boolean).join(' • ')}
 function renderWork(){
- const box=$('work'),c=(D&&D.current)||{};
+ const box=$('work'),c=transportCurrent(),p=D?.profile||{},t=D?.transport||{};
  if(c.has_booking){box.innerHTML=currentCard(c);return}
+ if(D?.current?.has_booking&&!isTransportTrip(D.current)){box.innerHTML='<div class="card empty"><b>Another OCS job is active</b>Us job ko complete karein. Nayi Transport trip filhal available nahi hai.</div>';return}
  if(OPEN){box.innerHTML=requestCard(OPEN);return}
- box.innerHTML='<div class="card empty"><b>No active Transport request</b>Work ON rakhein. Matching vehicle request yahan dikhegi.</div>'
+ const bal=Number(p.wallet_balance??D?.wallet?.wallet_balance??0);
+ const reason=p.admin_paused?'OCS Admin ne new jobs pause kiye hain.':p.onboarding_status!=='approved'?'Admin approval required.':!t.kyc_complete?'Transport KYC complete karein.':bal<200?'New trips ke liye minimum ₹200 wallet chahiye.':!p.available_for_work?'Work ON karne par matching requests aayengi.':'Matching Transport request milte hi yahan dikhegi.';
+ box.innerHTML='<div class="card empty"><b>No active Transport request</b>'+esc(reason)+'</div>'
 }
 function currentCard(c){const r=c.booking_readiness||{};let actions='';const s=String(c.status||'').toLowerCase();
  if(s==='accepted')actions='<button class="btn primary" onclick="tripAction(\'on_way\')">Start Navigation / On the Way</button>';
@@ -90,7 +99,15 @@ function currentCard(c){const r=c.booking_readiness||{};let actions='';const s=S
  return '<div class="card trip"><h4>'+esc(statusLabel(c.status))+'</h4><div class="money">'+money(c.amount)+'</div><div class="muted">'+esc(readyText(c))+'</div><div class="tag">Pickup: '+esc(r.pickup_address||c.address||'')+'</div><div class="tag">Drop: '+esc(r.drop_address||'')+'</div><div class="grid2"><button class="btn gray" onclick="openMap()">Map / Navigate</button>'+actions+'</div></div>'
 }
 function requestCard(b){const r=b.booking_readiness||{};return '<div class="card request"><h4>New Transport Request</h4><div class="muted">'+esc(readyText(b))+'</div><div class="tag">'+esc(r.pickup_address||b.address||'Pickup')+'</div><div class="tag">'+esc(r.drop_address||'Drop')+'</div><div class="grid2"><button class="btn primary" onclick="sendOffer()">Send Quote</button><button class="btn red" onclick="rejectOpen()">Reject</button></div></div>'}
-function renderActivity(){const c=(D&&D.current)||{},h=Array.isArray(D&&D.history)?D.history:[];$('ongoing').innerHTML=c.has_booking?currentCard(c):'<div class="card empty"><b>No Ongoing Trip</b></div>';$('past').innerHTML=h.length?h.map(x=>'<div class="history"><div class="r"><b>'+esc(x.service_name||x.category||'Transport')+'</b><b>'+money(x.booking_amount||x.visit_charge)+'</b></div><small>'+esc(statusLabel(x.status))+' • '+new Date(x.closed_at||x.updated_at||x.created_at).toLocaleDateString('en-IN')+'</small>'+(x.rating?'<small>⭐ '+x.rating+(x.rating_comment?' • '+esc(x.rating_comment):'')+'</small>':'')+'</div>').join(''):'<div class="card empty"><b>No Past Trips</b></div>'}
+function renderActivity(){
+ const c=transportCurrent(),h=transportTripHistory();
+ $('ongoing').innerHTML=c.has_booking?currentCard(c):'<div class="card empty"><b>No Ongoing Transport Trip</b></div>';
+ let lastDate='';
+ $('past').innerHTML=h.length?h.map(x=>{
+  const date=dateLabel(x),head=date!==lastDate?'<div class="trip-date">'+esc(date)+'</div>':'';lastDate=date;
+  return head+'<div class="history"><div class="r"><b>'+esc(x.service_name||x.category||'Transport')+'</b><b>'+money(x.booking_amount??x.visit_charge)+'</b></div><small>'+esc(statusLabel(x.status))+' • Booking '+esc(String(x.id||'').slice(0,8))+'</small>'+(x.rating?'<small>⭐ '+Number(x.rating)+(x.rating_comment?' • '+esc(x.rating_comment):'')+'</small>':'')+'</div>';
+ }).join(''):'<div class="card empty"><b>No Past Transport Trips</b></div>';
+}
 async function toggleWork(){const on=!!(D&&D.profile&&D.profile.available_for_work);try{const {error}=await sb.rpc('set_provider_available',{p_available:!on});if(error)throw error;await load()}catch(e){alert(e.message||'Work status update failed')}}
 async function sendOffer(){if(!OPEN)return;const a=Number(prompt('Transport final quote ₹'));if(!a||a<=0)return;const note=(prompt('Quote note (optional)')||'').trim();const {error}=await sb.rpc('provider_send_transport_offer_v1',{p_booking_id:OPEN.id,p_amount:a,p_note:note||null});if(error){alert(error.message);return}alert('Quote Customer ko bhej diya gaya.');await load()}
 async function rejectOpen(){if(!OPEN)return;const {error}=await sb.rpc('reject_booking_v2',{p_booking_id:OPEN.id,p_reason:'Transport provider rejected'});if(error){alert(error.message);return}OPEN=null;await load()}
