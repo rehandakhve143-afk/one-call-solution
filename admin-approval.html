@@ -239,10 +239,14 @@ async function loadOcsMemberDetail(memberId){
  document.getElementById('ocsMemberSearch')?.blur();
  box.replaceChildren();
  document.getElementById('ocsMemberRegister')?.scrollIntoView({block:'start',behavior:'auto'});
- const back=document.createElement('button');back.className='btn';back.textContent='← Back to Search';back.onclick=loadOcsMemberRegister;box.appendChild(back);
+ const back=document.createElement('button');back.className='btn';back.textContent='← Back to Search';back.onclick=async()=>{await loadOcsMemberRegister();document.getElementById('ocsMemberRegister')?.scrollIntoView({block:'start',behavior:'auto'})};box.appendChild(back);
+ const reload=document.createElement('button');reload.className='btn';reload.style.marginTop='8px';reload.textContent='↻ Refresh This Member';reload.onclick=()=>loadOcsMemberDetail(memberId);box.appendChild(reload);
  const body=document.createElement('div');body.className='card';body.style.marginTop='12px';body.textContent='Loading full OCS record…';box.appendChild(body);
  try{
-  const r=await sb.rpc('admin_member_detail_v1',{p_member_id:memberId});if(r.error)throw r.error;
+  const activeRequest=memberSearchVersion;
+  const r=await sb.rpc('admin_member_detail_v1',{p_member_id:memberId});
+  if(activeRequest!==memberSearchVersion)return;
+  if(r.error)throw r.error;
   const d=r.data||{},p=d.profile||{},ob=d.onboarding||{},st=d.provider_status||{},bank=d.bank_status||{},tr=d.transport||{};
   body.replaceChildren();
   const title=document.createElement('h2');title.textContent=p.full_name||'OCS Member';body.appendChild(title);
@@ -338,6 +342,7 @@ async function loadOcsMemberDetail(memberId){
   body.insertBefore(finance,skillsDetails);
   try{
     const fr=await sb.rpc('admin_member_payment_history_v1',{p_member_id:memberId});
+    if(activeRequest!==memberSearchVersion)return;
     if(fr.error)throw fr.error;
     const fh=fr.data||{},ws=fh.work_summary||{};
     finance.replaceChildren();
