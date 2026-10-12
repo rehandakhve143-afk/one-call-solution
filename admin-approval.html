@@ -242,6 +242,38 @@ async function loadOcsMemberDetail(memberId){
   const title=document.createElement('h2');title.textContent=p.full_name||'OCS Member';body.appendChild(title);
   const add=(k,v)=>body.appendChild(ocsMemberField(k,v));
   const money=v=>'₹'+Number(v||0).toFixed(2);
+  const dateLabel=value=>{
+    if(!value)return 'Date not recorded';
+    const dt=new Date(value);
+    if(Number.isNaN(dt.getTime()))return 'Date not recorded';
+    return new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric'}).format(dt);
+  };
+  const dateTimeLabel=value=>{
+    if(!value)return 'Time not recorded';
+    const dt=new Date(value);
+    if(Number.isNaN(dt.getTime()))return 'Time not recorded';
+    return new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:true}).format(dt);
+  };
+  const datedRecords=(mount,label,items,getDate,format)=>{
+    const arr=Array.isArray(items)?items:[];
+    const h=document.createElement('h3');h.textContent=label+' ('+arr.length+')';h.style.marginTop='18px';mount.appendChild(h);
+    if(!arr.length){
+      const empty=document.createElement('p');empty.className='muted';empty.textContent='No work or transaction record yet';mount.appendChild(empty);return;
+    }
+    let lastDate='';
+    for(const x of arr.slice().sort((a,b)=>new Date(getDate(b)||0).getTime()-new Date(getDate(a)||0).getTime())){
+      const timestamp=getDate(x);
+      const day=dateLabel(timestamp);
+      if(day!==lastDate){
+        const dateHeader=document.createElement('div');dateHeader.style.cssText='margin:14px 0 7px;padding:8px 11px;border-radius:10px;background:#eaf6f3;color:#14535a;font-weight:900;font-size:12px';
+        dateHeader.textContent='📅 '+day;mount.appendChild(dateHeader);lastDate=day;
+      }
+      const item=document.createElement('div');item.style.cssText='padding:9px 5px;border-bottom:1px solid #edf1f2;line-height:1.6;font-size:12px;overflow-wrap:anywhere';
+      const detail=document.createElement('div');detail.textContent=format(x);
+      const time=document.createElement('small');time.className='muted';time.style.display='block';time.textContent=dateTimeLabel(timestamp)+' IST';
+      item.append(detail,time);mount.appendChild(item);
+    }
+  };
   add('Member ID',p.member_id);add('Mobile',p.contact_mobile||p.phone);add('Email',p.contact_email);
   add('Joined',p.joined_at?new Date(p.joined_at).toLocaleDateString('en-IN'):'');
   add('Roles',(d.roles||[]).join(', '));add('Verification',ob.status||'Not submitted');
@@ -256,11 +288,18 @@ async function loadOcsMemberDetail(memberId){
     if(!arr.length){const p=document.createElement('p');p.className='muted';p.textContent='No records available';body.appendChild(p)}
     for(const x of arr){const p=document.createElement('div');p.className='row';p.textContent=format(x);body.appendChild(p)}
   };
-  section('Approved / Selected Skills',d.skills||[],x=>(x.category||'')+' • '+(x.service_name||'')+' • '+(x.approved?'Approved':'Not approved'));
-  section('Recent Bookings',d.bookings||[],x=>'#'+String(x.id||'').slice(0,8)+' • '+(x.member_role||'')+' • '+(x.service_name||'')+' • '+(x.status||'')+' • '+money(x.booking_amount));
+  datedRecords(body,'Date-wise Work / Booking Record • Latest 30',d.bookings||[],x=>x.created_at,
+    x=>(x.member_role||'Member')+' • '+(x.service_name||x.category||'Service')+' • '+String(x.status||'Unknown').toUpperCase()+' • '+money(x.booking_amount)+' • Booking #'+String(x.id||'').slice(0,8));
+  const skillsDetails=document.createElement('details');skillsDetails.style.cssText='margin-top:16px;padding:12px;border:1px solid #dfe7e9;border-radius:12px';
+  const skillsTitle=document.createElement('summary');skillsTitle.textContent='View Selected Skills ('+(d.skills||[]).length+')';skillsTitle.style.cssText='font-weight:850;cursor:pointer';
+  skillsDetails.appendChild(skillsTitle);body.appendChild(skillsDetails);
+  const skillsMount=document.createElement('div');skillsDetails.appendChild(skillsMount);
+  const skillItems=Array.isArray(d.skills)?d.skills:[];
+  if(!skillItems.length){const hint=document.createElement('p');hint.className='muted';hint.textContent='No skills selected';skillsMount.appendChild(hint)}
+  for(const x of skillItems){const row=document.createElement('div');row.className='row';row.textContent=(x.category||'')+' • '+(x.service_name||'')+' • '+(x.approved?'Approved':'Not approved');skillsMount.appendChild(row)}
   section('Ratings',d.ratings||[],x=>x.stars+'★ • '+(x.comment||'No comment'));
   section('Support Tickets',d.support||[],x=>(x.ticket_no||'Ticket')+' • '+(x.category||'')+' • '+(x.status||''));
-  section('Wallet Transactions',d.wallet_history||[],x=>(x.kind||'')+' • '+money(x.amount));
+  datedRecords(body,'Wallet Transactions',d.wallet_history||[],x=>x.created_at,x=>(x.kind||'Wallet activity')+' • '+money(x.amount));
   const finance=document.createElement('div');finance.className='card';finance.style.marginTop='14px';finance.textContent='Loading payment and work summary…';body.appendChild(finance);
   try{
     const fr=await sb.rpc('admin_member_payment_history_v1',{p_member_id:memberId});
@@ -270,14 +309,13 @@ async function loadOcsMemberDetail(memberId){
     const hd=document.createElement('h3');hd.textContent='Working Record & Payment History';finance.appendChild(hd);
     const line=(k,v)=>finance.appendChild(ocsMemberField(k,v));
     line('Completed jobs',Number(ws.completed||0));line('Active jobs',Number(ws.active||0));line('Cancelled jobs',Number(ws.cancelled||0));
-    const show=(label,arr,format)=>{
-      const h=document.createElement('h3');h.textContent=label+' ('+arr.length+')';h.style.marginTop='15px';finance.appendChild(h);
-      if(!arr.length){const no=document.createElement('div');no.className='muted';no.textContent='No records yet';finance.appendChild(no)}
-      for(const x of arr){const el=document.createElement('div');el.className='row';el.style.display='block';el.textContent=format(x);finance.appendChild(el)}
-    };
-    show('Service Payments',fh.service_payments||[],x=>money(x.amount)+' • '+(x.method||'')+' • '+(x.status||'')+' • Commission '+money(x.commission_amount)+' • Booking #'+String(x.booking_id||'').slice(0,8));
-    show('SP Wallet Recharge',fh.recharges||[],x=>money(x.amount)+' • '+(x.status||''));
-    show('SP Withdrawals',fh.withdrawals||[],x=>money(x.amount)+' • '+(x.status||''));
+    datedRecords(finance,'Date-wise Service Payments',fh.service_payments||[],x=>x.paid_at||x.created_at,
+      x=>money(x.amount)+' • '+(x.method||'Method not recorded')+' • '+String(x.status||'Pending').toUpperCase()+
+        ' • OCS commission '+money(x.commission_amount)+' • Booking #'+String(x.booking_id||'').slice(0,8));
+    datedRecords(finance,'Date-wise SP Wallet Recharge',fh.recharges||[],x=>x.paid_at||x.created_at,
+      x=>money(x.amount)+' • '+String(x.status||'Pending').toUpperCase());
+    datedRecords(finance,'Date-wise SP Withdrawals',fh.withdrawals||[],x=>x.paid_at||x.created_at,
+      x=>money(x.amount)+' • '+String(x.status||'Pending').toUpperCase());
   }catch(err){finance.textContent='Payment history unavailable: '+(err.message||'Retry')}
   const lc=d.listing_counts||{};add('Own Listings','Shops '+(lc.shops||0)+' • Property '+(lc.property||0)+' • Posts '+(lc.posts||0));
  }catch(e){body.textContent='Member detail failed: '+(e.message||'Retry')}
