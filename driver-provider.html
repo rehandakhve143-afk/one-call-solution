@@ -23,7 +23,7 @@
 <section class="card" id="openCard"><h3>Driver Requests</h3><div class="sub">Nearby pickup & drop requests</div><div id="openJobs" class="empty">Checking requests…</div></section>
 </div>
 <section class="driver-view" id="driverAccount" hidden>
- <div class="card"><h2>Driver Profile</h2><p class="sub" style="margin-top:8px">4-Wheeler Driver account • Driving Licence, ID and selfie verification required. Vehicle RC is for Transport, not Driver Hire.</p><p class="sub" style="margin-top:9px">If your current Service Provider account has Appliance Repair or another job category, do not change that profile for Driver testing. Use a separate email and OCS Driver account.</p><button class="btn gray full" type="button" onclick="startSeparateDriverAccount()">Use Separate Driver Account</button></div>
+ <div class="card"><h2>Driver Profile</h2><p class="sub" style="margin-top:8px">4-Wheeler Driver account • Driving Licence, ID and selfie verification required. Vehicle RC is for Transport, not Driver Hire.</p><p class="sub" style="margin-top:9px">Profile details aur verification ek jagah manage karein.</p><button class="btn gray full" type="button" id="driverAccountSeparateAccountBtn" hidden onclick="startSeparateDriverAccount()">Use Separate Driver Account (category conflict)</button></div>
  <div class="driver-account-menu">
   <button type="button" onclick="location.href='index.html?open=sp-profile&v=20261006-bank1'"><b>👤 Driver Profile & Verification</b><small>Name, area, selected Driver Service and onboarding</small><span>›</span></button>
   <button type="button" onclick="location.href='payout-details.html?from=driver&v=20261006-bank1'"><b>🏦 Bank & Payout Details</b><small>Optional now • verified bank needed before payout</small><span>›</span></button>
@@ -51,6 +51,7 @@ async function load(){
   driverEligible=!!gate?.can_work;
   driverCategoryConflict=!!(gate?.current_category&&gate.current_category!=='Driver Service');
   $('driverSeparateAccountBtn').hidden=!driverCategoryConflict;
+  $('driverAccountSeparateAccountBtn').hidden=!driverCategoryConflict;
   $('driverName').textContent=String(snap?.full_name||snap?.profile?.full_name||'Driver');
   $('driverProfileLink').hidden=driverEligible;
   if(!driverEligible){
