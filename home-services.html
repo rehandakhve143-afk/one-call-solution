@@ -4095,9 +4095,9 @@ let h="";
 if(S.status==="SELECT_SERVICE"){
  const cats=Object.entries(services).sort(([a],[b])=>(a==="Custom / Other"?1:b==="Custom / Other"?-1:0));
  h=`<div class="ocs-hs-page">
-   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 24.3</span><button class="ocs-hs-back" onclick="try{window.parent.closeModule()}catch(e){}">‹</button><img class="ocs-hs-brandlogo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><h2>Home Services</h2><small>Verified professionals • clear rates</small></div></div>
+   <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 24.3</span><button class="ocs-hs-back" onclick="try{window.parent.closeModule()}catch(e){}">‹</button><img class="ocs-hs-brandlogo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><h2>Home Services</h2><small>Home service categories • clear rates</small></div></div>
    <div class="ocs-hs-body">
-     <div class="ocs-hs-hero"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Professional Home Services At Your Doorstep</b><span>Verified • Skilled • Reliable</span></div></div>
+     <div class="ocs-hs-hero"><img src="assets/home-services-card-final.jpg" alt=""><div><b>Professional Home Services At Your Doorstep</b><span>Clear Labour Rates • OCS Support</span></div></div>
      <div class="ocs-hs-search"><span>⌕</span><input id="catSearch" placeholder="Search home services..." oninput="filterLockedCategories(this.value)"></div>
      <div class="ocs-hs-cat-list">${cats.map(([k,v])=>`<button type="button" class="ocs-hs-cat" data-cat="${k.toLowerCase()}" data-ocs-category="${k}"><span class="ico">${ocsUiIcon(k)}</span><span class="copy"><b>${v.label||k}</b><small>${v.items.length}+ Services</small></span><span class="arr">›</span></button>`).join('')}</div>
    </div>
@@ -4117,7 +4117,7 @@ if(S.status==="SELECT_ITEM"){
  h=`<div class="ocs-hs-page">
    <div class="ocs-hs-head"><span style="position:absolute;right:10px;top:4px;font-size:7px;color:#9aa6a7">OCS 24.3</span><button type="button" class="ocs-hs-back" data-ocs-back-categories="1">‹</button><img class="ocs-hs-brandlogo" src="assets/ocs-logo-mark.svg?v=20260923-final2" alt="OCS"><div><h2>${displayCategory}</h2><small>${d.items.length} service${d.items.length===1?'':'s'}</small></div></div>
    <div class="ocs-hs-body">
-     <div class="ocs-svc-banner"><img src="assets/home-services-card-final.jpg" alt=""><div><b>${S.category==="Custom / Other"?"Tell us the work you need":"Safe "+displayCategory+" Solutions For Your Home"}</b><span>Verified Service Providers • clear OCS rates</span></div></div>
+     <div class="ocs-svc-banner"><img src="assets/home-services-card-final.jpg" alt=""><div><b>${S.category==="Custom / Other"?"Tell us the work you need":"Safe "+displayCategory+" Solutions For Your Home"}</b><span>Matching Service Providers • clear OCS rates</span></div></div>
      <div class="ocs-hs-search"><span>⌕</span><input id="svcSearch" placeholder="Search ${displayCategory.toLowerCase()}..." oninput="filterServiceCards(this.value)"></div>
      <p class="ocs-svc-note">Material/parts separate where applicable. Visit / Inspection and no-work charges follow OCS rules.</p>
      ${ocsLabourOnlyWarning()}
