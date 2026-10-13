@@ -5,7 +5,13 @@
 <title>OCS Driver Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f4f7f8;color:#173a42;font-family:system-ui,-apple-system,Segoe UI,Arial}.app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:84px}.top{background:#064d59;color:#fff;padding:18px 16px 22px;border-radius:0 0 26px 26px}.brand{display:flex;gap:12px;align-items:center}.logo{width:46px;height:46px;border-radius:14px;background:#111;display:grid;place-items:center;font-weight:900}.brand h1{margin:0;font-size:21px}.brand p{margin:3px 0 0;font-size:11px;opacity:.82}.wrap{padding:14px}.card{background:#fff;border:1px solid #e1e7e9;border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 7px 18px rgba(8,45,55,.05)}h2{font-size:22px;margin:0}h3{font-size:17px;margin:0 0 5px}.sub{font-size:11px;color:#78878c}.statuspill{display:inline-block;margin-top:8px;padding:6px 9px;border-radius:999px;background:#eaf7f4;color:#08786e;font-size:10px;font-weight:900}.job{border:1px solid #e3e9eb;border-radius:16px;padding:13px;margin-top:10px}.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #eef2f3;font-size:11px}.row:last-child{border-bottom:0}.row span{color:#78878c}.btn{border:0;border-radius:13px;padding:12px;font-weight:900}.primary{background:#078b81;color:#fff}.gray{background:#eaf0f1;color:#34515a}.yellow{background:#f3ef00;color:#17343c}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.full{width:100%;margin-top:10px}.bottom{position:fixed;left:0;right:0;bottom:0;height:68px;background:#075460;color:#fff;display:grid;grid-template-columns:repeat(4,1fr);z-index:20}.bottom button{border:0;background:transparent;color:#fff;font-size:10px}.bottom b{display:block;font-size:19px;margin-bottom:2px}.bottom button.on{color:#f3ef00}.empty{text-align:center;padding:24px 8px;color:#7b898d}.money{font-size:24px;font-weight:950;color:#064d59}.field{margin-top:10px}.field input,.field textarea{width:100%;padding:11px;border:1px solid #cfdcde;border-radius:12px;font:inherit}.field textarea{min-height:70px}.driver-view[hidden]{display:none!important}.driver-account-menu{display:grid;gap:10px}.driver-account-menu button{position:relative;background:#fff;border:1px solid #e1e7e9;border-radius:17px;padding:16px 37px 16px 14px;text-align:left;color:#173a42;width:100%}.driver-account-menu b{display:block;font-size:14px}.driver-account-menu small{display:block;margin-top:5px;color:#78878c;font-size:11px}.driver-account-menu span{position:absolute;right:14px;top:19px;font-size:20px;color:#6b7e83}
+*{box-sizing:border-box}body{margin:0;background:#f4f7f8;color:#173a42;font-family:system-ui,-apple-system,Segoe UI,Arial}.app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:84px}.top{background:#064d59;color:#fff;padding:18px 16px 22px;border-radius:0 0 26px 26px}.brand{display:flex;gap:12px;align-items:center}.logo{width:46px;height:46px;border-radius:14px;background:#111;display:grid;place-items:center;font-weight:900}.brand h1{margin:0;font-size:21px}.brand p{margin:3px 0 0;font-size:11px;opacity:.82}.wrap{padding:14px}.card{background:#fff;border:1px solid #e1e7e9;border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 7px 18px rgba(8,45,55,.05)}h2{font-size:22px;margin:0}h3{font-size:17px;margin:0 0 5px}.sub{font-size:11px;color:#78878c}.statuspill{display:inline-block;margin-top:8px;padding:6px 9px;border-radius:999px;background:#eaf7f4;color:#08786e;font-size:10px;font-weight:900}.job{border:1px solid #e3e9eb;border-radius:16px;padding:13px;margin-top:10px}.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #eef2f3;font-size:11px}.row:last-child{border-bottom:0}.row span{color:#78878c}.btn{border:0;border-radius:13px;padding:12px;font-weight:900}.primary{background:#078b81;color:#fff}.gray{background:#eaf0f1;color:#34515a}.yellow{background:#f3ef00;color:#17343c}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.full{width:100%;margin-top:10px}.bottom{position:fixed;left:0;right:0;bottom:0;height:68px;background:#075460;color:#fff;display:grid;grid-template-columns:repeat(4,1fr);z-index:20}.bottom button{border:0;background:transparent;color:#fff;font-size:10px}.bottom b{display:block;font-size:19px;margin-bottom:2px}.bottom button.on{color:#f3ef00}.empty{text-align:center;padding:24px 8px;color:#7b898d}.money{font-size:24px;font-weight:950;color:#064d59}.field{margin-top:10px}.field input,.field textarea{width:100%;padding:11px;border:1px solid #cfdcde;border-radius:12px;font:inherit}.field textarea{min-height:70px}.driver-view[hidden]{display:none!important}
+.driver-safety{margin-top:12px;border:1px solid #e1e8e9;border-radius:13px;padding:10px 12px;background:#f9fbfb;font-size:11px}
+.driver-safety summary{cursor:pointer;font-weight:800;color:#395b61;padding:4px 0}
+.driver-safety p{line-height:1.5;color:#576d71}
+.driver-safety a,.driver-safety button{display:inline-block;margin:4px 8px 4px 0;border:0;border-radius:10px;padding:10px;background:#eaf1f2;color:#114f5a;text-decoration:none;font-size:12px;font-weight:800}
+.driver-safety a{background:#fff0f0;color:#a32929}
+#driverSafetySlot[hidden]{display:none!important}.driver-account-menu{display:grid;gap:10px}.driver-account-menu button{position:relative;background:#fff;border:1px solid #e1e7e9;border-radius:17px;padding:16px 37px 16px 14px;text-align:left;color:#173a42;width:100%}.driver-account-menu b{display:block;font-size:14px}.driver-account-menu small{display:block;margin-top:5px;color:#78878c;font-size:11px}.driver-account-menu span{position:absolute;right:14px;top:19px;font-size:20px;color:#6b7e83}
 </style></head><body>
 <div class="app">
 <header class="top"><div class="brand"><div class="logo">OCS</div><div><h1>Driver Dashboard</h1><p>4-Wheeler Driver • Pickup & Drop</p></div></div></header>
@@ -13,7 +19,7 @@
 <div id="driverHome" class="driver-view">
 <section class="card"><h2 id="driverName">Driver</h2><div class="sub" id="driverMeta">OCS Driver Service</div><span class="statuspill" id="workState">Checking Profile</span><div id="driverEligibilityHelp" class="sub" style="margin-top:10px"></div><button class="btn yellow full" id="workBtn" onclick="toggleWork()" disabled>Checking…</button><button class="btn gray full" type="button" id="driverProfileLink" onclick="tab('account')" hidden>Open Driver Profile & Verification</button>
 <button class="btn gray full" type="button" id="driverSeparateAccountBtn" hidden onclick="startSeparateDriverAccount()">Use Separate Driver Test Account</button></section>
-<section class="card" id="currentCard"><h3>Current Trip</h3><div id="currentBody" class="empty">No active trip</div></section>
+<section class="card" id="currentCard"><h3>Current Trip</h3><div id="currentBody" class="empty">No active trip</div><div id="driverSafetySlot" hidden><details class="driver-safety"><summary>Emergency / Accident Help</summary><p>For injuries or danger, contact emergency services first. OCS report is separate; it does not automatically call police or share live GPS.</p><a href="tel:112">Call Emergency 112</a><button type="button" onclick="reportDriverSafety()">Report to OCS</button></details></div></section>
 <section class="card" id="openCard"><h3>Driver Requests</h3><div class="sub">Nearby pickup & drop requests</div><div id="openJobs" class="empty">Checking requests…</div></section>
 </div>
 <section class="driver-view" id="driverAccount" hidden>
@@ -100,18 +106,18 @@ function jobCard(j){
 }
 async function acceptJob(id){try{const {error}=await sb.rpc('accept_booking_v3',{p_booking_id:id});if(error)throw error;await load()}catch(e){alert(e.message||'Accept failed')}}
 async function rejectJob(id){try{const {error}=await sb.rpc('reject_booking_v2',{p_booking_id:id,p_reason:'Driver unavailable'});if(error)throw error;await loadOpenJobs()}catch(e){alert(e.message||'Reject failed')}}
-// Hourly Driver fare is set by OCS and locked by the backend at booking; no manual quote.
+// The approved duration package fare is fixed by OCS; the Driver never enters a manual price.
 async function loadCurrent(){
  try{
    const {data,error}=await sb.rpc('provider_current_booking');if(error)throw error;
    const b=Array.isArray(data)?data[0]:data;current=(b&&String(b.category||'')==='Driver Service')?b:null;
-   if(!current){$('currentBody').innerHTML='<div class="empty">No active Driver trip</div>';return}
+   if(!current){$('currentBody').innerHTML='<div class="empty">No active Driver trip</div>';$('driverSafetySlot').hidden=true;return} $('driverSafetySlot').hidden=false;
    const r=current.booking_readiness||{},s=String(current.status||'').toLowerCase();
    let action='';
    if(s==='accepted')action='<button class="btn primary full" onclick="act(\'on_way\')">On the Way</button>';
    if(s==='on_way')action='<button class="btn primary full" onclick="act(\'reached\')">Reached Pickup</button>';
-   if(s==='reached')action='<button class="btn yellow full" onclick="startOtp()">Enter Start OTP</button>';
-   if(s==='working')action='<button class="btn primary full" onclick="act(\'complete\')">Request Trip Completion</button>';
+   if(s==='reached')action='<button class="btn yellow full" onclick="startOtp()">Start Trip • Enter OTP</button>';
+   if(s==='working')action='<div class="sub" style="margin-top:12px;line-height:1.5">Booked '+esc(r.estimated_duration||'')+'. Extra time is ₹2/min and must be approved by Customer in OCS after trip ends.</div><button class="btn primary full" onclick="act(\'complete\')">End Trip</button>';
    if(s==='completion_requested')action='<div class="sub" style="padding:12px 0">Waiting for Customer to confirm trip completion.</div>';
    if(s==='payment_pending')action='<div class="sub" style="padding:12px 0">Waiting for Customer to pay Cash directly to you and mark payment in the app. Do not confirm receipt before you actually receive cash.</div>';
    if(s==='cash_wait')action='<div class="sub" style="padding:12px 0">Customer marked Cash Paid. Check that you actually received the money before confirming. OCS 9% commission is then recorded against your wallet.</div><button class="btn yellow full" onclick="confirmDriverCash()">Confirm Cash Received</button>';
@@ -134,6 +140,20 @@ async function loadAssignedCustomerPhone(id){
   a.style.textAlign='center';
   el.replaceChildren(a);
  }catch(e){el.textContent='Callback number available only for assigned active Driver.'}
+}
+async function reportDriverSafety(){
+ if(!current?.id){alert('Only an assigned active Driver trip can be reported.');return}
+ const details=(prompt('Accident / safety issue: what happened? Do not enter ID numbers.')||'').trim();
+ if(!details)return;
+ if(details.length<8){alert('Please add short incident details.');return}
+ try{
+   const {data,error}=await sb.rpc('create_support_ticket_v1',{
+     p_role:'service_provider',p_category:'Driver Service - Safety',
+     p_message:'SAFETY / ACCIDENT • '+details,p_callback:true,p_booking_id:current.id
+   });
+   if(error)throw error;
+   alert('Safety report sent to OCS'+(data?.ticket_no?' • Ticket '+data.ticket_no:''));
+ }catch(e){alert('Safety report failed: '+(e.message||'Retry'))}
 }
 async function act(a){try{const {error}=await sb.rpc('provider_booking_action',{p_booking_id:current.id,p_action:a,p_start_otp:null});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'Update failed')}}
 async function startOtp(){const otp=(prompt('Customer ka Start OTP enter karein')||'').trim();if(!otp)return;try{const {error}=await sb.rpc('provider_booking_action',{p_booking_id:current.id,p_action:'start',p_start_otp:otp});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'OTP invalid')}}
