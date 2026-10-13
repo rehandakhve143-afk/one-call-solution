@@ -397,10 +397,10 @@ async function loadOcsFinanceLedger(page=0){
   if(request!==ocsFinanceReq)return;
   if(r.error)throw r.error;
   const d=r.data||{}, sum=d.summary||{}, records=Array.isArray(d.records)?d.records:[],total=Number(d.matching||0);
-  summary.textContent='Records: '+total+' • Customer payments (Cash + Online): '+money(sum.booking_collected)+' • Booking commission: '+money(sum.booking_commission)+' • Paid listings: '+money(sum.paid_listing_collection)+' • SP recharges: '+money(sum.wallet_topups)+' • Paid withdrawals: '+money(sum.withdrawals_paid)+'. Totals follow selected filters; wallet movements are separate, not additional sales.';
+  summary.textContent='Records: '+total+' • CASH paid to SP: '+money(sum.cash_bookings_total)+' • ONLINE booking paid: '+money(sum.online_bookings_total)+' • OCS Cash Commission (wallet deduction): '+money(sum.cash_commission_recorded)+' • OCS Online Commission (recorded): '+money(sum.online_commission_recorded)+' • Paid listings: '+money(sum.paid_listing_collection)+' • SP wallet recharges: '+money(sum.wallet_topups)+' • Paid withdrawals: '+money(sum.withdrawals_paid)+'. Cash booking totals are NOT company bank receipts. Commission totals are recorded amounts, not verified bank settlements.';
   target.replaceChildren();
   for(const rec of records){
-   const card=document.createElement('div');card.className='card';card.style.marginTop='10px';
+   const card=document.createElement('div');card.className='card';card.style.cssText='margin-top:8px;padding:11px 12px;border-radius:13px';
    const heading=document.createElement('b');heading.textContent=String(rec.record_type||'Record').toUpperCase()+' • '+String(rec.title||rec.category||'OCS Record');card.appendChild(heading);
    const detail=document.createElement('p');detail.className='muted';detail.style.margin='9px 0 0';
    const date=new Date(rec.occurred_at);
@@ -410,9 +410,11 @@ async function loadOcsFinanceLedger(page=0){
     const commission=document.createElement('p');commission.className='muted';
     commission.textContent='Method: '+String(rec.method||'—')+' • OCS commission: '+money(rec.commission_amount)+' • Service Provider: '+String(rec.provider_name||'Not assigned');card.appendChild(commission);
    }
+   const ids=document.createElement('details');ids.style.cssText='margin-top:7px;padding-top:7px;border-top:1px solid #edf1f2';
+   const exp=document.createElement('summary');exp.className='muted';exp.style.cursor='pointer';exp.textContent='View Booking / Record IDs';ids.appendChild(exp);
    const ref=document.createElement('p');ref.className='muted';ref.style.overflowWrap='anywhere';
    ref.textContent=(rec.booking_id?'Booking ID: '+rec.booking_id+' • ':'')+'Record ID: '+String(rec.record_id||'')+(rec.payment_reference?' • Gateway Ref: '+rec.payment_reference:'');
-   card.appendChild(ref);target.appendChild(card);
+   ids.appendChild(ref);card.appendChild(ids);target.appendChild(card);
   }
   if(!records.length)target.textContent='No finance records found for selected filters.';
   if(pager){
