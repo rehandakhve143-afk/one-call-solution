@@ -464,8 +464,8 @@ async function loadOcsPhotoIdQueue(){
     if(value==='manual_checked'&&(!docOpened||!selfieOpened)){alert('Open and review both ID and selfie first.');return}
     if(value==='rejected'&&note.value.trim().length<5){alert('Write correction reason (at least 5 letters).');return}
     if(!confirm(value==='manual_checked'?'Mark manual ID and selfie check complete? This is NOT government verification.':'Reject and request ID correction?'))return;
-    const x=await sb.rpc('ocs_admin_review_photo_id_v1',{p_provider_id:row.provider_id,p_decision:value,p_note:note.value.trim(),p_seen_document:docOpened,p_seen_selfie:selfieOpened});
-    if(x.error)throw x.error;await loadOcsPhotoIdQueue();
+    const x=await sb.rpc('ocs_admin_review_photo_id_v2',{p_provider_id:row.provider_id,p_decision:value,p_note:note.value.trim(),p_seen_document:docOpened,p_seen_selfie:selfieOpened,p_expected_document_path:row.document_path,p_expected_selfie_path:row.selfie_path,p_expected_document_updated_at:row.doc_updated_at,p_expected_selfie_updated_at:row.selfie_updated_at,p_expected_review_updated_at:row.updated_at});
+    if(x.error){alert('Review was not saved: '+x.error.message+' Refreshing private review list.');await loadOcsPhotoIdQueue();return}await loadOcsPhotoIdQueue();
    }
    const approve=document.createElement('button');approve.className='btn ok';approve.textContent='Manual Check Complete (not KYC)';approve.onclick=()=>decision('manual_checked').catch(e=>alert(e.message));card.appendChild(approve);
    const reject=document.createElement('button');reject.className='btn red';reject.textContent='Reject / Request Correction';reject.onclick=()=>decision('rejected').catch(e=>alert(e.message));card.appendChild(reject);
