@@ -117,7 +117,7 @@ async function loadDashboard(){
    }catch(e){}
    const onboardingApproved=onboardingStatus==='approved';
    const pill=document.getElementById('verifyPill');
-   if(onboardingApproved&&skillApproved)pill.textContent='VERIFIED SP';
+   if(onboardingApproved&&skillApproved)pill.textContent='ADMIN-APPROVED SP';
    else if(skillApproved&&!onboardingApproved)pill.textContent='PROFILE APPROVAL PENDING';
    else pill.textContent='SKILL APPROVAL PENDING';
    available=profile.available_for_work!==false;
