@@ -30,19 +30,23 @@ footer a,footer button{border:0;background:#ffffff20;color:white;text-decoration
 #toast.bad{background:#fff0ed;border-color:#f6c9be;color:#993e35}
 </style></head><body>
 <header><div class="top"><div class="logo">OCS</div><div><h1>Safe Test Mode</h1><small>One Call Solution • Customer ↔ Test SP</small></div><a class="back" href="index.html">← OCS Home</a></div>
-<div class="testnotice">🧪 DEMO ONLY — No real booking, no real Service Provider, no Razorpay charge, no SMS, no payout. Nothing is sent to the OCS backend. All activity is simulated on this browser only.</div></header>
+<div class="testnotice">🧪 DEMO ONLY — No real booking, no real Service Provider, no Razorpay charge, no SMS, no payout, no UPI or cash transfer. Nothing is sent to the OCS backend. All activity is simulated on this browser only.</div></header>
 <main><div id="toast" role="status"></div><div class="switch"><button id="customerTab" onclick="setRole('customer')">🏠 Customer</button><button id="spTab" onclick="setRole('sp')">🛠 Test SP</button></div><div id="screen"></div></main>
 <footer><button onclick="resetDemo()">↻ Reset Demo</button><a href="customer-launch-v1.html">View Real Rates</a></footer>
 <script>
 (function(){
 'use strict';
 const KEY='ocs_test_mode_demo_v1';
+// Direct-to-SP payment is a DEMO concept only; real provider settlement is not enabled.
 const sample=[{name:'Fan Fitting / Capacitor Change',qty:1,price:239},{name:'Fan Hook / Anchor Fastener Fitting',qty:1,price:300}];
 const byId=x=>document.getElementById(x);
 const rupees=x=>'₹'+Number(x||0).toLocaleString('en-IN',{maximumFractionDigits:2});
 const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function moneyTotal(items){return (items||[]).reduce((n,x)=>n+(Number(x.qty)||1)*Number(x.price||0),0)}
-function fresh(){return{version:1,role:'customer',mode:'fixed',category:'Electrical',items:sample.map(x=>({...x})),pay:'online',draftDescription:'',workOn:true,booking:null,events:[]}}
+function ocsFee(amount){return Math.round(Math.max(0,Number(amount||0))*9)/100}
+function paymentLabel(method){return method==='cash'?'Cash directly to Test SP (demo)':'UPI directly to Test SP (demo)'}
+function splitPreview(amount){const total=Math.max(0,Number(amount)||0);const fee=ocsFee(total);return '<div class="preview">'+row('Customer pays directly to SP (demo)',rupees(total))+row('OCS platform charge (9%) • SP owes separately',rupees(fee))+row('SP net after platform charge (91%)',rupees(total-fee))+'<p class="muted">Simulation only: SP receives no real payment; OCS charges nothing; no payout, wallet debit or Razorpay Route split.</p></div>'}
+function fresh(){return{version:1,role:'customer',mode:'fixed',category:'Electrical',items:sample.map(x=>({...x})),pay:'cash',draftDescription:'',workOn:true,booking:null,events:[]}}
 function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&x.version===1&&['customer','sp'].includes(x.role)&&Array.isArray(x.items))return x}catch(e){}return fresh()}
 let state=read(),busy=false;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
@@ -51,7 +55,7 @@ function log(msg){state.events.unshift({msg,time:new Date().toLocaleTimeString('
 function row(k,v){return'<div class="row"><span>'+esc(k)+'</span><b>'+esc(v)+'</b></div>'}
 function button(t,fn,cl){return'<button type="button" class="btn '+(cl||'')+'" onclick="'+fn+'">'+esc(t)+'</button>'}
 function card(title,body){return'<section class="card"><h2>'+esc(title)+'</h2>'+body+'</section>'}
-function stageName(s){return({searching:'Waiting for Test SP',accepted:'Accepted',on_way:'On The Way',reached:'Reached • Start OTP',working:'Work In Progress',completion_requested:'Customer Confirmation Pending',payment_pending:'Payment Pending',cash_wait:'Cash Confirmation Pending',completed:'Completed (Demo)',support_review:'Support Review (Demo)'})[s]||s}
+function stageName(s){return({searching:'Waiting for Test SP',accepted:'Accepted',on_way:'On The Way',reached:'Reached • Start OTP',working:'Work In Progress',completion_requested:'Customer Confirmation Pending',payment_pending:'Payment Pending',cash_wait:'Direct Payment Confirmation Pending',direct_wait:'Direct Payment Confirmation Pending',completed:'Completed (Demo)',support_review:'Support Review (Demo)'})[s]||s}
 function logHtml(){return state.events.length?'<ul class="timeline">'+state.events.map(x=>'<li>'+esc(x.time)+' • '+esc(x.msg)+'</li>').join('')+'</ul>':'<p class="muted">No test actions yet.</p>'}
 function setRole(role){if(!['customer','sp'].includes(role))return;state.role=role;save();render()}
 function randomDigits(){const arr=new Uint32Array(1);crypto.getRandomValues(arr);return String(1000+(arr[0]%9000))}
@@ -66,7 +70,9 @@ function startCart(){
  const items=state.mode==='fixed'?'<div class="preview">'+state.items.map(x=>'<div class="row"><span>'+esc(x.name)+' × '+Number(x.qty||1)+'</span><b>'+esc(rupees(Number(x.qty||1)*x.price))+'</b></div>').join('')+'</div><div class="money">'+rupees(moneyTotal(state.items))+'</div>':'<p class="muted">Test SP will send a quote; Customer must accept it before work starts.</p><label>Describe Test Work</label><textarea id="testDescription" rows="2" placeholder="Example: Main distribution board work">'+esc(state.draftDescription||"Electrical fault inspection and repair (demo)")+'</textarea>';
  return card('1. Create Safe Test Booking','<p class="muted">Aapki ₹539 wali Electrical selection pehle se ready hai. Koi real request nahi jayegi.</p>'+opt+items+
  '<label>Demo Address (not shared)</label><input value="OCS Test Address, Khopoli" disabled>'+
- '<label>Simulated Payment Method</label><div class="grid2"><button class="'+(state.pay==='online'?'on':'')+'" onclick="setPay(\'online\')">Online (Demo)</button><button class="'+(state.pay==='cash'?'on':'')+'" onclick="setPay(\'cash\')">Cash (Demo)</button></div>'+
+ '<label>Simulated Direct Payment</label><div class="grid2"><button class="'+(state.pay!=='cash'?'on':'')+'" onclick="setPay(\'direct_upi\')">UPI to SP (Demo)</button><button class="'+(state.pay==='cash'?'on':'')+'" onclick="setPay(\'cash\')">Cash to SP (Demo)</button></div>'+ 
+ '<div class="preview"><b>Payee: OCS DEMO Service Provider (not a real person).</b><br>Customer sees who receives payment. SP separately owes OCS 9% after receipt. Real payments and provider details will need approval and verification.</div>'+ 
+ (state.mode==='fixed'?splitPreview(moneyTotal(state.items)):'<p class="muted">Final 9% calculation appears after the demo quote is accepted.</p>')+
  '<div class="actions">'+button('Create TEST Booking — ₹0 Real Charge','makeBooking()','yellow')+'</div>');
 }
 function bookingDetails(){
@@ -74,11 +80,13 @@ function bookingDetails(){
  return card('Test Booking', '<span class="pill">'+esc(stageName(b.status))+'</span>'+
  row('Reference',b.id)+row('Category',b.category)+row('Service',b.mode==='quote'?'Get Quote':b.items.map(x=>x.name+' × '+x.qty).join(', '))+
  row('Booking Amount',b.mode==='quote'&&!b.quoteAccepted?'Awaiting Test Quote':rupees(b.amount))+
- row('Payment',b.pay==='online'?'Online Simulation':'Cash Simulation')+
+ row('Payment receiver','OCS DEMO Service Provider • simulated only')+
+ row('Payment method',paymentLabel(b.pay))+
+ (b.mode==='quote'&&!b.quoteAccepted?'':splitPreview(b.amount)) +
  (b.mode==='quote'&&b.quote!=null?'<div class="preview">Test SP Quote: <b>'+rupees(b.quote)+'</b> • '+(b.quoteAccepted?'Customer accepted':'Awaiting Customer approval')+'</div>':''));
 }
 function customerHTML(){
- if(!state.booking)return startCart()+card('How To Test','<p class="muted">Create Test Booking → switch to Test SP → Accept → On The Way → Reached → switch Customer for OTP → Test SP starts work → Customer confirms → simulated payment.</p>');
+ if(!state.booking)return startCart()+card('How To Test','<p class="muted">Create Test Booking → Test SP Accept → On The Way → Reached → Customer Start OTP → Work → Customer confirms → simulated direct Cash/UPI → SP receipt confirmation → 9% separate platform charge preview. No real money.</p>');
  const b=state.booking;
  let html=bookingDetails(), actions='', message='';
  if(b.status==='searching'){message='Switch to Test SP to Accept this request.';actions=button('Switch to Test SP',"setRole('sp')");}
@@ -90,9 +98,9 @@ function customerHTML(){
  if(b.status==='reached'){message='Sirf Test SP ke Reached karne ke baad OTP visible hota hai. Yeh completion proof nahi hai.';html+=card('Start Work OTP • Customer Only','<div class="otp">'+esc(b.otp)+'</div><p class="muted">Test SP par switch karke OTP enter karein.</p>');actions=button('Switch to Test SP',"setRole('sp')");}
  if(b.status==='working'){message='Test SP kaam complete request karega.';actions=button('Switch to Test SP',"setRole('sp')");}
  if(b.status==='completion_requested'){message='Check work before you confirm (simulation).';actions=button('Yes, Test Work Completed','confirmWork()')+button('Report Issue (Demo)','reportIssue()','warn');}
- if(b.status==='payment_pending'){message='This is NOT Razorpay or a real transaction.';actions=button(b.pay==='cash'?'Mark Simulated Cash Paid':'Simulate Online Payment — ₹0 charged','simulatePayment()','yellow');}
- if(b.status==='cash_wait'){message='Cash simulated. Test SP must confirm cash receipt. No money should be paid.';actions=button('Switch to Test SP',"setRole('sp')");}
- if(b.status==='completed'){message='Complete flow finished. All amounts below are estimates only; no payment or wallet change happened.';html+=card('Demo Settlement',row('Total simulated amount',rupees(b.amount))+row('OCS 9% (simulation)',rupees(Math.round(b.amount*9)/100))+row('Test SP 91% (simulation)',rupees(b.amount-Math.round(b.amount*9)/100)));}
+ if(b.status==='payment_pending'){message='DEMO ONLY. No UPI ID, QR, cash handover or real transfer. Payee: OCS DEMO SP. Simulate direct payment after checking work.';actions=button(b.pay==='cash'?'Simulate Cash Paid to SP':'Simulate UPI Paid to SP','simulatePayment()','yellow');}
+ if(b.status==='cash_wait'||b.status==='direct_wait'){message='Simulated direct payment marked. Test SP must confirm receipt. Do not send money.';actions=button('Switch to Test SP',"setRole('sp')");}
+ if(b.status==='completed'){message='Direct-to-SP demo finished. No payment, wallet transaction or payout occurred.';html+=card('Direct Payment & Platform Charge • Demo',splitPreview(b.amount));}
  if(b.status==='support_review')message='Customer dispute recorded only on this device. No real support ticket raised.';
  return html+card('Customer Next Action','<p class="muted">'+esc(message)+'</p>'+(actions?'<div class="actions">'+actions+'</div>':''))+
  card('Demo Activity',logHtml());
@@ -114,14 +122,14 @@ function spHTML(){
  else if(b.status==='working'){hint='Work finish hone par Customer confirmation request karein.';next=button('Request Work Completion',"spStep('complete')");}
  else if(b.status==='completion_requested'){hint='Waiting for Customer confirmation.';next=button('Switch to Customer',"setRole('customer')");}
  else if(b.status==='payment_pending'){hint='Customer payment simulation pending.';next=button('Switch to Customer',"setRole('customer')");}
- else if(b.status==='cash_wait'){hint='Only simulated cash. This does NOT credit money or debit wallet.';next=button('Confirm DEMO Cash Received','spCashReceived()','yellow');}
+ else if(b.status==='cash_wait'||b.status==='direct_wait'){hint='Confirm simulated receipt from Customer. OCS 9% platform fee is NOT collected or debited in this demo.';next=button('Confirm DEMO Direct Payment Received','spCashReceived()','yellow');}
  else if(b.status==='completed'){hint='Demo job completed. No actual payment or commission applied.';}
  else if(b.status==='support_review'){hint='Demo support hold. No actual ticket sent.';}
  return card('Test SP Dashboard','<span class="pill">TEST PROVIDER ONLY</span>'+row('Account','OCS Demo Service Provider')+row('Work Availability',state.workOn?'ON':'OFF')+'<div class="actions">'+button(state.workOn?'Turn Work OFF (Demo)':'Turn Work ON (Demo)','toggleWork()','alt')+'</div>')+
  bookingDetails()+card('Service Provider Next Action','<p class="muted">'+esc(hint)+'</p>'+(next?'<div class="actions">'+next+'</div>':''))+card('Demo Activity',logHtml());
 }
 function selectMode(mode){if(state.booking){toast('Reset Demo before changing mode.',true);return}state.mode=mode==='quote'?'quote':'fixed';save();render()}
-function setPay(p){if(state.booking)return;state.pay=p==='cash'?'cash':'online';save();render()}
+function setPay(p){if(state.booking)return;state.pay=p==='cash'?'cash':'direct_upi';save();render()}
 function makeBooking(){
  if(state.booking){toast('Reset Demo first.',true);return}
  const description=state.mode==='quote'?String(byId('testDescription')?.value||'').trim():'';
@@ -148,11 +156,11 @@ function spStep(action){
 function confirmWork(){const b=state.booking;if(!b||b.status!=='completion_requested')return;b.status='payment_pending';log('Customer confirmed demo work complete');save();render()}
 function reportIssue(){const b=state.booking;if(!b||b.status!=='completion_requested')return;b.status='support_review';log('Customer reported demo issue; mock support hold');save();render()}
 function simulatePayment(){const b=state.booking;if(!b||b.status!=='payment_pending')return;
- if(b.pay==='cash'){b.status='cash_wait';log('Customer marked simulated cash (no real money)')}
- else{b.status='completed';log('Online demo payment simulated • ₹0 actually charged')}
+ b.status='direct_wait';
+ log('Customer simulated direct '+(b.pay==='cash'?'Cash':'UPI')+' to Test SP; receipt verification pending • ₹0 actual transfer')
  save();render();
 }
-function spCashReceived(){const b=state.booking;if(!b||b.status!=='cash_wait')return;b.status='completed';log('Test SP confirmed simulated cash • no real money');save();render()}
+function spCashReceived(){const b=state.booking;if(!b||!['direct_wait','cash_wait'].includes(b.status))return;b.status='completed';log('Test SP confirmed simulated direct payment • 9% shown separately • no real money');save();render()}
 function resetDemo(){if(!confirm('Only this device ka test booking clear karna hai? Real OCS data untouched.'))return;state=fresh();save();toast('Demo reset. No real booking touched.');render()}
 Object.assign(window,{setRole,selectMode,setPay,makeBooking,toggleWork,spAccept,spQuote,acceptQuote,rejectQuote,spStep,confirmWork,reportIssue,simulatePayment,spCashReceived,resetDemo});
 try{
@@ -170,7 +178,7 @@ try{
      state.category=String(imported.category||'Electrical').slice(0,60);
      if(items.length)state.items=items;
      state.mode=quote?'quote':'fixed';
-     state.pay=imported.pay==='cash'?'cash':'online';
+     state.pay=imported.pay==='cash'?'cash':'direct_upi';
      state.draftDescription=String(imported.description||'').slice(0,500);
      save();
    }
