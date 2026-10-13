@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="Cache-Control" content="no-store"><title>OCS Mobile Verification</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<style>*{box-sizing:border-box}body{margin:0;font:15px Arial,sans-serif;background:#f5f8f8;color:#163c45}.app{max-width:480px;margin:auto;min-height:100vh}.head{padding:20px 18px;background:#064f58;color:white;border-radius:0 0 20px 20px}.head h1{font-size:21px;margin:0 0 5px}.head small{color:#c8e9e5}.body{padding:16px}.card{background:white;border:1px solid #dae7e7;border-radius:17px;padding:17px;margin-bottom:12px}.row{display:flex;justify-content:space-between;gap:15px;align-items:center;border-top:1px solid #eef2f2;padding:12px 0;font-size:13px}.row strong{text-align:right}.row:first-child{border-top:none}.bad{color:#ad4c2f}.good{color:#087857}.muted{font-size:13px;color:#62787b;line-height:1.5}button,a.link{border:0;text-decoration:none;background:#097a72;color:white;font:700 14px Arial;border-radius:12px;display:block;padding:14px;text-align:center;width:100%}button:disabled{background:#97a9a9}.secondary{background:white!important;color:#17515a!important;border:1px solid #d2e1e0!important;margin-top:9px}</style></head><body><div class="app"><div class="head"><h1>OCS • Mobile Verification</h1><small>One for All, All for One</small></div><main class="body"><section class="card"><h2 style="font-size:17px">Account Security</h2><p class="muted">Verification status comes from authenticated OCS records. A mobile number typed in a profile is not proof of OTP verification.</p><div id="result">Checking account…</div></section><section class="card"><h2 style="font-size:17px">Verify your mobile</h2><p class="muted" id="providerNote">Checking SMS availability…</p><button disabled id="verifyButton">SMS OTP setup pending</button><p class="muted">Mobile SMS OTP will be enabled after OCS configures a supported SMS provider and tests delivery. Do not share OTPs with anyone.</p></section><a class="link secondary" href="index.html?v=20261013-phoneverify1">← Back to OCS Home</a></main></div>
+<script>
+const sb=window.supabase.createClient('https://uipmkrsggpkupgbgoxkg.supabase.co','sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+async function check(){
+ const el=document.getElementById('result');
+ try{
+  const session=await sb.auth.getSession();
+  if(!session?.data?.session){el.textContent='Login required. Go back to OCS Home and login with your existing email account.';document.getElementById('providerNote').textContent='Please log in first.';return}
+  const r=await sb.rpc('ocs_my_mobile_verification_v1');
+  if(r.error)throw r.error;
+  const d=r.data||{};
+  const rows=[['Mobile OTP',d.mobile_verified?'Verified':'NOT VERIFIED'],['Email',d.email_confirmed?'Confirmed':'Not confirmed'],['Account',d.internal_test_account?'OCS Testing Account':'OCS Account'],['SMS provider',d.sms_otp_available?'Availability requires confirmation':'Not yet configured']];
+  el.replaceChildren();
+  for(const [name,value] of rows){const div=document.createElement('div');div.className='row';const span=document.createElement('span');span.textContent=name;const strong=document.createElement('strong');strong.textContent=value;strong.className=value==='Verified'?'good':(/NOT VERIFIED|Not yet configured/.test(value)?'bad':'');div.append(span,strong);el.appendChild(div)}
+  document.getElementById('providerNote').textContent=d.internal_test_account?'Testing account: please keep your original email login. Multiple accounts may share a test contact number.':'SMS OTP provider approval/setup is still pending. Existing email login keeps working.';
+ }catch(e){el.textContent='Verification status unavailable: '+(e.message||'Please retry');document.getElementById('providerNote').textContent='SMS sending is unavailable.'}
+}
+check();
+</script></body></html>
