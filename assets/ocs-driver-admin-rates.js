@@ -3,7 +3,7 @@
  */
 (function(){
  'use strict';
- const HOURS=[2,2.5,3,3.5,4,4.5,5,5.5,6,8,12];
+ const HOURS=[2,2.5,3,3.5,4,4.5,5,5.5,6,8,12,14];
  let snapshot=[];
  const root=()=>document.getElementById('driverPackagesPanel');
  const byId=id=>document.getElementById(id);
