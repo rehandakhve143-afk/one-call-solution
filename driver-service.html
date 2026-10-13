@@ -349,6 +349,15 @@ async function loadBooking(){
    $('tripActions').innerHTML=s==='completion_requested'?'<div class="actions"><button class="primary" onclick="confirmDone()">Confirm Complete</button><button class="gray" onclick="support()">Need Help</button></div>':
      noShowAllowed?'<div class="actions"><button class="gray" onclick="reportDriverNoShow()">Driver nahi aaya • OCS Help</button></div>':
      s==='provider_change_hold'?'<div class="sub" style="padding:12px">OCS Operator replacement request review kar raha hai. Current Driver trip start nahi kar sakta.</div>':'';
+   if(s==='completion_requested'){
+     try{
+       const {data:fare,error:fareError}=await sb.rpc('ocs_driver_trip_fare_preview_v1',{p_booking_id:b.id});
+       if(fareError)throw fareError;
+       const extra=Number(fare?.extra_amount||0);
+       const approved=!!fare?.already_accepted;
+       $('tripActions').innerHTML='<div class="sub" style="padding:12px;line-height:1.6">Trip ended • '+Number(fare?.actual_minutes||0)+' actual minutes • '+Number(fare?.booked_minutes||0)+' minutes booked. '+(extra>0?'Extra '+fare.extra_minutes+' minutes × ₹2 = <b>₹'+extra.toFixed(0)+'</b>. ':'No overtime charge. ')+(approved?'Overtime already approved.':'Review fare before confirming completion.')+'</div><div class="actions">'+(!approved&&extra>0?'<button class="primary" onclick="acceptDriverExtra('+Number(fare.extra_minutes||0)+')">Accept Extra ₹'+extra.toFixed(0)+'</button><button class="gray" onclick="support()">Dispute / Help</button>':'<button class="primary" onclick="confirmDone()">Confirm Complete</button><button class="gray" onclick="support()">Need Help</button>')+'</div>';
+     }catch(e){$('tripActions').innerHTML='<div class="sub">Fare verification pending. Please retry or contact OCS Support.</div><button class="gray" onclick="support()">OCS Support</button>'}
+   }
    if(s==='payment_pending'){
     $('tripActions').innerHTML='<div class="sub" style="padding:12px;line-height:1.6">Trip completion confirmed. Pay <b>₹'+Number(b.booking_amount||0).toFixed(2)+'</b> directly to your assigned Driver in Cash, then mark it here. Never pay an unknown person. OCS 9% charge is separate from the Driver side.</div><div class="actions"><button class="primary" onclick="markDriverCashPaid()">I Paid Cash to Driver</button><button class="gray" onclick="support()">Payment Help</button></div>';
    }else if(s==='cash_wait'){
@@ -379,6 +388,15 @@ async function reportDriverNoShow(){
   show('OCS Operator request sent'+(result.data&&result.data.ticket_no?' • '+result.data.ticket_no:''),false);
   await loadBooking();
  }catch(e){show('Driver issue report nahi hua: '+(e.message||'Retry'),true)}
+}
+async function acceptDriverExtra(minutes){
+ if(!current||!Number.isInteger(minutes)||minutes<1)return;
+ if(!confirm('Confirm Driver overtime of '+minutes+' min at ₹2/min? Only accept if the trip timing is correct.'))return;
+ try{
+  const {error}=await sb.rpc('ocs_customer_accept_driver_overtime_v1',{p_booking_id:current.id,p_expected_extra_minutes:minutes});
+  if(error)throw error;
+  await loadBooking();
+ }catch(e){show(e.message||'Fare approval failed. Refresh and check again.',true)}
 }
 async function confirmDone(){if(!current)return;const {error}=await sb.rpc('customer_confirm_completion_v2',{p_booking_id:current.id});if(error){show(error.message,true);return}await loadBooking()}
 let driverCashMarkBusy=false;
