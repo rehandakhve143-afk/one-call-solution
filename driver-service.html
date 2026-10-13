@@ -139,7 +139,7 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
   </div>
   <div class="field"><label>Note (Optional)</label><textarea id="note" placeholder="Parking, society gate, car details, etc."></textarea></div>
   <div class="fare" style="display:block;border-radius:15px;background:#ecf8f5;padding:15px"><div style="display:flex;justify-content:space-between;gap:10px"><b>Driver Package Fare</b><strong id="driverHourlyRate">Loading...</strong></div><div style="display:flex;justify-content:space-between;gap:10px;margin-top:10px"><span id="driverFareFormula">2 hrs × rate</span><strong id="driverTotalFare" style="font-size:25px;color:#087a70">Loading...</strong></div><small id="driverRateInfo" style="display:block;margin-top:9px;font-size:11px;color:#58787a">Driver only • Customer ki apni car.</small></div>
-  <div class="payrow"><button id="onlinePay" class="on" onclick="setPay('ONLINE')">Online</button><button id="cashPay" onclick="setPay('CASH')">Cash</button></div>
+  <div class="payrow"><button id="onlinePay" disabled title="Driver online payments pending platform approval">Online • Coming Soon</button><button id="cashPay" class="on" onclick="setPay('CASH')">Cash to Driver</button></div><div class="sub" style="margin:8px 0 4px;line-height:1.55">Cash is paid directly to your assigned Driver after the trip. OCS 9% platform fee is recorded separately against the Driver after receipt confirmation. Online payment for Driver jobs is pending approval. Do not pay OCS for Driver trips.</div>
   <div class="cta"><button id="bookBtn" onclick="bookDriver()" disabled>Confirm Driver Booking</button></div>
   <div id="status" class="status"></div>
 </section>
@@ -178,7 +178,7 @@ const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,a
 // Public prices do not need the customer's JWT. Booking still uses the signed-in client above.
 const publicRates=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'ocs-driver-public-fares'}});
 const $=id=>document.getElementById(id);
-let current=null,mode='PLAN',tripType='One Way',carType='Hatchback',transmission='Manual',duration='2 Hrs',payment='ONLINE';
+let current=null,mode='PLAN',tripType='One Way',carType='Hatchback',transmission='Manual',duration='2 Hrs',payment='CASH';
 let driverTariff=null;
 let pickupLat=null,pickupLng=null,selectedDate='',selectedTime='',tempDate='',tempTime='',tempHour='6',tempMinute='00',tempAmpm='PM';
 const wheelTimers={};
@@ -192,7 +192,7 @@ function setTripType(v){tripType=v;$('oneBtn').classList.toggle('on',v==='One Wa
 function selectCar(btn){carType=btn.dataset.car;document.querySelectorAll('.carcard').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
 function selectTransmission(btn){transmission=btn.dataset.value;document.querySelectorAll('#transmissionChoices button').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
 function selectDuration(btn){duration=btn.dataset.value;document.querySelectorAll('#durationChoices button').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
-function setPay(v){payment=v;$('onlinePay').classList.toggle('on',v==='ONLINE');$('cashPay').classList.toggle('on',v==='CASH')}
+function setPay(v){if(v!=='CASH'){show('Driver online payments are pending approval. Use Cash to assigned Driver after trip.',true);return}payment='CASH';$('onlinePay').classList.remove('on');$('cashPay').classList.add('on')}
 function driverHours(){return Number.parseFloat(duration)||2}
 function driverPackage(){return Array.isArray(driverTariff&&driverTariff.packages)?driverTariff.packages.find(x=>Number(x.hours)===driverHours()):null}
 function updateDriverFare(){
@@ -324,7 +324,7 @@ async function bookDriver(){
    const readiness={module:'driver_service',pickup_address:pickup,drop_address:drop,car_type:carType,transmission,trip_type:tripType,estimated_duration:duration,booking_mode:mode,payment_preference:payment,note:$('note').value.trim()};
    const desc=['Driver Service','Pickup: '+pickup,'Drop: '+drop,'Car: '+carType,'Transmission: '+transmission,'Trip: '+tripType,'Duration: '+duration,'Mode: '+mode,'Payment: '+payment,'Note: '+($('note').value.trim()||'None')].join('\n');
    const {data:booking,error}=await sb.rpc('create_customer_driver_package_booking_v2',{p_contact_phone:customerPhone,p_duration_hours:driverHours(),p_schedule:selectedDate+' '+selectedTime,p_address:pickup,p_drop_address:drop,p_latitude:pickupLat,p_longitude:pickupLng,p_readiness:readiness,p_payment_method:payment.toLowerCase()});
-   if(error)throw error;if(!booking||!booking.id)throw new Error('Booking confirmation not received');show('✓ Driver booking created • ₹'+Number(booking.booking_amount||0).toFixed(0)+' • Matching verified Drivers.',false);$('bookBtn').textContent='Booking Sent ✓';await loadBooking()
+   if(error)throw error;if(!booking||!booking.id)throw new Error('Booking confirmation not received');show('✓ Driver booking created • ₹'+Number(booking.booking_amount||0).toFixed(0)+' • Searching Admin-approved Drivers.',false);$('bookBtn').textContent='Booking Sent ✓';await loadBooking()
  }catch(e){show(e&&e.message?e.message:'Driver request create nahi hui.',true);$('bookBtn').disabled=false;$('bookBtn').textContent='Confirm Driver Booking'}
 }
 function statusLabel(s){const x=String(s||'').toLowerCase();return({searching:'Searching Driver',accepted:'Driver Assigned',on_way:'Driver On the Way',reached:'Driver Reached Pickup',working:'Trip In Progress',completion_requested:'Driver marked Complete',payment_pending:'Payment Pending',cash_wait:'Cash Confirmation',completed:'Completed'})[x]||String(s||'').replaceAll('_',' ')}
@@ -347,6 +347,11 @@ async function loadBooking(){
    $('tripActions').innerHTML=s==='completion_requested'?'<div class="actions"><button class="primary" onclick="confirmDone()">Confirm Complete</button><button class="gray" onclick="support()">Need Help</button></div>':
      noShowAllowed?'<div class="actions"><button class="gray" onclick="reportDriverNoShow()">Driver nahi aaya • OCS Help</button></div>':
      s==='provider_change_hold'?'<div class="sub" style="padding:12px">OCS Operator replacement request review kar raha hai. Current Driver trip start nahi kar sakta.</div>':'';
+   if(s==='payment_pending'){
+    $('tripActions').innerHTML='<div class="sub" style="padding:12px;line-height:1.6">Trip completion confirmed. Pay <b>₹'+Number(b.booking_amount||0).toFixed(2)+'</b> directly to your assigned Driver in Cash, then mark it here. Never pay an unknown person. OCS 9% charge is separate from the Driver side.</div><div class="actions"><button class="primary" onclick="markDriverCashPaid()">I Paid Cash to Driver</button><button class="gray" onclick="support()">Payment Help</button></div>';
+   }else if(s==='cash_wait'){
+    $('tripActions').innerHTML='<div class="sub" style="padding:12px;line-height:1.6">Cash payment marked. Waiting for the assigned Driver to confirm actual receipt. This is NOT an online payment or Razorpay payout.</div><div class="actions"><button class="gray" onclick="support()">Payment Help</button></div>';
+   }
 
  }catch(e){
   console.error('Driver booking status load:',e);
@@ -374,6 +379,20 @@ async function reportDriverNoShow(){
  }catch(e){show('Driver issue report nahi hua: '+(e.message||'Retry'),true)}
 }
 async function confirmDone(){if(!current)return;const {error}=await sb.rpc('customer_confirm_completion_v2',{p_booking_id:current.id});if(error){show(error.message,true);return}await loadBooking()}
+let driverCashMarkBusy=false;
+async function markDriverCashPaid(){
+ if(!current||String(current.status||'').toLowerCase()!=='payment_pending'||driverCashMarkBusy)return;
+ const amount=Number(current.booking_amount||0);
+ if(!confirm('Have you ACTUALLY paid ₹'+amount.toFixed(2)+' cash to the assigned Driver? Do not press before paying. The Driver must independently confirm receipt.'))return;
+ driverCashMarkBusy=true;
+ try{
+  const {data,error}=await sb.rpc('create_booking_payment_intent_v1',{p_booking_id:current.id,p_purpose:'job',p_method:'cash'});
+  if(error)throw error;if(!data?.id)throw new Error('Cash payment record missing');
+  show('Cash marked. Waiting for Driver receipt confirmation.',false);
+  await loadBooking();
+ }catch(e){show('Cash confirmation failed: '+(e?.message||'Please retry'),true)}
+ finally{driverCashMarkBusy=false}
+}
 async function support(){
  const message=(prompt('Driver Service ke baare mein apni problem likhein:')||'').trim();
  if(message.length<8){if(message)show('Support ke liye kam se kam 8 letters likhein.',true);return}
