@@ -1391,7 +1391,7 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
 <div id="bizCurrentPrice" class="price-now">Current 28-day plan: —</div>
 <div id="bizGstNote" class="muted" style="margin-top:7px">GST invoice after successful paid listing payment.</div>
 <div id="bizLikeSummary" class="biz-like-summary"><span class="biz-like-heart">♥</span><div><b id="bizLikeCount">0 Likes</b><small>Customer likes • Rating se separate</small></div></div>
-<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><select id="obShopType" style="display:none" aria-label="Choose shop type"><option value="Electrical Shop">Electrical Shop</option><option value="Hardware Shop">Hardware Shop</option></select><div id="obPostPriceWrap" style="display:none"><label id="obPostPriceLabel">Post Price / Rate (₹)</label><input id="obPostPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter price"></div><div id="obVariantWrap" style="display:none"><label>Product / Variant / Model</label><input id="obVariant" placeholder="e.g. 750W • Red • Model X1"></div>
+<div id="otherFields"><label>Business / Profile Name *</label><input id="obName" placeholder="Business or profile name"><label>Business Type</label><input id="obType" placeholder="e.g. Hardware Shop / Salon / Dealer"><div id="ocsVehicleClassWrap" style="display:none"><label>Vehicle Class *</label><select id="ocsVehicleClass" onchange="updateBizPrice();queueBizDraftAutoSave()"><option value="2 Wheeler">2 Wheeler</option><option value="4 Wheeler">4 Wheeler</option></select></div><select id="obShopType" style="display:none" aria-label="Choose shop type"><option value="Electrical Shop">Electrical Shop</option><option value="Hardware Shop">Hardware Shop</option></select><div id="obPostPriceWrap" style="display:none"><label id="obPostPriceLabel">Post Price / Rate (₹)</label><input id="obPostPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter price"></div><div id="obVariantWrap" style="display:none"><label>Product / Variant / Model</label><input id="obVariant" placeholder="e.g. 750W • Red • Model X1"></div>
 <div id="ocsShopProductsEditor" style="display:none;margin:14px 0;padding:12px;border:1px solid #d6e9e6;border-radius:16px;background:#f7fbfa">
  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
  <div><b style="font-size:16px;color:#17474e">Shop Product Catalogue</b><div class="muted" style="font-size:11px">Ek listing mein 20 products tak, har product ki photo aur price alag</div></div>
@@ -4367,7 +4367,8 @@ function lockBannerAfterPayment(id,paymentRef){
 const BIZ_PRICE_KEY={'Property':'propertyOwner','Local Shop':'localShop','Sliding / Aluminium':'sliding','Welding / Fabrication':'welding','Beauty / Make-up':'beauty','Used Vehicle':'used2w','New Vehicle':'new2w','Medical Store':'medical','Diagnostic Lab':'lab','Modular Kitchen':'kitchen','Hotel / Restaurant / Lodging':'hotel','Other Business':'localShop'};
 function updateBizPrice(){
  const sel=document.getElementById('bizCat'),box=document.getElementById('bizCurrentPrice');if(!sel||!box)return;
- const key=BIZ_PRICE_KEY[sel.value]||'localShop',name=(document.getElementById('obName')?.value||'').trim(),normalPrice=pricingValue(key,name,'LISTING'),adminFree=!!document.getElementById('bizAdminFree')?.checked,price=adminFree?0:normalPrice;
+ const cls=document.getElementById('ocsVehicleClass')?.value||'2 Wheeler';
+ const key=(sel.value==='Used Vehicle'?(cls==='4 Wheeler'?'used4w':'used2w'):sel.value==='New Vehicle'?(cls==='4 Wheeler'?'new4w':'new2w'):BIZ_PRICE_KEY[sel.value]||'localShop'),name=(document.getElementById('obName')?.value||'').trim(),normalPrice=pricingValue(key,name,'LISTING'),adminFree=!!document.getElementById('bizAdminFree')?.checked,price=adminFree?0:normalPrice;
  box.innerHTML=adminFree?'28-day plan • <b>ADMIN FREE</b> • Pay ₹0 • GST ₹0':'28-day plan • '+gstPriceHTML(price);
  const note=document.getElementById('bizGstNote'),x=getGstBreakup(price);
  if(note)note.textContent=price===0?'Admin FREE override • No payment / GST':(x.enabled?('Final payment '+moneyINRPay(x.total)+' • GST invoice after successful payment'):'GST currently disabled by Admin');
@@ -6166,7 +6167,7 @@ function ocsLoadShopCatalog(d){
 }
 function loadBizDraft(cat){
  const d=readBizDrafts()[cat]||{};
- obName.value=d.name||'';obType.value=d.type||'';if(document.getElementById('obPostPrice'))document.getElementById('obPostPrice').value=d.itemPrice||'';if(document.getElementById('obVariant'))document.getElementById('obVariant').value=d.variant||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';if(cat==='Local Shop')ocsLoadShopCatalog(d);window.ocsPortfolioLoad?.(cat,d);updateBizLikeSummary(cat);
+ obName.value=d.name||'';obType.value=d.type||'';const vc=document.getElementById('ocsVehicleClass');if(vc)vc.value=d.vehicleClass==='4 Wheeler'?'4 Wheeler':'2 Wheeler';if(document.getElementById('obPostPrice'))document.getElementById('obPostPrice').value=d.itemPrice||'';if(document.getElementById('obVariant'))document.getElementById('obVariant').value=d.variant||'';obArea.value=d.area||'';obAbout.value=d.about||'';obPhone.value=d.phone||'';if(document.getElementById('obEmail'))document.getElementById('obEmail').value=d.billingEmail||d.email||'';if(cat==='Local Shop')ocsLoadShopCatalog(d);window.ocsPortfolioLoad?.(cat,d);updateBizLikeSummary(cat);
 }
 let ocsBizAutoSaveTimer=null;
 function autoSaveCurrentBizDraft(){
@@ -6185,6 +6186,7 @@ function autoSaveCurrentBizDraft(){
      billingEmail:(document.getElementById('obEmail')?.value||'').trim(),
      itemPrice:priceRaw===''?null:Number(priceRaw),
      variant:(document.getElementById('obVariant')?.value||'').trim(),
+     vehicleClass:(document.getElementById('ocsVehicleClass')?.value||'2 Wheeler'),
      products:cat==='Local Shop'?ocsShopCatalogClean():old.products,
      photoServices:window.ocsPortfolioHasCategory?.(cat)?window.ocsPortfolioDraft(cat):old.photoServices,
      draftSavedAt:new Date().toISOString()
@@ -6211,6 +6213,7 @@ const OCS_BIZ_FORM_CONFIG={
  'Other Business':{type:'Enter Business Category *',typePh:'e.g. Chinese Food Stall / Mobile Repair / Tailor / Any Business',about:'About / Products / Services',aboutPh:'Aap kya sell ya service karte hain, short details…',priceLabel:'Product / Starting Price (₹)',pricePh:'Optional'}
 };
 function syncBizReadyForm(cat){
+ const vc=document.getElementById('ocsVehicleClassWrap');if(vc)vc.style.display=(cat==='Used Vehicle'||cat==='New Vehicle')?'block':'none';
  const cfg=OCS_BIZ_FORM_CONFIG[cat]||OCS_BIZ_FORM_CONFIG['Other Business'];
  const fields=document.getElementById('otherFields');if(!fields)return;
  const obType=document.getElementById('obType'),ta=document.getElementById('obAbout');
@@ -6378,13 +6381,13 @@ async function continueBiz(){
    }catch(e){alert('Product photo upload fail: '+(e&&e.message||'Try again'));return}
  }
  const photoServices=window.ocsPortfolioAttachMedia?.(cat,media)||[];
- const key=BIZ_PRICE_KEY[cat]||'localShop',normalBase=pricingValue(key,name,'LISTING'),requestedAdminFree=!!document.getElementById('bizAdminFree')?.checked;
+ const vehicleClass=(document.getElementById('ocsVehicleClass')?.value||'2 Wheeler'),key=(cat==='Used Vehicle'?(vehicleClass==='4 Wheeler'?'used4w':'used2w'):cat==='New Vehicle'?(vehicleClass==='4 Wheeler'?'new4w':'new2w'):BIZ_PRICE_KEY[cat]||'localShop'),normalBase=pricingValue(key,name,'LISTING'),requestedAdminFree=!!document.getElementById('bizAdminFree')?.checked;
  const adminFree=requestedAdminFree?await ocsAdminFreeAllowed():false;
  if(requestedAdminFree&&!adminFree){alert('Admin FREE access allowed nahi hai.');return}
  const base=adminFree?0:normalBase,tax=getGstBreakup(base);
  if(!adminFree&&(!Number.isFinite(base)||base<=0)){alert('Is Business Category ka public listing rate abhi set nahi hai. Admin charge set kare; FREE post sirf authorized Admin ka hoga.');return}
- const postMeta={category:cat,business:name,area,type,about,phone,itemPrice:cat==='Local Shop'?null:itemPrice,variant:cat==='Local Shop'?'':variant,products:cat==='Local Shop'?products:undefined,photoServices,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
- drafts[cat]={name,type,area,about,phone,itemPrice,variant,products:cat==='Local Shop'?products:previous.products,photoServices:window.ocsPortfolioHasCategory?.(cat)?photoServices:previous.photoServices,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'PUBLISHING':'PAYMENT_PENDING',paymentStatus:base===0?'PENDING_ADMIN_CONFIRMATION':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:null,expiresAt:null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
+ const postMeta={category:cat,vehicleClass:(cat==='Used Vehicle'||cat==='New Vehicle')?vehicleClass:undefined,business:name,area,type,about,phone,itemPrice:cat==='Local Shop'?null:itemPrice,variant:cat==='Local Shop'?'':variant,products:cat==='Local Shop'?products:undefined,photoServices,media,image:(media.find(x=>x.type==='image')||{}).url||'',video:(media.find(x=>x.type==='video')||{}).url||''};
+ drafts[cat]={name,type,area,about,phone,itemPrice,variant,vehicleClass,products:cat==='Local Shop'?products:previous.products,photoServices:window.ocsPortfolioHasCategory?.(cat)?photoServices:previous.photoServices,billingEmail,listingId,media,planLabel:'28 Days',planDays:28,adminFree,basePrice:tax.base,gstRate:tax.rate,gstAmount:tax.gst,payable:tax.total,status:base===0?'PUBLISHING':'PAYMENT_PENDING',paymentStatus:base===0?'PENDING_ADMIN_CONFIRMATION':'PAYMENT_PENDING',invoiceEmailStatus:base===0?'NOT_REQUIRED':'PENDING_PAYMENT',activatedAt:null,expiresAt:null,updatedAt:new Date().toISOString()};localStorage.setItem(OCS_BIZ_DRAFTS_KEY,JSON.stringify(drafts));
  migrateBizLikes(oldLikeKey,'listing:'+listingId);
  if(base===0&&adminFree){
    // Server acknowledgement is mandatory. A phone-local draft is never a LIVE listing.
