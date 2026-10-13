@@ -64,7 +64,7 @@ function render(){
  const p=D.profile||{},t=D.transport||{},w=D.wallet||{},r=D.rating||{},h=transportTripHistory(),c=transportCurrent();
  $('name').textContent=p.full_name||'Transport Driver';$('phone').textContent=p.phone||'';$('accountName').textContent=p.full_name||'Transport Driver';
  $('rating').textContent='⭐ '+Number(r.average||0).toFixed(1);$('accountRating').textContent='⭐ '+Number(r.average||0).toFixed(1);$('ratingStat').textContent='⭐ '+Number(r.average||0).toFixed(1);
- $('vehicle').textContent=t.vehicle_type||'Not set';$('vehicleNo').textContent=t.vehicle_number||'—';$('kycBadge').textContent=t.kyc_complete?'KYC VERIFIED':'KYC PENDING';
+ $('vehicle').textContent=t.vehicle_type||'Not set';$('vehicleNo').textContent=t.vehicle_number||'—';$('kycBadge').textContent=t.kyc_complete?'DOCUMENT DETAILS ADDED':'DOCUMENT DETAILS PENDING';
  const on=!!p.available_for_work&&!p.admin_paused,bal=Number(p.wallet_balance??w.wallet_balance??0);
  $('toggle').classList.toggle('on',on);$('toggle').textContent=p.available_for_work?'ON':'OFF';
  $('availText').textContent=p.admin_paused?'New trips paused by OCS Admin':p.onboarding_status!=='approved'?'OCS Admin approval required':!t.kyc_complete?'Complete Transport KYC for new trips':bal<200?'New trips on hold • Recharge ₹'+Math.ceil(200-bal)+' to reach ₹200':on?'Receiving matching Transport requests':'Work ON to receive matching Transport requests';
