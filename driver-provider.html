@@ -63,7 +63,7 @@ async function load(){
    $('currentBody').textContent='No available Driver trip';
    return;
   }
-  $('driverEligibilityHelp').textContent='Driver Service approved • Verified work location';
+  $('driverEligibilityHelp').textContent='Driver Service Admin-approved • Work location saved';
   $('workBtn').hidden=false;
   const {data:ps,error:se}=await sb.from('provider_status').select('available_for_work,wallet_balance,admin_paused').maybeSingle();if(se)throw se;
   workOn=!!ps?.available_for_work;
