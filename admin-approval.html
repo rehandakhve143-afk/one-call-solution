@@ -442,12 +442,12 @@ async function loadOcsPhotoIdQueue(){
  try{
   const r=await sb.rpc('ocs_admin_photo_id_queue_v1',{p_limit:40});if(r.error)throw r.error;
   const records=r.data?.records||[];area.replaceChildren();
-  const p=document.createElement('p');p.className='info';p.textContent='Pending ID submissions: '+Number(r.data?.pending_count||0);area.appendChild(p);
+  const p=document.createElement('p');p.className='info';p.textContent='ID reviews waiting: '+Number(r.data?.pending_count||0)+' • Changed photo requiring recheck: '+Number(r.data?.needs_recheck_count||0);area.appendChild(p);
   if(!records.length){area.appendChild(document.createTextNode('No pending photo IDs.'));return}
   for(const row of records){
    const card=document.createElement('div');card.className='card';
    const heading=document.createElement('b');heading.textContent=(row.is_test_account?'TEST ACCOUNT • ':'')+row.full_name+' • '+row.document_type;card.appendChild(heading);
-   const desc=document.createElement('p');desc.className='muted';desc.textContent='Manual photo review only • Document: '+(row.doc_stored?'Stored':'Missing')+' • Selfie: '+(row.selfie_stored?'Stored':'Missing');card.appendChild(desc);
+   const desc=document.createElement('p');desc.className='muted';desc.textContent=(row.review_status==='needs_recheck'?'⚠ PHOTO CHANGED • Recheck both images • ':'Manual photo review only • ')+'Document: '+(row.doc_stored?'Stored':'Missing')+' • Selfie: '+(row.selfie_stored?'Stored':'Missing');card.appendChild(desc);
    let docOpened=false,selfieOpened=false;
    async function view(path,label){
     if(!path)return;
