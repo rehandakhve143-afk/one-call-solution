@@ -44,6 +44,9 @@ jobs:
       - name: Verify Driver package rate controls in mobile Chromium (mocked backend)
         run: |
           node tests/driver-packages-browser.cjs
+      - name: Verify official record export in mobile Chromium (mocked admin, no real member data)
+        run: |
+          node tests/official-export-browser.cjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
