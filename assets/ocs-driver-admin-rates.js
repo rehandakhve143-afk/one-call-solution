@@ -34,7 +34,8 @@
        return {hours,price:p.price==null?'':Number(p.price),active:!!p.enabled};
      });
      el.innerHTML='<div class="card"><h2>Driver Hire • Package Pricing</h2>'+
-       '<p class="muted" style="font-size:12px;margin:8px 0 12px">Only Driver Hire, customer ki apni car. Har duration ka OCS price alag set karein. 9% OCS commission Driver earning se. <b>Save Draft se booking live nahi hoti.</b></p>'+
+       '<p class="muted" style="font-size:12px;margin:8px 0 12px">Only Driver Hire, customer ki apni car. Set one hourly base rate to auto-fill every duration including 14 Hours. No rate goes LIVE until Admin explicitly activates it. OCS commission: 9% from driver earnings.</p>'+
+       '<div class="driver-rate-row"><label for="driverBaseHourlyRate"><b>Base Driver Rate (₹ / hour)</b></label><input type="number" id="driverBaseHourlyRate" min="1" max="3571" step="0.01" inputmode="decimal" placeholder="Example: 200"><div class="muted" style="margin-top:6px">Preview all 12 packages (2 to 14 hours), then Save All as Draft. You can still adjust individual package amounts below.</div><div class="driver-rate-actions"><button type="button" id="previewDriverAutoRates">Preview All Rates</button><button type="button" id="saveDriverAutoRates" disabled>Save All Draft</button></div><div id="driverAutoRatePreview" class="muted" style="margin-top:8px" aria-live="polite"></div></div>'+
        snapshot.map(p=>'<div class="driver-rate-row">'+
          '<div class="driver-rate-main"><b>'+p.hours+' Hour'+(p.hours===1?'':'s')+'</b>'+
          '<span class="driver-rate-status'+(p.active?' on':'')+'">'+(p.active?'LIVE':'OFF')+'</span></div>'+
@@ -68,6 +69,34 @@
    await refresh();
    boxMessage(hours+' hour: '+cash(price)+' • '+(active?'LIVE':'Saved, not live'),false);
  }
+ function baseHourly(){const raw=String(byId('driverBaseHourlyRate')?.value||'').trim(),n=Number(raw);if(!raw||!Number.isFinite(n)||n<=0||n*14>50000||Math.abs(Math.round(n*100)-n*100)>1e-6)throw new Error('Valid base hourly rate enter karein; 14-hour total max ₹50,000.');return n}
+ document.addEventListener('input',ev=>{
+   if(ev.target.id!=='driverBaseHourlyRate')return;
+   const save=byId('saveDriverAutoRates'),preview=byId('driverAutoRatePreview');
+   if(save)save.disabled=true;
+   if(preview)preview.textContent='Preview All Rates to calculate packages.';
+ });
+ document.addEventListener('click',async ev=>{
+   const btn=ev.target.closest('#previewDriverAutoRates,#saveDriverAutoRates');
+   if(!btn||!root()?.contains(btn))return;
+   let rate;
+   try{rate=baseHourly()}catch(e){boxMessage(safeError(e),true);return}
+   if(btn.id==='previewDriverAutoRates'){
+     const preview=byId('driverAutoRatePreview');
+     preview.textContent=HOURS.map(h=>h+' hrs = '+cash(Math.round(h*rate*100)/100)).join(' • ');
+     byId('saveDriverAutoRates').disabled=false;
+     boxMessage('Preview ready. Save All Draft does not activate customer bookings.',false);
+     return;
+   }
+   if(!confirm('All 12 Driver packages ko '+cash(rate)+'/hour se recalculate karke DRAFT me save karein? Existing LIVE packages OFF honge.'))return;
+   btn.disabled=true;
+   try{
+     const {error}=await sb.rpc('ocs_admin_apply_driver_hourly_packages_v1',{p_hourly_rate:rate,p_activate:false});
+     if(error)throw error;
+     await refresh();
+     boxMessage('All 12 driver packages (including 14 hrs) saved as DRAFT. Activate Live per duration after checking prices.',false);
+   }catch(e){boxMessage(safeError(e),true);btn.disabled=false}
+ });
  document.addEventListener('input',ev=>{
    const input=ev.target.closest('input[id^="driverPackageRate-"]');
    if(!input||!root()||!root().contains(input))return;
