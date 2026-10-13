@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OCS Photo ID Review</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script><style>*{box-sizing:border-box}body{margin:0;background:#f4f8f8;font:14px Arial,sans-serif;color:#183c43}.wrap{max-width:480px;margin:auto}.head{background:#064d56;color:white;padding:22px;border-radius:0 0 20px 20px}.head h1{font-size:21px;margin:0 0 7px}.main{padding:15px}.card{background:white;border:1px solid #d9e6e5;border-radius:16px;padding:16px;margin-bottom:13px}label{display:block;margin:12px 0;font-weight:700}select,input,textarea{width:100%;padding:12px;border:1px solid #b9d1d0;border-radius:10px;margin-top:7px;font:inherit}button,a.btn{display:block;border:0;border-radius:11px;padding:13px;background:#06796e;color:white;font-weight:800;text-align:center;width:100%;text-decoration:none;margin-top:9px}button:disabled{opacity:.5}.note{color:#61787c;line-height:1.6;font-size:13px}.status{padding:10px;border-radius:10px;background:#e8f7f3;margin:10px 0;overflow-wrap:anywhere}</style></head><body><div class="wrap"><div class="head"><h1>OCS • Private Photo ID</h1><small>Service Provider / Driver / Tempo Partner</small></div><div class="main"><div class="card"><b>Private document submission</b><p class="note">Only the account owner and OCS Admin can access the private image. Do not send your ID through ChatGPT or public WhatsApp. This is manual visual review, not government database verification or automatic selfie matching.</p><div id="state" class="status">Checking account…</div><div id="entry" hidden><label>Government photo ID type<select id="kind"><option value="">Select ID type</option><option value="driving_licence">Driving Licence</option><option value="voter_id">Voter Photo ID</option><option value="passport">Passport</option><option value="other_photo_id">Other government photo ID</option></select></label><label>Photo of ID (JPG / PNG / WebP, up to 5 MB)<input id="pic" type="file" accept="image/jpeg,image/png,image/webp"></label><label><input id="consent" type="checkbox" style="width:auto"> I understand OCS Admin will review this private document.</label><button id="send" type="button">Submit for Admin Review</button><p class="note">Submitting an updated document resets its review to Pending. Do not upload Aadhaar here; dedicated compliant identity handling is not configured.</p></div></div><a href="index.html" class="btn" style="background:white;border:1px solid #c9dbda;color:#185761">← Back to OCS</a></div></div><script>
+const sb=window.supabase.createClient('https://uipmkrsggpkupgbgoxkg.supabase.co','sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let uid='';
+const msg=document.getElementById('state');
+async function start(){
+ try{const s=await sb.auth.getUser();if(s.error||!s.data?.user)throw new Error('Please login to OCS first.');uid=s.data.user.id;
+ const r=await sb.rpc('provider_profile_snapshot_v1');if(r.error)throw r.error;if(!r.data?.registered)throw new Error('Service Provider or Driver profile required.');
+ const t=await sb.rpc('ocs_my_photo_id_review_v1');if(t.error)throw t.error;
+ msg.textContent='Current ID review: '+String(t.data?.status||'not_submitted').toUpperCase()+'. Manual review only.';
+ document.getElementById('entry').hidden=false;
+ }catch(e){msg.textContent=e.message||'Login required.'}
+}
+document.getElementById('send').onclick=async()=>{
+ const kind=document.getElementById('kind').value,file=document.getElementById('pic').files[0],button=document.getElementById('send');
+ if(!uid||!kind||!file||!document.getElementById('consent').checked){msg.textContent='Choose ID type, photo and consent.';return}
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size<=0||file.size>5242880){msg.textContent='Only JPG/PNG/WebP up to 5 MB.';return}
+ button.disabled=true;msg.textContent='Uploading to private OCS storage…';
+ try{
+  const rand=crypto.randomUUID().replaceAll('-','');
+  const extension=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+  const path=uid+'/id-doc/'+rand+'.'+extension;
+  const up=await sb.storage.from('ocs-provider-private').upload(path,file,{contentType:file.type,upsert:false});
+  if(up.error)throw up.error;
+  const r=await sb.rpc('ocs_submit_photo_id_v1',{p_document_type:kind,p_document_path:path});
+  if(r.error)throw r.error;
+  msg.textContent='Submitted. Admin manual ID review PENDING. Identity is NOT yet verified.';
+ }catch(e){msg.textContent='Submission failed: '+(e.message||'Retry');}finally{button.disabled=false}
+};
+start();
+</script></body></html>
