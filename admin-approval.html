@@ -56,13 +56,14 @@
   <button id="adminTabBookings" type="button" data-admin-view="bookings" onclick="setAdminView('bookings')">Bookings & Wallet</button>
   <button id="adminTabFinance" type="button" data-admin-view="finance" onclick="setAdminView('finance')">Finance Ledger</button>
   <button id="adminTabMembers" type="button" data-admin-view="members" onclick="setAdminView('members')">All Members</button>
+  <button id="adminTabOfficial" type="button" data-admin-view="official" onclick="setAdminView('official')">Official Exports</button>
   <button id="adminTabIdentity" type="button" data-admin-view="identity" onclick="setAdminView('identity')">ID & Duplicate Review</button>
   <button id="adminTabPhotoId" type="button" data-admin-view="photoid" onclick="setAdminView('photoid')">Private ID Reviews</button>
   <button id="adminTabRates" type="button" data-admin-view="rates" onclick="setAdminView('rates')">Driver Rates</button>
  </nav>
  <a id="ocsTestLabLink" hidden href="ocs-test-lab.html?v=20261011-testlab1" style="background:#fff8dc;color:#6a541c;border:1px solid #e8d895;border-radius:13px;padding:13px;text-decoration:none;font-size:13px;font-weight:850;margin-bottom:12px" >🧪 Demo Test Lab → <small style="display:block;margin-top:4px;font-weight:400">Same Admin login se Customer, SP, Driver aur Shop ka sample flow check karein. No real bookings.</small></a>
  <section id="ocsMemberRegister" hidden><div class="card"><h2>OCS Member Register</h2><div class="muted">Customer • Service Provider • Driver • Tempo / Truck • Business owners. One account = one unique ID. Admin only.</div><input id="ocsMemberSearch" placeholder="Search name, role, category or ID" style="width:100%;height:43px;margin:12px 0;border:1px solid #d9e3e5;border-radius:10px;padding:10px"><div id="ocsMemberRows">Loading members…</div></div></section>
- <section id="ocsPhotoIdReview" hidden><div class="card"><h2>Private ID • Manual Review</h2><p class="muted">Photo ID aur selfie ko manually dekhein. Ye government KYC ya automatic face match nahi hai.</p><div id="ocsPhotoIdRows">Open this section to load.</div><button class="btn" onclick="loadOcsPhotoIdQueue()">Refresh Pending IDs</button></div></section><section id="ocsIdentityReview" hidden><div class="card">
+ <section id="ocsOfficialHistory" hidden><div class="card"><h2>Official Export History</h2><p class="muted">Admin-only disclosures and action log.</p><button class="btn" onclick="loadOfficialExportHistory()">Refresh History</button><div id="ocsOfficialHistoryRows"></div></div></section><section id="ocsPhotoIdReview" hidden><div class="card"><h2>Private ID • Manual Review</h2><p class="muted">Photo ID aur selfie ko manually dekhein. Ye government KYC ya automatic face match nahi hai.</p><div id="ocsPhotoIdRows">Open this section to load.</div><button class="btn" onclick="loadOcsPhotoIdQueue()">Refresh Pending IDs</button></div></section><section id="ocsIdentityReview" hidden><div class="card">
  <h2>Account & ID Review</h2>
  <div class="muted">Admin only • Same self-reported mobile number review. A matching phone is NOT proof of duplicate people. No automatic block or wallet changes.</div>
  <div id="ocsIdentitySummary" class="info" style="margin:12px 0">Loading identity audit…</div>
@@ -95,9 +96,9 @@ let adminOtpEmail='';
 function setAdminView(view){
  const nav=document.getElementById('ocsAdminSections');
  if(nav.hidden)return;
- const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',finance:'ocsFinanceLedger',members:'ocsMemberRegister',identity:'ocsIdentityReview',photoid:'ocsPhotoIdReview'};
- const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',finance:'Admin • Finance Ledger',members:'Admin • All Members',identity:'Admin • ID & Duplicate Review',photoid:'Admin • Private ID Reviews'};
- const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>OCS Bookings:</b> Home Services, Driver aur Tempo booking status, payment records aur SP wallet.',finance:'<b>Finance Ledger:</b> Admin-only verified payment records, booking-wise commission aur wallet history.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.',identity:'<b>ID Review:</b> Similar mobile details ko manually check karein. OTP unverified numbers trusted nahi hain; automatic blocking nahi hoga.',photoid:'<b>Private ID Review:</b> Photo ID and selfie manual inspection. Not government ID verification.'};
+ const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',finance:'ocsFinanceLedger',members:'ocsMemberRegister',official:'ocsOfficialHistory',identity:'ocsIdentityReview',photoid:'ocsPhotoIdReview'};
+ const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',finance:'Admin • Finance Ledger',members:'Admin • All Members',official:'Admin • Official Exports',identity:'Admin • ID & Duplicate Review',photoid:'Admin • Private ID Reviews'};
+ const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>OCS Bookings:</b> Home Services, Driver aur Tempo booking status, payment records aur SP wallet.',finance:'<b>Finance Ledger:</b> Admin-only verified payment records, booking-wise commission aur wallet history.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.',official:'<b>Official Exports:</b> History of recorded disclosures. Verify lawful requests.',identity:'<b>ID Review:</b> Similar mobile details ko manually check karein. OTP unverified numbers trusted nahi hain; automatic blocking nahi hoga.',photoid:'<b>Private ID Review:</b> Photo ID and selfie manual inspection. Not government ID verification.'};
  if(!Object.prototype.hasOwnProperty.call(map,view))return;
  document.getElementById('ocsAdminPageTitle').textContent=titles[view];
  document.getElementById('ocsAdminPageHelp').innerHTML=helps[view];
@@ -114,6 +115,7 @@ function setAdminView(view){
   if(view==='bookings')loadOcsHomeMonitor();
   if(view==='finance')loadOcsFinanceLedger(0);
   if(view==='members')loadOcsMemberRegister();
+  if(view==='official')loadOfficialExportHistory();
   if(view==='identity')loadOcsIdentityReview();
   if(view==='photoid')loadOcsPhotoIdQueue();
 }
@@ -216,12 +218,32 @@ function refreshCurrentAdminView(){
  if(view==='bookings'){loadOcsHomeMonitor();return}
  if(view==='finance'){loadOcsFinanceLedger(0);return}
  if(view==='members'){loadOcsMemberRegister();return}
+ if(view==='official'){loadOfficialExportHistory();return}
  if(view==='identity'){loadOcsIdentityReview();return}
  if(view==='photoid'){loadOcsPhotoIdQueue();return}
  loadQueue().then(()=>{
   const nav=document.getElementById('ocsAdminSections');
   if(nav&&!nav.hidden&&view!=='operator')setAdminView(view);
  });
+}
+async function loadOfficialExportHistory(){
+ const box=document.getElementById('ocsOfficialHistoryRows');if(!box)return;
+ box.textContent='Loading export history...';
+ try{
+  const r=await sb.rpc('ocs_admin_official_export_history_v1',{p_limit:50});
+  if(r.error)throw r.error;
+  box.replaceChildren();
+  const rows=Array.isArray(r.data)?r.data:[];
+  if(!rows.length){box.textContent='No official exports recorded yet.';return}
+  for(const entry of rows){
+   const card=document.createElement('div');card.className='card';card.style.marginTop='10px';
+   const head=document.createElement('b');head.textContent=entry.member_name||'OCS Member';
+   const detail=document.createElement('p');detail.className='muted';detail.style.whiteSpace='pre-wrap';
+   detail.textContent=['Report: '+entry.report_id,'Reference: '+entry.request_reference,'Station: '+entry.police_station,'Officer: '+entry.officer_name,'Generated: '+new Date(entry.generated_at).toLocaleString('en-IN'),'Sections: '+Object.keys(entry.sections||{}).filter(k=>entry.sections[k]).join(', ')].join('\n');
+   const actions=document.createElement('small');actions.textContent=(entry.actions||[]).map(x=>x.action+' '+new Date(x.at).toLocaleString('en-IN')).join(' | ')||'No action recorded';
+   card.append(head,detail,actions);box.appendChild(card);
+  }
+ }catch(e){box.textContent='History unavailable: '+(e.message||'Retry')}
 }
 let memberSearchTimer=null;
 let memberSearchVersion=0;
@@ -456,7 +478,7 @@ function ocsOpenOfficialRecord(memberId,name,mount){
    const audit=async kind=>{const ar=await sb.rpc('ocs_admin_official_export_action_v1',{p_report_id:d.report_id,p_action_type:kind});if(ar.error)throw ar.error};
    const add=(label,kind,handler)=>{
     const btn=document.createElement('button');btn.className='btn';btn.type='button';btn.textContent=label;
-    btn.onclick=async()=>{try{await audit(kind);await handler();status.textContent=label+' action recorded. Ensure secure delivery to verified official.'}catch(e){status.textContent='Action failed: '+(e.message||'Retry')}};actions.appendChild(btn);
+    btn.onclick=async()=>{try{await handler();await audit(kind);status.textContent=label+' action recorded. Ensure secure delivery to verified official.'}catch(e){status.textContent='Action failed: '+(e.message||'Retry')}};actions.appendChild(btn);
    };
    add('Copy Record','copy',async()=>{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(report)}else{throw Error('Clipboard unavailable in this browser. Use Download.')}});
    add('Download TXT','download',async()=>{const blob=new Blob([report],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='OCS-Official-'+String(d.report_id).slice(0,8)+'.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),3000)});
