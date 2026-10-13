@@ -65,7 +65,7 @@ body{padding-bottom:82px}.app{width:min(480px,100%);margin:0 auto;min-height:100
     <div class="head">
       <button class="back" onclick="homeServiceBack()" aria-label="Go back one step">‹</button>
       <div class="logo">OCS</div>
-      <div class="title"><b id="topTitle">Home Services</b><small>Verified professionals • clear OCS rates • Launch V1</small></div>
+      <div class="title"><b id="topTitle">Home Services</b><small>Home Services • clear OCS rates • Launch V1</small></div>
     </div>
     <div class="search"><span>⌕</span><input id="search" placeholder="Search Home Services..." oninput="filterList(this.value)"></div>
   </header>
@@ -265,7 +265,7 @@ async function createCleanBooking(){
    alert("Booking se pehle Home screen par Use current location set karein.");
    return;
  }
- const btn=document.getElementById("findSpBtn");if(btn){btn.disabled=true;btn.textContent="Checking verified SP..."}
+ const btn=document.getElementById("findSpBtn");if(btn){btn.disabled=true;btn.textContent="Checking available SP..."}
  try{
    try{await ocsSupabase.rpc("ensure_customer_account_v1")}catch(e){}
    const match=await ocsSupabase.rpc("customer_fixed_sp_match_preview_v1",{
@@ -277,7 +277,7 @@ async function createCleanBooking(){
    if(match.error)throw new Error("SP availability check failed: "+match.error.message);
    if(!match.data||match.data.checked!==true)throw new Error("Could not verify SP availability.");
    if(match.data.available!==true){
-     alert("Abhi is location par sabhi selected services ke liye verified available SP nahi hai. Koi live booking create nahi hui.");
+     alert("Abhi is location par sabhi selected services ke liye matching available SP nahi hai. Koi live booking create nahi hui.");
      return;
    }
    if(btn)btn.textContent="Finding Service Provider...";
@@ -319,7 +319,7 @@ function renderBookingSuccess(id,total){
  document.getElementById("search").style.display="none";
  document.getElementById("cart").classList.remove("show");
  document.getElementById("content").innerHTML=
-   '<div class="success"><div class="tick">✓</div><h2>Request sent</h2><p>OCS nearby matching verified Service Providers check kar raha hai.</p>'+
+   '<div class="success"><div class="tick">✓</div><h2>Request sent</h2><p>OCS nearby matching Service Providers check kar raha hai.</p>'+
    (id?'<div class="bid">#'+esc(String(id).replace(/[^a-z0-9]/ig,"").slice(0,8).toUpperCase())+'</div>':'')+
    '<div class="summary" style="text-align:left;margin-top:8px"><div class="sum-row"><span>Service</span><b>'+esc(category)+'</b></div><div class="sum-row"><span>Amount</span><b>'+money(total)+'</b></div><div class="sum-row"><span>Payment</span><b>'+esc(bookingPayment)+'</b></div></div>'+
    '<button class="primary" style="margin-top:12px" onclick="location.href=\'home-services.html?tab=customer&v=20261012-bookingtrack1\'">View Activity</button>'+
