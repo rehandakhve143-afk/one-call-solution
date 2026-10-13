@@ -36,7 +36,8 @@
      el.innerHTML='<div class="card"><h2>Driver Hire • Package Pricing</h2>'+
        '<p class="muted" style="font-size:12px;margin:8px 0 12px">Customer ki apni car • Fixed discounted duration packages, NOT hourly multiplication. Admin controls each fare and activation. OCS 9% commission applies to driver earnings.</p>'+
        '<div class="driver-rate-row"><b>Suggested Discounted Package Rates (not LIVE)</b><p class="muted" style="font-size:11px">Optional planning examples only. Tap to fill 2–14 hour boxes, review the prices and Save Draft individually. Nothing is activated or saved automatically.</p><button type="button" class="btn" id="suggestDriverPackageRates">Fill Suggested Rates • Preview Only</button></div>'+
-       snapshot.map(p=>'<div class="driver-rate-row">'+
+       '<button type="button" class="btn" style="margin:12px 0" id="toggleDriverHalfRates">More • 30-minute packages</button>'+
+       snapshot.map(p=>'<div class="driver-rate-row"'+(p.hours%1?' hidden data-driver-half="true"':'')+'>'+
          '<div class="driver-rate-main"><b>'+p.hours+' Hour'+(p.hours===1?'':'s')+'</b>'+
          '<span class="driver-rate-status'+(p.active?' on':'')+'">'+(p.active?'LIVE':'OFF')+'</span></div>'+
          '<label for="driverPackageRate-'+p.hours+'">Driver fare (₹)</label>'+
@@ -70,6 +71,14 @@
    boxMessage(hours+' hour: '+cash(price)+' • '+(active?'LIVE':'Saved, not live'),false);
  }
  const SUGGESTED_PRICES={2:299,2.5:349,3:399,3.5:449,4:499,4.5:549,5:599,5.5:649,6:699,8:899,12:1199,14:1399};
+ document.addEventListener('click',ev=>{
+   const btn=ev.target.closest('#toggleDriverHalfRates');
+   if(!btn||!root()?.contains(btn))return;
+   const rows=root().querySelectorAll('[data-driver-half="true"]');
+   const show=Array.from(rows).some(x=>x.hidden);
+   rows.forEach(row=>{row.hidden=!show});
+   btn.textContent=show?'Hide 30-minute packages':'More • 30-minute packages';
+ });
  document.addEventListener('click',ev=>{
    const btn=ev.target.closest('#suggestDriverPackageRates');
    if(!btn||!root()?.contains(btn))return;
