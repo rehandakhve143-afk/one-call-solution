@@ -281,6 +281,12 @@ async function loadOcsMemberDetail(memberId){
     'Role: '+(memberRoles||p.role||'Not recorded')+' • Approval: '+verification+walletAlert;
   topInfo.style.whiteSpace='pre-wrap';
   body.appendChild(topInfo);
+  const exportButton=document.createElement('button');
+  exportButton.type='button';exportButton.className='btn';
+  exportButton.textContent='Official Record • Copy / Download / Share';
+  exportButton.style.margin='8px 0 12px';
+  exportButton.onclick=()=>ocsOpenOfficialRecord(memberId,p.full_name||'OCS Member',body);
+  body.appendChild(exportButton);
   const quickSummary=document.createElement('div');quickSummary.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0';
   const quickBox=(label,value)=>{
     const item=document.createElement('div');item.style.cssText='padding:11px;border-radius:13px;background:#f4f8f8;min-width:0';
@@ -388,6 +394,79 @@ async function loadOcsMemberDetail(memberId){
   const lc=d.listing_counts||{};add('Own Listings','Shops '+(lc.shops||0)+' • Property '+(lc.property||0)+' • Posts '+(lc.posts||0));
  }catch(e){body.textContent='Member detail failed: '+(e.message||'Retry')}
 }
+const OCS_OFFICIAL_RECORD_MAX=30;
+function ocsOpenOfficialRecord(memberId,name,mount){
+ const old=document.getElementById('ocsOfficialRecordForm');if(old)old.remove();
+ const area=document.createElement('div');area.className='card';area.id='ocsOfficialRecordForm';
+ area.style.cssText='border:2px solid #b2cfd2;margin:10px 0;padding:14px';
+ const h=document.createElement('h3');h.textContent='Official Record Export • '+name;area.appendChild(h);
+ const note=document.createElement('p');note.className='muted';note.textContent='Only use for a verified lawful official request. Check officer credentials and written reference before sharing. This report excludes ID scans, passwords, OTPs, bank account numbers and exact GPS.';area.appendChild(note);
+ const fields=[
+  ['Officer name / rank','text','officer'],
+  ['Police station / official department','text','station'],
+  ['Written order / request reference','text','reference'],
+  ['Purpose / case details','text','purpose']
+ ];
+ for(const [label,type,id] of fields){
+  const l=document.createElement('label');l.textContent=label;l.style.cssText='display:block;font-size:12px;font-weight:700;margin:10px 0 4px';
+  const input=document.createElement('input');input.type=type;input.id='ocsExport-'+id;input.style.cssText='width:100%;height:42px;border:1px solid #cbd9dc;border-radius:10px;padding:8px';
+  input.autocomplete='off';l.appendChild(input);area.appendChild(l);
+ }
+ const choices=document.createElement('div');choices.style.cssText='margin:12px 0';
+ for(const [id,label] of [['contact','Contact info'],['bookings','Work / booking history (latest 30)'],['payments','Service payment history (latest 30)']]){
+  const l=document.createElement('label');l.style.cssText='display:block;padding:7px 0;font-size:12px';
+  const check=document.createElement('input');check.type='checkbox';check.dataset.officialSection=id;
+  check.style.marginRight='8px';l.append(check,document.createTextNode(label));choices.appendChild(l);
+ }
+ area.appendChild(choices);
+ const confirmLabel=document.createElement('label');confirmLabel.style.cssText='display:block;margin:12px 0;font-size:12px';
+ const confirmed=document.createElement('input');confirmed.type='checkbox';confirmed.id='ocsExport-verified';confirmed.style.marginRight='7px';
+ confirmLabel.append(confirmed,document.createTextNode('I checked the identity, written request and legal basis, and selected only necessary records.'));area.appendChild(confirmLabel);
+ const generate=document.createElement('button');generate.className='btn ok';generate.type='button';generate.textContent='Generate Official Record';area.appendChild(generate);
+ const status=document.createElement('p');status.className='muted';status.setAttribute('role','status');area.appendChild(status);
+ const results=document.createElement('div');area.appendChild(results);
+ mount.insertBefore(area,mount.children[2]||null);
+ generate.onclick=async()=>{
+  const val=id=>String(document.getElementById('ocsExport-'+id)?.value||'').trim();
+  const sections=Object.fromEntries([...area.querySelectorAll('input[data-official-section]')].map(x=>[x.dataset.officialSection,x.checked]));
+  if(!confirmed.checked){status.textContent='Verify the official written request first.';return}
+  if(val('officer').length<3||val('station').length<3||val('reference').length<4||val('purpose').length<8||!Object.values(sections).some(Boolean)){status.textContent='Fill request details and select at least one requested category.';return}
+  if(!window.confirm('Generate an audited official record for '+name+'? Review and securely transmit only to the verified recipient.'))return;
+  generate.disabled=true;status.textContent='Preparing logged record...';results.replaceChildren();
+  try{
+   const r=await sb.rpc('ocs_admin_official_export_v1',{p_member_id:memberId,p_officer_name:val('officer'),p_police_station:val('station'),p_request_reference:val('reference'),p_request_purpose:val('purpose'),p_sections:sections});
+   if(r.error)throw r.error;
+   const d=r.data||{};
+   const lines=[
+    'ONE CALL SOLUTION • OFFICIAL RECORD EXTRACT',
+    'Report ID: '+(d.report_id||''),
+    'Generated at: '+(d.generated_at||''),
+    'Officer: '+(d.officer||''),'Department: '+(d.department||''),
+    'Written Request Ref: '+(d.reference||''),'Purpose: '+(d.purpose||''),
+    'Member: '+(d.profile?.full_name||''),'Member ID: '+(d.profile?.member_id||''),
+    'Roles: '+(d.roles||[]).join(', '),
+    ...((sections.contact)?['Mobile: '+(d.profile?.contact_mobile||'Not recorded'),'Email: '+(d.profile?.contact_email||'Not recorded')]:[]),
+    ...((sections.bookings)?['','WORK / BOOKING RECORDS (up to 30)',...(d.bookings||[]).map(x=>[x.created_at,x.booking_id,x.participation,x.category,x.service_name,x.status,'INR '+x.booking_amount].join(' | '))]:[]),
+    ...((sections.payments)?['','SERVICE PAYMENT RECORDS (up to 30)',...(d.payments||[]).map(x=>[x.created_at,x.booking_id,x.method,x.status,'INR '+x.amount,'Commission INR '+x.commission_amount].join(' | '))]:[]),
+    '','LIMITATIONS: '+(d.notice||'This report is based on available OCS records.')
+   ];
+   const report=lines.join('\\n');
+   const preview=document.createElement('pre');preview.textContent=report;preview.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid #d9e3e5;padding:12px;border-radius:10px;font-size:11px';results.appendChild(preview);
+   const actions=document.createElement('div');actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0';
+   const audit=async kind=>{const ar=await sb.rpc('ocs_admin_official_export_action_v1',{p_report_id:d.report_id,p_action_type:kind});if(ar.error)throw ar.error};
+   const add=(label,kind,handler)=>{
+    const btn=document.createElement('button');btn.className='btn';btn.type='button';btn.textContent=label;
+    btn.onclick=async()=>{try{await audit(kind);await handler();status.textContent=label+' action recorded. Ensure secure delivery to verified official.'}catch(e){status.textContent='Action failed: '+(e.message||'Retry')}};actions.appendChild(btn);
+   };
+   add('Copy Record','copy',async()=>{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(report)}else{throw Error('Clipboard unavailable in this browser. Use Download.')}});
+   add('Download TXT','download',async()=>{const blob=new Blob([report],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='OCS-Official-'+String(d.report_id).slice(0,8)+'.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),3000)});
+   add('Share','share',async()=>{if(!navigator.share)throw Error('Native share not supported on this device. Download instead.');await navigator.share({title:'OCS Official Record',text:report})});
+   add('Print / Save PDF','print',async()=>{const w=window.open('','_blank');if(!w)throw Error('Popup blocked. Download TXT instead.');w.document.title='OCS Official Record';const pre=w.document.createElement('pre');pre.textContent=report;pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;font:12px system-ui;padding:18px';w.document.body.appendChild(pre);w.print()});
+   results.appendChild(actions);status.textContent='Record generated and audited. Review before sending.';
+  }catch(e){status.textContent='Export unavailable: '+(e.message||'Retry')}finally{generate.disabled=false}
+ };
+}
+
 document.getElementById('ocsMemberSearch')?.addEventListener('input',()=>{
  clearTimeout(memberSearchTimer);
  memberSearchTimer=setTimeout(()=>{if(!document.getElementById('ocsMemberRegister').hidden)loadOcsMemberRegister()},280);
