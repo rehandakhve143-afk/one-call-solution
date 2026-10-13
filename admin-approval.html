@@ -56,10 +56,18 @@
   <button id="adminTabBookings" type="button" data-admin-view="bookings" onclick="setAdminView('bookings')">Bookings & Wallet</button>
   <button id="adminTabFinance" type="button" data-admin-view="finance" onclick="setAdminView('finance')">Finance Ledger</button>
   <button id="adminTabMembers" type="button" data-admin-view="members" onclick="setAdminView('members')">All Members</button>
+  <button id="adminTabIdentity" type="button" data-admin-view="identity" onclick="setAdminView('identity')">ID & Duplicate Review</button>
   <button id="adminTabRates" type="button" data-admin-view="rates" onclick="setAdminView('rates')">Driver Rates</button>
  </nav>
  <a id="ocsTestLabLink" hidden href="ocs-test-lab.html?v=20261011-testlab1" style="background:#fff8dc;color:#6a541c;border:1px solid #e8d895;border-radius:13px;padding:13px;text-decoration:none;font-size:13px;font-weight:850;margin-bottom:12px" >🧪 Demo Test Lab → <small style="display:block;margin-top:4px;font-weight:400">Same Admin login se Customer, SP, Driver aur Shop ka sample flow check karein. No real bookings.</small></a>
  <section id="ocsMemberRegister" hidden><div class="card"><h2>OCS Member Register</h2><div class="muted">Customer • Service Provider • Driver • Tempo / Truck • Business owners. One account = one unique ID. Admin only.</div><input id="ocsMemberSearch" placeholder="Search name, role, category or ID" style="width:100%;height:43px;margin:12px 0;border:1px solid #d9e3e5;border-radius:10px;padding:10px"><div id="ocsMemberRows">Loading members…</div></div></section>
+ <section id="ocsIdentityReview" hidden><div class="card">
+ <h2>Account & ID Review</h2>
+ <div class="muted">Admin only • Same self-reported mobile number review. A matching phone is NOT proof of duplicate people. No automatic block or wallet changes.</div>
+ <div id="ocsIdentitySummary" class="info" style="margin:12px 0">Loading identity audit…</div>
+ <div id="ocsIdentityGroups"></div>
+ <button class="btn" onclick="loadOcsIdentityReview()" type="button">↻ Refresh ID Review</button>
+ </div></section>
  <section id="ocsHomeMonitor" hidden><div class="card"><h2>All OCS Bookings</h2><div class="muted">Home Services • Driver • Tempo / Goods Transport • Live database, Admin read-only</div><div id="ocsBookingOverview" class="info" style="margin:10px 0">Loading OCS summary…</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('Tempo / Goods Transport')">Tempo / Truck</button><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('')">All Categories</button></div><select id="ocsBookingFilterStatus"><option value="all">All</option><option value="stale">Old Unassigned</option><option value="searching">Searching</option><option value="active">Active</option><option value="payment">Payment Due</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select><input id="ocsBookingFilterSearch" placeholder="Booking ID, name, service or category"><input id="ocsBookingFilterFrom" type="date"><input id="ocsBookingFilterTo" type="date"><button class="btn" onclick="loadAdminBookingsPage(0)">Search Bookings</button><div id="ocsHomeBookingRows"></div><div id="ocsBookingPager"></div></div><div class="card"><h2>SP Wallet Monitoring</h2><div id="ocsHomeWalletRows"></div></div></section>
  <section id="ocsFinanceLedger" hidden><div class="card"><h2>OCS Finance Ledger</h2><div class="muted">Admin only • Date-wise verified booking payments, 9% commission, paid listing records, SP wallet and withdrawals. Wallet movements are not counted twice as customer collections.</div>
  <select id="ocsFinanceType" aria-label="Finance record type" style="width:100%;min-height:43px;margin-top:12px"><option value="all">All records</option><option value="booking">Customer booking payments</option><option value="listing">Property / Business / Slider payments</option><option value="topup">SP wallet recharges</option><option value="withdrawal">SP withdrawals</option><option value="wallet">SP wallet transactions</option></select>
@@ -86,9 +94,9 @@ let adminOtpEmail='';
 function setAdminView(view){
  const nav=document.getElementById('ocsAdminSections');
  if(nav.hidden)return;
- const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',finance:'ocsFinanceLedger',members:'ocsMemberRegister'};
- const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',finance:'Admin • Finance Ledger',members:'Admin • All Members'};
- const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>OCS Bookings:</b> Home Services, Driver aur Tempo booking status, payment records aur SP wallet.',finance:'<b>Finance Ledger:</b> Admin-only verified payment records, booking-wise commission aur wallet history.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.'};
+ const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',finance:'ocsFinanceLedger',members:'ocsMemberRegister',identity:'ocsIdentityReview'};
+ const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',finance:'Admin • Finance Ledger',members:'Admin • All Members',identity:'Admin • ID & Duplicate Review'};
+ const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>OCS Bookings:</b> Home Services, Driver aur Tempo booking status, payment records aur SP wallet.',finance:'<b>Finance Ledger:</b> Admin-only verified payment records, booking-wise commission aur wallet history.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.',identity:'<b>ID Review:</b> Similar mobile details ko manually check karein. OTP unverified numbers trusted nahi hain; automatic blocking nahi hoga.'};
  if(!Object.prototype.hasOwnProperty.call(map,view))return;
  document.getElementById('ocsAdminPageTitle').textContent=titles[view];
  document.getElementById('ocsAdminPageHelp').innerHTML=helps[view];
@@ -105,6 +113,7 @@ function setAdminView(view){
   if(view==='bookings')loadOcsHomeMonitor();
   if(view==='finance')loadOcsFinanceLedger(0);
   if(view==='members')loadOcsMemberRegister();
+  if(view==='identity')loadOcsIdentityReview();
 }
 
 function renderAdminLogin(){
@@ -205,6 +214,7 @@ function refreshCurrentAdminView(){
  if(view==='bookings'){loadOcsHomeMonitor();return}
  if(view==='finance'){loadOcsFinanceLedger(0);return}
  if(view==='members'){loadOcsMemberRegister();return}
+ if(view==='identity'){loadOcsIdentityReview();return}
  loadQueue().then(()=>{
   const nav=document.getElementById('ocsAdminSections');
   if(nav&&!nav.hidden&&view!=='operator')setAdminView(view);
@@ -380,6 +390,33 @@ document.getElementById('ocsMemberSearch')?.addEventListener('input',()=>{
  memberSearchTimer=setTimeout(()=>{if(!document.getElementById('ocsMemberRegister').hidden)loadOcsMemberRegister()},280);
 });
 
+
+
+async function loadOcsIdentityReview(){
+ const summary=document.getElementById('ocsIdentitySummary'),groups=document.getElementById('ocsIdentityGroups');
+ if(!summary||!groups)return;
+ summary.textContent='Checking ID and phone records…';groups.textContent='';
+ try{
+  const r=await sb.rpc('admin_identity_review_v1',{p_limit:30});
+  if(r.error)throw r.error;
+  const d=r.data||{},x=d.summary||{},rows=Array.isArray(d.shared_phones)?d.shared_phones:[];
+  summary.textContent='Accounts: '+Number(x.total_profiles||0)+' • Shared self-reported phone groups: '+Number(x.self_reported_phone_groups||0)+' • Accounts in those groups: '+Number(x.accounts_with_shared_self_reported_phone||0)+' • OTP-verified mobile accounts: '+Number(x.confirmed_phone_accounts||0)+' • Admin-approved SP: '+Number(x.sp_admin_approved||0)+'. Matching phone is NOT proof of fraud.';
+  groups.replaceChildren();
+  if(!rows.length){groups.textContent='No repeated self-reported mobile numbers found.';return}
+  for(const item of rows){
+   const outer=document.createElement('div');outer.className='card';outer.style.margin='8px 0';outer.style.padding='12px';
+   const title=document.createElement('b');title.textContent=String(item.masked_mobile||'Mobile hidden')+' • '+Number(item.account_count||0)+' accounts';outer.appendChild(title);
+   for(const member of (Array.isArray(item.members)?item.members:[])){
+    const details=document.createElement('details');details.style.cssText='margin-top:9px;padding:10px;border:1px solid #e1eaea;border-radius:10px';
+    const head=document.createElement('summary');head.style.cursor='pointer';head.textContent=String(member.member_name||'OCS Member')+' • '+(member.mobile_otp_verified?'Mobile OTP verified':'Mobile OTP NOT verified');details.appendChild(head);
+    const info=document.createElement('p');info.className='muted';info.style.overflowWrap='anywhere';
+    info.textContent='Member ID: '+String(member.member_id||'')+' • SP: '+(member.is_service_provider?'Yes':'No')+' • Admin approval: '+String(member.sp_approval||'not_submitted')+' • Selfie file: '+(member.selfie_submitted?'Yes':'No')+' • Driver/Transport file: '+(member.transport_profile_submitted?'Yes':'No')+' • Welcome bonuses: '+Number(member.welcome_bonus_entries||0);
+    details.appendChild(info);outer.appendChild(details);
+   }
+   groups.appendChild(outer);
+  }
+ }catch(e){summary.textContent='ID review unavailable: '+(e&&e.message||'Please retry');}
+}
 
 let ocsFinanceReq=0;
 async function loadOcsFinanceLedger(page=0){
