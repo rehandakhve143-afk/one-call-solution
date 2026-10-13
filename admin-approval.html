@@ -410,8 +410,22 @@ async function loadOcsIdentityReview(){
     const details=document.createElement('details');details.style.cssText='margin-top:9px;padding:10px;border:1px solid #e1eaea;border-radius:10px';
     const head=document.createElement('summary');head.style.cursor='pointer';head.textContent=String(member.member_name||'OCS Member')+' • '+(member.mobile_otp_verified?'Mobile OTP verified':'Mobile OTP NOT verified');details.appendChild(head);
     const info=document.createElement('p');info.className='muted';info.style.overflowWrap='anywhere';
-    info.textContent='Member ID: '+String(member.member_id||'')+' • SP: '+(member.is_service_provider?'Yes':'No')+' • Admin approval: '+String(member.sp_approval||'not_submitted')+' • Selfie file: '+(member.selfie_submitted?'Yes':'No')+' • Driver/Transport file: '+(member.transport_profile_submitted?'Yes':'No')+' • Welcome bonuses: '+Number(member.welcome_bonus_entries||0);
-    details.appendChild(info);outer.appendChild(details);
+    info.textContent='Member ID: '+String(member.member_id||'')+' • SP: '+(member.is_service_provider?'Yes':'No')+' • Admin approval: '+String(member.sp_approval||'not_submitted')+' • Selfie submitted: '+(member.selfie_submitted?'Yes':'No')+' • Driver/Transport file: '+(member.transport_profile_submitted?'Yes':'No')+' • Welcome bonuses: '+Number(member.welcome_bonus_entries||0)+' • ID and selfie match: NOT VERIFIED';
+    details.appendChild(info);
+    if(member.is_service_provider){
+     const check=document.createElement('button');check.type='button';check.className='btn';check.style.marginTop='8px';check.textContent='Check Identity Status';check.onclick=async()=>{
+      check.disabled=true;check.textContent='Checking private record…';
+      try{
+       const r=await sb.rpc('admin_provider_identity_status_v1',{p_provider_id:member.member_id});
+       if(r.error)throw r.error;
+       const v=r.data||{};
+       const result=document.createElement('p');result.className='info';result.style.margin='8px 0';
+       result.textContent=(v.test_account?'OCS TEST ACCOUNT • ':'')+'Mobile OTP: '+(v.mobile_otp_verified?'Verified':'NOT verified')+' • Stored selfie: '+(v.selfie_file_present?'Yes':'No')+' • Document identity verified: NO • Selfie & ID match verified: NO • Admin SP approval: '+String(v.onboarding_approval||'not_submitted');
+       check.replaceWith(result);
+      }catch(e){check.disabled=false;check.textContent='Retry Identity Status';alert(e.message||'Identity status unavailable')}
+     };details.appendChild(check);
+    }
+    outer.appendChild(details);
    }
    groups.appendChild(outer);
   }
