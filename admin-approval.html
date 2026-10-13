@@ -54,12 +54,19 @@
   <button id="adminTabApproval" type="button" data-admin-view="approval" onclick="setAdminView('approval')">SP Approval</button>
   <button id="adminTabChat" type="button" data-admin-view="chat" onclick="setAdminView('chat')">Company Chat</button>
   <button id="adminTabBookings" type="button" data-admin-view="bookings" onclick="setAdminView('bookings')">Bookings & Wallet</button>
+  <button id="adminTabFinance" type="button" data-admin-view="finance" onclick="setAdminView('finance')">Finance Ledger</button>
   <button id="adminTabMembers" type="button" data-admin-view="members" onclick="setAdminView('members')">All Members</button>
   <button id="adminTabRates" type="button" data-admin-view="rates" onclick="setAdminView('rates')">Driver Rates</button>
  </nav>
  <a id="ocsTestLabLink" hidden href="ocs-test-lab.html?v=20261011-testlab1" style="background:#fff8dc;color:#6a541c;border:1px solid #e8d895;border-radius:13px;padding:13px;text-decoration:none;font-size:13px;font-weight:850;margin-bottom:12px" >🧪 Demo Test Lab → <small style="display:block;margin-top:4px;font-weight:400">Same Admin login se Customer, SP, Driver aur Shop ka sample flow check karein. No real bookings.</small></a>
  <section id="ocsMemberRegister" hidden><div class="card"><h2>OCS Member Register</h2><div class="muted">Customer • Service Provider • Driver • Tempo / Truck • Business owners. One account = one unique ID. Admin only.</div><input id="ocsMemberSearch" placeholder="Search name, role, category or ID" style="width:100%;height:43px;margin:12px 0;border:1px solid #d9e3e5;border-radius:10px;padding:10px"><div id="ocsMemberRows">Loading members…</div></div></section>
  <section id="ocsHomeMonitor" hidden><div class="card"><h2>All OCS Bookings</h2><div class="muted">Home Services • Driver • Tempo / Goods Transport • Live database, Admin read-only</div><div id="ocsBookingOverview" class="info" style="margin:10px 0">Loading OCS summary…</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('Tempo / Goods Transport')">Tempo / Truck</button><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('')">All Categories</button></div><select id="ocsBookingFilterStatus"><option value="all">All</option><option value="stale">Old Unassigned</option><option value="searching">Searching</option><option value="active">Active</option><option value="payment">Payment Due</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select><input id="ocsBookingFilterSearch" placeholder="Booking ID, name, service or category"><input id="ocsBookingFilterFrom" type="date"><input id="ocsBookingFilterTo" type="date"><button class="btn" onclick="loadAdminBookingsPage(0)">Search Bookings</button><div id="ocsHomeBookingRows"></div><div id="ocsBookingPager"></div></div><div class="card"><h2>SP Wallet Monitoring</h2><div id="ocsHomeWalletRows"></div></div></section>
+ <section id="ocsFinanceLedger" hidden><div class="card"><h2>OCS Finance Ledger</h2><div class="muted">Admin only • Date-wise verified booking payments, 9% commission, paid listing records, SP wallet and withdrawals. Wallet movements are not counted twice as customer collections.</div>
+ <select id="ocsFinanceType" aria-label="Finance record type" style="width:100%;min-height:43px;margin-top:12px"><option value="all">All records</option><option value="booking">Customer booking payments</option><option value="listing">Property / Business / Slider payments</option><option value="topup">SP wallet recharges</option><option value="withdrawal">SP withdrawals</option><option value="wallet">SP wallet transactions</option></select>
+ <input id="ocsFinanceSearch" placeholder="Booking ID, member, service, Razorpay reference" style="width:100%;min-height:43px;margin-top:8px;padding:10px;border:1px solid #d9e3e5;border-radius:10px">
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><label style="font-size:11px">From<input id="ocsFinanceFrom" type="date" style="width:100%;min-height:43px"></label><label style="font-size:11px">To<input id="ocsFinanceTo" type="date" style="width:100%;min-height:43px"></label></div>
+ <button type="button" class="ok btn" style="margin-top:12px" onclick="loadOcsFinanceLedger(0)">Search Finance Records</button><div id="ocsFinanceSummary" class="info" style="margin-top:12px">Loading financial summary…</div><div id="ocsFinanceRecords"></div><div id="ocsFinancePager"></div>
+ </div></section>
  <section id="ocsDriverOperations" hidden><div class="card"><h2>Driver Operator • Bookings</h2><div class="muted">OCS Company monitoring • Read-only. No automatic payment or reassignment.</div><div id="ocsDriverOperatorRows">Loading…</div></div></section>
  <div id="content"><div class="card">Loading Admin approval queue...</div></div>
  <section id="ocsCompanyInbox" hidden><div class="card"><h2>OCS Company Chat Inbox</h2><div id="ocsCompanyInboxRows">Loading…</div></div></section>
@@ -79,9 +86,9 @@ let adminOtpEmail='';
 function setAdminView(view){
  const nav=document.getElementById('ocsAdminSections');
  if(nav.hidden)return;
- const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',members:'ocsMemberRegister'};
- const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',members:'Admin • All Members'};
- const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>OCS Bookings:</b> Home Services, Driver aur Tempo booking status, payment records aur SP wallet.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.'};
+ const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',finance:'ocsFinanceLedger',members:'ocsMemberRegister'};
+ const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',finance:'Admin • Finance Ledger',members:'Admin • All Members'};
+ const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>OCS Bookings:</b> Home Services, Driver aur Tempo booking status, payment records aur SP wallet.',finance:'<b>Finance Ledger:</b> Admin-only verified payment records, booking-wise commission aur wallet history.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.'};
  if(!Object.prototype.hasOwnProperty.call(map,view))return;
  document.getElementById('ocsAdminPageTitle').textContent=titles[view];
  document.getElementById('ocsAdminPageHelp').innerHTML=helps[view];
@@ -96,6 +103,7 @@ function setAdminView(view){
  // Company messages only load when Admin has authenticated.
  document.getElementById('ocsAdminRefresh').textContent='↻ Refresh Admin Data';
   if(view==='bookings')loadOcsHomeMonitor();
+  if(view==='finance')loadOcsFinanceLedger(0);
   if(view==='members')loadOcsMemberRegister();
 }
 
@@ -195,6 +203,7 @@ function refreshCurrentAdminView(){
  const on=document.querySelector('#ocsAdminSections button.on');
  const view=on?on.dataset.adminView:'operator';
  if(view==='bookings'){loadOcsHomeMonitor();return}
+ if(view==='finance'){loadOcsFinanceLedger(0);return}
  if(view==='members'){loadOcsMemberRegister();return}
  loadQueue().then(()=>{
   const nav=document.getElementById('ocsAdminSections');
@@ -370,6 +379,49 @@ document.getElementById('ocsMemberSearch')?.addEventListener('input',()=>{
  clearTimeout(memberSearchTimer);
  memberSearchTimer=setTimeout(()=>{if(!document.getElementById('ocsMemberRegister').hidden)loadOcsMemberRegister()},280);
 });
+
+
+let ocsFinanceReq=0;
+async function loadOcsFinanceLedger(page=0){
+ const target=document.getElementById('ocsFinanceRecords'), summary=document.getElementById('ocsFinanceSummary'), pager=document.getElementById('ocsFinancePager');
+ if(!target||!summary)return;
+ const request=++ocsFinanceReq;
+ target.textContent='Loading payment records…';summary.textContent='Loading summary…';if(pager)pager.replaceChildren();
+ const money=v=>'₹'+Number(v||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+ try{
+  const r=await sb.rpc('admin_finance_ledger_v1',{p_type:document.getElementById('ocsFinanceType')?.value||'all',
+   p_search:document.getElementById('ocsFinanceSearch')?.value||'',
+   p_from:document.getElementById('ocsFinanceFrom')?.value||null,
+   p_to:document.getElementById('ocsFinanceTo')?.value||null,
+   p_limit:20,p_offset:page*20});
+  if(request!==ocsFinanceReq)return;
+  if(r.error)throw r.error;
+  const d=r.data||{}, sum=d.summary||{}, records=Array.isArray(d.records)?d.records:[],total=Number(d.matching||0);
+  summary.textContent='Records: '+total+' • Customer payments (Cash + Online): '+money(sum.booking_collected)+' • Booking commission: '+money(sum.booking_commission)+' • Paid listings: '+money(sum.paid_listing_collection)+' • SP recharges: '+money(sum.wallet_topups)+' • Paid withdrawals: '+money(sum.withdrawals_paid)+'. Totals follow selected filters; wallet movements are separate, not additional sales.';
+  target.replaceChildren();
+  for(const rec of records){
+   const card=document.createElement('div');card.className='card';card.style.marginTop='10px';
+   const heading=document.createElement('b');heading.textContent=String(rec.record_type||'Record').toUpperCase()+' • '+String(rec.title||rec.category||'OCS Record');card.appendChild(heading);
+   const detail=document.createElement('p');detail.className='muted';detail.style.margin='9px 0 0';
+   const date=new Date(rec.occurred_at);
+   const displayDate=Number.isNaN(date.getTime())?'Unknown':new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(date);
+   detail.textContent=displayDate+' • '+String(rec.member_name||'OCS')+' • '+String(rec.status||'Unknown')+' • '+money(rec.amount);card.appendChild(detail);
+   if(rec.record_type==='booking'){
+    const commission=document.createElement('p');commission.className='muted';
+    commission.textContent='Method: '+String(rec.method||'—')+' • OCS commission: '+money(rec.commission_amount)+' • Service Provider: '+String(rec.provider_name||'Not assigned');card.appendChild(commission);
+   }
+   const ref=document.createElement('p');ref.className='muted';ref.style.overflowWrap='anywhere';
+   ref.textContent=(rec.booking_id?'Booking ID: '+rec.booking_id+' • ':'')+'Record ID: '+String(rec.record_id||'')+(rec.payment_reference?' • Gateway Ref: '+rec.payment_reference:'');
+   card.appendChild(ref);target.appendChild(card);
+  }
+  if(!records.length)target.textContent='No finance records found for selected filters.';
+  if(pager){
+   for(const [label,next,disabled] of [['← Previous',page-1,page<=0],['Next →',page+1,(page+1)*20>=total]]){
+    const button=document.createElement('button');button.type='button';button.className='btn';button.style.marginTop='8px';button.textContent=label;button.disabled=disabled;button.onclick=()=>loadOcsFinanceLedger(next);pager.appendChild(button);
+   }
+  }
+ }catch(e){if(request===ocsFinanceReq){summary.textContent='Finance records unavailable';target.textContent='Could not load ledger: '+(e.message||'Retry');}}
+}
 
 let ocsAdminBookingRequestVersion=0;
 function ocsAdminBookingQuickSearch(term){
