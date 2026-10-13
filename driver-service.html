@@ -29,6 +29,15 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 .carcard img{display:block;width:100%;height:59px;border-radius:12px;object-fit:cover;background:#eef2f3}.carcard b{display:block;margin-top:7px;font-size:11px}.carcard.on{border:2px solid var(--teal);background:#dff6fb}.carcard.on:after{content:"✓";position:absolute;top:7px;right:7px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--teal);color:#fff;font-size:12px;font-weight:900}
 .choice3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}.choice3 button{min-height:52px;border:1px solid #cfe1e4;border-radius:15px;background:#fff;color:#617076;font-weight:900}.choice3 button b{display:block;font-size:14px;color:inherit}.choice3 button small{display:block;font-size:9px;margin-top:2px}.choice3 button.on{background:#dff6fb;border:2px solid var(--teal);color:var(--deep)}
 .duration{display:flex;gap:8px;overflow:auto;padding:2px 0 3px;margin-top:9px;scrollbar-width:none}.duration::-webkit-scrollbar{display:none}.duration button{flex:0 0 67px;min-height:56px;border:1px solid #e1e5e7;border-radius:15px;background:#fff;font-size:12px;font-weight:900;color:#273941}.duration button.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.duration button[data-value*=".5 Hrs"]{display:none}
+.duration.show-halves button[data-value*=".5 Hrs"],.duration button.on[data-value*=".5 Hrs"]{display:block}
+.duration .duration-more{flex:0 0 auto;border:1px dashed #8bb6bc;background:#eff8f8;color:#075460;padding:5px 12px}
+.ocs-safety{margin-top:12px;border:1px solid #e1e8e9;border-radius:13px;padding:10px 12px;background:#f9fbfb;font-size:11px}
+.ocs-safety summary{cursor:pointer;font-weight:800;color:#395b61;padding:4px 0}
+.ocs-safety p{line-height:1.5;color:#576d71}
+.ocs-safety a,.ocs-safety button{display:inline-block;margin:4px 8px 4px 0;border:0;border-radius:10px;padding:10px;background:#eaf1f2;color:#114f5a;text-decoration:none;font-weight:800;font-size:12px}
+.ocs-safety a{background:#fff0f0;color:#a32929}
+.payrow{grid-template-columns:1fr!important}.payrow button[hidden]{display:none!important}
 .scheduleBox{margin-top:10px;border:1px solid #e0e5e7;border-radius:15px;padding:13px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff}.scheduleBox b{display:block;font-size:14px;color:#21464f}.scheduleBox small{display:block;margin-top:3px;font-size:9.5px;color:#829095}.scheduleBox button{width:42px;height:42px;border:0;border-radius:50%;background:#e9f6f7;color:var(--teal);font-size:20px}
 .summary{margin-top:9px;border:1px solid #dce4e6;border-radius:15px;background:#fff;padding:9px 12px}.sumrow{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #edf0f1;font-size:10.5px}.sumrow:last-child{border-bottom:0}.sumrow span{color:#7e8b90}.sumrow b{text-align:right;color:#253d45}.fare{margin-top:12px;border-radius:17px;padding:14px;background:#f7fafb;border:1px solid #e1e7e8;display:flex;align-items:center;justify-content:space-between}.fare b{font-size:15px}.fare strong{font-size:18px;color:var(--deep)}
 .payrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.payrow button{min-height:48px;border:1px solid #d6e1e3;border-radius:14px;background:#fff;color:#344d54;font-weight:900}.payrow button.on{border:2px solid var(--teal);background:#eaf9fb;color:var(--deep)}
@@ -108,7 +117,7 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
 
 <section class="card">
   <h2>Driver Hire Duration</h2>
-  <div class="sub">Minimum 2 hours • 30-minute options</div>
+  <div class="sub">2–14 hour packages. Choose what you need.</div>
   <div class="duration" id="durationChoices">
     <button class="on" data-value="2 Hrs" onclick="selectDuration(this)">2<br>Hrs</button>
     <button data-value="2.5 Hrs" onclick="selectDuration(this)">2.5<br>Hrs</button>
@@ -122,6 +131,7 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
     <button data-value="8 Hrs" onclick="selectDuration(this)">8<br>Hrs</button>
     <button data-value="12 Hrs" onclick="selectDuration(this)">12<br>Hrs</button>
     <button data-value="14 Hrs" onclick="selectDuration(this)">14<br>Hrs</button>
+    <button type="button" class="duration-more" id="moreDurationToggle" onclick="toggleMoreDurations()">+ More</button>
   </div>
 </section>
 
@@ -139,16 +149,16 @@ button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:1
     <div class="sumrow"><span>Schedule</span><b id="sumSchedule">Not selected</b></div>
   </div>
   <div class="field"><label>Note (Optional)</label><textarea id="note" placeholder="Parking, society gate, car details, etc."></textarea></div>
-  <div class="fare" style="display:block;border-radius:15px;background:#ecf8f5;padding:15px"><div style="display:flex;justify-content:space-between;gap:10px"><b>Driver Package Fare</b><strong id="driverHourlyRate">Loading...</strong></div><div style="display:flex;justify-content:space-between;gap:10px;margin-top:10px"><span id="driverFareFormula">2 hrs × rate</span><strong id="driverTotalFare" style="font-size:25px;color:#087a70">Loading...</strong></div><small id="driverRateInfo" style="display:block;margin-top:9px;font-size:11px;color:#58787a">Driver only • Customer ki apni car.</small></div>
-  <div class="sub" style="margin:10px 2px;line-height:1.65"><b>Time extension & safety:</b> Package price covers the selected duration. Any overtime fare must be shown and accepted by the Customer inside OCS before being added; no automatic extra charge is active yet. Please ensure the car has valid insurance, the assigned Driver has a valid driving licence, and report accidents to emergency services first (112 in India), then OCS Support with the Booking ID. Insurance coverage depends on the actual policy.</div>
-  <div class="payrow"><button id="onlinePay" disabled title="Driver online payments pending platform approval">Online • Coming Soon</button><button id="cashPay" class="on" onclick="setPay('CASH')">Cash to Driver</button></div><div class="sub" style="margin:8px 0 4px;line-height:1.55">Cash is paid directly to your assigned Driver after the trip. OCS 9% platform fee is recorded separately against the Driver after receipt confirmation. Online payment for Driver jobs is pending approval. Do not pay OCS for Driver trips.</div>
+  <div class="fare" style="display:block;border-radius:15px;background:#ecf8f5;padding:15px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b>Driver Package Fare</b><small id="driverFareFormula" style="display:block;margin-top:5px">2 hrs • fixed package</small></div><strong id="driverTotalFare" style="font-size:25px;color:#087a70">Loading...</strong></div><span id="driverHourlyRate" hidden></span><small id="driverRateInfo" style="display:block;margin-top:9px;font-size:11px;color:#58787a">Driver only • Customer ki apni car.</small></div>
+  <div class="sub" style="margin:10px 2px;line-height:1.65"><b>Time extension & safety:</b> Extra time: ₹2/min after selected hours. We show the actual trip time and ask you to approve any extra fare at trip end. Your car needs valid insurance; driver must have a valid licence. Insurance claims depend on policy terms.</div>
+  <div class="payrow"><button id="onlinePay" hidden disabled title="Driver online payments pending approval">Online • Coming Soon</button><button id="cashPay" class="on" onclick="setPay('CASH')">Pay Driver After Trip • Cash</button></div><div class="sub" style="margin:8px 0 4px;line-height:1.55">Cash goes directly to your assigned Driver after the trip. OCS online payment is not active yet. OCS 9% charge applies on the Driver side.</div>
   <div class="cta"><button id="bookBtn" onclick="bookDriver()" disabled>Confirm Driver Booking</button></div>
   <div id="status" class="status"></div>
 </section>
 
 <section class="card trip" id="tripCard">
   <h2>Your Driver Booking</h2><div class="sub" id="tripSub">Live status</div>
-  <div id="tripRows"></div><div id="otpBox"></div><div id="tripActions"></div><button type="button" class="btn gray" onclick="ocsOpenCompanyChat()" style="width:100%;margin-top:12px">Chat with OCS Company</button>
+  <div id="tripRows"></div><div id="otpBox"></div><div id="tripActions"></div><button type="button" class="btn gray" onclick="ocsOpenCompanyChat()" style="width:100%;margin-top:12px">OCS Help / Chat</button><details class="ocs-safety"><summary>Emergency / Accident Help</summary><p>For injuries or danger, call emergency services first. This button opens the phone dialer; it does not automatically alert OCS or share GPS.</p><a href="tel:112">Call Emergency 112</a><button type="button" onclick="reportDriverSafety()">Report to OCS</button></details>
 </section>
 </main>
 <nav class="bottom"><button class="on" onclick="goTab('home')"><b>⌂</b>Home</button><button onclick="goTab('activity')"><b>▤</b>Activity</button><button onclick="goTab('wallet')"><b>₹</b>Wallet</button><button onclick="goTab('account')"><b>♙</b>Account</button></nav>
@@ -193,14 +203,15 @@ function setMode(x){
 function setTripType(v){tripType=v;$('oneBtn').classList.toggle('on',v==='One Way');$('roundBtn').classList.toggle('on',v==='Round Trip');updateSummary()}
 function selectCar(btn){carType=btn.dataset.car;document.querySelectorAll('.carcard').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
 function selectTransmission(btn){transmission=btn.dataset.value;document.querySelectorAll('#transmissionChoices button').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
-function selectDuration(btn){duration=btn.dataset.value;document.querySelectorAll('#durationChoices button').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
+function selectDuration(btn){duration=btn.dataset.value;document.querySelectorAll('#durationChoices button[data-value]').forEach(x=>x.classList.toggle('on',x===btn));updateSummary()}
+function toggleMoreDurations(){const row=$('durationChoices'),show=!row.classList.contains('show-halves');row.classList.toggle('show-halves',show);$('moreDurationToggle').textContent=show?'Show Less':'+ More'}
 function setPay(v){if(v!=='CASH'){show('Driver online payments are pending approval. Use Cash to assigned Driver after trip.',true);return}payment='CASH';$('onlinePay').classList.remove('on');$('cashPay').classList.add('on')}
 function driverHours(){return Number.parseFloat(duration)||2}
 function driverPackage(){return Array.isArray(driverTariff&&driverTariff.packages)?driverTariff.packages.find(x=>Number(x.hours)===driverHours()):null}
 function updateDriverFare(){
  const hours=driverHours(),pkg=driverPackage(),rate=Number(pkg&&pkg.price||0),enabled=!!(pkg&&pkg.enabled&&rate>0);
  $('driverHourlyRate').textContent=enabled?'₹'+rate.toLocaleString('en-IN',{maximumFractionDigits:2}):'Rate pending';
- $('driverFareFormula').textContent=hours+' hr'+(hours===1?'':'s')+' Driver Hire';
+ $('driverFareFormula').textContent=hours+' hr'+(hours===1?'':'s')+' • fixed package';
  $('driverTotalFare').textContent=enabled?'₹'+rate.toLocaleString('en-IN',{maximumFractionDigits:2}):'Not available';
  $('driverRateInfo').textContent=enabled?'Only Driver Hire • Customer ki apni car • OCS 9% platform charge driver earning se.':'Package rate OCS Admin final karega. Rate approve hone tak booking band hai.';
  $('bookBtn').disabled=!enabled;
@@ -412,6 +423,20 @@ async function markDriverCashPaid(){
   await loadBooking();
  }catch(e){show('Cash confirmation failed: '+(e?.message||'Please retry'),true)}
  finally{driverCashMarkBusy=false}
+}
+async function reportDriverSafety(){
+ if(!current?.id){show('Active booking required to report an incident.',true);return}
+ const details=(prompt('Accident / safety issue: what happened? (Do not enter ID numbers)')||'').trim();
+ if(!details)return;
+ if(details.length<8){show('Please add a short description of what happened.',true);return}
+ try{
+  const {data,error}=await sb.rpc('create_support_ticket_v1',{
+   p_role:'customer',p_category:'Driver Service - Safety',
+   p_message:'SAFETY / ACCIDENT • '+details,p_callback:true,p_booking_id:current.id
+  });
+  if(error)throw error;
+  show('Safety report sent to OCS'+(data?.ticket_no?' • Ticket '+data.ticket_no:''),false);
+ }catch(e){show('Safety report failed: '+(e.message||'Retry'),true)}
 }
 async function support(){
  const message=(prompt('Driver Service ke baare mein apni problem likhein:')||'').trim();
