@@ -111,7 +111,10 @@ async function loadCurrent(){
    if(s==='accepted')action='<button class="btn primary full" onclick="act(\'on_way\')">On the Way</button>';
    if(s==='on_way')action='<button class="btn primary full" onclick="act(\'reached\')">Reached Pickup</button>';
    if(s==='reached')action='<button class="btn yellow full" onclick="startOtp()">Enter Start OTP</button>';
-   if(s==='working')action='<button class="btn primary full" onclick="act(\'complete\')">Complete Trip</button>';
+   if(s==='working')action='<button class="btn primary full" onclick="act(\'complete\')">Request Trip Completion</button>';
+   if(s==='completion_requested')action='<div class="sub" style="padding:12px 0">Waiting for Customer to confirm trip completion.</div>';
+   if(s==='payment_pending')action='<div class="sub" style="padding:12px 0">Waiting for Customer to pay Cash directly to you and mark payment in the app. Do not confirm receipt before you actually receive cash.</div>';
+   if(s==='cash_wait')action='<div class="sub" style="padding:12px 0">Customer marked Cash Paid. Check that you actually received the money before confirming. OCS 9% commission is then recorded against your wallet.</div><button class="btn yellow full" onclick="confirmDriverCash()">Confirm Cash Received</button>';
    $('currentBody').innerHTML='<div id="driverCallbackCall" style="padding:8px 0">Customer contact loading…</div>'+'<div class="row"><span>Status</span><b>'+esc(current.status)+'</b></div><div class="row"><span>Pickup</span><b>'+esc(r.pickup_address||current.address||'')+'</b></div><div class="row"><span>Drop</span><b>'+esc(r.drop_address||'')+'</b></div><div class="row"><span>Car</span><b>'+esc(r.car_type||'')+' • '+esc(r.transmission||'')+'</b></div><div class="row"><span>Trip</span><b>'+esc(r.trip_type||'')+'</b></div><div class="row"><span>Duration</span><b>'+esc(r.estimated_duration||'')+'</b></div><div class="row"><span>Schedule</span><b>'+esc(current.request_schedule||'')+'</b></div><div class="row"><span>Amount</span><b>₹'+Number(current.booking_amount||0).toFixed(0)+'</b></div>'+(r.note?'<div class="row"><span>Customer Note</span><b>'+esc(r.note)+'</b></div>':'')+action;
   await loadAssignedCustomerPhone(current.id);
  }catch(e){$('currentBody').innerHTML='<div class="empty">'+esc(e.message||'Current trip load failed')+'</div>'}
@@ -134,6 +137,21 @@ async function loadAssignedCustomerPhone(id){
 }
 async function act(a){try{const {error}=await sb.rpc('provider_booking_action',{p_booking_id:current.id,p_action:a,p_start_otp:null});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'Update failed')}}
 async function startOtp(){const otp=(prompt('Customer ka Start OTP enter karein')||'').trim();if(!otp)return;try{const {error}=await sb.rpc('provider_booking_action',{p_booking_id:current.id,p_action:'start',p_start_otp:otp});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'OTP invalid')}}
+let driverCashConfirmBusy=false;
+async function confirmDriverCash(){
+ if(!current||String(current.status||'').toLowerCase()!=='cash_wait'||driverCashConfirmBusy)return;
+ driverCashConfirmBusy=true;
+ try{
+  const {data:snap,error:se}=await sb.rpc('payment_snapshot_v1',{p_booking_id:current.id});if(se)throw se;
+  const payment=snap?.payment;
+  if(!payment?.id||payment.method!=='cash'||payment.status!=='cash_marked'||payment.purpose!=='job')throw new Error('Pending cash payment record not found');
+  if(!confirm('I confirm I have actually received ₹'+Number(payment.amount||0).toFixed(2)+' Cash from the Customer. This will complete the booking and apply the OCS 9% platform commission. Continue?'))return;
+  const {error}=await sb.rpc('confirm_cash_received_v1',{p_payment_id:payment.id});if(error)throw error;
+  alert('Cash receipt confirmed. Driver booking completed; OCS platform fee recorded.');
+  await load();
+ }catch(e){alert('Cash receipt not confirmed: '+(e?.message||'Please retry'))}
+ finally{driverCashConfirmBusy=false}
+}
 function tab(x){if(x==='activity'){location.href='home-services.html?tab=provider&sp=1&v=20261006-walletfree2';return}if(x==='wallet'){location.href='home-services.html?tab=provider&sp=1&open=wallet&v=20261006-walletfree2';return}const account=x==='account';$('driverHome').hidden=account;$('driverAccount').hidden=!account;document.querySelectorAll('.bottom button').forEach((b,i)=>b.classList.toggle('on',i===(account?3:0)));window.scrollTo(0,0);if(!account)load()}
 load();if(new URLSearchParams(location.search).get('view')==='account')tab('account');setInterval(load,8000);
 </script></body></html>
