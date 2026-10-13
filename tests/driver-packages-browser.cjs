@@ -28,7 +28,7 @@ function fakeDriverClient(){
 }
 function fakeAdminClient(){
  window.__rateCalls=[];
- window.__rates=[2,2.5,3,3.5,4,4.5,5,5.5,6,8,12].map(hours=>({hours,price:null,enabled:false}));
+ window.__rates=[2,2.5,3,3.5,4,4.5,5,5.5,6,8,12,14].map(hours=>({hours,price:null,enabled:false}));
  window.supabase={createClient:()=>({
   auth:{getSession:async()=>({data:{session:{user:{id:'mock-admin'}}}})},
   rpc:async (name,p={})=>{
@@ -75,7 +75,11 @@ function fakeNonAdminClient(){
   await routeFake(customer,fakeDriverClient);
   await customer.goto('http://127.0.0.1:8765/driver-service.html',{waitUntil:'domcontentloaded'});
   await customer.waitForFunction(()=>document.getElementById('driverHourlyRate').textContent.includes('₹359'),null,{timeout:15000});
-  assert.equal(await customer.locator('#durationChoices button').count(),11);
+  assert.equal(await customer.locator('#durationChoices button[data-value]').count(),12);
+  assert.equal(await customer.locator('#durationChoices button.duration-more').count(),1);
+  assert.equal(await customer.locator('#durationChoices button[data-value="2.5 Hrs"]').isVisible(),false);
+  await customer.locator('#moreDurationToggle').click();
+  assert.equal(await customer.locator('#durationChoices button[data-value="2.5 Hrs"]').isVisible(),true);
   assert.equal(await customer.locator('#driverTotalFare').innerText(),'₹359');
   assert.deepEqual(await customer.evaluate(()=>window.__driverRateReadModes),['public-anon'],
     'Public fare must never be loaded through the potentially invalid login JWT');
@@ -86,7 +90,7 @@ function fakeNonAdminClient(){
   assert.equal(await customer.locator('#bookBtn').isDisabled(),false);
   await customer.locator('#durationChoices button[data-value="4 Hrs"]').click();
   assert.equal(await customer.locator('#driverTotalFare').innerText(),'₹519');
-  assert.equal(await customer.locator('#driverFareFormula').innerText(),'4 hrs Driver Hire');
+  assert.equal(await customer.locator('#driverFareFormula').innerText(),'4 hrs • fixed package');
   await customer.locator('#durationChoices button[data-value="12 Hrs"]').click();
   assert.equal(await customer.locator('#driverTotalFare').innerText(),'Not available');
   assert.equal(await customer.locator('#bookBtn').isDisabled(),true);
@@ -134,7 +138,11 @@ function fakeNonAdminClient(){
     }))));
     throw e
   }
-  assert.equal(await admin.locator('.driver-rate-row').count(),11);
+  assert.equal(await admin.locator('#driverPackagesPanel .driver-rate-row').count(),13);
+  assert.equal(await admin.locator('#driverPackageRate-14').count(),1);
+  assert.equal(await admin.locator('#driverPackageRate-2.5').isVisible(),false);
+  await admin.locator('#toggleDriverHalfRates').click();
+  assert.equal(await admin.locator('#driverPackageRate-2.5').isVisible(),true);
   assert.equal(await admin.locator('#driverPackagesPanel .driver-rate-status.on').count(),0);
   await admin.locator('#driverPackageRate-2').fill('399');
   await admin.locator('button[data-driver-save="2"]').click();
