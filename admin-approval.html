@@ -666,9 +666,19 @@ async function loadOcsDriverOperations(){
   }
   if(tickets.length){
    const head=document.createElement('h3');head.textContent='Driver Support Tickets';head.style.marginTop='20px';dest.appendChild(head);
-   for(const t of tickets){
+   const orderedTickets=tickets.slice().sort((a,b)=>{
+     const priority=x=>/SAFETY \/ ACCIDENT/i.test(String(x.message||''))?1:0;
+     return priority(b)-priority(a)||String(b.created_at||'').localeCompare(String(a.created_at||''));
+   });
+   for(const t of orderedTickets){
     const d=document.createElement('div');d.className='card';d.style.marginTop='8px';
-    d.textContent=(t.ticket_no||'Ticket')+' • '+(t.status||'open')+' • '+(t.message||'');dest.appendChild(d)
+    const urgent=/SAFETY \/ ACCIDENT/i.test(String(t.message||''));
+    if(urgent)d.style.borderLeft='4px solid #bf4949';
+    const title=document.createElement('b');
+    title.textContent=(urgent?'⚠ Safety report • ':'')+(t.ticket_no||'Ticket')+' • '+(t.status||'open');
+    const body=document.createElement('p');body.className='muted';body.textContent=String(t.message||'');body.style.whiteSpace='pre-wrap';
+    const link=document.createElement('small');link.style.display='block';link.textContent='Booking ID: '+(t.booking_id||'Unlinked');
+    d.append(title,body,link);dest.appendChild(d);
    }
   }
  }catch(e){dest.textContent='Operator data load failed: '+(e.message||'Retry')}
@@ -794,7 +804,7 @@ async function adminSignOut(){
  location.href='index.html?v=20261008-adminotp1&login=1';
 }
 </script>
-<script src="assets/ocs-driver-admin-rates.js?v=20261013-auto-rate14"></script>
+<script src="assets/ocs-driver-admin-rates.js?v=20261013-simple-plans1"></script>
 <script>loadQueue();</script>
 <script src="assets/ocs-company-chat.js?v=20261011-company1"></script>
 </body>
