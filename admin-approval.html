@@ -450,7 +450,7 @@ function ocsOpenOfficialRecord(memberId,name,mount){
     ...((sections.payments)?['','SERVICE PAYMENT RECORDS (up to 30)',...(d.payments||[]).map(x=>[x.created_at,x.booking_id,x.method,x.status,'INR '+x.amount,'Commission INR '+x.commission_amount].join(' | '))]:[]),
     '','LIMITATIONS: '+(d.notice||'This report is based on available OCS records.')
    ];
-   const report=lines.join('\\n');
+   const report=lines.join('\n');
    const preview=document.createElement('pre');preview.textContent=report;preview.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid #d9e3e5;padding:12px;border-radius:10px;font-size:11px';results.appendChild(preview);
    const actions=document.createElement('div');actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0';
    const audit=async kind=>{const ar=await sb.rpc('ocs_admin_official_export_action_v1',{p_report_id:d.report_id,p_action_type:kind});if(ar.error)throw ar.error};
