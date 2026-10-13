@@ -57,11 +57,12 @@
   <button id="adminTabFinance" type="button" data-admin-view="finance" onclick="setAdminView('finance')">Finance Ledger</button>
   <button id="adminTabMembers" type="button" data-admin-view="members" onclick="setAdminView('members')">All Members</button>
   <button id="adminTabIdentity" type="button" data-admin-view="identity" onclick="setAdminView('identity')">ID & Duplicate Review</button>
+  <button id="adminTabPhotoId" type="button" data-admin-view="photoid" onclick="setAdminView('photoid')">Private ID Reviews</button>
   <button id="adminTabRates" type="button" data-admin-view="rates" onclick="setAdminView('rates')">Driver Rates</button>
  </nav>
  <a id="ocsTestLabLink" hidden href="ocs-test-lab.html?v=20261011-testlab1" style="background:#fff8dc;color:#6a541c;border:1px solid #e8d895;border-radius:13px;padding:13px;text-decoration:none;font-size:13px;font-weight:850;margin-bottom:12px" >🧪 Demo Test Lab → <small style="display:block;margin-top:4px;font-weight:400">Same Admin login se Customer, SP, Driver aur Shop ka sample flow check karein. No real bookings.</small></a>
  <section id="ocsMemberRegister" hidden><div class="card"><h2>OCS Member Register</h2><div class="muted">Customer • Service Provider • Driver • Tempo / Truck • Business owners. One account = one unique ID. Admin only.</div><input id="ocsMemberSearch" placeholder="Search name, role, category or ID" style="width:100%;height:43px;margin:12px 0;border:1px solid #d9e3e5;border-radius:10px;padding:10px"><div id="ocsMemberRows">Loading members…</div></div></section>
- <section id="ocsIdentityReview" hidden><div class="card">
+ <section id="ocsPhotoIdReview" hidden><div class="card"><h2>Private ID • Manual Review</h2><p class="muted">Photo ID aur selfie ko manually dekhein. Ye government KYC ya automatic face match nahi hai.</p><div id="ocsPhotoIdRows">Open this section to load.</div><button class="btn" onclick="loadOcsPhotoIdQueue()">Refresh Pending IDs</button></div></section><section id="ocsIdentityReview" hidden><div class="card">
  <h2>Account & ID Review</h2>
  <div class="muted">Admin only • Same self-reported mobile number review. A matching phone is NOT proof of duplicate people. No automatic block or wallet changes.</div>
  <div id="ocsIdentitySummary" class="info" style="margin:12px 0">Loading identity audit…</div>
@@ -94,9 +95,9 @@ let adminOtpEmail='';
 function setAdminView(view){
  const nav=document.getElementById('ocsAdminSections');
  if(nav.hidden)return;
- const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',finance:'ocsFinanceLedger',members:'ocsMemberRegister',identity:'ocsIdentityReview'};
- const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',finance:'Admin • Finance Ledger',members:'Admin • All Members',identity:'Admin • ID & Duplicate Review'};
- const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>OCS Bookings:</b> Home Services, Driver aur Tempo booking status, payment records aur SP wallet.',finance:'<b>Finance Ledger:</b> Admin-only verified payment records, booking-wise commission aur wallet history.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.',identity:'<b>ID Review:</b> Similar mobile details ko manually check karein. OTP unverified numbers trusted nahi hain; automatic blocking nahi hoga.'};
+ const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',finance:'ocsFinanceLedger',members:'ocsMemberRegister',identity:'ocsIdentityReview',photoid:'ocsPhotoIdReview'};
+ const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',finance:'Admin • Finance Ledger',members:'Admin • All Members',identity:'Admin • ID & Duplicate Review',photoid:'Admin • Private ID Reviews'};
+ const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>OCS Bookings:</b> Home Services, Driver aur Tempo booking status, payment records aur SP wallet.',finance:'<b>Finance Ledger:</b> Admin-only verified payment records, booking-wise commission aur wallet history.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.',identity:'<b>ID Review:</b> Similar mobile details ko manually check karein. OTP unverified numbers trusted nahi hain; automatic blocking nahi hoga.',photoid:'<b>Private ID Review:</b> Photo ID and selfie manual inspection. Not government ID verification.'};
  if(!Object.prototype.hasOwnProperty.call(map,view))return;
  document.getElementById('ocsAdminPageTitle').textContent=titles[view];
  document.getElementById('ocsAdminPageHelp').innerHTML=helps[view];
@@ -114,6 +115,7 @@ function setAdminView(view){
   if(view==='finance')loadOcsFinanceLedger(0);
   if(view==='members')loadOcsMemberRegister();
   if(view==='identity')loadOcsIdentityReview();
+  if(view==='photoid')loadOcsPhotoIdQueue();
 }
 
 function renderAdminLogin(){
@@ -215,6 +217,7 @@ function refreshCurrentAdminView(){
  if(view==='finance'){loadOcsFinanceLedger(0);return}
  if(view==='members'){loadOcsMemberRegister();return}
  if(view==='identity'){loadOcsIdentityReview();return}
+ if(view==='photoid'){loadOcsPhotoIdQueue();return}
  loadQueue().then(()=>{
   const nav=document.getElementById('ocsAdminSections');
   if(nav&&!nav.hidden&&view!=='operator')setAdminView(view);
@@ -430,6 +433,45 @@ async function loadOcsIdentityReview(){
    groups.appendChild(outer);
   }
  }catch(e){summary.textContent='ID review unavailable: '+(e&&e.message||'Please retry');}
+}
+
+
+async function loadOcsPhotoIdQueue(){
+ const area=document.getElementById('ocsPhotoIdRows');if(!area)return;
+ area.textContent='Loading private ID review queue…';
+ try{
+  const r=await sb.rpc('ocs_admin_photo_id_queue_v1',{p_limit:40});if(r.error)throw r.error;
+  const records=r.data?.records||[];area.replaceChildren();
+  const p=document.createElement('p');p.className='info';p.textContent='Pending ID submissions: '+Number(r.data?.pending_count||0);area.appendChild(p);
+  if(!records.length){area.appendChild(document.createTextNode('No pending photo IDs.'));return}
+  for(const row of records){
+   const card=document.createElement('div');card.className='card';
+   const heading=document.createElement('b');heading.textContent=(row.is_test_account?'TEST ACCOUNT • ':'')+row.full_name+' • '+row.document_type;card.appendChild(heading);
+   const desc=document.createElement('p');desc.className='muted';desc.textContent='Manual photo review only • Document: '+(row.doc_stored?'Stored':'Missing')+' • Selfie: '+(row.selfie_stored?'Stored':'Missing');card.appendChild(desc);
+   let docOpened=false,selfieOpened=false;
+   async function view(path,label){
+    if(!path)return;
+    const r=await sb.storage.from('ocs-provider-private').createSignedUrl(path,120);
+    if(r.error)throw r.error;
+    const image=document.createElement('img');image.src=r.data.signedUrl;image.alt=label;image.style.cssText='width:100%;max-height:280px;object-fit:contain;margin-top:9px';
+    image.referrerPolicy='no-referrer';card.appendChild(image);
+    await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('Image failed to load'))});
+   }
+   const d=document.createElement('button');d.className='btn';d.textContent='View Private ID';d.onclick=async()=>{d.disabled=true;try{await view(row.document_path,'Private ID');docOpened=true;d.textContent='ID opened'}catch(e){d.disabled=false;alert(e.message)}};card.appendChild(d);
+   const selfie=document.createElement('button');selfie.className='btn';selfie.textContent='View SP Selfie';selfie.onclick=async()=>{selfie.disabled=true;try{await view(row.selfie_path,'Private selfie');selfieOpened=true;selfie.textContent='Selfie opened'}catch(e){selfie.disabled=false;alert(e.message)}};card.appendChild(selfie);
+   const note=document.createElement('textarea');note.placeholder='Review note or correction reason';note.rows=2;note.style.cssText='width:100%;margin-top:10px;border:1px solid #cdd;padding:9px;border-radius:10px';card.appendChild(note);
+   async function decision(value){
+    if(value==='manual_checked'&&(!docOpened||!selfieOpened)){alert('Open and review both ID and selfie first.');return}
+    if(value==='rejected'&&note.value.trim().length<5){alert('Write correction reason (at least 5 letters).');return}
+    if(!confirm(value==='manual_checked'?'Mark manual ID and selfie check complete? This is NOT government verification.':'Reject and request ID correction?'))return;
+    const x=await sb.rpc('ocs_admin_review_photo_id_v1',{p_provider_id:row.provider_id,p_decision:value,p_note:note.value.trim(),p_seen_document:docOpened,p_seen_selfie:selfieOpened});
+    if(x.error)throw x.error;await loadOcsPhotoIdQueue();
+   }
+   const approve=document.createElement('button');approve.className='btn ok';approve.textContent='Manual Check Complete (not KYC)';approve.onclick=()=>decision('manual_checked').catch(e=>alert(e.message));card.appendChild(approve);
+   const reject=document.createElement('button');reject.className='btn red';reject.textContent='Reject / Request Correction';reject.onclick=()=>decision('rejected').catch(e=>alert(e.message));card.appendChild(reject);
+   area.appendChild(card);
+  }
+ }catch(e){area.textContent='ID queue unavailable: '+(e.message||'Retry')}
 }
 
 let ocsFinanceReq=0;
