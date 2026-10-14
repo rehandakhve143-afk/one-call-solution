@@ -74,7 +74,6 @@ const {chromium}=require('playwright');
      await navPage.waitForURL(url=>url.pathname.endsWith('/'+x.dest),{timeout:15000});
      assert(new URL(navPage.url()).pathname.endsWith('/'+x.dest));
    }
-   await navContext.close();
    // Verify that SP features remain fully discoverable in the one-login Account menu.
    await navPage.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
    await navPage.waitForFunction(()=>typeof window.openBottomProfile==='function',{timeout:15000});
@@ -93,6 +92,7 @@ const {chromium}=require('playwright');
    assert.match(await options.nth(0).innerText(),/SP Profile/i);
    assert.match(await options.nth(1).innerText(),/SP Dashboard/i);
    console.log('PASS mobile browser: Customer, Driver and Transport direct tiles; SP Profile and Dashboard under Account');
+   await navContext.close();
    // Show only essential app JS errors, not external CDN or network diagnostics.
    if(errors.some(e=>/ocsPortfolio|openBiz|ocsShop/i.test(e)))throw Error('Critical browser errors: '+errors.join(' ; '));
    console.log('OCS mobile browser smoke PASSED');
