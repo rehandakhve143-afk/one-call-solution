@@ -14,6 +14,10 @@ async function loadList(){
  const title=document.createElement('h3');title.textContent=x.service_name||x.category;card.appendChild(title);
  const info=document.createElement('p');info.className='muted';info.textContent='Booking #'+x.id.slice(0,8)+' • '+x.status.replaceAll('_',' ').toUpperCase()+' • '+new Date(x.updated_at).toLocaleString('en-IN')+' • Quote ₹'+(x.latest_quote_amount??'Pending');card.appendChild(info);
  const messages=document.createElement('div');card.appendChild(messages);
+ if(x.status==='searching'&&role==='customer'){
+ const availability=document.createElement('p');availability.className='muted';availability.textContent='Checking available matching SPs…';card.appendChild(availability);
+ rpc('ocs_quote_match_status_v1',{p_booking_id:x.id}).then(a=>{availability.textContent=a.matching_sp_count>0?'Eligible SPs available now: '+a.matching_sp_count+'. Waiting for SP to accept.':'No approved matching SP is Work ON in your area right now. Request stays saved and remains eligible when one becomes available.'}).catch(e=>{availability.textContent='SP availability check unavailable: '+e.message});
+ }
  const waiting=x.status==='searching',finished=['completed','done','cancelled_settled'].includes(x.status),closed=x.status==='cancelled';
  const stateNote=document.createElement('p');stateNote.className='muted';stateNote.textContent=waiting?'Waiting for an eligible SP to accept. Request is saved; no discussion started yet.':finished?'Completed work record. History remains available.':closed?'Discussion cancelled. History remains saved.':x.status==='quote_approved'?'Customer has approved quote. SP must confirm work start once available.':'Active discussion/booking. Messages and quote stay recorded.';card.appendChild(stateNote);
  const loadMessages=async()=>{messages.replaceChildren();const hist=await rpc('get_booking_messages_v1',{p_booking_id:x.id});for(const m of hist){const p=document.createElement('p');p.className='muted';p.textContent=new Date(m.created_at).toLocaleString('en-IN')+' • '+m.message;messages.appendChild(p)}};
