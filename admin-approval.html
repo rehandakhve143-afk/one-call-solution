@@ -62,7 +62,7 @@
   <button id="adminTabRates" type="button" data-admin-view="rates" onclick="setAdminView('rates')">Driver Rates</button>
  </nav>
  <a id="ocsTestLabLink" hidden href="ocs-test-lab.html?v=20261011-testlab1" style="background:#fff8dc;color:#6a541c;border:1px solid #e8d895;border-radius:13px;padding:13px;text-decoration:none;font-size:13px;font-weight:850;margin-bottom:12px" >🧪 Demo Test Lab → <small style="display:block;margin-top:4px;font-weight:400">Same Admin login se Customer, SP, Driver aur Shop ka sample flow check karein. No real bookings.</small></a>
- <section id="ocsMemberRegister" hidden><div class="card"><h2>OCS Member Register</h2><div class="muted">Customer • Service Provider • Driver • Tempo / Truck • Business owners. One account = one unique ID. Admin only.</div><input id="ocsMemberSearch" placeholder="Search name, role, category or ID" style="width:100%;height:43px;margin:12px 0;border:1px solid #d9e3e5;border-radius:10px;padding:10px"><div id="ocsMemberRows">Loading members…</div></div></section>
+ <section id="ocsMemberRegister" hidden><div class="card"><h2>OCS Member Register</h2><div class="muted">Customer • Service Provider • Driver • Tempo / Truck • Business owners. One account = one unique ID. Admin only.</div><input id="ocsMemberSearch" placeholder="Name, mobile, address, vehicle, booking ID" style="width:100%;height:43px;margin:12px 0;border:1px solid #d9e3e5;border-radius:10px;padding:10px"><div id="ocsMemberRows">Loading members…</div></div></section>
  <section id="ocsOfficialHistory" hidden><div class="card"><h2>Official Export History</h2><p class="muted">Admin-only disclosures and action log.</p><button class="btn" onclick="loadOfficialExportHistory()">Refresh History</button><div id="ocsOfficialHistoryRows"></div></div></section><section id="ocsPhotoIdReview" hidden><div class="card"><h2>Private ID • Manual Review</h2><p class="muted">Photo ID aur selfie ko manually dekhein. Ye government KYC ya automatic face match nahi hai.</p><div id="ocsPhotoIdRows">Open this section to load.</div><button class="btn" onclick="loadOcsPhotoIdQueue()">Refresh Pending IDs</button></div></section><section id="ocsIdentityReview" hidden><div class="card">
  <h2>Account & ID Review</h2>
  <div class="muted">Admin only • Same self-reported mobile number review. A matching phone is NOT proof of duplicate people. No automatic block or wallet changes.</div>
@@ -253,7 +253,7 @@ async function loadOcsMemberRegister(){
  box.textContent='Searching members…';
  const q=String(document.getElementById('ocsMemberSearch')?.value||'').trim();
  try{
-  const r=await sb.rpc('admin_member_search_v2',{p_search:q,p_limit:100});
+  const r=await sb.rpc('admin_member_search_v3',{p_search:q,p_limit:100});
   if(requestVersion!==memberSearchVersion)return;
   if(r.error)throw r.error;
   const rows=Array.isArray(r.data?.members)?r.data.members:[];
@@ -264,6 +264,7 @@ async function loadOcsMemberRegister(){
    const title=document.createElement('b');title.textContent=x.name||'OCS Member';
    const roles=Array.isArray(x.roles)?x.roles.slice():[];if(x.transport)roles.push('Truck / Tempo Driver');
    const desc=document.createElement('div');desc.className='muted';desc.style.marginTop='6px';desc.textContent='Role: '+roles.join(', ')+' • Category: '+(x.categories||[]).join(', ')+' • Approval: '+(x.approval||'Not submitted');
+   if(x.booking_address_match||x.service_area_match){const hint=document.createElement('div');hint.className='muted';hint.textContent=x.booking_address_match?'Matched a booking/service address — not proof of residence':'Matched service area — not proof of residence';c.appendChild(hint)}
    const id=document.createElement('div');id.className='muted';id.style.marginTop='6px';id.textContent='Member ID: '+x.member_id;
    const open=document.createElement('button');open.className='btn';open.style.marginTop='9px';open.textContent='View Full OCS Record';open.onclick=()=>loadOcsMemberDetail(x.member_id);
    c.append(title,desc,id,open);box.appendChild(c);
