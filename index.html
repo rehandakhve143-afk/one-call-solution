@@ -710,7 +710,7 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
 #bottomProfileModal .ocs-role-simple-options b{display:block;font-size:12px}
 #bottomProfileModal .ocs-role-simple-options small{display:block;font-size:10px;color:#617c81;margin-top:4px}
 </style>
-</head><body><script>
+<style id="ocs-simple-notification-unread-v1">.ocs-super-iconbtn[data-unread]:not([data-unread=""]){position:relative}.ocs-super-iconbtn[data-unread]:not([data-unread=""])::after{content:attr(data-unread);position:absolute;right:-7px;top:-5px;min-width:17px;height:17px;padding:0 3px;border-radius:10px;background:#f9e548;color:#083f49;font:bold 10px/17px Arial;text-align:center;box-shadow:0 1px 3px #0002}</style></head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
   if(q.get("admin")==="1"){
@@ -3901,41 +3901,58 @@ function submitOcsRating(){
 async function openNotifications(){
  const body=document.getElementById('notificationsBody'),modal=document.getElementById('notificationsModal');
  if(!body||!modal)return;
- body.innerHTML='<div class="bottom-hub-card"><b>Loading notifications...</b></div>';
- // Show immediately from the top; never wait for network to reveal a bottom sheet.
+ body.innerHTML='<div class="bottom-hub-card"><b>Loading updates…</b></div>';
  modal.classList.add('show');
- const items=[];
  const session=await getOcsSession();
- if(session&&session.user&&ocsSupabase){
-   try{
-     const {data,error}=await ocsSupabase.rpc('list_notifications_v1',{p_limit:30});
-     if(error)throw error;
-     const cutoff=Date.now()-(7*24*60*60*1000);
-     (Array.isArray(data)?data:[])
-      .filter(n=>{
-        const ts=n.created_at?new Date(n.created_at).getTime():0;
-        const txt=(String(n.title||'')+' '+String(n.body||'')).toLowerCase();
-        if(ts&&ts<cutoff)return false;
-        if(/admin cleanup|stale searching|test booking|test notification/.test(txt))return false;
-        return true;
-      })
-      .forEach(n=>{
-       const dt=n.created_at?new Date(n.created_at).toLocaleString('en-IN'):'';
-       items.push('<div class="bottom-hub-card"><b>'+ocsSavedText(n.title||'OCS Update')+'</b><small>'+ocsSavedText(n.body||'')+(dt?'<br>'+ocsSavedText(dt):'')+'</small>'+(n.booking_id?'<div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomBookings()">View Booking</button></div>':'')+'</div>');
-     });
-     await ocsSupabase.rpc('mark_notifications_read_v1');
-   }catch(e){console.error('Notification load failed',e)}
+ if(!session?.user||!ocsSupabase){
+  body.innerHTML='<div class="bottom-hub-card"><b>Login required</b><small>Login to view booking, job and quote updates.</small></div>';
+  return;
  }
- if(!items.length){
-   const b=getCurrentBooking();
-   const s=String(b?.status||b?.state||'').toUpperCase();
-   if(b&&s&&!['','SELECT_SERVICE','SELECT_ITEM','BOOKING_DETAILS','CUSTOM_REQUEST','CANCELLED','CANCELLED_SETTLED','WNC_CLOSED'].includes(s)){
-     items.push('<div class="bottom-hub-card"><b>Home Service Update</b><small>'+(b.service||b.category||b.task||'Home Service')+'<br>Status: '+dashStatusLabel(s)+'</small><div class="bottom-hub-actions"><button class="main" onclick="closeNotifications();openBottomBookings()">View Booking</button></div></div>');
-   }
- }
- if(!items.length)items.push('<div class="bottom-hub-card"><b>No new notification</b><small>Booking, quote, support aur payment updates yahan dikhengi.</small></div>');
- body.innerHTML=items.join('');
+ try{
+  const {data,error}=await ocsSupabase.rpc('list_notifications_v1',{p_limit:60});
+  if(error)throw error;
+  const rows=Array.isArray(data)?data:[];
+  const visible=rows.filter(n=>!/admin cleanup|test notification/i.test(String(n.title||'')+' '+String(n.body||'')));
+  body.replaceChildren();
+  if(!visible.length){body.innerHTML='<div class="bottom-hub-card"><b>No notifications yet</b><small>Your new job, discussion and booking updates will appear here.</small></div>';return}
+  for(const n of visible){
+   const card=document.createElement('div');card.className='bottom-hub-card';
+   const label=document.createElement('b');label.textContent=(n.read_at?'':'● ')+(n.title||'OCS Update');card.appendChild(label);
+   const note=document.createElement('small');note.textContent=(n.body||'')+' • '+(n.created_at?new Date(n.created_at).toLocaleString('en-IN'):'');card.appendChild(note);
+   const action=document.createElement('button');action.className='main';
+   const isQuote=['quote','quote_reply','quote_update'].includes(String(n.type||''))||/quote|discussion/i.test(n.title||'');
+   action.textContent=n.booking_id?(isQuote?'Open Discussion':'View Booking'):'Mark Read';
+   const wrap=document.createElement('div');wrap.className='bottom-hub-actions';wrap.appendChild(action);card.appendChild(wrap);
+   action.onclick=async()=>{
+    action.disabled=true;
+    try{
+     const r=await ocsSupabase.rpc('ocs_mark_notification_read_v1',{p_notification_id:n.id});
+     if(r.error)throw r.error;
+     if(n.booking_id&&isQuote){
+      const providerRole=String(n.title||'').toLowerCase().includes('customer replied')||String(n.title||'').toLowerCase().includes('customer approved')||String(n.title||'').toLowerCase().includes('customer rejected');
+      location.href='my-discussions.html?role='+(providerRole?'service_provider':'customer')+'&booking='+encodeURIComponent(n.booking_id);
+     }else if(n.booking_id){closeNotifications();openBottomBookings()}
+     else{label.textContent=n.title||'OCS Update';action.disabled=true;action.textContent='Read'}
+     refreshHomeNotificationCount().catch(()=>{});
+    }catch(e){action.disabled=false;alert('Unable to open notification: '+(e.message||'Retry'))}
+   };
+   body.appendChild(card);
+  }
+ }catch(e){body.innerHTML='<div class="bottom-hub-card"><b>Could not load notifications</b><small>Check connection and try again.</small><div class="bottom-hub-actions"><button class="main" onclick="openNotifications()">Retry</button></div></div>'}
 }
+async function refreshHomeNotificationCount(){
+ const bell=document.querySelector('.ocs-super-iconbtn[aria-label="Notifications"]');
+ if(!bell||!ocsSupabase)return;
+ const session=await getOcsSession();
+ if(!session?.user){bell.removeAttribute('data-unread');bell.setAttribute('aria-label','Notifications');return}
+ const {data,error}=await ocsSupabase.rpc('ocs_my_unread_notifications_count_v1');
+ if(error)return;
+ const count=Math.max(0,Number(data||0));
+ bell.dataset.unread=count>0?(count>99?'99+':String(count)):'';
+ bell.setAttribute('aria-label',count+' unread notifications');
+}
+setTimeout(()=>refreshHomeNotificationCount().catch(()=>{}),1200);
+setInterval(()=>{if(!document.hidden)refreshHomeNotificationCount().catch(()=>{})},30000);
 function closeNotifications(){document.getElementById('notificationsModal').classList.remove('show')}
 function openVerificationInfo(){document.getElementById('verificationInfoModal').classList.add('show')}
 function closeVerificationInfo(){document.getElementById('verificationInfoModal').classList.remove('show')}
