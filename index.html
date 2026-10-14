@@ -850,9 +850,9 @@ setTimeout(function(){
 </div></div>
 
 <div class="modal" id="bottomBookingsModal"><div class="sheet">
-  <div class="bottom-hub-head"><div><h2>Activity</h2><div class="muted">Bookings & service history</div></div><button class="x" onclick="closeBottomHub('bottomBookingsModal')">×</button></div>
+  <div class="bottom-hub-head"><div><h2>Activity</h2><div class="muted">Bookings • Requests • Quotes</div></div><button class="x" onclick="closeBottomHub('bottomBookingsModal')">×</button></div>
   <div class="support-role-row">
-    <button id="bookingTabActive" class="on" onclick="setBottomBookingsTab('ACTIVE')">Active</button>
+    <button id="bookingTabActive" class="on" onclick="setBottomBookingsTab('ACTIVE')">Current</button>
     <button id="bookingTabCompleted" onclick="setBottomBookingsTab('COMPLETED')">Completed</button>
     <button id="bookingTabCancelled" onclick="setBottomBookingsTab('CANCELLED')">Cancelled</button>
   </div>
@@ -3181,17 +3181,58 @@ async function renderBottomBookings(){
   }
   try{
     body.innerHTML='<div class="bottom-hub-card"><b>Checking live booking...</b></div>';
-    const {data,error}=await ocsSupabase.rpc('customer_active_booking');
-    if(error)throw error;
+    const [bookingResult,quotesResult]=await Promise.all([
+      ocsSupabase.rpc('customer_active_booking'),
+      ocsSupabase.rpc('ocs_quote_discussions_v1',{p_role:'customer'})
+    ]);
     if(bottomBookingsTab!=='ACTIVE')return;
-    const b=Array.isArray(data)?data[0]||null:null;
-    if(!b){
-      body.innerHTML='<div class="bottom-hub-card"><span class="ocs-booking-state">ACTIVE</span><b>No active booking</b><small>No current Home Service booking on this account.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book Home Service</button></div></div>';
-    }else{
+    const bookingError=bookingResult.error,quoteError=quotesResult.error;
+    if(bookingError&&quoteError)throw bookingError;
+    const data=Array.isArray(bookingResult.data)?bookingResult.data:[];
+    const b=data[0]||null;
+    // A quote request may stay unassigned for days. Older customer_active_booking()
+    // excludes searching jobs >24h; quote history is the authoritative inbox.
+    const quoteRows=Array.isArray(quotesResult.data)?quotesResult.data:[];
+    const activeStages=new Set(['searching','discussion','quote_approved','accepted','next_accepted','on_way','reached','working','completion_requested','payment_pending','cash_wait','visit_cash_wait','support_review','rescheduled','reschedule_pending']);
+    const openQuotes=quoteRows.filter(q=>q&&activeStages.has(String(q.status||'').toLowerCase()));
+    const isDiscussion=b&&b.request_type==='quote'&&['searching','discussion','quote_approved'].includes(String(b.status||'').toLowerCase());
+    if(isDiscussion&&!openQuotes.some(q=>q.id===b.id)){
+      openQuotes.unshift({id:b.id,category:b.category,service_name:b.service_name,status:b.status,updated_at:b.updated_at,latest_quote_status:null,latest_quote_amount:null});
+    }
+    let cards='';
+    if(b&&!isDiscussion){
       const status=dashStatusLabel(String(b.status||'').toUpperCase());
       const service=b.service_name||b.category||'Home Service',id=ocsShortBookingId(b.id);
-      body.innerHTML='<div class="bottom-hub-card"><span class="ocs-booking-state">ACTIVE</span><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+'<br>Status: <b style="display:inline">'+ocsSavedText(status)+'</b></small><div class="bottom-hub-actions"><button class="main" onclick="location.href=\'home-services.html?tab=customer&v=20261012-bookingtrack1\'">Track • OTP • Complete • Payment</button></div></div>';
+      cards='<div class="bottom-hub-card"><span class="ocs-booking-state">IN PROGRESS</span><b>'+ocsSavedText(service)+'</b><small>'+ocsSavedText(id)+'<br>Status: <b style="display:inline">'+ocsSavedText(status)+'</b></small><div class="bottom-hub-actions"><button class="main" onclick="location.href=\'home-services.html?tab=customer&v=20261014-activity1\'">Track My Booking</button></div></div>';
     }
+    const visibleQuotes=openQuotes.filter(q=>!b||q.id!==b.id||isDiscussion).slice(0,4);
+    if(visibleQuotes.length){
+      cards+='<div class="ocs-activity-section-label">Requests &amp; Quotes</div>';
+      for(const q of visibleQuotes){
+        const stage=String(q.status||'').toLowerCase();
+        let label='Discussion ongoing',hint='All chat and quote details stay saved.',action='Open Discussion';
+        if(stage==='searching'){label='Waiting for SP';hint='Request saved. No SP accepted yet.';action='View Request'}
+        else if(stage==='quote_approved'){label='Quote Approved';hint='Waiting for SP to confirm the work slot.';action='View Approved Quote'}
+        else if(q.latest_quote_status==='pending'){label='Quote Received';hint='Please review the SP price before accepting.';action='Review Quote'}
+        else if(stage!=='discussion'){label='Work in progress';hint='Open your full OCS booking record.';action='View Details'}
+        const quoteDetails=q.latest_quote_amount!=null?' • Quote ₹'+Number(q.latest_quote_amount).toLocaleString('en-IN'):'';
+        const link='my-discussions.html?role=customer&booking='+encodeURIComponent(String(q.id||''));
+        cards+='<div class="bottom-hub-card ocs-activity-quote-card"><span class="ocs-booking-state">'+ocsSavedText(label)+'</span><b>'+ocsSavedText(q.service_name||q.category||'Get Quote')+'</b><small>'+ocsSavedText(ocsShortBookingId(q.id))+' • '+ocsSavedText(hint)+ocsSavedText(quoteDetails)+'</small><div class="bottom-hub-actions"><button class="main" onclick="location.href=\''+ocsSavedText(link)+'\'">'+ocsSavedText(action)+'</button></div></div>';
+      }
+    }
+    if(!b&&!visibleQuotes.length&&!quoteError){
+      cards='<div class="bottom-hub-card"><b>No pending work or requests</b><small>New bookings and Get Quote requests will appear here until they are completed or cancelled.</small><div class="bottom-hub-actions"><button class="main" onclick="closeBottomHub(\'bottomBookingsModal\');openModule(\'Home Services\',\'customer\')">Book a Service</button></div></div>';
+    }
+    if(openQuotes.length>visibleQuotes.length){
+      cards+='<div class="bottom-hub-card"><b>More requests</b><small>See all Get Quote records and messages.</small><div class="bottom-hub-actions"><button class="main" onclick="location.href=\'my-discussions.html?role=customer\'">View All Quotes</button></div></div>';
+    }
+    if(quoteError){
+      cards+='<div class="bottom-hub-card"><b>Quotes temporarily unavailable</b><small>Booking records are safe. Retry to see the latest quote status.</small><div class="bottom-hub-actions"><button class="main" onclick="renderBottomBookings()">Retry</button></div></div>';
+    }
+    if(bookingError){
+      cards+='<div class="bottom-hub-card"><b>Work booking status unavailable</b><small>Quote records may still be shown above. Retry for full booking status.</small></div>';
+    }
+    body.innerHTML=cards;
   }catch(e){
     console.error('Live Activity status unavailable',e);
     body.innerHTML='<div class="bottom-hub-card"><b>Cannot load booking right now</b><small>Try again after checking internet. Stale status hidden.</small><div class="bottom-hub-actions"><button class="main" onclick="renderBottomBookings()">Retry</button></div></div>';
