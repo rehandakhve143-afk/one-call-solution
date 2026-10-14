@@ -135,9 +135,9 @@ async function loadDashboard(){
      return;
    }
    const walletBalance=Number(profile.wallet_balance||0);
-   const canReceiveNewJobs=walletBalance>=200&&profile.service_location_set===true&&profile.admin_paused!==true;
+   const canReceiveNewJobs=profile.service_location_set===true&&profile.admin_paused!==true;
    const walletNotice=walletBalance<200
-     ?'<div class="error" style="margin-top:12px">OCS Wallet '+money(walletBalance)+' • Minimum ₹200 required to accept NEW jobs. Current accepted work can continue. Recharge Wallet to receive new jobs.</div>'
+     ?'<div class="error" style="margin-top:12px">OCS Wallet '+money(walletBalance)+' • Balance low reminder only. Work ON aur new jobs ke liye recharge mandatory nahi hai. 9% commission remains payable.</div>'
      :(profile.service_location_set!==true
        ?'<div class="error" style="margin-top:12px">Service location pin is missing. Set location before accepting NEW jobs.</div>'
        :(profile.admin_paused===true?'<div class="error" style="margin-top:12px">New jobs are paused by OCS Admin. Existing work can continue.</div>':''));
@@ -148,7 +148,7 @@ async function loadDashboard(){
    if(!cur.error&&Array.isArray(cur.data)&&cur.data.length)booking=cur.data[0];
    if(!booking&&!canReceiveNewJobs){
      currentJob=null;
-     setStableDashboardHtml(jb,'<div class="card empty"><div class="ico">🔒</div><h3>New Jobs On Hold</h3><div class="muted">Wallet minimum ₹200, current-location pin and Admin clearance are required for new bookings. Ongoing accepted jobs are unaffected.</div></div>');
+     setStableDashboardHtml(jb,'<div class="card empty"><div class="ico">🔒</div><h3>New Jobs On Hold</h3><div class="muted">Valid service-location pin and Admin clearance are required for new bookings. Low wallet alone does not block work.</div></div>');
      return;
    }
    if(!booking){
@@ -175,17 +175,10 @@ async function loadDashboard(){
 }
 function syncToggle(){
  const b=document.getElementById('workToggle');
- b.disabled=false;b.textContent=available?'Work ON':Number(profile?.wallet_balance||0)<200?'Work OFF • ₹200 needed':'Work OFF';b.classList.toggle('off',!available);
+ b.disabled=false;b.textContent=available?'Work ON':'Work OFF';b.classList.toggle('off',!available);
 }
 async function toggleWork(){
  const b=document.getElementById('workToggle');
- if(!available&&Number(profile?.wallet_balance||0)<200){
-  const due=Math.max(0,200-Number(profile?.wallet_balance||0));
-  const msg='OCS Wallet ₹'+Number(profile?.wallet_balance||0).toFixed(2)+'. Work ON aur NEW jobs ke liye minimum ₹200 chahiye. ₹'+due.toFixed(2)+' ki kami hai. Existing accepted jobs unaffected.';
-  const pb=document.getElementById('profileBox');
-  if(pb){let notice=document.getElementById('workToggleWalletNote');if(!notice){notice=document.createElement('div');notice.id='workToggleWalletNote';notice.className='error';notice.style.marginTop='12px';pb.appendChild(notice)}notice.textContent=msg;}
-  return;
- }
  b.disabled=true;
  const onboardingStatus=String(profile?.onboarding_status||profile?.onboardingStatus||profile?.provider_onboarding_status||'').toLowerCase();
  if(onboardingStatus&&onboardingStatus!=='approved'){
