@@ -433,6 +433,27 @@ async function loadOcsMemberDetail(memberId){
     try{
      const {data,error}=await sb.rpc('ocs_booking_full_record_v1',{p_booking_id:job.id});if(error)throw error;
      output.replaceChildren();
+     const disputeReply=await sb.rpc('ocs_booking_dispute_record_v1',{p_booking_id:job.id});
+     if(!disputeReply.error&&disputeReply.data?.exists){
+      const dispute=disputeReply.data;
+      const header=document.createElement('h3');header.textContent='COMPLAINT • ADMIN PAYMENT REVIEW';output.appendChild(header);
+      const summary=document.createElement('p');summary.textContent='Status: '+dispute.status+' • '+dispute.reason;output.appendChild(summary);
+      const statements=document.createElement('pre');statements.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px';
+      statements.textContent=JSON.stringify(dispute.statements||[],null,2);output.appendChild(statements);
+      const choice=document.createElement('select');
+      for(const outcome of ['further_review','refund_review','provider_payment_review','partial_settlement_review','no_payment_adjustment']){const o=document.createElement('option');o.value=outcome;o.textContent=outcome.replaceAll('_',' ');choice.appendChild(o)}
+      const refund=document.createElement('input');refund.type='number';refund.min=0;refund.value=String(dispute.proposed_refund||0);refund.placeholder='Proposed refund ₹';refund.style.cssText='width:100%;padding:10px;margin-top:8px';
+      const spPay=document.createElement('input');spPay.type='number';spPay.min=0;spPay.value=String(dispute.proposed_provider_payment||0);spPay.placeholder='Proposed SP payment ₹';spPay.style.cssText='width:100%;padding:10px;margin-top:8px';
+      const note=document.createElement('textarea');note.placeholder='Evidence-based Admin decision (minimum 15 characters)';note.style.cssText='width:100%;padding:10px;margin-top:8px;min-height:90px';
+      const submit=document.createElement('button');submit.type='button';submit.className='btn';submit.textContent='Record Review Only — No Money Transfer';
+      submit.onclick=async()=>{
+       if(!confirm('Record an Admin recommendation only? No actual money will move.'))return;
+       submit.disabled=true;
+       try{const res=await sb.rpc('ocs_admin_dispute_decision_v1',{p_dispute_id:dispute.id,p_outcome:choice.value,p_refund:Number(refund.value||0),p_provider_payment:Number(spPay.value||0),p_note:note.value.trim()});if(res.error)throw res.error;alert('Admin recommendation recorded. No payment transferred.');}
+       catch(e){alert(e.message||'Review could not be saved')}finally{submit.disabled=false}
+      };
+      output.append(choice,refund,spPay,note,submit);
+     }
      for(const section of ['booking','quotes','work_addons','payments','messages','timeline','reschedules','complaints','evidence_notes','booking_changes']){
       const header=document.createElement('h3');header.textContent=section.replaceAll('_',' ').toUpperCase();output.appendChild(header);
       const block=document.createElement('pre');block.style.cssText='font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere';
