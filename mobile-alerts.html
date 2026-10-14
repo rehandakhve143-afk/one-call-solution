@@ -1,0 +1,50 @@
+<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-store"><title>OCS • Mobile Alerts</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script><style>
+*{box-sizing:border-box}body{margin:0;background:#f4f7f7;color:#183a42;font:14px Arial}.head{background:#075460;color:#fff;padding:20px 16px}.wrap{max-width:500px;margin:auto;padding:15px}.card{background:#fff;border:1px solid #dce7e6;border-radius:17px;padding:16px;margin:12px 0;line-height:1.6}h1{font-size:21px;margin:0}h2{font-size:17px;margin:0 0 10px}p{margin:8px 0 12px}.muted{color:#607b80;font-size:12px}button,a.btn{border:0;border-radius:12px;padding:13px 15px;background:#087a75;color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-right:8px;cursor:pointer}button:disabled{opacity:.55}.secondary{background:#e9f4f1!important;color:#12645c!important}.warn{color:#835a11;background:#fff7e2;border-radius:11px;padding:10px 12px}.status{white-space:pre-wrap;font-size:12px;color:#325b61}
+</style></head><body><header class="head"><h1>OCS • Mobile Notifications</h1><div style="font-size:12px;margin-top:5px">Customer और SP Updates • One account</div></header><main class="wrap"><a href="index.html" class="btn secondary">← Home</a><section class="card"><h2>🔔 Device Registration (Testing)</h2><p>New Job, Get Quote reply और Booking updates के लिए मोबाइल तैयार कर सकते हैं। अनुमति सिर्फ आपके बटन दबाने के बाद माँगी जाएगी।</p><p class="warn"><b>Background Push delivery अभी Testing में है।</b> Server dispatch पूरा होने तक ऐप बंद होने पर Alert की गारंटी नहीं है। मौजूदा In-App Notifications चलते रहेंगे।</p><button id="enable" type="button" onclick="enableAlerts()">Register This Phone</button><button id="disable" class="secondary" type="button" onclick="disableAlerts()">Remove This Phone</button><p id="status" class="status" role="status">Checking device support…</p></section><section class="card"><h2>क्या Notification आएगा?</h2><p class="muted">नए Booking Request, Quote Reply और काम के Status की छोटी सूचना। Phone lock screen पर Customer की निजी जानकारी या Payment Details नहीं दिखाई जाएँगी।</p><p class="muted">Chrome में OCS PWA इंस्टॉल करने से Background delivery अधिक विश्वसनीय हो सकती है। Notification permission और Android Battery restrictions भी असर डालते हैं।</p></section></main>
+<script>
+const sb=window.supabase.createClient('https://uipmkrsggpkupgbgoxkg.supabase.co','sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto');
+const VAPID_PUBLIC='BKKYspGgaF5y4tr9RF7lMb7NaHsfvYzlVI8c2DrQfFUdp4GGwGWGuWoV4DIZQ7js6JNbmWtACPyCShJD_ftJxxU';
+const status=t=>document.getElementById('status').textContent=t;
+const capable=()=>window.isSecureContext&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+function keyBytes(v){const padded=v+'='.repeat((4-v.length%4)%4);const str=atob(padded.replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(str,c=>c.charCodeAt(0))}
+function asUrlSafe(b){return b?btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,''):''}
+async function registered(){const reg=await navigator.serviceWorker.ready;return [reg,await reg.pushManager.getSubscription()]}
+async function updateStatus(){
+ if(!capable()){status('This device/browser does not support secure Web Push. In-App Notifications still work.');document.getElementById('enable').disabled=true;return}
+ const [,sub]=await registered();status(sub?'This phone is registered for Push Testing. Delivery server is not yet enabled.':'This phone is not registered. Tap Register This Phone only if you want to opt in.');
+}
+async function enableAlerts(){
+ const btn=document.getElementById('enable');btn.disabled=true;
+ try{
+  if(!capable())throw Error('Web Push is not supported on this browser');
+  const session=(await sb.auth.getSession()).data.session;
+  if(!session)throw Error('Please log in to OCS before registering');
+  if(Notification.permission==='denied')throw Error('Notifications blocked in browser settings. Change permission to Allow.');
+  const permission=await Notification.requestPermission();
+  if(permission!=='granted')throw Error('Permission was not granted. No device was registered.');
+  let reg=await navigator.serviceWorker.getRegistration('./');
+  if(!reg)reg=await navigator.serviceWorker.register('service-worker.js?v=20261014-push1',{scope:'./'});
+  reg=await navigator.serviceWorker.ready;
+  const sub=(await reg.pushManager.getSubscription())||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:keyBytes(VAPID_PUBLIC)});
+  const k=sub.toJSON();
+  const {error}=await sb.rpc('ocs_push_register_v1',{p_endpoint:sub.endpoint,p_p256dh:k.keys.p256dh,p_auth:k.keys.auth,p_enabled:true});
+  if(error)throw error;
+  status('Phone registration saved. Push delivery server is still pending; check the in-app bell for updates.');
+ }catch(e){status('Registration not completed: '+(e.message||'Unknown error'))}
+ finally{btn.disabled=false}
+}
+async function disableAlerts(){
+ const btn=document.getElementById('disable');btn.disabled=true;
+ try{
+  if(!capable())throw Error('No Web Push support');
+  const [reg,sub]=await registered();
+  if(!sub){status('This device has no push subscription.');return}
+  const {error}=await sb.rpc('ocs_push_disable_v1',{p_endpoint:sub.endpoint});
+  if(error)throw error;
+  await sub.unsubscribe();
+  status('This phone was removed from OCS push testing.');
+ }catch(e){status('Could not remove device: '+(e.message||'Unknown error'))}
+ finally{btn.disabled=false}
+}
+if(capable())updateStatus().catch(e=>status(e.message));else status('Web Push is not supported on this device/browser.');
+</script></body></html>
