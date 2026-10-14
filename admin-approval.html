@@ -55,6 +55,7 @@
   <button id="adminTabChat" type="button" data-admin-view="chat" onclick="setAdminView('chat')">Company Chat</button>
   <button id="adminTabBookings" type="button" data-admin-view="bookings" onclick="setAdminView('bookings')">Bookings & Wallet</button>
   <button id="adminTabFinance" type="button" data-admin-view="finance" onclick="setAdminView('finance')">Finance Ledger</button>
+  <button id="adminTabIdbi" type="button" data-admin-view="idbi" onclick="setAdminView('idbi')">IDBI Payment Review</button>
   <button id="adminTabMembers" type="button" data-admin-view="members" onclick="setAdminView('members')">All Members</button>
   <button id="adminTabOfficial" type="button" data-admin-view="official" onclick="setAdminView('official')">Official Exports</button>
   <button id="adminTabIdentity" type="button" data-admin-view="identity" onclick="setAdminView('identity')">ID & Duplicate Review</button>
@@ -71,6 +72,7 @@
  <button class="btn" onclick="loadOcsIdentityReview()" type="button">↻ Refresh ID Review</button>
  </div></section>
  <section id="ocsHomeMonitor" hidden><div class="card"><h2>All OCS Bookings</h2><div class="muted">Home Services • Driver • Tempo / Goods Transport • Live database, Admin read-only</div><div id="ocsBookingOverview" class="info" style="margin:10px 0">Loading OCS summary…</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('Tempo / Goods Transport')">Tempo / Truck</button><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('')">All Categories</button></div><select id="ocsBookingFilterStatus"><option value="all">All</option><option value="stale">Old Unassigned</option><option value="searching">Searching</option><option value="active">Active</option><option value="payment">Payment Due</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select><input id="ocsBookingFilterSearch" placeholder="Booking ID, name, service or category"><input id="ocsBookingFilterFrom" type="date"><input id="ocsBookingFilterTo" type="date"><button class="btn" onclick="loadAdminBookingsPage(0)">Search Bookings</button><div id="ocsHomeBookingRows"></div><div id="ocsBookingPager"></div></div><div class="card"><h2>SP Wallet Monitoring</h2><div id="ocsHomeWalletRows"></div><div class="card" style="margin-top:12px"><h3>Outstanding OCS Commission</h3><p class="muted">Pending 9% commission. Rs 200 minimum for NEW jobs applies after verified IDBI recharge setup; existing accepted jobs continue.</p><div id="ocsAdminDueRows">Loading...</div></div></div></section>
+ <section id="ocsIdbiBankReview" hidden><div class="card"><h2>IDBI Listing Bank Verification</h2><p class="muted">Admin only. Actual IDBI bank statement se exact amount aur UTR independently match karein. Customer screenshot/UTR alone proof NAHI hai. Verification ke baad hi paid post LIVE hogi.</p><button class="btn" type="button" onclick="loadIdbiBankQueue()">↻ Refresh Bank Requests</button><div id="ocsIdbiBankRows">Open to load bank requests.</div></div></section>
  <section id="ocsFinanceLedger" hidden><div class="card"><h2>OCS Finance Ledger</h2><div class="muted">Admin only • Date-wise verified booking payments, 9% commission, paid listing records, SP wallet and withdrawals. Wallet movements are not counted twice as customer collections.</div>
  <select id="ocsFinanceType" aria-label="Finance record type" style="width:100%;min-height:43px;margin-top:12px"><option value="all">All records</option><option value="booking">Customer booking payments</option><option value="listing">Property / Business / Slider payments</option><option value="topup">SP wallet recharges</option><option value="withdrawal">SP withdrawals</option><option value="wallet">SP wallet transactions</option></select>
  <input id="ocsFinanceSearch" placeholder="Booking ID, member, service, Razorpay reference" style="width:100%;min-height:43px;margin-top:8px;padding:10px;border:1px solid #d9e3e5;border-radius:10px">
@@ -93,11 +95,46 @@ const sb=window.supabase.createClient(
 const box=document.getElementById('content');
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 let adminOtpEmail='';
+
+async function loadIdbiBankQueue(){
+ const target=document.getElementById('ocsIdbiBankRows');if(!target)return;
+ target.textContent='Loading verified-bank review queue…';
+ try{
+  const {data,error}=await sb.rpc('ocs_admin_bank_payment_queue_v1',{p_limit:50});
+  if(error)throw error;
+  const rows=Array.isArray(data)?data.filter(x=>x.purpose==='paid_post'):[];
+  target.replaceChildren();
+  if(!rows.length){target.textContent='No IDBI paid listing requests yet. Company collections remain OFF until verified setup.';return}
+  for(const x of rows){
+   const item=document.createElement('div');item.className='card';
+   const title=document.createElement('h3');title.textContent='Listing Payment • '+String(x.status||'').toUpperCase();item.appendChild(title);
+   const info=document.createElement('p');info.className='muted';
+   info.textContent='Request: '+x.id+' • Amount ₹'+Number(x.amount||0).toFixed(2)+' • UTR: '+(x.bank_utr||'Not submitted')+' • '+(x.created_at||'');item.appendChild(info);
+   if(x.status==='claimed'){
+    const input=document.createElement('input');input.placeholder='Verified bank statement UTR';input.value=x.bank_utr||'';input.style.cssText='width:100%;padding:12px;min-height:43px;margin:8px 0';
+    const amt=document.createElement('input');amt.type='number';amt.step='0.01';amt.placeholder='Actual received ₹';amt.style.cssText='width:100%;padding:12px;min-height:43px;margin-bottom:8px';
+    const btn=document.createElement('button');btn.className='btn ok';btn.textContent='Verify IDBI Statement & Publish';btn.onclick=async()=>{
+      if(!input.value.trim()||!amt.value){alert('Bank statement UTR and actual amount required');return}
+      if(!confirm('IDBI official bank statement mein UTR '+input.value+' aur received amount ₹'+amt.value+' personally VERIFIED? This will immediately publish the customer listing.'))return;
+      btn.disabled=true;
+      try{
+        const z=await sb.rpc('ocs_admin_verify_idbi_paid_post_v1',{p_request_id:x.id,p_bank_reference:input.value.trim(),p_received_amount:Number(amt.value)});
+        if(z.error)throw z.error;
+        alert('Verified • paid listing '+(z.data?.listing_live?'LIVE':'status pending'));
+        await loadIdbiBankQueue();
+      }catch(e){alert('Verification refused: '+(e.message||e));btn.disabled=false}
+    };
+    item.append(input,amt,btn);
+   }
+   target.appendChild(item);
+  }
+ }catch(e){target.textContent='Bank queue unavailable: '+(e.message||e)}
+}
 function setAdminView(view){
  const nav=document.getElementById('ocsAdminSections');
  if(nav.hidden)return;
- const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',finance:'ocsFinanceLedger',members:'ocsMemberRegister',official:'ocsOfficialHistory',identity:'ocsIdentityReview',photoid:'ocsPhotoIdReview'};
- const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',finance:'Admin • Finance Ledger',members:'Admin • All Members',official:'Admin • Official Exports',identity:'Admin • ID & Duplicate Review',photoid:'Admin • Private ID Reviews'};
+ const map={operator:'ocsDriverOperations',approval:'content',chat:'ocsCompanyInbox',rates:'driverPackagesPanel',bookings:'ocsHomeMonitor',finance:'ocsFinanceLedger',members:'ocsMemberRegister',official:'ocsOfficialHistory',identity:'ocsIdentityReview',photoid:'ocsPhotoIdReview',idbi:'ocsIdbiBankReview'};
+ const titles={operator:'Admin • Driver Operator',approval:'Admin • SP Approval',chat:'Admin • Company Chat',rates:'Admin • Driver Rates',bookings:'Admin • Bookings & Wallet',finance:'Admin • Finance Ledger',members:'Admin • All Members',official:'Admin • Official Exports',identity:'Admin • ID & Duplicate Review',photoid:'Admin • Private ID Reviews',idbi:'Admin • IDBI Payments'};
  const helps={operator:'<b>Driver Operator:</b> Yahan Driver bookings aur support tickets dekhein. Reassignment aur payment action abhi available nahi hai.',approval:'<b>SP Approval:</b> Service Provider ki verification details dekhkar hi Approve ya Reject karein.',chat:'<b>Company Chat:</b> Customer ke messages OCS Company ko milenge. Driver ko yahan reply dene ka access nahi hai.',rates:'<b>Driver Rates:</b> Save Draft se fare live nahi hota. Activate Live ke liye alag confirmation zaroori hai.',bookings:'<b>OCS Bookings:</b> Home Services, Driver aur Tempo booking status, payment records aur SP wallet.',finance:'<b>Finance Ledger:</b> Admin-only verified payment records, booking-wise commission aur wallet history.',members:'<b>Member Register:</b> Sabhi registered accounts aur unke roles ka private Admin record.',official:'<b>Official Exports:</b> History of recorded disclosures. Verify lawful requests.',identity:'<b>ID Review:</b> Similar mobile details ko manually check karein. OTP unverified numbers trusted nahi hain; automatic blocking nahi hoga.',photoid:'<b>Private ID Review:</b> Photo ID and selfie manual inspection. Not government ID verification.'};
  if(!Object.prototype.hasOwnProperty.call(map,view))return;
  document.getElementById('ocsAdminPageTitle').textContent=titles[view];
