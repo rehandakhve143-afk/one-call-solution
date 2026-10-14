@@ -9,7 +9,7 @@
 <label for="media">Photo or video (optional, up to 20 MB)</label><input id="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm">
 <p class="muted">Images or videos are private. Do not upload Aadhaar, bank details, OTP or unrelated people's personal data. Submissions become part of the booking's evidence history.</p>
 <button id="saveBtn" type="button">Save Evidence</button>
-<h3 style="margin-top:20px">Evidence & history</h3><div id="items"></div></section>
+<h3 style="margin-top:20px">Complaint & Resolution</h3><p class="muted">Either Customer or SP can raise a complaint. Both parties may add statements. No automatic refund or payout.</p><textarea id="complaintReason" placeholder="Explain the complaint clearly (10–2000 characters)" maxlength="2000"></textarea><button id="complaintBtn" type="button">Raise Complaint</button><div id="disputeBox"></div><h3 style="margin-top:20px">Evidence & history</h3><div id="items"></div></section>
 <p id="status" role="status" aria-live="polite" class="muted"></p></main>
 <script>
 const sb=window.supabase.createClient('https://uipmkrsggpkupgbgoxkg.supabase.co','sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto');
@@ -53,9 +53,28 @@ async function load(){
    box.appendChild(row);
   }
   if(!box.children.length)box.textContent='No evidence recorded yet.';
+  await loadDispute(id);
   msg('Record loaded. Quote, payment and other events remain available in the booking history and Admin panel.');
  }catch(e){$('record').hidden=true;current=null;msg(e.message||'Booking unavailable')}
  finally{$('loadBtn').disabled=false}
+}
+async function loadDispute(id){
+ const box=$('disputeBox');box.replaceChildren();
+ const {data,error}=await sb.rpc('ocs_booking_dispute_record_v1',{p_booking_id:id});
+ if(error){box.textContent='Complaint status unavailable: '+error.message;return}
+ if(!data.exists){box.textContent='No complaint filed for this booking.';return}
+ const status=document.createElement('p');status.textContent='Complaint '+String(data.status||'open').toUpperCase()+' • '+data.reason;box.appendChild(status);
+ for(const s of (data.statements||[])){const p=document.createElement('p');p.className='line';p.textContent=s.side+' • '+new Date(s.created_at).toLocaleString('en-IN')+' • '+s.statement;box.appendChild(p)}
+ if(data.proposed_outcome){const p=document.createElement('p');p.textContent='Admin review: '+data.proposed_outcome+' • Proposed refund ₹'+Number(data.proposed_refund||0).toFixed(2)+' • Proposed SP payment ₹'+Number(data.proposed_provider_payment||0).toFixed(2)+' • '+(data.decision_note||'')+'. No automatic transfer.';box.appendChild(p)}
+ const ta=document.createElement('textarea');ta.placeholder='Add your statement or response (8–2000 characters)';ta.maxLength=2000;box.appendChild(ta);
+ const btn=document.createElement('button');btn.textContent='Submit My Statement';btn.onclick=async()=>{btn.disabled=true;try{const {error:e}=await sb.rpc('ocs_add_dispute_statement_v1',{p_dispute_id:data.id,p_statement:ta.value.trim()});if(e)throw e;msg('Statement recorded');await loadDispute(id)}catch(e){msg(e.message||'Statement failed')}finally{btn.disabled=false}};box.appendChild(btn);
+}
+async function openComplaint(){
+ if(!current)return;const reason=$('complaintReason').value.trim();
+ if(reason.length<10){msg('Explain the issue in at least 10 characters');return}
+ $('complaintBtn').disabled=true;
+ try{const {data,error}=await sb.rpc('ocs_open_booking_dispute_v1',{p_booking_id:current.booking.id,p_reason:reason});if(error)throw error;msg('Complaint registered • '+(data.ticket_no||'Existing complaint')+' • Admin review required');$('complaintReason').value='';await loadDispute(current.booking.id)}
+ catch(e){msg('Complaint failed: '+(e.message||'Unknown error'))}finally{$('complaintBtn').disabled=false}
 }
 async function save(){
  if(!current)return;
@@ -79,7 +98,7 @@ async function save(){
   $('note').value='';$('media').value='';msg('Evidence saved in private booking history.');await load();
  }catch(e){msg('Could not save: '+(e.message||'Unknown error'))}finally{$('saveBtn').disabled=false}
 }
-$('loadBtn').onclick=load;$('saveBtn').onclick=save;
+$('loadBtn').onclick=load;$('saveBtn').onclick=save;$('complaintBtn').onclick=openComplaint;
 const fromQuery=new URLSearchParams(location.search).get('booking');
 if(fromQuery&&uuid(fromQuery)){$('bookingId').value=fromQuery;load()}
 </script></body></html>
