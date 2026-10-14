@@ -1,6 +1,6 @@
 # One Call Solution — FINAL RULES (Authoritative)
 
-Last audited: 14 Oct 2026 — launch wallet gate disabled; ₹200 future requirement only
+Last audited: 14 Oct 2026 — provider-direct service payments; OCS-only paid window collections; ₹200 new-job gate OFF
 
 This file is the source of truth for business rules. If any HTML/demo file conflicts with this file, update the HTML/demo file — do not change these rules from an older build.
 
@@ -18,15 +18,15 @@ This file is the source of truth for business rules. If any HTML/demo file confl
 - OCS Admin may also pause/temporarily block **NEW** jobs for safety or verification. Work OFF, Admin hold, unapproved skill/KYC, or an occupied Transport current trip can independently stop new matching. Recharge alone does not bypass those checks. Do **not** permanently delete/close an account for low wallet.
 - Already accepted / ongoing jobs are **not cancelled** when Admin pauses new-job access.
 
-## 2) Payments
-- **Online payment is preferred/default.**
-- **Cash is allowed as network/payment fallback.**
-- Customer bank account details are **not mandatory** for normal booking/payment. Customer chooses supported payment method; collect bank details only when genuinely required for an exceptional refund/transfer flow.
-- Service Provider bank details are **not required to create the basic SP profile**, but verified bank/payout details are **mandatory before OCS releases payout/settlement**.
-- Online job accounting: OCS retains **9%** and recognizes **91%** as the Service Provider's share. **Do not debit the SP wallet again** for the same online job. Automatic bank settlement/payout through RazorpayX or another approved payout API is **not yet verified active**; showing a wallet credit or withdrawal request is not proof that money reached a bank account. Verified bank details are mandatory before releasing an actual payout.
-- Cash job: after the assigned Service Provider confirms receiving cash, the applicable **9% OCS commission** is deducted from the Service Provider Wallet. Wallet may then fall below ₹200 or become negative; **the accepted job remains complete**, but new jobs remain on hold until the wallet again reaches ₹200 and other eligibility checks pass.
-- Customer may switch from Cash to OCS Online / Company QR / Payment Link.
-
+## 2) Payments — CURRENT LAUNCH MODEL (NO RAZORPAY FOR SERVICE FARES)
+- **Service payee:** Customer pays the assigned, identified Home Service SP, Driver, or Tempo/Transport provider DIRECTLY in Cash or to verified provider-owned UPI/bank details, after customer completion confirmation. OCS does NOT collect the service fare or promise to send 91% back. Display the actual payee before any transfer.
+- **OCS payee:** Paid business-window listings, property posts, slider ads, and authorized SP wallet recharges are paid into the verified OCS company IDBI account/UPI (or another approved OCS-owned collection method); NEVER into an SP personal account. OCS business QR must NOT be the payee for provider service fares.
+- **OCS commission:** Charge 9% on each verified completed provider-direct job from SP/Driver/Transport wallet/commission due ledger, once, for both Cash and provider UPI. Provider confirms actual receipt after customer marks paid. Store booking ID, channel, amount, timestamps and due/collected commission. A screenshot/UTR alone is not proof.
+- **Critical no-double-payment rule:** External provider-direct UPI is NOT OCS-collected online settlement. The legacy backend online branch credits 91% into provider wallet and must never run for a fare the provider already received. Provider-direct UPI uses the direct-to-SP receipt ledger (cash method + metadata channel 'upi') or a fully audited equivalent. No second 91% payout, no second commission debit.
+- **Bank details:** Provider's verified UPI/bank payee must be shown before direct digital transfer; ordinary SP onboarding bank details are optional. Customer bank details are not mandatory for bookings. Verified bank details matter for any later real company-to-provider disbursement.
+- **Wallet:** Approved SPs can start with ₹100 bonus and NO compulsory recharge. Future ₹200 NEW JOB gate remains OFF until prior notice + working recharge. The separate ₹200 withdrawal reserve applies only to eligible cash-out wallet funds; Welcome/Referral Bonuses are not cash-withdrawable.
+- **Paid windows:** Preview → OCS business payment instructions → independently verified bank receipt OR server-verified approved gateway payment → LIVE without routine post-content approval. If manual bank reconciliation is needed, keep the listing PENDING until verified: UTR/screenshot alone must never auto-activate. Instant auto-live requires actual instant bank confirmation integration or approved gateway.
+- **No Razorpay dependency to test booking:** Customer booking, SP accept, start OTP, completion and direct-payment receipt can proceed without Route, RazorpayX, domain purchase or Play Store fees. Do not trigger unapproved real-money transfers during tests.
 ## 2A) Customer Referral Rewards / OCS Wallet
 - **Share & Earn ₹50** has **no fixed referral-count limit** for genuine referrals.
 - Merely sharing the link, installing the app, or creating an account does **not** earn ₹50.
@@ -142,7 +142,7 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 ## OCS Self-Service Posting — Fill in the Blanks (Launch Rule)
 - Any eligible user can **join OCS with the normal email/mobile OTP login** and choose the relevant business, shop, property/Builder, medical, lab, vehicle, slider/ads, or other paid listing module. **No technical setup, admin-created profile, or developer intervention is required for ordinary self-posting.**
 - Each category provides a **blank, ready-made, mobile-friendly form** with its category-specific fields. The owner supplies only their own name/business details, location, contact details, price/requirements, photos/videos and invoice email. Sample XYZ content is only for preview/test and must never be auto-assigned as the owner's data. Drafts may be saved and corrected before payment.
-- Show **Preview → plan price + GST + expiry/validity → Razorpay payment** before publishing. After **successful server-verified payment**, the backend creates the listing as **LIVE immediately** for its purchased validity; **no routine Admin approval queue**. Payment cancelled/failed/unverified means **NOT LIVE**, with draft preserved where practical.
+- Show **Preview → plan price + applicable tax + expiry/validity → Pay OCS Business Account**. Verify the money through an authorized bank statement / approved payment confirmation before making the listing LIVE without routine content approval. If bank verification is manual, listing stays PENDING until confirmed. Never accept customer screenshots/UTR as automatic proof. Preserve unpaid drafts.
 - Only a **server-authorized Admin FREE override** bypasses payment, and even then the backend must confirm the created LIVE record. A public plan at ₹0 without Admin FREE is **not an automatic free listing**: prevent posting until its charge is configured.
 - Customer enquiries/calls go to the **specific verified LIVE listing owner**, not everyone in the category; Single Property Owner stays Call Only. Expired/paused/blocked listings are excluded from LIVE customer discovery.
 - Standard customer registration is free. **Home Service Providers are a separate job/commission/verification model**, not paid business-directory posts; booking fees and SP commission rules remain distinct.
@@ -153,12 +153,12 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Current listed plan prices are the **base price before GST**.
 - Add **18% GST** to the base price at payment. Example: Local Shop ₹99 + ₹17.82 GST = **₹116.82 payable**.
 - Successful paid ad/listing payment should store: base price, GST rate, GST amount, final payable amount, payment reference and GST invoice record.
-- **No routine Admin approval after payment.** Successful verified payment makes the paid Slider Ad / business listing / property post LIVE automatically for its purchased validity. Admin retains moderation controls such as Pause / Block / Remove.
+- **No routine listing-content approval after verified receipt.** Server-verified OCS-owned bank or gateway receipt makes paid Slider Ad / business listing / property post LIVE for its purchased validity. Manual bank verification can delay activation; do NOT promise instant auto-live without an actual confirmation integration.
 - GST invoice should show the configured OCS legal business name, GSTIN, registered address, invoice number/date, taxable value, GST rate/amount and total.
 - Every paid ad/listing must collect a valid **billing/invoice email**. After successful verified payment, the GST invoice is queued/sent to that email.
 - The invoice/email must clearly show the purchased **plan duration** (for example 28 Days or 6 Months), validity start date and expiry/end date.
 - **Admin FREE override = ₹0 payment and ₹0 GST.**
-- Admin can mark a specific **Slider Ad, Property post, Shop/Business window listing or other paid window post** as FREE directly while creating it; no Razorpay step is required and it goes LIVE for the selected validity. Normal users cannot use this control.
+- Admin can mark a specific **Slider Ad, Property post, Shop/Business window listing or other paid window post** as FREE directly while creating it; no payment step is required and it goes LIVE for the selected validity after a server-authorized override. Normal users cannot use this control.
 - This rule does **not** add 18% to normal Customer Home Service booking prices.
 - This rule does **not** change the launch Home Service Provider commission rule: OCS commission remains **9% total** under the current launch pricing decision.
 - Service Provider activation/verification remains separate from paid business advertising/listing plans.
