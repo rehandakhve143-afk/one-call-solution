@@ -53,7 +53,7 @@ const {chromium}=require('playwright');
    // Use a CLEAN browser session. A test posting draft may reopen a modal from persisted state.
    const navContext=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});
    const navPage=await navContext.newPage();
-   // Four core services are first-class home actions, not repeated secondary cards.
+   // Customer-first Home has three service choices. Service Provider tools are in Account.
    for(const pathname of ['customer-launch-v1.html','provider-dashboard.html','driver-service.html','transport.html']){
      await navPage.route('**/'+pathname+'*',route=>route.fulfill({
        status:200,contentType:'text/html',body:'<!doctype html><title>OCS route smoke</title><main>Target route loaded</main>'
@@ -61,7 +61,6 @@ const {chromium}=require('playwright');
    }
    const routes=[
       {cls:'ocs-core-customer',dest:'customer-launch-v1.html'},
-      {cls:'ocs-core-sp',dest:'provider-dashboard.html'},
       {cls:'ocs-core-driver',dest:'driver-service.html'},
       {cls:'ocs-core-transport',dest:'transport.html'}
    ];
@@ -76,7 +75,24 @@ const {chromium}=require('playwright');
      assert(new URL(navPage.url()).pathname.endsWith('/'+x.dest));
    }
    await navContext.close();
-   console.log('PASS mobile browser: Customer, SP, Driver and Transport direct route tiles');
+   // Verify that SP features remain fully discoverable in the one-login Account menu.
+   await navPage.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
+   await navPage.waitForFunction(()=>typeof window.openBottomProfile==='function',{timeout:15000});
+   assert(await navPage.locator('#ocsMainBusiness .ocs-core-sp').isHidden(),'SP job tile should be moved from public Home');
+   await navPage.evaluate(async()=>{
+     window.getOcsSession=async()=>({user:{id:'mock-user',email:'example@ocs.test'}});
+     window.ocsUserHasRole=async()=>true;
+     await window.openBottomProfile();
+   });
+   const spSection=navPage.locator('#bottomProfileBody details.ocs-role-simple');
+   await spSection.waitFor({state:'visible',timeout:8000});
+   assert(!await spSection.evaluate(el=>el.open),'SP section should be collapsed by default');
+   await spSection.locator('summary').click();
+   const options=spSection.locator('button');
+   assert.equal(await options.count(),2,'SP Profile and SP Dashboard should remain accessible');
+   assert.match(await options.nth(0).innerText(),/SP Profile/i);
+   assert.match(await options.nth(1).innerText(),/SP Dashboard/i);
+   console.log('PASS mobile browser: Customer, Driver and Transport direct tiles; SP Profile and Dashboard under Account');
    // Show only essential app JS errors, not external CDN or network diagnostics.
    if(errors.some(e=>/ocsPortfolio|openBiz|ocsShop/i.test(e)))throw Error('Critical browser errors: '+errors.join(' ; '));
    console.log('OCS mobile browser smoke PASSED');
