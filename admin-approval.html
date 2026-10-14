@@ -417,6 +417,32 @@ async function loadOcsMemberDetail(memberId){
     if(!list.length){const p=document.createElement('p');p.className='muted';p.textContent='No records available';panel.appendChild(p)}
     for(const x of list){const p=document.createElement('div');p.className='row';p.textContent=format(x);panel.appendChild(p)}
   };
+  const bookingAudit=document.createElement('details');bookingAudit.className='card';bookingAudit.style.marginTop='12px';
+  const bookingAuditTitle=document.createElement('summary');bookingAuditTitle.textContent='Full Booking Record • Quotes / Payments / Complaints';bookingAuditTitle.style.fontWeight='800';
+  bookingAudit.appendChild(bookingAuditTitle);
+  const bookingAuditHint=document.createElement('p');bookingAuditHint.className='muted';
+  bookingAuditHint.textContent='Choose a booking to view its complete authorized history. Sensitive OTP, card details, IDs and private bank details are excluded.';
+  bookingAudit.appendChild(bookingAuditHint);
+  for(const job of (Array.isArray(d.bookings)?d.bookings:[]).slice(0,30)){
+   const btn=document.createElement('button');btn.type='button';btn.className='btn';
+   btn.style.cssText='margin:5px;padding:9px';
+   btn.textContent=(job.service_name||job.category||'Booking')+' • #'+String(job.id||'').slice(0,8);
+   btn.onclick=async()=>{
+    const output=document.createElement('div');output.className='card';output.textContent='Loading complete booking history…';
+    bookingAudit.appendChild(output);btn.disabled=true;
+    try{
+     const {data,error}=await sb.rpc('ocs_booking_full_record_v1',{p_booking_id:job.id});if(error)throw error;
+     output.replaceChildren();
+     for(const section of ['booking','quotes','work_addons','payments','messages','timeline','reschedules','complaints','evidence_notes','booking_changes']){
+      const header=document.createElement('h3');header.textContent=section.replaceAll('_',' ').toUpperCase();output.appendChild(header);
+      const block=document.createElement('pre');block.style.cssText='font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere';
+      block.textContent=JSON.stringify(data?.[section]||[],null,2);output.appendChild(block);
+     }
+    }catch(err){output.textContent='Booking record unavailable: '+(err.message||'Try again')}finally{btn.disabled=false}
+   };
+   bookingAudit.appendChild(btn);
+  }
+  body.appendChild(bookingAudit);
   datedRecords(body,'Date-wise Work / Booking Record • Latest 30',d.bookings||[],x=>x.completed_at||x.latest_status_date||x.created_at,
     x=>(x.member_role||'Member')+' • '+(x.service_name||x.category||'Service')+' • '+String(x.status||'Unknown').toUpperCase()+' • '+money(x.booking_amount)+' • Booking #'+String(x.id||'').slice(0,8));
   const skillsDetails=document.createElement('details');skillsDetails.style.cssText='margin-top:16px;padding:12px;border:1px solid #dfe7e9;border-radius:12px';
