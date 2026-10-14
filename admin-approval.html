@@ -70,7 +70,7 @@
  <div id="ocsIdentityGroups"></div>
  <button class="btn" onclick="loadOcsIdentityReview()" type="button">↻ Refresh ID Review</button>
  </div></section>
- <section id="ocsHomeMonitor" hidden><div class="card"><h2>All OCS Bookings</h2><div class="muted">Home Services • Driver • Tempo / Goods Transport • Live database, Admin read-only</div><div id="ocsBookingOverview" class="info" style="margin:10px 0">Loading OCS summary…</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('Tempo / Goods Transport')">Tempo / Truck</button><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('')">All Categories</button></div><select id="ocsBookingFilterStatus"><option value="all">All</option><option value="stale">Old Unassigned</option><option value="searching">Searching</option><option value="active">Active</option><option value="payment">Payment Due</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select><input id="ocsBookingFilterSearch" placeholder="Booking ID, name, service or category"><input id="ocsBookingFilterFrom" type="date"><input id="ocsBookingFilterTo" type="date"><button class="btn" onclick="loadAdminBookingsPage(0)">Search Bookings</button><div id="ocsHomeBookingRows"></div><div id="ocsBookingPager"></div></div><div class="card"><h2>SP Wallet Monitoring</h2><div id="ocsHomeWalletRows"></div></div></section>
+ <section id="ocsHomeMonitor" hidden><div class="card"><h2>All OCS Bookings</h2><div class="muted">Home Services • Driver • Tempo / Goods Transport • Live database, Admin read-only</div><div id="ocsBookingOverview" class="info" style="margin:10px 0">Loading OCS summary…</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('Tempo / Goods Transport')">Tempo / Truck</button><button type="button" class="btn" onclick="ocsAdminBookingQuickSearch('')">All Categories</button></div><select id="ocsBookingFilterStatus"><option value="all">All</option><option value="stale">Old Unassigned</option><option value="searching">Searching</option><option value="active">Active</option><option value="payment">Payment Due</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select><input id="ocsBookingFilterSearch" placeholder="Booking ID, name, service or category"><input id="ocsBookingFilterFrom" type="date"><input id="ocsBookingFilterTo" type="date"><button class="btn" onclick="loadAdminBookingsPage(0)">Search Bookings</button><div id="ocsHomeBookingRows"></div><div id="ocsBookingPager"></div></div><div class="card"><h2>SP Wallet Monitoring</h2><div id="ocsHomeWalletRows"></div><div class="card" style="margin-top:12px"><h3>Outstanding OCS Commission</h3><p class="muted">Pending 9% commission from cash jobs; low wallet does not block approved SPs.</p><div id="ocsAdminDueRows">Loading...</div></div></div></section>
  <section id="ocsFinanceLedger" hidden><div class="card"><h2>OCS Finance Ledger</h2><div class="muted">Admin only • Date-wise verified booking payments, 9% commission, paid listing records, SP wallet and withdrawals. Wallet movements are not counted twice as customer collections.</div>
  <select id="ocsFinanceType" aria-label="Finance record type" style="width:100%;min-height:43px;margin-top:12px"><option value="all">All records</option><option value="booking">Customer booking payments</option><option value="listing">Property / Business / Slider payments</option><option value="topup">SP wallet recharges</option><option value="withdrawal">SP withdrawals</option><option value="wallet">SP wallet transactions</option></select>
  <input id="ocsFinanceSearch" placeholder="Booking ID, member, service, Razorpay reference" style="width:100%;min-height:43px;margin-top:8px;padding:10px;border:1px solid #d9e3e5;border-radius:10px">
@@ -112,7 +112,7 @@ function setAdminView(view){
  });
  // Company messages only load when Admin has authenticated.
  document.getElementById('ocsAdminRefresh').textContent='↻ Refresh Admin Data';
-  if(view==='bookings')loadOcsHomeMonitor();
+  if(view==='bookings'){loadOcsHomeMonitor();loadOcsOutstandingDues();}
   if(view==='finance')loadOcsFinanceLedger(0);
   if(view==='members')loadOcsMemberRegister();
   if(view==='official')loadOfficialExportHistory();
@@ -211,6 +211,23 @@ async function loadQueue(){
   box.hidden=false;
   box.innerHTML='<div class="error"><b>Admin page load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>';
  }
+}
+async function loadOcsOutstandingDues(){
+ const box=document.getElementById('ocsAdminDueRows');if(!box)return;
+ try{
+  const {data,error}=await sb.rpc('ocs_admin_provider_commission_dues_v1',{p_limit:50});
+  if(error)throw error;
+  box.replaceChildren();
+  const summary=document.createElement('div');summary.className='info';
+  summary.textContent='Outstanding commission: ₹'+Number(data?.total_due||0).toFixed(2)+' • Providers: '+Number(data?.providers_with_due||0);
+  box.appendChild(summary);
+  for(const item of (Array.isArray(data?.rows)?data.rows:[])){
+   const row=document.createElement('div');row.className='row';
+   const left=document.createElement('span');left.textContent=item.name||'Service Provider';
+   const right=document.createElement('b');right.textContent='₹'+Number(item.due_amount||0).toFixed(2);
+   row.append(left,right);box.appendChild(row);
+  }
+ }catch(e){box.textContent='Commission monitoring unavailable: '+(e.message||'Retry')}
 }
 function refreshCurrentAdminView(){
  const on=document.querySelector('#ocsAdminSections button.on');
