@@ -29,6 +29,8 @@ jobs:
           node-version: "20"
       - name: Verify posting, photo rates, draft and enquiry code (no live payments)
         run: node tests/smoke.cjs
+      - name: Verify safe push opt-in UI and service worker
+        run: node tests/push-optin-smoke.cjs
       - name: Verify customer/SP booking and Start OTP with mocked backend
         run: node tests/booking-smoke.cjs
       - name: Verify Customer SP Driver Transport priorities without live data
