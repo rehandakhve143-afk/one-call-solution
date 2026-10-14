@@ -140,9 +140,9 @@ function fakeNonAdminClient(){
   }
   assert.equal(await admin.locator('#driverPackagesPanel .driver-rate-row').count(),13);
   assert.equal(await admin.locator('#driverPackageRate-14').count(),1);
-  assert.equal(await admin.locator('#driverPackageRate-2.5').isVisible(),false);
+  assert.equal(await admin.locator('[id="driverPackageRate-2.5"]').isVisible(),false);
   await admin.locator('#toggleDriverHalfRates').click();
-  assert.equal(await admin.locator('#driverPackageRate-2.5').isVisible(),true);
+  assert.equal(await admin.locator('[id="driverPackageRate-2.5"]').isVisible(),true);
   assert.equal(await admin.locator('#driverPackagesPanel .driver-rate-status.on').count(),0);
   await admin.locator('#driverPackageRate-2').fill('399');
   await admin.locator('button[data-driver-save="2"]').click();
