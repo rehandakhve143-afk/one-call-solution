@@ -441,6 +441,7 @@ async function loadOcsMemberDetail(memberId){
     }catch(err){output.textContent='Booking record unavailable: '+(err.message||'Try again')}finally{btn.disabled=false}
    };
    bookingAudit.appendChild(btn);
+   const evidenceLink=document.createElement('a');evidenceLink.href='booking-evidence.html?booking='+encodeURIComponent(job.id);evidenceLink.target='_blank';evidenceLink.rel='noopener';evidenceLink.style.cssText='display:inline-block;margin:5px;color:#067c73;font-weight:700';evidenceLink.textContent='View / Add Evidence';bookingAudit.appendChild(evidenceLink);
   }
   body.appendChild(bookingAudit);
   datedRecords(body,'Date-wise Work / Booking Record • Latest 30',d.bookings||[],x=>x.completed_at||x.latest_status_date||x.created_at,
