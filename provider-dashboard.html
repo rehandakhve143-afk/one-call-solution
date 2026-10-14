@@ -10,8 +10,8 @@
 *{box-sizing:border-box}html,body{margin:0;background:#f4f6f8;color:#17343c;font-family:Arial,sans-serif}
 body{padding-bottom:82px}.app{width:min(480px,100%);margin:0 auto;min-height:100vh}
 .top{background:#064d59;color:#fff;padding:16px 16px 18px;border-radius:0 0 24px 24px}
-.brand{display:flex;align-items:center;gap:11px}.logo{width:46px;height:46px;border-radius:14px;background:#111;display:grid;place-items:center;font-weight:900}
-.brand div{flex:1}.brand b{display:block;font-size:20px}.brand small{display:block;color:#cde1e4;margin-top:2px;font-size:10px}
+.brand{display:flex;align-items:center;gap:11px}.logo{width:46px;height:46px;flex:0 0 46px;border-radius:14px;background:#0c6870;border:1px solid #ffffff40;display:grid;place-items:center;font-weight:900;font-size:13px}
+.brand>div:not(.logo){flex:1;min-width:0}.brand b{display:block;font-size:20px}.brand small{display:block;color:#cde1e4;margin-top:2px;font-size:10px}
 .state{margin-top:13px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .pill{padding:7px 10px;border-radius:999px;background:#ffffff18;font-size:10px;font-weight:900}
 .toggle{border:0;border-radius:12px;padding:10px 14px;font-weight:900;background:#f3ef00;color:#17343c}
@@ -39,7 +39,7 @@ body{padding-bottom:82px}.app{width:min(480px,100%);margin:0 auto;min-height:100
 .sp-signal.is-important strong{color:#047b57}
 .sp-signal.is-off{background:#f7f9f9;border-color:#dbe4e6}
 .sp-signal.is-off strong{color:#84949a}
-#ocsSpNewJobsPanel[hidden]{display:none!important}
+#ocsSpNewJobsPanel[hidden],#ocsEvidenceQuickLink[hidden]{display:none!important}
 .sp-mini-job{padding:13px;border-radius:13px;border:1px solid #dce7e7;background:#fff;margin:9px 0}
 .sp-mini-job b{display:block;font-size:14px}
 .sp-mini-job small{display:block;margin-top:5px;font-size:11px;color:#6d8084;line-height:1.5}
@@ -113,7 +113,7 @@ function renderSpNewJobsList(){
  const target=document.getElementById('ocsSpNewJobsList');if(!target)return;
  target.replaceChildren();
  if(!ocsSpRequestRows.length){
-  target.textContent='No matching new request at the moment. Keep Work ON and check again.';
+  target.textContent=available?'No matching new request right now. Work ON rakhein.':'Work OFF hai. Pehle Work ON karein, phir matching jobs dikhengi.';
   return;
  }
  for(const b of ocsSpRequestRows.slice(0,8)){
@@ -159,7 +159,7 @@ async function refreshSpSignals(){
   if(discCount)discCount.textContent=String(ongoing);
   if(jobText)jobText.textContent=data.work_on
    ?(incoming?'New request'+(incoming===1?'':'s')+' ready • Tap to see':'Work ON • Waiting for new jobs')
-   :'Work OFF / Approval needed • No new job alerts';
+   :(!available?'Work OFF • Work ON dabayein':'Jobs on hold • Approval / location check karein');
   if(discText)discText.textContent=Number(data.quote_approved||0)
     ?data.quote_approved+' customer-approved quote'+(data.quote_approved===1?'':'s')+' • action needed'
     :Number(data.customer_replies||0)
@@ -234,6 +234,8 @@ async function loadDashboard(){
    }catch(e){}
    syncToggle();
    if(!onboardingApproved||!skillApproved){
+     const evidenceBtn=document.getElementById('ocsEvidenceQuickLink');
+     if(evidenceBtn)evidenceBtn.hidden=true;
      available=false;
      syncToggle();
      setStableDashboardHtml(jb,'<div class="card empty"><div class="ico">🔒</div><h3>SP approval pending</h3><div class="muted">OCS Admin verification aur approved matching skill ke baad hi new jobs dikhengi. Profile status: '+esc(onboardingStatus||'not submitted')+'.</div></div>');
@@ -241,10 +243,7 @@ async function loadDashboard(){
      currentJob=null;
      return;
    }
-   // Rate-limited in-app reminder only; never block Work ON on wallet alone.
-   if(false && Number(profile.wallet_balance||0)<200){ // Launch phase: no premature ₹200 reminders
-     try{await sb.rpc('ocs_sp_wallet_reminder_v1')}catch(e){console.warn('Wallet reminder unavailable',e)}
-   }
+   // Launch rule: ₹200 minimum job gate OFF; no low-balance reminder.
    const walletBalance=Number(profile.wallet_balance||0);
    const canReceiveNewJobs=profile.service_location_set===true&&profile.admin_paused!==true;
    // Launch: ₹100 welcome bonus enables starting work; ₹200 wallet gate will be announced later.
@@ -257,6 +256,8 @@ async function loadDashboard(){
    const cur=await sb.rpc('provider_current_booking');
    if(!cur.error&&Array.isArray(cur.data)&&cur.data.length)booking=cur.data[0];
    if(!booking&&!canReceiveNewJobs){
+     const evidenceBtn=document.getElementById('ocsEvidenceQuickLink');
+     if(evidenceBtn)evidenceBtn.hidden=true;
      currentJob=null;
      setStableDashboardHtml(jb,'<div class="card empty"><div class="ico">🔒</div><h3>New Jobs On Hold</h3><div class="muted">Valid service-location pin and Admin clearance are required for new bookings. Low wallet alone does not block work.</div></div>');
      return;
@@ -270,7 +271,11 @@ async function loadDashboard(){
    }
    currentJob=booking;
    const evidenceBtn=document.getElementById('ocsEvidenceQuickLink');
-   if(evidenceBtn){evidenceBtn.hidden=!booking?.id;evidenceBtn.href=booking?.id?'booking-evidence.html?booking='+encodeURIComponent(booking.id):'#';}
+   if(evidenceBtn){
+     const evidenceReady=!!booking?.id && !['searching','rejected','cancelled','expired'].includes(String(booking.status||'').toLowerCase());
+     evidenceBtn.hidden=!evidenceReady;
+     evidenceBtn.href=evidenceReady?'booking-evidence.html?booking='+encodeURIComponent(booking.id):'#';
+   }
    latestJobQuote=null;
    if(booking&&booking.request_type==='quote'&&booking.status==='accepted'){
      const qr=await sb.rpc('latest_booking_quote_v1',{p_booking_id:booking.id});
@@ -308,7 +313,10 @@ async function toggleWork(){
 function renderJob(){
  const box=document.getElementById('jobBox');
  if(!currentJob){
-   setStableDashboardHtml(box,'<div class="card empty"><div class="ico">✓</div><h3>No matching job right now</h3><div class="muted">Work ON rakhein. Matching customer request aate hi yahan dikhegi.</div></div>');
+   const waiting=available
+     ?'<div class="card empty"><div class="ico">✓</div><h3>No matching job right now</h3><div class="muted">Work ON hai. Matching customer request aate hi yahan dikhegi.</div></div>'
+     :'<div class="card empty"><div class="ico">⏸</div><h3>Work is OFF</h3><div class="muted">Jobs receive karne ke liye upar Work OFF button dabakar Work ON karein.</div></div>';
+   setStableDashboardHtml(box,waiting);
    return;
  }
  const b=currentJob,st=String(b.status||'searching').toLowerCase();
