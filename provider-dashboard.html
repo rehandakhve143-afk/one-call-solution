@@ -350,8 +350,8 @@ function renderJob(){
  }else if(st==='payment_pending'){
    note='Customer payment selection / online payment pending.';
  }else if(st==='cash_wait'||st==='visit_cash_wait'){
-   note='Customer ne Cash payment select kiya hai. Paise milne ke baad hi Cash Received dabayein.';
-   actions.push(button('Confirm Cash Received','confirmProviderCash()'));
+   note='Customer ne SP ko direct Cash payment mark kiya. Actual paise haath mein aane ke baad hi receipt confirm karein. Confirmation par 9% OCS commission record hoga.';
+   actions.push(button('Confirm Cash Received from Customer','confirmProviderCash()'));
  }else if(st==='support_review'){
    note='OCS Support review in progress. Customer approval ke bina payment final na karein.';
  }else{
@@ -422,7 +422,7 @@ async function sendInitialQuote(){
 }
 async function confirmProviderCash(){
  if(providerActionBusy||!currentJob||!['cash_wait','visit_cash_wait'].includes(currentJob.status))return;
- if(!confirm('Customer se cash payment WAKAI receive ho gaya? Galat confirmation mat karein.'))return;
+ if(!confirm('Assigned Customer se payment sach mein mil chuka hai? Confirm karne par job complete hogi aur OCS ka 9% commission wallet se debit/due record hoga.'))return;
  providerActionBusy=true;
  try{
    const {data,error}=await sb.rpc('payment_snapshot_v1',{p_booking_id:currentJob.id});
@@ -431,7 +431,7 @@ async function confirmProviderCash(){
    if(!pay||pay.method!=='cash'||pay.status!=='cash_marked')throw new Error('Cash payment pending record nahi mila.');
    const done=await sb.rpc('confirm_cash_received_v1',{p_payment_id:pay.id});
    if(done.error)throw done.error;
-   alert('Cash received recorded. Booking completed.');
+   alert('Customer cash receipt confirmed. Job completed; 9% OCS commission recorded.');
    await loadDashboard();
  }catch(e){alert('Cash confirmation failed: '+(e.message||'Please retry'))}
  finally{providerActionBusy=false}
