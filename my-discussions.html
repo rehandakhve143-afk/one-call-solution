@@ -1,0 +1,33 @@
+<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-store"><title>OCS • My Discussions</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script><style>*{box-sizing:border-box}body{margin:0;background:#f3f7f7;color:#183a42;font:14px Arial}.header{background:#07525c;color:white;padding:18px}.wrap{max-width:540px;margin:auto;padding:15px}.card{background:white;border:1px solid #e1e9e9;border-radius:16px;padding:15px;margin:10px 0}.muted{font-size:12px;color:#667e81;line-height:1.5}button{border:0;border-radius:11px;padding:11px 13px;background:#087a75;color:white;font-weight:800;margin:5px 4px 5px 0}button:disabled{opacity:.5}.secondary{background:#e6f3f1;color:#096361}.danger{background:#fff0ef;color:#ab3434}textarea{width:100%;min-height:75px;border:1px solid #cad9da;border-radius:10px;padding:10px;margin:8px 0}label{display:block;font-weight:bold}p{line-height:1.5}</style></head><body><div class="header"><h2 style="margin:0">OCS • My Discussions</h2><div style="font-size:12px;margin-top:5px">Call • Get Quote • History • Resume • Cancel</div></div><main class="wrap"><div class="card"><button onclick="setRole('customer')" id="customerBtn">Customer</button><button onclick="setRole('service_provider')" id="spBtn" class="secondary">Service Provider</button><button onclick="loadList()" class="secondary">↻ Refresh</button><p class="muted">Discussion stays saved until either party cancels. Phone calls outside OCS cannot be recorded automatically.</p></div><div id="list"></div><p id="status" role="status"></p></main><script>
+const sb=window.supabase.createClient('https://uipmkrsggpkupgbgoxkg.supabase.co','sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto');const $=id=>document.getElementById(id);let role='customer';
+const status=t=>$('status').textContent=t;
+async function rpc(name,args){const {data,error}=await sb.rpc(name,args||{});if(error)throw error;return data}
+function setRole(r){role=r;$('customerBtn').className=r==='customer'?'':'secondary';$('spBtn').className=r==='service_provider'?'':'secondary';loadList()}
+async function loadList(){
+ $('list').replaceChildren();status('Loading discussions...');
+ try{const u=(await sb.auth.getSession()).data.session;if(!u)throw Error('Please log in to OCS first');
+ const data=await rpc('ocs_quote_discussions_v1',{p_role:role});
+ if(!data.length)status('No discussions yet. Start a Get Quote request from Home Services.');
+ else status(data.length+' discussions found');
+ for(const x of data){const card=document.createElement('div');card.className='card';
+ const title=document.createElement('h3');title.textContent=x.service_name||x.category;card.appendChild(title);
+ const info=document.createElement('p');info.className='muted';info.textContent='Booking #'+x.id.slice(0,8)+' • '+x.status.replaceAll('_',' ').toUpperCase()+' • '+new Date(x.updated_at).toLocaleString('en-IN')+' • Quote ₹'+(x.latest_quote_amount??'Pending');card.appendChild(info);
+ const messages=document.createElement('div');card.appendChild(messages);
+ const loadMessages=async()=>{messages.replaceChildren();const hist=await rpc('get_booking_messages_v1',{p_booking_id:x.id});for(const m of hist){const p=document.createElement('p');p.className='muted';p.textContent=new Date(m.created_at).toLocaleString('en-IN')+' • '+m.message;messages.appendChild(p)}};
+ const b=document.createElement('button');b.textContent='View Chat History';b.className='secondary';b.onclick=()=>loadMessages().catch(e=>status(e.message));card.appendChild(b);
+ if(!['cancelled','completed','done','cancelled_settled'].includes(x.status)){
+ const ta=document.createElement('textarea');ta.placeholder='Message about work, estimate, schedule…';card.appendChild(ta);
+ const send=document.createElement('button');send.textContent='Send Message';send.onclick=async()=>{send.disabled=true;try{await rpc('send_booking_message_v1',{p_booking_id:x.id,p_message:ta.value.trim()});ta.value='';await loadMessages();status('Message sent')}catch(e){status(e.message)}finally{send.disabled=false}};card.appendChild(send);
+ const cancel=document.createElement('button');cancel.textContent='Cancel Discussion';cancel.className='danger';cancel.onclick=async()=>{if(!confirm('Close this discussion? History will stay saved.'))return;cancel.disabled=true;try{await rpc('ocs_quote_discussion_cancel_v1',{p_booking_id:x.id,p_reason:'Cancelled by '+role});await loadList()}catch(e){status(e.message);cancel.disabled=false}};card.appendChild(cancel);
+ if(role==='service_provider'&&x.status==='discussion'){const quote=document.createElement('button');quote.textContent='Send / Revise Quote';quote.onclick=async()=>{const a=prompt('Quote amount ₹');if(a===null)return;const amount=Number(a);if(!Number.isFinite(amount)||amount<=0){status('Enter a valid amount');return}const detail=prompt('Work description and price details')||'';try{await rpc('provider_send_quote_v1',{p_booking_id:x.id,p_amount:amount,p_description:detail,p_quote_kind:'initial',p_items:[]});await loadList()}catch(e){status(e.message)}};card.appendChild(quote)}
+ if(role==='customer'&&x.latest_quote_status==='pending'){const accept=document.createElement('button');accept.textContent='Accept Quote';accept.onclick=async()=>{const q=await rpc('latest_booking_quote_v1',{p_booking_id:x.id});if(!q.length)return;await rpc('customer_decide_quote_v1',{p_quote_id:q[0].id,p_decision:'accepted'});await loadList()};card.appendChild(accept)}
+ if(role==='service_provider'&&x.status==='quote_approved'){const start=document.createElement('button');start.textContent='Convert to Scheduled Job';start.onclick=async()=>{try{await rpc('ocs_quote_start_booking_v1',{p_booking_id:x.id});await loadList()}catch(e){status(e.message)}};card.appendChild(start)}
+ }else if(x.status==='cancelled'&&role==='customer'){
+ for(const [label,same] of [['Request Same SP',true],['Find Another SP',false]]){const btn=document.createElement('button');btn.textContent=label;btn.onclick=async()=>{try{const r=await rpc('ocs_quote_rebook_v1',{p_booking_id:x.id,p_same_provider:same});status('New request #'+r.new_booking_id.slice(0,8)+' created. SP must accept again.');await loadList()}catch(e){status(e.message)}};card.appendChild(btn)}
+ }
+ $('list').appendChild(card);
+ }
+ }catch(e){status(e.message||'Unable to load discussions')}
+}
+loadList();
+</script></body></html>
