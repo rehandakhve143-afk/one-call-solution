@@ -47,6 +47,9 @@ jobs:
       - name: Verify official record export in mobile Chromium (mocked admin, no real member data)
         run: |
           node tests/official-export-browser.cjs
+      - name: Verify zero-wallet SP Work ON and Admin work controls in mobile Chromium (mocked backend)
+        run: |
+          node tests/sp-work-control-browser.cjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
