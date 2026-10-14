@@ -1,4 +1,4 @@
-const OCS_CACHE='ocs-shell-v46';
+const OCS_CACHE='ocs-shell-v47';
 const OCS_SHELL=[
   './',
   './index.html',
