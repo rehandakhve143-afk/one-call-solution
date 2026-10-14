@@ -272,6 +272,7 @@ function refreshCurrentAdminView(){
  const view=on?on.dataset.adminView:'operator';
  if(view==='bookings'){loadOcsHomeMonitor();return}
  if(view==='finance'){loadOcsFinanceLedger(0);return}
+ if(view==='idbi'){loadIdbiBankQueue();return}
  if(view==='members'){loadOcsMemberRegister();return}
  if(view==='official'){loadOfficialExportHistory();return}
  if(view==='identity'){loadOcsIdentityReview();return}
