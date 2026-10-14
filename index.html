@@ -710,7 +710,23 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
 #bottomProfileModal .ocs-role-simple-options b{display:block;font-size:12px}
 #bottomProfileModal .ocs-role-simple-options small{display:block;font-size:10px;color:#617c81;margin-top:4px}
 </style>
-<style id="ocs-simple-notification-unread-v1">.ocs-super-iconbtn[data-unread]:not([data-unread=""]){position:relative}.ocs-super-iconbtn[data-unread]:not([data-unread=""])::after{content:attr(data-unread);position:absolute;right:-7px;top:-5px;min-width:17px;height:17px;padding:0 3px;border-radius:10px;background:#f9e548;color:#083f49;font:bold 10px/17px Arial;text-align:center;box-shadow:0 1px 3px #0002}</style></head><body><script>
+<style id="ocs-simple-notification-unread-v1">.ocs-super-iconbtn[data-unread]:not([data-unread=""]){position:relative}.ocs-super-iconbtn[data-unread]:not([data-unread=""])::after{content:attr(data-unread);position:absolute;right:-7px;top:-5px;min-width:17px;height:17px;padding:0 3px;border-radius:10px;background:#f9e548;color:#083f49;font:bold 10px/17px Arial;text-align:center;box-shadow:0 1px 3px #0002}</style>
+<style id="ocsMobilePolish20261014">
+/* Mobile visual polish only: do not alter booking, payments, wallet or navigation logic. */
+@media(max-width:600px){
+ .ocs-super-top{padding:9px 14px 11px!important;border-radius:0 0 20px 20px!important}
+ .ocs-super-loc{margin-bottom:7px!important;min-height:30px!important}
+ .ocs-super-brandrow{gap:10px!important}
+ .ocs-super-logo{width:46px!important;height:42px!important;object-fit:contain!important}
+ .ocs-super-main{padding-top:12px!important}
+ .ocs-super-search{border-radius:17px!important;min-height:50px!important}
+ .ocs-super-hero-copy button{border-radius:13px!important;min-height:44px!important;padding:10px 17px!important;box-shadow:none!important;transform:none!important;text-decoration:none!important}
+ .ocs-super-hero-copy button::before,.ocs-super-hero-copy button::after{content:none!important;display:none!important}
+ .ocs-super-market-grid>*{min-width:0!important}
+ .ocs-super-market-grid img{max-width:100%!important}
+}
+</style>
+</head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
   if(q.get("admin")==="1"){
