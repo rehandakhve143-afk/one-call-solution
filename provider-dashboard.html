@@ -283,7 +283,7 @@ async function loadDashboard(){
      setStableDashboardHtml(pb,'<div class="error"><b>SP dashboard load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>');
      jb.innerHTML='';
    }
- }finally{dashboardBusy=false;refreshSpSignals().catch(e=>console.warn('SP signal refresh',e))}
+ }finally{dashboardBusy=false;if(typeof refreshSpSignals==='function')refreshSpSignals().catch(e=>console.warn('SP signal refresh',e))}
 }
 function syncToggle(){
  const b=document.getElementById('workToggle');
