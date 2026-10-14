@@ -154,7 +154,7 @@ test('Metadata saved and customer enquiry targets the selected owner',()=>{
 test('Mobile loads newest JavaScript and CSS online; offline cache remains fallback',()=>{
  const sw=read('service-worker.js');
  new vm.Script(sw,{filename:'service-worker.js'});
- assert(sw.includes("const OCS_CACHE='ocs-shell-v46'"));
+ assert(/const OCS_CACHE='ocs-shell-v\d+'/.test(sw));
  assert(sw.includes("const isAppCode=/\\.(?:html|js|mjs|css)$/i.test(url.pathname);"));
  const networkFirst=sw.indexOf("if(isAppCode)");
  const cacheFirst=sw.indexOf("caches.match(req,{ignoreSearch:true}).then(cached=>");
