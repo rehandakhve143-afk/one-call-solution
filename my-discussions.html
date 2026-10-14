@@ -13,6 +13,7 @@ async function loadList(){
  for(const x of data){const card=document.createElement('div');card.className='card';
  const title=document.createElement('h3');title.textContent=x.service_name||x.category;card.appendChild(title);
  const info=document.createElement('p');info.className='muted';info.textContent='Booking #'+x.id.slice(0,8)+' • '+x.status.replaceAll('_',' ').toUpperCase()+' • '+new Date(x.updated_at).toLocaleString('en-IN')+(x.latest_quote_amount==null?' • Quote not received yet':' • Latest Quote ₹'+Number(x.latest_quote_amount).toLocaleString('en-IN'));card.appendChild(info);
+ if(x.id===new URLSearchParams(location.search).get('booking')){card.style.border='2px solid #087a75';card.setAttribute('aria-label','Selected request');requestAnimationFrame(()=>card.scrollIntoView({block:'start',behavior:'smooth'}))}
  const messages=document.createElement('div');card.appendChild(messages);
  if(x.status==='searching'&&role==='customer'){
  const availability=document.createElement('p');availability.className='muted';availability.textContent='Checking available matching SPs…';card.appendChild(availability);
