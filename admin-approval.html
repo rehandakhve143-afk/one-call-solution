@@ -337,6 +337,32 @@ async function loadOcsMemberDetail(memberId){
   quickBox('Selected Skills',Array.isArray(d.skills)?d.skills.length:0);
   quickBox('SP Wallet',d.provider_status?'₹'+Number(st.wallet_balance||0).toFixed(2):'Not applicable');
   body.appendChild(quickSummary);
+  if(d.provider_status){
+   const controls=document.createElement('div');controls.className='card';controls.style.margin='12px 0';
+   const h=document.createElement('b');h.textContent='Admin • SP Work Control';controls.appendChild(h);
+   const state=document.createElement('p');state.className='muted';
+   state.textContent='Work '+(st.available_for_work?'ON':'OFF')+' • '+(st.admin_paused?'Admin Hold: '+(st.admin_pause_reason||'manual'):'No hold')+' • Wallet ₹'+Number(st.wallet_balance||0).toFixed(2);
+   controls.appendChild(state);
+   const buttonRow=document.createElement('div');buttonRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+   const choices=[['Work ON','on'],['Work OFF','off'],['Wallet Hold','wallet_hold'],['Release Hold','release_hold']];
+   for(const [label,action] of choices){
+    const btn=document.createElement('button');btn.className='btn';btn.type='button';btn.textContent=label;
+    btn.onclick=async()=>{
+     if(!confirm(label+' for this SP? Wallet Hold alone auto-resumes after verified balance reaches ₹200; manual hold requires Admin release.'))return;
+     btn.disabled=true;
+     try{
+      const {error}=await sb.rpc('ocs_admin_sp_work_control_v1',{p_provider_id:memberId,p_action:action,p_note:'Admin member profile control'});
+      if(error)throw error;
+      await loadOcsMemberDetail(memberId);
+     }catch(e){alert(e.message||'Work control failed');btn.disabled=false}
+    };
+    buttonRow.appendChild(btn);
+   }
+   controls.appendChild(buttonRow);
+   const hint=document.createElement('p');hint.className='muted';hint.textContent='Low wallet reminder does not block normal Work ON. Manual/Safety OFF is never removed by recharge.';
+   controls.appendChild(hint);body.appendChild(controls);
+  }
+
   const profileDetails=document.createElement('details');profileDetails.style.cssText='margin:12px 0;padding:11px;border:1px solid #dfe7e9;border-radius:12px';
   const profileSummary=document.createElement('summary');profileSummary.textContent='View Profile, Contact & Verification';profileSummary.style.cssText='cursor:pointer;font-weight:850;font-size:14px';
   profileDetails.appendChild(profileSummary);body.appendChild(profileDetails);
@@ -744,7 +770,7 @@ async function loadOcsHomeMonitor(){
   name.textContent=(x.name||'SP')+(id?' • SP #'+id:'');
   const balance=Number(x.balance||0),need=Math.max(0,Math.ceil((200-balance)*100)/100);
   amt.textContent=money(balance)+' • Need '+money(need);
-  amt.title='New jobs on hold until wallet reaches ₹200 and other verification is complete';
+  amt.title='Low wallet reminder only; standard jobs are not blocked by wallet balance';
   line.append(name,amt);wallet.appendChild(line);
  }
 }
