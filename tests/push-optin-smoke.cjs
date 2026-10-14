@@ -1,0 +1,24 @@
+/* OCS safe, opt-in mobile push preflight: no customer accounts or live notifications */
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const sw=fs.readFileSync('service-worker.js','utf8');
+const page=fs.readFileSync('mobile-alerts.html','utf8');
+const home=fs.readFileSync('index.html','utf8');
+const sp=fs.readFileSync('provider-dashboard.html','utf8');
+new vm.Script(sw);
+const scripts=[...page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+for(const x of scripts)new vm.Script(x);
+assert(sw.includes("self.addEventListener('push'"));
+assert(sw.includes("self.registration.showNotification"));
+assert(sw.includes("self.addEventListener('notificationclick'"));
+assert(page.includes("Notification.requestPermission()"));
+assert(page.includes("onclick=\"enableAlerts()\""));
+assert(page.includes("onclick=\"disableAlerts()\""));
+assert(page.includes("ocs_push_register_v1"));
+assert(page.includes("ocs_push_disable_v1"));
+assert(page.includes("Push delivery server is still pending"));
+assert(!page.includes("window.addEventListener('load',enableAlerts"));
+assert(home.includes("mobile-alerts.html"));
+assert(sp.includes("mobile-alerts.html"));
+console.log('PASS OCS mobile push opt-in: safe worker, explicit permission, unsubscribe, no auto-prompt');
