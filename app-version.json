@@ -1,5 +1,5 @@
 {
-  "build": "20261006-settings1",
-  "updated_at": "2026-10-06",
-  "message": "Settings now shows live provider role/status instead of stale Pending SP Profile"
+  "build": "20261014-discussions1",
+  "updated_at": "2026-10-14",
+  "message": "Customer and SP quote discussion history, availability, and account navigation updates"
 }
