@@ -3738,7 +3738,8 @@ function onlineSuccess(){
  alert("Test payment button disabled. Online payment sirf Razorpay verified transaction se complete hoga.");
 }
 
-async function payCash(purpose){
+async function payCash(purpose,channel){
+ channel=channel==="upi"?"upi":"cash";
  const required=purpose==="VISIT"?"VISIT_PAYMENT":"PAYMENT";
  if(!ocsRequireStage(required,"Cash payment"))return;
  if(!ocsGuardAction("cash-mark-"+purpose,1200))return;
@@ -3748,14 +3749,13 @@ async function payCash(purpose){
    const {data:rp,error:rpe}=await ocsSupabase.rpc("customer_reward_payment_preview_v1",{p_booking_id:S.activeBookingId,p_purpose:p});
    if(rpe)throw rpe;
    if(Number(rp&&rp.remaining_amount||0)<=0){await ocsLoadLive("customer");render();return}
-   if(!confirm("Kya aapne assigned SP ko cash WAKAI de diya hai? Payment dene ke baad hi proceed karein; SP khud receipt confirm karega."))return;
-   const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
-     p_booking_id:S.activeBookingId,p_purpose:p,p_method:"cash"
-   });
+   if(!confirm(channel==="upi"?"Kya aapne assigned SP ke VERIFIED personal UPI par payment khud kar diya hai? OCS koi UPI transfer nahi karega. SP khud receipt confirm karega.":"Kya aapne assigned SP ko Cash WAKAI de diya hai? Payment dene ke baad hi proceed karein; SP khud receipt confirm karega."))return;
+   const {data:directResult,error:ie}=await ocsSupabase.rpc("ocs_customer_direct_to_sp_v1",{p_booking_id:S.activeBookingId,p_purpose:p,p_channel:channel});
+   const intent={id:directResult&&directResult.payment_id,amount:directResult&&directResult.amount};
    if(ie)throw ie;
-   S.backendPaymentId=intent.id;S.payPurpose=purpose;S.payment="CASH";S.cashDue=Number(intent.amount||0);
+   S.backendPaymentId=intent.id;S.payPurpose=purpose;S.payment=channel==="upi"?"DIRECT UPI":"CASH";S.cashDue=Number(intent.amount||0);
    await ocsLoadLive("customer");render();
-   hist("Customer marked Cash Paid • waiting for Service Provider confirmation");
+   hist("Customer marked "+(channel==="upi"?"Direct UPI":"Cash")+" Paid • waiting for Service Provider confirmation");
  }catch(e){alert("Cash payment mark nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
 }
 
@@ -3766,7 +3766,7 @@ async function cashReceived(){
  try{
    const {data,error}=await ocsSupabase.rpc("confirm_cash_received_v1",{p_payment_id:S.backendPaymentId});
    if(error)throw error;
-   S.paymentFinalized=true;S.payment="CASH • VERIFIED";S.commissionApplied=true;
+   S.paymentFinalized=true;S.payment="PROVIDER RECEIPT • CONFIRMED";S.commissionApplied=true;
    hist(S.provider+" confirmed Cash Received • Backend settlement completed • Commission "+money(Number(data.commission_amount||0)));
    await ocsLoadLive("provider");render();
  }catch(e){alert("Cash Received confirm nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
@@ -4281,8 +4281,9 @@ if(S.status==="PAYMENT")h=`
 <div class="card ocs-payment-card"><h3>Complete Payment</h3>${S.paymentHeld?secureHoldHTML():""}<div class="muted">Remaining to pay</div><div class="money">${money(paymentDueAmount())}</div>${Number(S.customerRewardUsed||0)>0?`<div class="notice good"><b>OCS Rewards Used: ${money(Number(S.customerRewardUsed||0))}</b></div>`:""}
 <div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Pay Service Provider directly</b><small>Work approve hone ke baad assigned SP ko payment dein. SP actual receipt confirm karega, tab OCS 9% commission record hoga.</small></div></div>
 <button class="btn alt" onclick="useCustomerRewards('JOB')">Use OCS Rewards</button>
-<div class="muted">Provider ke personal UPI ka direct verification abhi pending hai. Cash directly to SP supported.</div>
-<button class="btn ok" onclick="payCash('JOB')">I Paid Cash Directly to SP</button></div>`;
+<div class="muted">Cash ya UPI se assigned SP ko direct payment karein. UPI ID hamesha SP se independently verify karein. OCS app abhi payment initiate ya bank-verify nahi karta.</div>
+<button class="btn ok" onclick="payCash('JOB')">I Paid Cash Directly to SP</button>
+<button class="btn alt" onclick="payCash('JOB','upi')">I Paid SP Directly by UPI</button></div>`;
 
 if(S.status==="ONLINE_PAY"){
 let amt=S.payPurpose==="VISIT"?S.visitCharge:paymentDueAmount();
@@ -4371,8 +4372,9 @@ if(S.status==="VISIT_PAYMENT")h=`
 <div class="muted">${S.distanceSlab}</div>
 <div class="money">₹${S.visitCharge}</div>
 <button class="btn alt" onclick="useCustomerRewards('VISIT')">Use OCS Rewards</button>
-<div class="muted">Visit charge directly assigned SP ko cash dein; UPI verification pending.</div>
+<div class="muted">Visit charge directly assigned SP ko Cash/UPI dein. UPI ID SP se verify karein; OCS bank transfer verify nahi karta.</div>
 <button class="btn ok" onclick="payCash('VISIT')">I Paid Cash to SP</button>
+<button class="btn alt" onclick="payCash('VISIT','upi')">I Paid SP Visit Charge by UPI</button>
 <button class="btn red" onclick="disputeVisit()">Need OCS Help</button>
 </div>`;
 
