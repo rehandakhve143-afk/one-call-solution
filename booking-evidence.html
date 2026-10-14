@@ -1,0 +1,85 @@
+<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-store"><title>OCS • Booking Evidence</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<style>*{box-sizing:border-box}body{font:14px Arial,sans-serif;background:#f2f6f6;color:#17414a;margin:0}.wrap{max-width:550px;margin:auto;padding:16px}.top{background:#06545c;color:white;padding:16px;border-radius:0 0 20px 20px}h1{font-size:20px;margin:0}p{line-height:1.5}.card{background:white;border:1px solid #d8e5e5;border-radius:17px;padding:16px;margin:14px 0}label{display:block;margin:14px 0 7px;font-weight:700}input,select,textarea{width:100%;padding:12px;min-height:44px;border-radius:10px;border:1px solid #cadcde;font:inherit}textarea{min-height:95px}button{border:0;border-radius:11px;background:#078479;color:white;padding:13px 17px;font-weight:800;font:inherit}button:disabled{opacity:.5}.secondary{background:#e4f2f0;color:#075661}.muted{color:#657d80;font-size:12px}.line{border-bottom:1px solid #e3ecec;padding:12px 0}img,video{max-width:100%;max-height:260px;border-radius:10px;margin-top:8px}a{color:#087a76}</style></head>
+<body><div class="top"><h1>OCS • Work Evidence & Complaint Record</h1><div style="margin-top:8px">Photos • Video • Written proof • Booking history</div></div><main class="wrap">
+<section class="card"><label for="bookingId">Booking ID</label><input id="bookingId" placeholder="Paste your Booking ID" autocomplete="off"><button id="loadBtn" style="margin-top:12px" type="button">Open Booking Record</button><p class="muted">Only the assigned Customer, Service Provider and authorized Admin can open this booking.</p></section>
+<section class="card" id="record" hidden><h2 style="font-size:18px">Booking details</h2><div id="bookingSummary"></div><h3>Submit evidence</h3>
+<label for="kind">Evidence type</label><select id="kind"><option value="scope">Work scope / quote</option><option value="site_visit">Site visit</option><option value="material">Material</option><option value="progress">Work progress</option><option value="completion">Completion</option><option value="payment">Payment proof</option><option value="dispute">Complaint / dispute</option><option value="resolution">Resolution</option><option value="other">Other</option></select>
+<label for="note">What happened? (8–2000 characters)</label><textarea id="note" maxlength="2000" placeholder="What work was agreed, done, paid or disputed? Include dates and facts."></textarea>
+<label for="media">Photo or video (optional, up to 20 MB)</label><input id="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm">
+<p class="muted">Images or videos are private. Do not upload Aadhaar, bank details, OTP or unrelated people's personal data. Submissions become part of the booking's evidence history.</p>
+<button id="saveBtn" type="button">Save Evidence</button>
+<h3 style="margin-top:20px">Evidence & history</h3><div id="items"></div></section>
+<p id="status" role="status" aria-live="polite" class="muted"></p></main>
+<script>
+const sb=window.supabase.createClient('https://uipmkrsggpkupgbgoxkg.supabase.co','sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto');
+const $=id=>document.getElementById(id);let current=null;
+const bucket='ocs-booking-evidence-private',allowed=['image/jpeg','image/png','image/webp','video/mp4','video/webm'];
+const msg=t=>$('status').textContent=t;
+const uuid=v=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+async function load(){
+ $('loadBtn').disabled=true;msg('Loading private booking record…');
+ try{
+  const id=$('bookingId').value.trim();if(!uuid(id))throw Error('Enter a valid Booking ID');
+  const session=(await sb.auth.getSession()).data.session;
+  if(!session)throw Error('Login in OCS first, then open this page.');
+  const {data,error}=await sb.rpc('ocs_booking_full_record_v1',{p_booking_id:id});
+  if(error)throw error;current=data;$('record').hidden=false;
+  const b=data.booking||{};$('bookingSummary').textContent=(b.category||'Service')+' • '+(b.service_name||'')+' • '+String(b.status||'').toUpperCase()+' • ₹'+Number(b.booking_amount||0).toFixed(2);
+  const box=$('items');box.replaceChildren();
+  for(const item of (data.evidence_notes||[])){
+   const row=document.createElement('div');row.className='line';
+   const title=document.createElement('strong');title.textContent=item.kind+' • '+new Date(item.created_at).toLocaleString('en-IN');row.appendChild(title);
+   const description=document.createElement('p');description.textContent=item.note;row.appendChild(description);
+   if(item.media_path){
+    const btn=document.createElement('button');btn.className='secondary';btn.type='button';btn.textContent='View private photo/video';
+    btn.onclick=async()=>{
+     btn.disabled=true;
+     try{
+      const {data:link,error:e}=await sb.storage.from(bucket).createSignedUrl(item.media_path,120);
+      if(e)throw e;
+      const isVideo=(item.media_type||'').startsWith('video/');
+      const media=document.createElement(isVideo?'video':'img');
+      media.src=link.signedUrl;
+      if(isVideo)media.controls=true;
+      row.appendChild(media);btn.remove();
+     }catch(e){msg(e.message||'Unable to view media');btn.disabled=false}
+    };row.appendChild(btn);
+   }box.appendChild(row);
+  }
+  for(const complaint of (data.complaints||[])){
+   const row=document.createElement('div');row.className='line';
+   row.textContent='Complaint '+(complaint.ticket_no||'')+' • '+(complaint.status||'')+' • '+(complaint.message||'');
+   box.appendChild(row);
+  }
+  if(!box.children.length)box.textContent='No evidence recorded yet.';
+  msg('Record loaded. Quote, payment and other events remain available in the booking history and Admin panel.');
+ }catch(e){$('record').hidden=true;current=null;msg(e.message||'Booking unavailable')}
+ finally{$('loadBtn').disabled=false}
+}
+async function save(){
+ if(!current)return;
+ $('saveBtn').disabled=true;msg('Saving evidence…');
+ try{
+  const text=$('note').value.trim(),kind=$('kind').value,file=$('media').files[0],id=current.booking.id;
+  if(text.length<8||text.length>2000)throw Error('Please enter 8–2000 characters');
+  if(file){
+   if(!allowed.includes(file.type)||file.size>20971520||file.size===0)throw Error('Use JPG, PNG, WEBP, MP4 or WEBM up to 20 MB');
+   const user=(await sb.auth.getUser()).data.user;if(!user)throw Error('Login required');
+   const extension={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','video/mp4':'mp4','video/webm':'webm'}[file.type];
+   const path=user.id+'/'+id+'/'+crypto.randomUUID()+'.'+extension;
+   const uploaded=await sb.storage.from(bucket).upload(path,file,{contentType:file.type,upsert:false});
+   if(uploaded.error)throw uploaded.error;
+   const saved=await sb.rpc('ocs_add_booking_media_evidence_v1',{p_booking_id:id,p_kind:kind,p_note:text,p_media_path:path,p_media_type:file.type});
+   if(saved.error)throw saved.error;
+  }else{
+   const saved=await sb.rpc('ocs_add_booking_evidence_note_v1',{p_booking_id:id,p_kind:kind,p_note:text});
+   if(saved.error)throw saved.error;
+  }
+  $('note').value='';$('media').value='';msg('Evidence saved in private booking history.');await load();
+ }catch(e){msg('Could not save: '+(e.message||'Unknown error'))}finally{$('saveBtn').disabled=false}
+}
+$('loadBtn').onclick=load;$('saveBtn').onclick=save;
+const fromQuery=new URLSearchParams(location.search).get('booking');
+if(fromQuery&&uuid(fromQuery)){$('bookingId').value=fromQuery;load()}
+</script></body></html>
