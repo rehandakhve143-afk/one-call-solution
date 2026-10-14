@@ -59,20 +59,20 @@ details.card[open]>summary:after{content:'⌃'}
 <section class="card" id="spCard" hidden>
 <h2>SP ka Balance</h2>
 <div class="balances">
-<div class="metric"><span class="label">IDBI Verified Advance</span><strong id="verifiedAdvance">₹0.00</strong><small>Bank se confirm jama paisa</small></div>
-<div class="metric"><span class="label">Purana Wallet</span><strong id="oldWallet">₹0.00</strong><small>Welcome bonus / old credits</small></div>
+<div class="metric"><span class="label">OCS Wallet Balance</span><strong id="verifiedAdvance">₹0.00</strong><small>₹100 Bonus + verified Recharge</small></div>
+<div class="metric"><span class="label">Welcome Bonus</span><strong>₹100</strong><small>One-time joining credit</small></div>
 </div>
 <div class="total-row"><span>Minimum advance target</span><b id="minAdvance">₹200.00</b></div>
 <div class="total-row"><span>Commission recorded</span><b id="commissionTotal">₹0.00</b></div>
 <div class="total-row"><span>Commission baki</span><b id="commissionDue">₹0.00</b></div>
-<p class="textnote" id="walletNote">Purana Wallet aur IDBI mein verified Advance alag hain. Naya ₹200 job-block rule abhi active nahi hai.</p>
+<p class="textnote" id="walletNote">OCS ke ek Wallet mein ₹100 Welcome Bonus aur verified Recharge include hota hai. Balance ₹200 se niche hua to new jobs rukengi.</p>
 </section>
 <section class="card" id="loginCard" hidden>
 <h2>Login zaroori hai</h2><p class="muted">Payment aur SP balance dekhne ke liye apne OCS account se login karein.</p>
 <a href="index.html?login=1">OCS Login kholein</a>
 </section>
 <details class="card" id="spHistory" hidden><summary>SP ki Payment / Commission History</summary><div class="panel" id="spRows"><div class="empty">Abhi koi direct payment record nahi.</div></div></details>
-<details class="card" id="advanceHistory" hidden><summary>IDBI Advance History</summary><div class="panel" id="advanceRows"><div class="empty">Abhi koi verified advance jama nahi hua.</div></div></details>
+<details class="card" id="advanceHistory" hidden><summary>Bank-verified Recharge History</summary><div class="panel" id="advanceRows"><div class="empty">Abhi koi verified advance jama nahi hua.</div></div></details>
 <details class="card" id="paymentRequests" hidden><summary>Meri IDBI Payment Requests</summary><div class="panel" id="requestRows"><div class="empty">Abhi koi request nahi.</div></div></details>
 <details class="card" id="adminSection" hidden><summary>Admin • Direct Payment Records</summary><div class="panel" id="adminRows"><div class="empty">Abhi koi direct payment record nahi.</div></div></details>
 <section class="card">
@@ -104,23 +104,25 @@ async function refresh(){
   const session=(await sb.auth.getSession()).data.session;
   show('loginCard',!session);
   if(!session){show('spCard',false);show('spHistory',false);show('advanceHistory',false);show('paymentRequests',false);show('adminSection',false);return}
-  const [sp,adv,req,admin]=await Promise.allSettled([
+  const [sp,adv,req,admin,gate]=await Promise.allSettled([
    sb.rpc('ocs_sp_direct_commission_summary_v1',{p_limit:20}),
    sb.rpc('ocs_sp_advance_status_v1',{p_limit:20}),
    sb.rpc('ocs_my_manual_bank_payments_v1'),
-   sb.rpc('ocs_admin_direct_sp_payments_v1',{p_limit:50})
+   sb.rpc('ocs_admin_direct_sp_payments_v1',{p_limit:50}),
+   sb.rpc('ocs_sp_wallet_new_job_status_v1')
   ]);
+  const gateValue=gate.status==='fulfilled'&&!gate.value.error?gate.value.data:null;
   const spValue=sp.status==='fulfilled'&&!sp.value.error?sp.value.data:null;
   const avValue=adv.status==='fulfilled'&&!adv.value.error?adv.value.data:null;
   const isSP=!!(spValue||avValue);
   show('spCard',isSP);show('spHistory',isSP);show('advanceHistory',isSP);
   if(isSP){
-   $('oldWallet').textContent=rupees(spValue&&spValue.wallet_balance);
-   $('verifiedAdvance').textContent=rupees(avValue&&avValue.verified_balance);
-   $('minAdvance').textContent=rupees(avValue&&avValue.minimum_new_job_advance || cfg.min_commission_advance || 200);
+   
+   $('verifiedAdvance').textContent=rupees(gateValue&&gateValue.wallet_balance || spValue&&spValue.wallet_balance);
+   $('minAdvance').textContent=rupees(gateValue&&gateValue.minimum_for_new_jobs || 200);
    $('commissionTotal').textContent=rupees(spValue&&spValue.commission_total);
    $('commissionDue').textContent=rupees(avValue&&avValue.unpaid_commission || spValue&&spValue.unpaid_commission);
-   $('walletNote').textContent='IDBI Advance aur ₹100 welcome bonus alag hain. Naye advance se 9% katne ka system abhi final testing mein hai. Nayi job ka ₹200 block abhi '+(cfg.sp_advance_gate_enabled?'enabled (review karein).':'chalu nahi hai.');
+   $('walletNote').textContent='₹100 welcome bonus isi OCS wallet mein hai. Completed job par 9% Commission Wallet se record hota hai. Nayi job ka ₹200 block abhi '+(cfg.sp_advance_gate_enabled?'enabled (review karein).':'chalu nahi hai.');
    addEntries('spRows',spValue&&spValue.recent_jobs||[],p=>(p.channel||'Cash').toUpperCase()+' • '+rupees(p.amount)+' • Commission '+rupees(p.commission_amount)+' • '+p.status,'Abhi koi direct payment record nahi.');
    addEntries('advanceRows',avValue&&avValue.history||[],p=>safeDate(p.created_at)+' • '+String(p.entry_kind||'').replaceAll('_',' ')+' • '+rupees(p.delta),'IDBI mein abhi koi verified advance nahi.');
   }
