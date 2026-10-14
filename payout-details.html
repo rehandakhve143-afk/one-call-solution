@@ -46,7 +46,7 @@ button{cursor:pointer}button:disabled{opacity:.55;cursor:wait}
   <div class="card">
    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Account verification</h2><span class="status not_added" id="verifyBadge">Checking…</span></div>
    <p class="muted">Profile banate waqt bank details optional hain. OCS payout release ke liye approved bank account required hai.</p>
-   <div id="walletRows" class="hidden"><div class="info"><span>SP Wallet</span><strong id="wallet">₹0</strong></div><div class="info"><span>Withdrawable*</span><strong id="withdrawable">₹0</strong></div></div>
+   <div id="walletRows" class="hidden"><div class="info"><span>SP Wallet</span><strong id="wallet">₹0</strong></div><div class="info"><span>Minimum Wallet Reserve</span><strong id="walletReserve">₹200</strong></div><div class="info"><span>Above reserve (estimate)*</span><strong id="withdrawable">₹0</strong></div><div class="note" id="payoutAvailability" role="status">Bank payout activation pending. Welcome Bonus and rewards cannot be withdrawn. This figure is not a confirmed bank transfer.</div></div>
   </div>
   <div id="loading" class="card">Loading saved bank account…</div>
   <div id="saved" class="card hidden">
@@ -75,7 +75,7 @@ button{cursor:pointer}button:disabled{opacity:.55;cursor:wait}
    <button id="save" type="submit" class="button primary">Save Bank Details</button>
    <button type="button" class="button secondary" id="cancel" onclick="cancelForm()">Cancel</button>
   </form>
-  <div class="card"><h2>OCS Payment Rule</h2><p class="muted">Online jobs: 9% OCS charge, remaining 91% SP settlement. Cash jobs: 9% SP wallet se debit. Negative wallet jobs automatically block nahi karta. *Withdrawal reserve and verification rules apply.</p></div>
+  <div class="card"><h2>OCS Payment Rule</h2><p class="muted">Launch mein approved SP ₹100 Welcome Bonus par jobs shuru kar sakta hai. ₹200 NEW Job minimum rule abhi OFF hai; pehle notice milega. Withdraw par ₹200 wallet reserve rahega aur Bonus/Rewards withdraw nahi hote. Online job: 9% OCS charge, 91% SP share; cash job par 9% wallet debit. Automatic bank payout abhi pending hai.</p></div>
  </main>
 </div>
 <script>
@@ -105,7 +105,10 @@ function render(d){
  saved=d||{has_details:false,verification_status:'not_added'};
  $('loading').classList.add('hidden');
  $('walletRows').classList.remove('hidden');
- fill('wallet',money(saved.wallet_balance));fill('withdrawable',money(saved.withdrawable_amount));
+ fill('wallet',money(saved.wallet_balance));
+ fill('walletReserve',money(saved.reserve_amount??200));
+ fill('withdrawable',money(saved.withdrawable_amount));
+ $('payoutAvailability').textContent=saved.auto_payout_enabled===true?'Payout status ko confirm karein; non-withdrawable bonuses/rewards reserve mein rehte hain.':'Automatic bank payout currently inactive. ₹200 reserve se upar ka number sirf estimate hai. Welcome/Referral Bonus withdraw nahi hoga. Bank verification alone payout enable nahi karti.';
  const status=String(saved.verification_status||'not_added').toLowerCase();
  setStatus(status==='approved'?'Verified ✓':status==='rejected'?'Rejected':status==='pending'?'Pending Verification':'Not Added',status==='approved'?'verified':status==='rejected'?'rejected':status==='pending'?'pending':'not_added');
  $('form').classList.add('hidden');
