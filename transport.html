@@ -134,8 +134,8 @@
  <section class="card">
   <h3>End-to-End OCS Trip Flow</h3>
   <div class="sub">Same booking, payment and safety record from start to finish</div>
-  <div class="transport-stage-box"><p>Get Quote → Driver quote accept → Driver On the Way → Reached Pickup → Customer Start OTP → Trip In Progress → Driver Complete Trip → Customer Confirmation → Online / Cash Payment → Rating & History.</p></div>
-  <div class="future">OCS platform charge: 9%. Naye Transport job ke liye Driver wallet me minimum ₹200 aur OCS approval chahiye. Accepted trip continue rahegi.</div>
+  <div class="transport-stage-box"><p>Get Quote → Provider quote accept → On the Way → Reached Pickup → Customer Start OTP → Trip In Progress → Complete → Customer Confirmation → Cash / verified Provider UPI direct → Provider Receipt Confirmation → Rating.</p></div>
+  <div class="future">OCS fee 9% Provider wallet se. Launch mein ₹100 Bonus par kaam shuru; ₹200 NEW JOB gate abhi OFF hai. Customer fare seedha assigned Transport Provider ko dega; OCS company QR par nahi.</div>
  </section>
  <div class="foot">One Call Solution • One for All, All for One</div>
 </main>
@@ -320,9 +320,9 @@ function renderTripStageActions(){
    box.innerHTML='<div class="transport-stage-box"><h4>Driver marked Trip Complete</h4><p>Trip sahi se complete hua ho to confirm karein. Problem ho to OCS Support Review choose karein.</p><div class="transport-stage-actions"><button class="btn primary" onclick="transportConfirmCompletion(true)">Confirm Complete</button><button class="btn secondary" onclick="transportConfirmCompletion(false)">Need OCS Help</button></div></div>';return
  }
  if(s==='payment_pending'){
-   box.innerHTML='<div class="transport-stage-box"><h4>Trip Payment</h4><p>Customer confirmation complete. Ab final payment OCS me record hoga.</p><div class="transport-pay-amount">₹'+amt.toFixed(0)+'</div><div class="transport-stage-actions"><button class="btn primary" onclick="transportPayOnline()">Pay Online</button><button class="btn secondary" onclick="transportPayCash()">Cash</button></div><div class="transport-stage-actions one"><button class="btn gray" onclick="transportUseRewards()">Use OCS Rewards First</button></div></div>';return
+   box.innerHTML='<div class="transport-stage-box"><h4>Pay Transport Provider Directly</h4><p>Final fare assigned Transport Provider ko directly Cash ya unke independently verified UPI par pay karein. OCS company account me fare na bhejein. Provider receipt confirm karega; OCS 9% wallet se record hoga.</p><div class="transport-pay-amount">₹'+amt.toFixed(0)+'</div><div class="transport-stage-actions"><button class="btn primary" onclick="transportPayCash()">I Paid Cash</button><button class="btn secondary" onclick="transportPayUpi()">I Paid Provider UPI</button></div><div class="transport-stage-actions one"><button class="btn gray" onclick="transportUseRewards()">Use OCS Rewards First</button></div></div>';return
  }
- if(s==='cash_wait'){box.innerHTML='<div class="transport-stage-box"><h4>Cash marked by Customer</h4><p>Driver cash receive confirm karega. Confirm hote hi booking Completed ho jayegi aur 9% platform charge Driver wallet se adjust hoga.</p></div>';return}
+ if(s==='cash_wait'){box.innerHTML='<div class="transport-stage-box"><h4>Direct Payment Marked</h4><p>Transport Provider actual Cash/UPI receipt confirm karega. Confirm hone par booking Completed aur OCS 9% platform charge Provider wallet se record hoga.</p></div>';return}
  box.innerHTML='';
 }
 async function transportConfirmCompletion(ok){
@@ -347,15 +347,22 @@ async function transportUseRewards(){
   await loadTransportTrip();
  }catch(e){show(e&&e.message?e.message:'Rewards apply nahi hue',true)}
 }
-async function transportPayCash(){
+async function transportPayCash(){return transportPayDirect('cash')}
+async function transportPayUpi(){return transportPayDirect('upi')}
+async function transportPayDirect(channel){
  if(!currentTrip?.booking_id)return;
+ channel=channel==='upi'?'upi':'cash';
+ const amount=Number(currentTrip.booking_amount||0);
+ const target=channel==='upi'?'Transport Provider ke independently verified UPI par':'assigned Transport Provider ko Cash';
+ if(!confirm('Kya aapne ₹'+amount.toFixed(2)+' '+target+' WAKAI pay kiya hai? OCS company QR par transport fare mat bhejein. Provider khud receipt confirm karega.'))return;
  try{
   const {data:preview,error:pe}=await sb.rpc('customer_reward_payment_preview_v1',{p_booking_id:currentTrip.booking_id,p_purpose:'job'});if(pe)throw pe;
   if(Number(preview&&preview.remaining_amount||0)<=0){await loadTransportTrip();return}
-  const {error}=await sb.rpc('create_booking_payment_intent_v1',{p_booking_id:currentTrip.booking_id,p_purpose:'job',p_method:'cash'});if(error)throw error;
-  show('✓ Cash selected. Driver ko payment dene ke baad Driver confirmation ka wait rahega.',false);
+  const {data,error}=await sb.rpc('ocs_customer_direct_to_sp_v1',{p_booking_id:currentTrip.booking_id,p_purpose:'job',p_channel:channel});if(error)throw error;
+  if(!data?.payment_id)throw new Error('Direct receipt record unavailable');
+  show('✓ '+(channel==='upi'?'Direct UPI':'Cash')+' marked. Provider receipt confirmation pending.',false);
   await loadTransportTrip();
- }catch(e){show(e&&e.message?e.message:'Cash payment mark nahi hua',true)}
+ }catch(e){show(e&&e.message?e.message:'Direct receipt marking failed',true)}
 }
 async function transportPayOnline(){
  if(!currentTrip?.booking_id)return;
