@@ -3748,6 +3748,7 @@ async function payCash(purpose){
    const {data:rp,error:rpe}=await ocsSupabase.rpc("customer_reward_payment_preview_v1",{p_booking_id:S.activeBookingId,p_purpose:p});
    if(rpe)throw rpe;
    if(Number(rp&&rp.remaining_amount||0)<=0){await ocsLoadLive("customer");render();return}
+   if(!confirm("Kya aapne assigned SP ko cash WAKAI de diya hai? Payment dene ke baad hi proceed karein; SP khud receipt confirm karega."))return;
    const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
      p_booking_id:S.activeBookingId,p_purpose:p,p_method:"cash"
    });
@@ -4143,7 +4144,7 @@ if(S.status==="BOOKING_DETAILS"){
  let itemLines=fixed&&selected.length
    ? '<div class="card" style="margin:10px 0;padding:10px">'+selected.map(x=>'<div class="row" style="align-items:flex-start"><div><b>'+ocsSafe(x.name)+'</b><div class="muted">'+money(Number(x.price||0))+' × '+Number(x.qty||1)+'</div></div><b>'+money(Number(x.price||0)*Number(x.qty||1))+'</b></div>').join('')+'</div>'
    : '';
- h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${ocsLabourOnlyWarning()}${ocsMaterialReadinessHTML()}${ocsPowerReadinessHTML()}${S.paymentHeld?secureHoldHTML():""}<label>Full Service Address *</label><input value="${ocsSafe(S.address||"")}" placeholder="House/Flat, Building, Area, Landmark" onchange="S.address=this.value;saveHomeState()">${ocsBookingContactHTML()}${ocsBookingLocationHTML()}<h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
+ h=`<button type="button" class="backbtn" data-ocs-back-items="1">← Services</button><div class="card"><h3>Booking Summary</h3><div class="muted">${S.category}</div>${itemLines}<div class="money">Grand Total: ${money(S.total)}</div>${ocsLabourOnlyWarning()}${ocsMaterialReadinessHTML()}${ocsPowerReadinessHTML()}${S.paymentHeld?secureHoldHTML():""}<label>Full Service Address *</label><input value="${ocsSafe(S.address||"")}" placeholder="House/Flat, Building, Area, Landmark" onchange="S.address=this.value;saveHomeState()">${ocsBookingContactHTML()}${ocsBookingLocationHTML()}<h3>Payment Method</h3><div class="row"><button type="button" class="btn ${S.paymentChoice==='ONLINE'?'ok':'gray'}" data-ocs-pay="ONLINE">Online</button><button type="button" class="btn ${S.paymentChoice==='CASH'?'ok':'gray'}" data-ocs-pay="CASH">Cash</button></div><div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Pay Service Provider directly</b><small>Work approve hone ke baad assigned SP ko payment dein. SP actual receipt confirm karega, tab OCS 9% commission record hoga.</small></div></div><div class="notice" style="margin-top:12px"><b>No-Work Visit Charge Rule:</b> 1–6 km ₹199 | Above 6–12 km ₹249, only in eligible customer-side no-work situations. Provider-side issue ₹0.</div><button type="button" class="btn" data-ocs-find-provider="1">Find Service Provider</button>${S.isQuoteBooking?'<button type="button" class="btn red" onclick="cancelAcceptedQuoteBeforeWork()">Cancel Accepted Quote</button>':""}</div>`;return h
 }
 
 if(S.status==="READY")h=`
@@ -4156,7 +4157,7 @@ if(S.status==="READY")h=`
     <button class="btn ${S.paymentChoice==="ONLINE"?"ok":"gray"}" onclick="choosePayment('ONLINE')">Online</button>
     <button class="btn ${S.paymentChoice==="CASH"?"ok":"gray"}" onclick="choosePayment('CASH')">Cash</button>
   </div>
-  <div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div>
+  <div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Pay Service Provider directly</b><small>Work approve hone ke baad assigned SP ko payment dein. SP actual receipt confirm karega, tab OCS 9% commission record hoga.</small></div></div>
 </div>
 <button class="btn" onclick="booking()">Find Service Provider</button>
 </div>`;
@@ -4229,7 +4230,7 @@ if(S.status==="REACHED")h=`
 if(S.status==="WORKING"){
 h=`<div class="notice good"><b>Customer • Work In Progress</b><br>Service Provider: ${S.provider}<br>Current Booking Total: ₹${S.total}</div>
 <div class="card"><h3>Customer Actions</h3>
-<div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div>
+<div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Pay Service Provider directly</b><small>Work approve hone ke baad assigned SP ko payment dein. SP actual receipt confirm karega, tab OCS 9% commission record hoga.</small></div></div>
 <div class="muted" style="margin-bottom:10px">Extra work add karein, same provider ke saath reschedule karein, ya problem ho to resolve karein.</div>
 <button class="btn" onclick="customerOpenAddMoreWork()">+ Add More Work</button>
 <button class="btn alt" onclick="openReschedule('customer')">Work Pending / Reschedule</button>`;
@@ -4278,10 +4279,10 @@ if(S.status==="COMPLETION_CONFIRM")h=`
 
 if(S.status==="PAYMENT")h=`
 <div class="card ocs-payment-card"><h3>Complete Payment</h3>${S.paymentHeld?secureHoldHTML():""}<div class="muted">Remaining to pay</div><div class="money">${money(paymentDueAmount())}</div>${Number(S.customerRewardUsed||0)>0?`<div class="notice good"><b>OCS Rewards Used: ${money(Number(S.customerRewardUsed||0))}</b></div>`:""}
-<div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div>
+<div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Pay Service Provider directly</b><small>Work approve hone ke baad assigned SP ko payment dein. SP actual receipt confirm karega, tab OCS 9% commission record hoga.</small></div></div>
 <button class="btn alt" onclick="useCustomerRewards('JOB')">Use OCS Rewards</button>
-<button class="btn" onclick="openOnline('JOB')">Pay Remaining Online</button>
-<button class="btn gray" onclick="payCash('JOB')">Cash • If Needed</button></div>`;
+<div class="muted">Provider ke personal UPI ka direct verification abhi pending hai. Cash directly to SP supported.</div>
+<button class="btn ok" onclick="payCash('JOB')">I Paid Cash Directly to SP</button></div>`;
 
 if(S.status==="ONLINE_PAY"){
 let amt=S.payPurpose==="VISIT"?S.visitCharge:paymentDueAmount();
@@ -4292,7 +4293,7 @@ h=`<div class="card"><h3>OCS Online Payment</h3>
 <div class="muted">Payment failed/cancelled ho to Cash fallback available hai.</div></div>`;
 }
 
-if(S.status==="CASH_WAIT")h=`<div class="notice">Cash Paid marked.<br>Waiting for ${S.provider} confirmation.</div>`;
+if(S.status==="CASH_WAIT")h=`<div class="notice">Cash marked paid directly to ${S.provider}. Waiting for provider to verify actual receipt. OCS 9% commission recorded only after confirmation.</div>`;
 
 if(S.status==="NO_SHOW_VISIT")h=`
 <div class="card"><h3>Provider Reached • Customer Unavailable</h3>
@@ -4370,12 +4371,12 @@ if(S.status==="VISIT_PAYMENT")h=`
 <div class="muted">${S.distanceSlab}</div>
 <div class="money">₹${S.visitCharge}</div>
 <button class="btn alt" onclick="useCustomerRewards('VISIT')">Use OCS Rewards</button>
-<button class="btn" onclick="openOnline('VISIT')">Pay Remaining Online</button>
-<button class="btn gray" onclick="payCash('VISIT')">Cash</button>
+<div class="muted">Visit charge directly assigned SP ko cash dein; UPI verification pending.</div>
+<button class="btn ok" onclick="payCash('VISIT')">I Paid Cash to SP</button>
 <button class="btn red" onclick="disputeVisit()">Need OCS Help</button>
 </div>`;
 
-if(S.status==="VISIT_CASH_WAIT")h=`<div class="notice">Visit Charge Cash Paid ₹${S.visitCharge}<br>Waiting for Provider confirmation.</div>`;
+if(S.status==="VISIT_CASH_WAIT")h=`<div class="notice">Visit Charge Cash Paid ₹${S.visitCharge}. Waiting for provider receipt confirmation and commission record.</div>`;
 
 if(S.status==="SUPPORT_REVIEW")h=`<div class="card"><h3>OCS Support Review</h3><div class="notice"><b>Visit charge is ON HOLD.</b><br>No automatic payment will be collected until OCS reviews the reason.${S.wncTicket?'<br>Ticket: '+S.wncTicket:''}</div></div>`;
 
@@ -4530,7 +4531,7 @@ if(S.status==="WORKING"){
 h=`<div class="notice good"><b>Service Provider • Work In Progress</b><br>Current Booking Total: ₹${S.total}</div>
 ${providerNextJobQueueHTML()}
 <div class="card"><h3>Service Provider Actions</h3>
-<div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Online payment preferred</b><small>OCS payment record ke liye Online default hai. Network ya payment issue ho to Cash use kar sakte hain.</small></div></div>
+<div class="ocs-payment-policy"><span class="pp-icon">✓</span><div><b>Pay Service Provider directly</b><small>Work approve hone ke baad assigned SP ko payment dein. SP actual receipt confirm karega, tab OCS 9% commission record hoga.</small></div></div>
 <div class="muted" style="margin-bottom:10px">Customer ke booking par kaam chal raha hai. Extra work ke liye OCS Rate Card use karein.</div>
 ${S.isQuoteBooking?'<div class="notice"><b>Get Quote • Simple Flow</b><br>No mandatory before/after photo-video. Finish Job ke baad Customer confirmation hoga; full OCS history retained rahegi.</div>':""}
 <button class="btn" onclick="openAddWork()">+ Add Work • OCS Rate Card</button>
