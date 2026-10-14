@@ -134,6 +134,10 @@ async function loadDashboard(){
      currentJob=null;
      return;
    }
+   // Rate-limited in-app reminder only; never block Work ON on wallet alone.
+   if(Number(profile.wallet_balance||0)<200){
+     try{await sb.rpc('ocs_sp_wallet_reminder_v1')}catch(e){console.warn('Wallet reminder unavailable',e)}
+   }
    const walletBalance=Number(profile.wallet_balance||0);
    const canReceiveNewJobs=profile.service_location_set===true&&profile.admin_paused!==true;
    const walletNotice=walletBalance<200
