@@ -4128,6 +4128,31 @@ async function ocsPayPaidPost(opts){
    p_metadata:o.metadata||{}
  });
  if(ie)throw ie;
+ const {data:bankStatus,error:bankStatusError}=await ocsSupabase.rpc('ocs_direct_payment_status_v1');
+ if(bankStatusError)throw bankStatusError;
+ if(!bankStatus?.manual_collection_available || !bankStatus?.business_upi_id){
+   throw new Error('OCS IDBI business collection verification pending. Posting draft saved; abhi koi payment na bhejein.');
+ }
+ const {data:bankRequest,error:bankRequestError}=await ocsSupabase.rpc('ocs_create_manual_bank_payment_v1',{
+   p_purpose:'paid_post',p_target_id:intent.id
+ });
+ if(bankRequestError)throw bankRequestError;
+ if(!bankRequest?.request_id)throw new Error('IDBI payment request unavailable; no payment should be sent.');
+ const msg='OCS IDBI Business Payment\\nPayee: '+String(bankStatus.account_display_name||'OCS Business')+
+   '\\nUPI: '+String(bankStatus.business_upi_id)+
+   '\\nAmount: ₹'+Number(intent.total_amount||0).toFixed(2)+
+   '\\n\\nBank app se payment ke baad hi real UTR likhein. Screenshot/UTR alone verification nahi; listing tab tak PENDING rahegi. Cancel = no payment claim.';
+ const utr=prompt(msg,'');
+ if(utr===null)return {pending:true,paymentId:intent.id,requestId:bankRequest.request_id};
+ const cleaned=String(utr||'').trim();
+ if(!cleaned)return {pending:true,paymentId:intent.id,requestId:bankRequest.request_id};
+ const {data:claim,error:claimError}=await ocsSupabase.rpc('ocs_claim_manual_bank_payment_v1',{
+   p_request_id:bankRequest.request_id,p_bank_utr:cleaned
+ });
+ if(claimError)throw claimError;
+ alert('UTR received for bank verification. Listing PENDING hai. IDBI statement match hone ke baad hi LIVE hogi. Dobara payment mat karein.');
+ return {pending:true,paymentId:intent.id,requestId:bankRequest.request_id,claimStatus:claim?.status||'claimed'};
+ // Legacy gateway path below is deliberately unreachable in provider-direct launch mode.
  await ensureOcsRazorpay();
  const {data:orderPack,error:oe}=await ocsSupabase.functions.invoke('ocs-create-razorpay-order',{body:{kind:'paid_post',id:intent.id}});
  if(oe)throw oe;
@@ -4433,6 +4458,7 @@ async function submitBannerAd(){
      metadata:bannerMeta
    });
    if(!paid){renderBannerPendingState();return}
+   if(paid.pending){renderBannerPendingState();alert('Slider Ad IDBI bank verification pending hai. Bank confirm hone tak ad LIVE nahi hogi.');closeBannerAd();return}
    lockBannerAfterPayment(currentId,paid.razorpayPaymentId||'');
    closeBannerAd();
    renderLivePaidBanners();
@@ -6509,6 +6535,7 @@ async function continueBiz(){
        metadata:postMeta
      });
      if(!paid)return;
+     if(paid.pending){alert('Business listing bank verification pending hai. Payment verify hone tak LIVE nahi hogi.');closeBiz();return}
      const latest=readBizDrafts();if(latest[cat]){
        latest[cat].status='LIVE';latest[cat].paymentStatus='VERIFIED';latest[cat].paymentRef=paid.razorpayPaymentId||'';
        latest[cat].invoiceEmailStatus='QUEUED';latest[cat].activatedAt=new Date().toISOString();
