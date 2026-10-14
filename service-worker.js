@@ -1,4 +1,4 @@
-const OCS_CACHE='ocs-shell-v47';
+const OCS_CACHE='ocs-shell-v48';
 const OCS_SHELL=[
   './',
   './index.html',
@@ -102,4 +102,36 @@ self.addEventListener('fetch',event=>{
       })
     );
   }
+});
+
+
+// Browser-delivered push messages: private contents never appear on the lock screen.
+// No automatic permission prompts; registration is initiated by an explicit user tap.
+self.addEventListener('push',event=>{
+ let payload={};
+ try{payload=event.data?event.data.json():{}}catch(e){}
+ const booking=typeof payload.booking_id==='string'&&/^[0-9a-f-]{36}$/i.test(payload.booking_id)?payload.booking_id:null;
+ const kind=String(payload.type||'');
+ const target=kind.startsWith('quote')&&booking
+  ?'my-discussions.html?booking='+encodeURIComponent(booking)
+  :'index.html';
+ const url=new URL(target,self.registration.scope).href;
+ event.waitUntil(self.registration.showNotification('One Call Solution',{
+  body:'Your OCS account has a new update. Open the app to view details.',
+  icon:new URL('assets/ocs-logo-mark.svg',self.registration.scope).href,
+  badge:new URL('assets/ocs-logo-mark.svg',self.registration.scope).href,
+  tag:'ocs-update-'+String(payload.notification_id||'general').slice(0,40),
+  data:{url},
+  renotify:false
+ }));
+});
+self.addEventListener('notificationclick',event=>{
+ event.notification.close();
+ const u=event.notification.data?.url||new URL('index.html',self.registration.scope).href;
+ if(!u.startsWith(self.registration.scope))return;
+ event.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(async clients=>{
+  const match=clients.find(c=>c.url.startsWith(self.registration.scope));
+  if(match){await match.focus();if('navigate' in match)await match.navigate(u);return}
+  return self.clients.openWindow(u);
+ }));
 });
