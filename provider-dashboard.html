@@ -488,6 +488,9 @@ async function loadSpActivity(){
    if(items.length>50){const info=document.createElement('small');info.textContent='Showing latest 50 of '+items.length+' records';panel.appendChild(info)}
   };
   section('Notifications • Latest 30',notes,x=>x.created_at,x=>(x.read_at?'':'● NEW • ')+(x.title||'OCS Update')+' • '+(x.body||''));
+  if(notes.some(n=>n.booking_id&&['quote_update','quote_reply','quote'].includes(n.type))){
+   const action=document.createElement('button');action.className='refresh';action.textContent='Open My Quote Discussions';action.onclick=()=>{location.href='my-discussions.html?role=service_provider'};panel.appendChild(action);
+  }
   if(unread){const mark=document.createElement('button');mark.className='refresh';mark.textContent='Mark Notifications Read';mark.onclick=async()=>{const res=await sb.rpc('mark_notifications_read_v1');if(res.error)throw res.error;await loadSpActivity()};panel.appendChild(mark)}
   section('Closed Jobs • Date-wise',history,x=>x.closed_at||x.created_at,x=>(x.service_name||x.category||'Service')+' • '+String(x.status||'').toUpperCase()+' • Job Amount ₹'+Number(x.booking_amount||0)+' • Payment: '+(x.payment_status||'not recorded'));
  }catch(e){panel.textContent='Activity unavailable: '+(e.message||'Retry')}
