@@ -248,7 +248,7 @@ async function loadDashboard(){
    const walletBalance=Number(profile.wallet_balance||0);
    const canReceiveNewJobs=profile.service_location_set===true&&profile.admin_paused!==true;
    const walletNotice=walletBalance<200
-     ?'<div class="error" style="margin-top:12px">OCS Wallet '+money(walletBalance)+' • Balance low reminder only. Work ON aur new jobs ke liye recharge mandatory nahi hai. 9% commission remains payable.</div>'
+     ?'<div class="error" style="margin-top:12px">OCS Wallet '+money(walletBalance)+' • Balance ₹200 se kam hai. IDBI recharge enable hone par NEW jobs pause hongi, accepted job continue rahegi. Verified recharge ke baad automatic unblock. 9% commission remains payable.</div>'
      :(profile.service_location_set!==true
        ?'<div class="error" style="margin-top:12px">Service location pin is missing. Set location before accepting NEW jobs.</div>'
        :(profile.admin_paused===true?'<div class="error" style="margin-top:12px">New jobs are paused by OCS Admin. Existing work can continue.</div>':''));
