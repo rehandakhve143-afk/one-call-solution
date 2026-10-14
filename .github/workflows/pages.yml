@@ -50,6 +50,9 @@ jobs:
       - name: Verify zero-wallet SP Work ON and Admin work controls in mobile Chromium (mocked backend)
         run: |
           node tests/sp-work-control-browser.cjs
+      - name: Verify simultaneous SP new job and quote discussion signals in mobile Chromium (mocked backend)
+        run: |
+          node tests/sp-inbox-signals-browser.cjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
