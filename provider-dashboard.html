@@ -422,16 +422,17 @@ async function sendInitialQuote(){
 }
 async function confirmProviderCash(){
  if(providerActionBusy||!currentJob||!['cash_wait','visit_cash_wait'].includes(currentJob.status))return;
- if(!confirm('Assigned Customer se payment sach mein mil chuka hai? Confirm karne par job complete hogi aur OCS ka 9% commission wallet se debit/due record hoga.'))return;
+ if(!confirm('Kya aapko Customer se paise WAKAI receive hue hain? Yeh confirmation Job Complete karega aur OCS ka 9% commission record karega.'))return;
  providerActionBusy=true;
  try{
    const {data,error}=await sb.rpc('payment_snapshot_v1',{p_booking_id:currentJob.id});
    if(error)throw error;
    const pay=data&&data.payment;
+   const {data:directInfo}=await sb.rpc('ocs_sp_direct_payment_snapshot_v1',{p_booking_id:currentJob.id});
    if(!pay||pay.method!=='cash'||pay.status!=='cash_marked')throw new Error('Cash payment pending record nahi mila.');
    const done=await sb.rpc('confirm_cash_received_v1',{p_payment_id:pay.id});
    if(done.error)throw done.error;
-   alert('Customer cash receipt confirmed. Job completed; 9% OCS commission recorded.');
+   alert('Customer '+(directInfo?.channel==='upi'?'UPI':'Cash')+' payment receipt confirmed. Job completed; 9% OCS commission recorded.');
    await loadDashboard();
  }catch(e){alert('Cash confirmation failed: '+(e.message||'Please retry'))}
  finally{providerActionBusy=false}
