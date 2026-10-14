@@ -726,6 +726,19 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
  .ocs-super-market-grid img{max-width:100%!important}
 }
 </style>
+<style id="ocs-flow-first-20261014">
+/* Flow-first homepage: simple entry points; no change to bookings or payment logic. */
+@media(max-width:600px){
+ .ocs-core-entry{margin-top:12px!important}
+ .ocs-core-kicker{margin-bottom:10px!important}
+ .ocs-core-grid{gap:10px!important}
+ .ocs-core-tile{border-radius:15px!important}
+ .slider-business-cta{margin-top:16px!important}
+ .ocs-super-services{gap:9px!important}
+ .ocs-super-service{min-width:0!important}
+ .ocs-super-head h2{font-size:17px!important}
+}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
@@ -766,6 +779,18 @@ setTimeout(function(){
       <div class="ocs-super-dots"><button class="on" onclick="setSuperSlide(0)"></button><button onclick="setSuperSlide(1)"></button><button onclick="setSuperSlide(2)"></button></div>
     </section>
 
+
+
+
+    <section class="ocs-core-entry" id="ocsMainBusiness" aria-label="Main OCS services">
+      <div class="ocs-core-kicker"><h2>What do you need?</h2><span>Select one to continue</span></div>
+      <div class="ocs-core-grid">
+        <button class="ocs-core-tile ocs-core-customer" type="button" onclick="openModule('Home Services','customer')" aria-label="Book Home Service as Customer"><span class="ocs-core-glyph">🏠</span><span class="ocs-core-copy"><b>Home Services</b><small>Electrician, Plumber, AC & more • View rates</small></span><span class="ocs-core-arrow">↗</span></button>
+        <button class="ocs-core-tile ocs-core-sp" type="button" onclick="openModule('Home Services','provider')" aria-label="Open Service Provider Dashboard"><span class="ocs-core-glyph">🛠</span><span class="ocs-core-copy"><b>Service Provider</b><small>Manage Requests • Work ON/OFF</small></span><span class="ocs-core-arrow">↗</span></button>
+        <button class="ocs-core-tile ocs-core-driver" type="button" onclick="openModule('Driver Service')" aria-label="Book a 4-Wheeler Driver"><span class="ocs-core-glyph">🚘</span><span class="ocs-core-copy"><b>Driver Service</b><small>Book a Driver for Your Car</small></span><span class="ocs-core-arrow">↗</span></button>
+        <button class="ocs-core-tile ocs-core-transport" type="button" onclick="openModule('Tempo / Goods Transport')" aria-label="Book Tempo or Goods Transport"><span class="ocs-core-glyph">🚚</span><span class="ocs-core-copy"><b>Transport Service</b><small>Tempo • Goods • Home Shifting</small></span><span class="ocs-core-arrow">↗</span></button>
+      </div>
+    </section>
     <section class="slider-business-cta" onclick="openBannerAd()">
       <div class="slider-business-copy">
         <strong>Promote Your Ad on Slider</strong>
@@ -775,19 +800,8 @@ setTimeout(function(){
     </section>
 
 
-    <section class="ocs-core-entry" id="ocsMainBusiness" aria-label="Main OCS services">
-      <div class="ocs-core-kicker"><h2>Book a Service</h2><span>Simple • Quick • Local</span></div>
-      <div class="ocs-core-grid">
-        <button class="ocs-core-tile ocs-core-customer" type="button" onclick="openModule('Home Services','customer')" aria-label="Book Home Service as Customer"><span class="ocs-core-glyph">🏠</span><span class="ocs-core-copy"><b>Home Services</b><small>Electrician, Plumber, AC & more • View rates</small></span><span class="ocs-core-arrow">↗</span></button>
-        <button class="ocs-core-tile ocs-core-sp" type="button" onclick="openModule('Home Services','provider')" aria-label="Open Service Provider Dashboard"><span class="ocs-core-glyph">🛠</span><span class="ocs-core-copy"><b>Service Provider</b><small>Manage Requests • Work ON/OFF</small></span><span class="ocs-core-arrow">↗</span></button>
-        <button class="ocs-core-tile ocs-core-driver" type="button" onclick="openModule('Driver Service')" aria-label="Book a 4-Wheeler Driver"><span class="ocs-core-glyph">🚘</span><span class="ocs-core-copy"><b>Driver Service</b><small>Book a Driver for Your Car</small></span><span class="ocs-core-arrow">↗</span></button>
-        <button class="ocs-core-tile ocs-core-transport" type="button" onclick="openModule('Tempo / Goods Transport')" aria-label="Book Tempo or Goods Transport"><span class="ocs-core-glyph">🚚</span><span class="ocs-core-copy"><b>Transport Service</b><small>Tempo • Goods • Home Shifting</small></span><span class="ocs-core-arrow">↗</span></button>
-      </div>
-    </section>
 
-    <button class="ocs-market-card ocs-market-card-wide ocs-feature-property" onclick="openModule('Property')"><span class="photo" style="background-image:url('https://img.squareyards.com/secondaryPortal/optImages/IN_639108210862157805-0304260151265126.jpg?aio=w-300%3Bh-300%3Bfill%3B')"></span><span class="ocs-market-badge">PROPERTY • BUILDER</span><span class="ocs-market-copy"><b>Property / Builder</b><small>Rent • Buy • Builder Listings</small></span></button>
-
-    <div class="ocs-super-head"><h2>Home Services</h2><button onclick="openModule('Home Services','customer')">View Home Services</button></div>
+    <div class="ocs-super-head"><h2>Quick Home Service Shortcuts</h2><button onclick="openModule('Home Services','customer')">All Services</button></div>
     <div class="ocs-super-services">
       <button class="ocs-super-service" onclick="openModule('Home Services','customer','Electrical')"><span class="icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.2 14.5A6 6 0 1 1 15.8 14.5C14.7 15.4 14 16.5 14 18h-4c0-1.5-.7-2.6-1.8-3.5Z"/><path d="M12 2v2"/></svg></span><b>Electrical</b></button>
       <button class="ocs-super-service" onclick="openModule('Home Services','customer','Plumbing')"><span class="icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h11"/><path d="M7 8V5h5v3"/><path d="M15 8v4a3 3 0 0 1-3 3H9"/><path d="M9 12v6"/><path d="M6 18h6"/><path d="M18 13c1.3 1.7 2 2.8 2 4a2 2 0 0 1-4 0c0-1.2.7-2.3 2-4Z"/></svg></span><b>Plumbing</b></button>
