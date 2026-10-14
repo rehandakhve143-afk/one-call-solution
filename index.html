@@ -681,6 +681,35 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
 </style>
 <script src="assets/ocs-category-experience.js?v=20261010-stable-premium1"></script>
 <script src="assets/ocs-photo-services.js?v=20261010-photorates1"></script>
+<style id="ocs-simple-home-account-v1">
+/* Customer-first: three clear booking choices; SP management stays under Account. */
+.ocs-core-grid .ocs-core-sp{display:none!important}
+.ocs-core-grid .ocs-core-customer{grid-column:1/-1!important;min-height:78px!important}
+.ocs-core-grid .ocs-core-driver,.ocs-core-grid .ocs-core-transport{min-height:94px!important}
+.ocs-core-grid .ocs-core-tile{padding:12px!important;box-shadow:none!important}
+.ocs-core-entry .ocs-core-kicker>span{font-size:10px!important}
+.ocs-super-hero{height:170px!important;box-shadow:none!important}
+.ocs-super-hero-copy{top:15px!important;max-width:75%!important}
+.ocs-super-hero-copy h1{font-size:22px!important;line-height:1.08!important}
+.ocs-super-hero-copy p{font-size:10.5px!important}
+.ocs-super-hero-copy button{margin-top:9px!important;min-height:34px!important}
+#bottomProfileModal .ocs-uc-profile h1{font-size:24px!important;margin:8px 0 4px!important}
+#bottomProfileModal .ocs-uc-profile-top{margin-bottom:0!important}
+#bottomProfileModal .ocs-uc-quick{margin:16px 0 12px!important;gap:8px!important}
+#bottomProfileModal .ocs-uc-quick button{min-height:96px!important;padding:11px 9px!important;border-radius:15px!important}
+#bottomProfileModal .ocs-uc-quick button>span{margin-bottom:7px!important}
+#bottomProfileModal .ocs-uc-quick button small{font-size:9.5px!important;line-height:1.3!important}
+#bottomProfileModal .ocs-role-simple{margin:6px 0 14px;border:1px solid #dce7e6;border-radius:14px;background:#fff;overflow:hidden}
+#bottomProfileModal .ocs-role-simple summary{min-height:62px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;list-style:none;color:#16454c}
+#bottomProfileModal .ocs-role-simple summary::-webkit-details-marker{display:none}
+#bottomProfileModal .ocs-role-simple summary b{font-size:14px}
+#bottomProfileModal .ocs-role-simple summary small{display:block;font-size:10px;color:#647b80;margin:4px 0 0 27px}
+#bottomProfileModal .ocs-role-simple .ocs-role-chevron{font-size:18px;color:#557b7d}
+#bottomProfileModal .ocs-role-simple-options{padding:0 12px 12px;display:grid;gap:7px}
+#bottomProfileModal .ocs-role-simple-options button{min-height:52px;width:100%;text-align:left;padding:9px 12px;border-radius:11px;border:1px solid #dce6e5;background:#f6faf9;color:#19505a}
+#bottomProfileModal .ocs-role-simple-options b{display:block;font-size:12px}
+#bottomProfileModal .ocs-role-simple-options small{display:block;font-size:10px;color:#617c81;margin-top:4px}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
@@ -731,9 +760,9 @@ setTimeout(function(){
 
 
     <section class="ocs-core-entry" id="ocsMainBusiness" aria-label="Main OCS services">
-      <div class="ocs-core-kicker"><h2>Book Services & Get Work</h2><span>OCS Main Services</span></div>
+      <div class="ocs-core-kicker"><h2>Book a Service</h2><span>Simple • Quick • Local</span></div>
       <div class="ocs-core-grid">
-        <button class="ocs-core-tile ocs-core-customer" type="button" onclick="openModule('Home Services','customer')" aria-label="Book Home Service as Customer"><span class="ocs-core-glyph">🏠</span><span class="ocs-core-copy"><b>Customer</b><small>Book Home Services • Clear Rates</small></span><span class="ocs-core-arrow">↗</span></button>
+        <button class="ocs-core-tile ocs-core-customer" type="button" onclick="openModule('Home Services','customer')" aria-label="Book Home Service as Customer"><span class="ocs-core-glyph">🏠</span><span class="ocs-core-copy"><b>Home Services</b><small>Electrician, Plumber, AC & more • View rates</small></span><span class="ocs-core-arrow">↗</span></button>
         <button class="ocs-core-tile ocs-core-sp" type="button" onclick="openModule('Home Services','provider')" aria-label="Open Service Provider Dashboard"><span class="ocs-core-glyph">🛠</span><span class="ocs-core-copy"><b>Service Provider</b><small>Manage Requests • Work ON/OFF</small></span><span class="ocs-core-arrow">↗</span></button>
         <button class="ocs-core-tile ocs-core-driver" type="button" onclick="openModule('Driver Service')" aria-label="Book a 4-Wheeler Driver"><span class="ocs-core-glyph">🚘</span><span class="ocs-core-copy"><b>Driver Service</b><small>Book a Driver for Your Car</small></span><span class="ocs-core-arrow">↗</span></button>
         <button class="ocs-core-tile ocs-core-transport" type="button" onclick="openModule('Tempo / Goods Transport')" aria-label="Book Tempo or Goods Transport"><span class="ocs-core-glyph">🚚</span><span class="ocs-core-copy"><b>Transport Service</b><small>Tempo • Goods • Home Shifting</small></span><span class="ocs-core-arrow">↗</span></button>
@@ -3266,7 +3295,7 @@ async function openBottomProfile(){
  const name=String(customer?.name||'OCS Customer').trim()||'OCS Customer';
  const verified=!!(customer?.verified||customer?.emailVerified||customer?.mobileVerified||session?.user);
  const complete=!!(customer&&customer.name&&(customer.mobile||customer.email||session?.user?.email||session?.user?.phone));
- const statusText=verified?(complete?'Verified Customer':'Verified • Complete profile'):'Complete your profile';
+ const statusText=verified?(complete?'Profile verified':'Login verified'):'Complete your profile';
  const statusClass=verified?'ok':'warn';
  const contact=accountId||'Add mobile or email';
 
@@ -3280,21 +3309,18 @@ async function openBottomProfile(){
    '<div class="ocs-uc-contact">'+ocsSavedText(contact)+'</div>'+
  '</div>'+
 
- '<div class="ocs-account-roles-hub">'+
-   '<h3>My OCS Profiles</h3>'+
-   '<p>One Login • Customer aur Service Provider dono ek account mein</p>'+
-   '<button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'customer\')"><span><b>👤 Customer</b><small>My profile • Book services</small></span><strong>›</strong></button>'+
-   '<button class="ocs-role-sp" onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')"><span><b>🧰 Service Provider</b><small>'+(hasSpRole?'My SP Profile • Approval status':'Start SP Profile • Same login')+'</small></span><strong>›</strong></button>'+
-   (hasSpRole?'<button class="ocs-role-dashboard" onclick="openProviderDashboardFromMenu()"><span><b>Open SP Dashboard</b><small>Jobs • Availability • Wallet</small></span><strong>›</strong></button>':'')+
- '</div>'+
  '<div class="ocs-uc-quick">'+
    '<button onclick="closeBottomHub(\'bottomProfileModal\');openBottomBookings()"><span>▤</span><b>My Bookings</b><small>Active & history</small></button>'+
-   '<button onclick="closeBottomHub(\'bottomProfileModal\');openWalletHub()"><span>₹</span><b>Wallet</b><small>Rewards & payments</small></button>'+
+   '<button onclick="location.href=\'my-discussions.html?role=customer\'"><span>💬</span><b>My Quotes</b><small>Requests & discussion</small></button>'+
    '<button onclick="closeBottomHub(\'bottomProfileModal\');openBottomSupport()"><span>☎</span><b>Help & Support</b><small>OCS help</small></button>'+
- '</div>'+
+ '<details class="ocs-role-simple"><summary><span>🧰 <b>Service Provider</b><small>Profile • Work ON/OFF • Jobs</small></span><span class="ocs-role-chevron">▾</span></summary><div class="ocs-role-simple-options">'+
+    '<button onclick="closeBottomHub(\'bottomProfileModal\');openAccount(\'provider\')"><b>SP Profile & Approval</b><small>Join or update details</small></button>'+
+    (hasSpRole?'<button onclick="openProviderDashboardFromMenu()"><b>Open SP Dashboard</b><small>Requests • Work ON/OFF • Wallet</small></button>':'')+
+  '</div></details>'+
+'</div>'+
 
  '<div class="ocs-uc-list">'+
-   '<button onclick="location.href=\'my-discussions.html?role=customer\'"><span class="uli">💬</span><span class="ulc"><b>My Discussions & Quotes</b><small>Waiting requests • SP replies • Quote history</small></span><span class="ulg">›</span></button>'+
+   
    '<button onclick="location.href=\'listing-enquiries.html?tab=sent\'"><span class="uli">✉</span><span class="ulc"><b>My Enquiries</b><small>Requests sent to listings • Owner replies</small></span><span class="ulg">›</span></button>'+
    '<button onclick="location.href=\'listing-enquiries.html?tab=received\'"><span class="uli">▣</span><span class="ulc"><b>Received Enquiries</b><small>Requests for my own shops, property and businesses</small></span><span class="ulg">›</span></button>'+
    '<button onclick="openCustomerRatingsFromAccount()"><span class="uli">★</span><span class="ulc"><b>My Ratings</b><small>Completed services & ratings</small></span><span class="ulg">›</span></button>'+
@@ -4882,7 +4908,7 @@ async function injectLiveCategoryAds(cat){
 
 const OCS_MODULE_NAMES=["Home Services","Driver Service","Tempo / Goods Transport","Property","Local Shop","Sliding / Aluminium","Welding / Fabrication","Beauty / Make-up","Used Vehicle","New Vehicle","Medical Store","Diagnostic Lab","Modular Kitchen","Hotel / Restaurant / Lodging"];
 
-const OCS_XYZ_DEMO_ENABLED=true;
+const OCS_XYZ_DEMO_ENABLED=new URLSearchParams(location.search).get('demo')==='1';
 const OCS_XYZ_DEMO={
   marker:"OCS_XYZ_DEMO_V7",
   phone:"9881181016",
