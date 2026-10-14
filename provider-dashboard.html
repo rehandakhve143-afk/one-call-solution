@@ -30,6 +30,22 @@ body{padding-bottom:82px}.app{width:min(480px,100%);margin:0 auto;min-height:100
 .empty{text-align:center;padding:28px 10px}.empty .ico{width:64px;height:64px;border-radius:20px;background:#edf8f7;display:grid;place-items:center;margin:auto;font-size:28px;color:#07877d}.empty h3{margin:12px 0 5px}.error{padding:11px;border-radius:12px;background:#fff0ed;color:#96392d;font-size:10px;line-height:1.45}
 .refresh{width:100%;min-height:43px;border:1px solid #dce5e7;border-radius:12px;background:#fff;color:#24424a;font-weight:900}
 .loading{padding:35px;text-align:center;color:#6f8287}
+.sp-signal-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:0 0 12px}
+.sp-signal{min-width:0;display:flex;flex-direction:column;gap:6px;text-align:left;padding:14px;border-radius:15px;border:1px solid #cfe2dd;background:#fff;color:#173f46;min-height:108px;font:inherit;cursor:pointer}
+.sp-signal strong{font-size:26px;line-height:1;font-weight:900;color:#056c65}
+.sp-signal b{font-size:13px;line-height:1.3}
+.sp-signal small{font-size:10px;line-height:1.45;color:#627a7c}
+.sp-signal.is-important{background:#e6f7ee;border-color:#79c7a9}
+.sp-signal.is-important strong{color:#047b57}
+.sp-signal.is-off{background:#f7f9f9;border-color:#dbe4e6}
+.sp-signal.is-off strong{color:#84949a}
+#ocsSpNewJobsPanel[hidden]{display:none!important}
+.sp-mini-job{padding:13px;border-radius:13px;border:1px solid #dce7e7;background:#fff;margin:9px 0}
+.sp-mini-job b{display:block;font-size:14px}
+.sp-mini-job small{display:block;margin-top:5px;font-size:11px;color:#6d8084;line-height:1.5}
+.sp-mini-job .actions{display:flex;gap:8px;flex-wrap:wrap}
+.sp-mini-job .actions button{flex:1;min-width:100px;border-radius:11px;border:0;padding:11px 8px;font-weight:800}
+@media(max-width:350px){.sp-signal{padding:10px}.sp-signal b{font-size:12px}}
 .nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(480px,100%);height:70px;display:grid;grid-template-columns:repeat(4,1fr);background:#064d59;z-index:40;padding:7px 5px max(7px,env(safe-area-inset-bottom));box-shadow:0 -6px 22px #042d371f}
 .nav button{border:0;background:transparent;color:#dcebed;font-size:9px;font-weight:800}.nav button:first-child{color:#f3ef00;background:#ffffff0b;border-radius:12px}
 </style>
@@ -43,8 +59,13 @@ body{padding-bottom:82px}.app{width:min(480px,100%);margin:0 auto;min-height:100
 <main class="main">
  <a href="photo-id-review.html?v=20261013-manualid1" style="display:block;text-align:center;margin:12px 0;padding:13px;border-radius:12px;background:#e9f7f3;border:1px solid #b6d4cc;color:#09545d;font-weight:800;font-size:13px;text-decoration:none">🪪 Submit Private Photo ID for Manual Review →</a>
  <div id="profileBox" class="card"><div class="loading">Loading Service Provider profile...</div></div>
+ <div class="sp-signal-grid" aria-label="OCS SP new jobs and ongoing discussion alerts">
+  <button class="sp-signal" type="button" id="ocsSpNewJobSignal" onclick="toggleSpNewJobPanel()"><strong id="ocsSpNewJobsCount">—</strong><b>New Job Requests</b><small id="ocsSpNewJobsText">Checking availability...</small></button>
+  <button class="sp-signal" type="button" id="ocsSpDiscussionSignal" onclick="location.href='my-discussions.html?role=service_provider'"><strong id="ocsSpDiscussionsCount">—</strong><b>Quote Discussions</b><small id="ocsSpDiscussionsText">Previous chats & replies</small></button>
+ </div>
+ <div id="ocsSpNewJobsPanel" class="card" hidden><h3>Matching New Requests</h3><div id="ocsSpNewJobsList" class="muted">Loading...</div></div>
  <div id="jobBox"><div class="card loading">Checking matching jobs...</div></div>
- <a href="my-discussions.html?role=service_provider" style="display:block;margin:9px 0;padding:12px;text-align:center;background:#e6f5ef;border-radius:12px;color:#085c56;font-weight:800;text-decoration:none">💬 My Get Quote Discussions • Pending Replies</a>
+
  <a id="ocsEvidenceQuickLink" hidden href="#" style="display:block;text-align:center;padding:13px;margin:9px 0;background:#eaf8f4;border-radius:12px;color:#075e55;font-weight:900;text-decoration:none">📷 Add Work Photo / Video & Complaint Evidence</a>
  <button class="refresh" onclick="loadDashboard()">↻ Refresh Jobs</button><a href="mobile-verification.html?v=20261013-otpstatus1" style="display:block;text-align:center;margin:9px 0 14px;padding:12px;border:1px solid #bedbd9;border-radius:12px;background:#f0faf7;color:#07585e;font-size:13px;font-weight:800;text-decoration:none">🔐 Check Mobile OTP Verification Status →</a>
   <details class="card" id="ocsSpActivityPanel"><summary style="font-weight:900">OCS Inbox & Work History <span id="ocsSpInboxCount"></span></summary><div id="ocsSpActivityContent" class="muted" style="padding-top:10px">Open to load records</div><button class="refresh" style="margin-top:9px" onclick="loadSpActivity()">↻ Refresh Activity</button></details>
@@ -63,6 +84,7 @@ const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,a
 let profile=null,available=true,currentJob=null;
 let latestJobQuote=null,providerActionBusy=false;
 let dashboardBusy=false;
+let ocsSpLastNewJobCount=null,ocsSpLastDiscussionCount=null,ocsSpRequestRows=[],ocsSpRequestPanelShown=false;
 function setStableDashboardHtml(el,markup){
  if(!el||el.dataset.ocsRenderedMarkup===markup)return;
  el.innerHTML=markup;
@@ -78,6 +100,88 @@ function skillLabel(x){
  if(c==='Maid Service'&&/Cooking/i.test(s))return 'Cook';
  if(c==='Maid Service')return 'Maid';
  return c||s||'Skill';
+}
+
+function toggleSpNewJobPanel(){
+ ocsSpRequestPanelShown=!ocsSpRequestPanelShown;
+ const panel=document.getElementById('ocsSpNewJobsPanel');
+ if(panel)panel.hidden=!ocsSpRequestPanelShown;
+ if(ocsSpRequestPanelShown)renderSpNewJobsList();
+}
+function renderSpNewJobsList(){
+ const target=document.getElementById('ocsSpNewJobsList');if(!target)return;
+ target.replaceChildren();
+ if(!ocsSpRequestRows.length){
+  target.textContent='No matching new request at the moment. Keep Work ON and check again.';
+  return;
+ }
+ for(const b of ocsSpRequestRows.slice(0,8)){
+  const card=document.createElement('div');card.className='sp-mini-job';
+  const label=document.createElement('b');label.textContent=(b.request_type==='quote'?'Get Quote • ':'Job • ')+(b.service_name||b.category||'Home Service');card.appendChild(label);
+  const extra=document.createElement('small');
+  extra.textContent=shortId(b.id)+(b.distance_km!=null?' • '+Number(b.distance_km).toFixed(1)+' km':'')+(b.request_type==='quote'?' • Chat and quote will NOT block current work slot.':' • Accept only if next slot is free.');
+  card.appendChild(extra);
+  if(b.request_details){const details=document.createElement('p');details.className='muted';details.textContent=b.request_details.slice(0,250);card.appendChild(details)}
+  const actions=document.createElement('div');actions.className='actions';
+  for(const [action,label,klass] of [['accept','Accept Request','accept'],['reject','Reject','reject']]){
+   const button=document.createElement('button');button.textContent=label;button.className=klass;
+   button.onclick=()=>actOnSpSuggestedJob(b.id,action);actions.appendChild(button);
+  }
+  card.appendChild(actions);target.appendChild(card);
+ }
+}
+async function actOnSpSuggestedJob(bookingId,action){
+ if(providerDecisionBusy||!bookingId)return;
+ if(action==='accept'&&!confirm('Accept this '+(ocsSpRequestRows.find(x=>x.id===bookingId)?.request_type==='quote'?'quote discussion':'new job')+'?'))return;
+ providerDecisionBusy=true;
+ try{
+  const res=action==='accept'
+   ?await sb.rpc('accept_booking_v3',{p_booking_id:bookingId})
+   :await sb.rpc('reject_booking_v2',{p_booking_id:bookingId,p_reason:'Provider rejected'});
+  if(res.error)throw res.error;
+  if(action==='accept'&&res.data?.status==='discussion'){
+   alert('Discussion started. Work slot is free; open Quote Discussions to send your price.');
+  }
+  await loadDashboard();
+ }catch(e){alert('Could not '+action+' request: '+(e.message||'Please try again'))}
+ finally{providerDecisionBusy=false}
+}
+async function refreshSpSignals(){
+ const jobCount=document.getElementById('ocsSpNewJobsCount'),discCount=document.getElementById('ocsSpDiscussionsCount');
+ const jobText=document.getElementById('ocsSpNewJobsText'),discText=document.getElementById('ocsSpDiscussionsText');
+ try{
+  const {data,error}=await sb.rpc('ocs_sp_inbox_summary_v1');
+  if(error)throw error;
+  if(!data)return;
+  const incoming=Number(data.new_matching_jobs||0),ongoing=Number(data.open_discussions||0);
+  if(jobCount)jobCount.textContent=String(incoming);
+  if(discCount)discCount.textContent=String(ongoing);
+  if(jobText)jobText.textContent=data.work_on
+   ?(incoming?'New request'+(incoming===1?'':'s')+' ready • Tap to see':'Work ON • Waiting for new jobs')
+   :'Work OFF / Approval needed • No new job alerts';
+  if(discText)discText.textContent=Number(data.quote_approved||0)
+    ?data.quote_approved+' customer-approved quote'+(data.quote_approved===1?'':'s')+' • action needed'
+    :Number(data.customer_replies||0)
+    ?data.customer_replies+' discussion'+(data.customer_replies===1?' has':'s have')+' customer replies'
+    :ongoing+' saved conversation'+(ongoing===1?'':'s')+' • work slot stays free';
+  document.getElementById('ocsSpNewJobSignal')?.classList.toggle('is-important',incoming>0);
+  document.getElementById('ocsSpNewJobSignal')?.classList.toggle('is-off',!data.work_on);
+  document.getElementById('ocsSpDiscussionSignal')?.classList.toggle('is-important',Number(data.quote_approved||0)>0||Number(data.customer_replies||0)>0);
+  // In-app alert while the dashboard is open; no claim of SMS, WhatsApp or background push.
+  if(ocsSpLastNewJobCount!==null&&incoming>ocsSpLastNewJobCount){
+   const n=document.getElementById('ocsSpNewJobSignal');if(n)n.setAttribute('aria-label',incoming+' matching new job requests available');
+  }
+  ocsSpLastNewJobCount=incoming;ocsSpLastDiscussionCount=ongoing;
+  if(data.work_on&&data.approved&&incoming>0){
+   const res=await sb.rpc('provider_open_jobs_v4');
+   if(!res.error&&Array.isArray(res.data))ocsSpRequestRows=res.data;
+  }else ocsSpRequestRows=[];
+  if(ocsSpRequestPanelShown)renderSpNewJobsList();
+ }catch(e){
+  if(jobText)jobText.textContent='Job signal unavailable • Tap Refresh';
+  if(discText)discText.textContent='Discussion signal unavailable';
+  console.warn('SP signal refresh failed',e);
+ }
 }
 async function loadDashboard(){
  if(dashboardBusy)return;
@@ -179,7 +283,7 @@ async function loadDashboard(){
      setStableDashboardHtml(pb,'<div class="error"><b>SP dashboard load failed.</b><br>'+esc(e&&e.message?e.message:'Unknown error')+'</div>');
      jb.innerHTML='';
    }
- }finally{dashboardBusy=false}
+ }finally{dashboardBusy=false;refreshSpSignals().catch(e=>console.warn('SP signal refresh',e))}
 }
 function syncToggle(){
  const b=document.getElementById('workToggle');
@@ -391,6 +495,7 @@ async function loadSpActivity(){
 document.getElementById('ocsSpActivityPanel')?.addEventListener('toggle',e=>{if(e.target.open)loadSpActivity()});
 loadDashboard();
 setInterval(()=>{if(!document.hidden)loadDashboard()},10000);
+setInterval(()=>{if(!document.hidden)refreshSpSignals().catch(e=>console.warn('SP signals',e))},15000);
 setInterval(()=>{if(!document.hidden)refreshSpUnreadCount()},30000);
 refreshSpUnreadCount();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadDashboard()});
