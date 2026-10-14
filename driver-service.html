@@ -370,9 +370,9 @@ async function loadBooking(){
      }catch(e){$('tripActions').innerHTML='<div class="sub">Fare verification pending. Please retry or contact OCS Support.</div><button class="gray" onclick="support()">OCS Support</button>'}
    }
    if(s==='payment_pending'){
-    $('tripActions').innerHTML='<div class="sub" style="padding:12px;line-height:1.6">Trip completion confirmed. Pay <b>₹'+Number(b.booking_amount||0).toFixed(2)+'</b> directly to your assigned Driver in Cash, then mark it here. Never pay an unknown person. OCS 9% charge is separate from the Driver side.</div><div class="actions"><button class="primary" onclick="markDriverCashPaid()">I Paid Cash to Driver</button><button class="gray" onclick="support()">Payment Help</button></div>';
+    $('tripActions').innerHTML='<div class="sub" style="padding:12px;line-height:1.6">Trip completion confirmed. Pay <b>₹'+Number(b.booking_amount||0).toFixed(2)+'</b> DIRECTLY to your assigned Driver in Cash or to the Driver-owned independently verified UPI. Do NOT pay to OCS company QR for driver fare. Driver confirms receipt; OCS 9% from driver wallet.</div><div class="actions"><button class="primary" onclick="markDriverDirectPaid(&quot;cash&quot;)">I Paid Cash to Driver</button><button class="gray" onclick="markDriverDirectPaid(&quot;upi&quot;)">I Paid Driver by UPI</button><button class="gray" onclick="support()">Payment Help</button></div>';
    }else if(s==='cash_wait'){
-    $('tripActions').innerHTML='<div class="sub" style="padding:12px;line-height:1.6">Cash payment marked. Waiting for the assigned Driver to confirm actual receipt. This is NOT an online payment or Razorpay payout.</div><div class="actions"><button class="gray" onclick="support()">Payment Help</button></div>';
+    $('tripActions').innerHTML='<div class="sub" style="padding:12px;line-height:1.6">Direct Cash/UPI payment marked. Waiting for the assigned Driver to confirm actual receipt. This is NOT an OCS-collected payment or a Razorpay payout.</div><div class="actions"><button class="gray" onclick="support()">Payment Help</button></div>';
    }
 
  }catch(e){
@@ -411,17 +411,20 @@ async function acceptDriverExtra(minutes){
 }
 async function confirmDone(){if(!current)return;const {error}=await sb.rpc('customer_confirm_completion_v2',{p_booking_id:current.id});if(error){show(error.message,true);return}await loadBooking()}
 let driverCashMarkBusy=false;
-async function markDriverCashPaid(){
+async function markDriverCashPaid(){return markDriverDirectPaid('cash')}
+async function markDriverDirectPaid(channel){
  if(!current||String(current.status||'').toLowerCase()!=='payment_pending'||driverCashMarkBusy)return;
+ channel=channel==='upi'?'upi':'cash';
  const amount=Number(current.booking_amount||0);
- if(!confirm('Have you ACTUALLY paid ₹'+amount.toFixed(2)+' cash to the assigned Driver? Do not press before paying. The Driver must independently confirm receipt.'))return;
+ const text=channel==='upi'?'assigned Driver ke independently verified, Driver-owned UPI par':'assigned Driver ko cash mein';
+ if(!confirm('Kya aapne ₹'+amount.toFixed(2)+' '+text+' WAKAI de diya hai? OCS company account mein driver fare na bhejein. Driver khud receipt confirm karega.'))return;
  driverCashMarkBusy=true;
  try{
-  const {data,error}=await sb.rpc('create_booking_payment_intent_v1',{p_booking_id:current.id,p_purpose:'job',p_method:'cash'});
-  if(error)throw error;if(!data?.id)throw new Error('Cash payment record missing');
-  show('Cash marked. Waiting for Driver receipt confirmation.',false);
+  const {data,error}=await sb.rpc('ocs_customer_direct_to_sp_v1',{p_booking_id:current.id,p_purpose:'job',p_channel:channel});
+  if(error)throw error;if(!data?.payment_id)throw new Error('Direct payment record missing');
+  show((channel==='upi'?'Direct UPI':'Cash')+' marked. Assigned Driver receipt confirmation pending.',false);
   await loadBooking();
- }catch(e){show('Cash confirmation failed: '+(e?.message||'Please retry'),true)}
+ }catch(e){show('Direct payment marking failed: '+(e?.message||'Please retry'),true)}
  finally{driverCashMarkBusy=false}
 }
 async function reportDriverSafety(){
