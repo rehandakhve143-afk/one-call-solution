@@ -2715,9 +2715,9 @@ async function openProviderWalletQuick(){
       '<div class="provider-wallet-grid">'+
         '<div class="box"><small>Wallet Balance</small><b>'+moneyText(bal)+'</b></div>'+
         '<div class="box"><small>OCS Commission</small><b>'+commissionRate+'%</b></div>'+
-        '<div class="box"><small>New Job Access</small><b>'+(d.admin_paused?'Admin Hold':bal<200?'Recharge Required':!d.available_for_work?'Work OFF':'Eligible')+'</b></div>'+
+        '<div class="box"><small>New Job Access</small><b>'+(d.admin_paused?'Admin Hold':!d.available_for_work?'Work OFF':bal<200?'Eligible • Low Wallet':'Eligible')+'</b></div>'+
       '</div>'+
-      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. NEW jobs accept nahi hongi. Already accepted job continue rahegi. Recharge to ₹200.</div>':'')+
+      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. Recharge optional hai; new jobs allowed when approved, Work ON and location verified. OCS commission still payable.</div>':'')+
       (d.admin_paused?'<div class="notice bad"><b>Admin Hold</b><br>New jobs OCS Admin ne pause ki hain.</div>':'')+
       '<div class="provider-wallet-actions"><button class="btn" onclick="rechargeWallet()">Add Money</button><button class="btn alt" onclick="openProviderPayoutPanel()">Bank &amp; Payout</button></div>'+
       '<div class="provider-payout-summary"><div class="rowline"><span>Today Credit</span><b>₹'+todayCredit.toFixed(2)+'</b></div><div class="rowline"><span>Today Debit</span><b>₹'+todayDebit.toFixed(2)+'</b></div></div>'+
@@ -4412,7 +4412,7 @@ function providerHomeDashboardHTML(){
  const note=adminHold
    ?"OCS Admin ne new jobs temporarily pause kiye hain."
    :(lowWallet
-     ?"Wallet low hai (₹"+Number(S.wallet||0).toFixed(2)+"). Recharge reminder rahega, lekin Work ON ho to jobs continue rahenge."
+     ?"Wallet low hai (₹"+Number(S.wallet||0).toFixed(2)+"). Recharge optional hai; Work ON karke new jobs le sakte hain."
      :(workOn?"Matching jobs aate hi yahan request dikhegi.":"Work ON karoge to matching requests receive hongi."));
  return ''+
  '<div class="sp-home-panel">'+
@@ -4504,7 +4504,7 @@ ${S.category==="Tempo / Goods Transport"&&S.requestType==="quote"
  :'<div class="row"><button class="btn ok" onclick="providerDecision(\'accept\')">Accept</button><button class="btn red" onclick="providerDecision(\'reject\')">Reject</button></div>'}
 </div>`;
  }else if(Number(S.wallet||0)<200){
-   h=`<div class="card"><h3>Wallet Recharge Required</h3><div class="notice bad">New jobs ke liye minimum wallet ₹200 required hai. Current wallet: ₹${Number(S.wallet||0).toFixed(2)}.</div><button class="btn" onclick="openProviderWalletQuick()">Recharge Wallet</button></div>`;
+   h=`<div class="card"><h3>Wallet Reminder</h3><div class="notice">Wallet ₹${Number(S.wallet||0).toFixed(2)}. Recharge optional hai, new jobs allowed.</div><button class="btn" onclick="openProviderWalletQuick()">Recharge Wallet</button></div>`;
  }else if(S.adminPaused||!S.jobAccess){
    h=`<div class="card"><h3>New Jobs Paused by OCS Admin</h3><div class="notice">OCS Admin ne new jobs pause kiye hain.</div></div>`;
  }else{
@@ -6183,7 +6183,7 @@ body:not(.admin-route-only){padding-bottom:74px!important}.admin-route-only .ocs
      const d=res.data||{},bal=Number(d.wallet_balance||0),credit=Number(d.today_credit||0),debit=Number(d.today_debit||0),tx=Array.isArray(d.transactions)?d.transactions:[];
      function money(n){return (n<0?'−₹':'₹')+Math.abs(Number(n)||0).toFixed(2)}
      function label(k){const x=String(k||'').toLowerCase();if(x==='topup')return 'Add Money';if(x==='commission')return 'Job Settlement';if(x==='online_settlement')return 'Online Job Settlement';if(x==='withdrawal')return 'Withdrawal';if(x==='withdrawal_reversal')return 'Withdrawal Reversal';if(x==='welcome_bonus')return 'Wallet Credit';return 'Wallet Transaction'}
-     const warning=(bal<200||d.wallet_warning)?'<div class="ocs-sp-notice"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. NEW jobs accept nahi hongi. Already accepted job continue rahegi. Recharge to ₹200.</div>':'';
+     const warning=(bal<200||d.wallet_warning)?'<div class="ocs-sp-notice"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. Recharge optional hai; new jobs allowed when approved, Work ON and location verified. OCS commission still payable.</div>':'';
      const txHtml=tx.length?tx.map(function(x){const a=Number(x.amount||0);let dt='';try{dt=x.created_at?new Date(x.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):''}catch(e){}return '<div class="provider-tx"><div class="meta"><b>'+esc(label(x.kind))+'</b><small>'+esc(x.service_name||'OCS Wallet')+' • '+esc(dt)+'</small></div><div class="amt">'+(a>=0?'+':'')+money(a)+'</div></div>'}).join(''):'<div class="ocs-sp-empty"><b>No wallet transactions yet</b></div>';
      body.innerHTML=
        '<div class="ocs-sp-balance"><small>Wallet Balance</small><strong>'+money(bal)+'</strong><div class="minirow"><div class="mini"><small>OCS Commission</small><b>9%</b></div><div class="mini"><small>Job Access</small><b>'+(d.admin_paused?'Admin Hold':'Active')+'</b></div></div></div>'+
