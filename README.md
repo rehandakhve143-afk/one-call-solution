@@ -7,7 +7,9 @@
 Important:
 - Home Services commission = **9%**
 - SP Welcome Bonus = **₹100 OCS Wallet credit**
-- ₹200 minimum SP wallet to receive/accept NEW jobs; accepted jobs continue; no fixed ₹500 Company Due threshold
+- **Launch:** approved SP can start and receive NEW jobs on ₹100 welcome bonus; ₹200 minimum NEW-job gate currently OFF until announced
+- **₹200 withdrawal reserve** remains protected; only eligible funds above ₹200, excluding non-withdrawable bonuses/rewards, can be considered for transfer when payout API is active
+- Future ₹200 minimum applies only when explicitly enabled; existing accepted jobs continue. No fixed ₹500 Company Due threshold
 - Visit charge = **₹199 (1–6 km)** / **₹249 (>6–12 km)**
 - Local Shop = **₹99 / 28 days**
 - Property Single = **₹199 / 28 days**
