@@ -55,6 +55,9 @@ jobs:
       - name: Verify simultaneous SP new job and quote discussion signals in mobile Chromium (mocked backend)
         run: |
           node tests/sp-inbox-signals-browser.cjs
+      - name: Verify SP wallet, optional bank setup and Work OFF/ON in mobile Chromium (mocked)
+        run: |
+          node tests/sp-wallet-bank-browser.cjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
