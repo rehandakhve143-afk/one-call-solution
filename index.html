@@ -758,6 +758,15 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
  .ocs-market-card{min-height:128px!important}
 }
 </style>
+<style id="ocs-hero-overflow-fix-20261015">
+@media(max-width:600px){
+ .ocs-super-hero{height:150px!important;overflow:hidden!important}
+ .ocs-super-hero .ocs-super-slide:first-child .ocs-super-hero-copy{top:12px!important;bottom:auto!important;max-width:78%!important}
+ .ocs-super-hero .ocs-super-slide:first-child .ocs-super-hero-copy h1{font-size:19px!important;line-height:1.1!important;margin:5px 0 7px!important}
+ .ocs-super-hero .ocs-super-slide:first-child .ocs-super-hero-copy p{display:none!important}
+ .ocs-super-hero .ocs-super-slide:first-child .ocs-super-hero-copy button{margin-top:2px!important;min-height:32px!important;padding:7px 12px!important;font-size:12px!important;line-height:1.2!important}
+}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
@@ -787,7 +796,7 @@ setTimeout(function(){
 
     <section class="ocs-super-hero">
       <div class="ocs-super-slide on" style="background-image:url('assets/home-services-poster.jpg?v=20260921')">
-        <div class="ocs-super-hero-copy"><div class="k">Home Services</div><h1>Trusted help for your home</h1><p>Clear service rates, matching Service Providers and OCS support.</p><button onclick="document.getElementById('ocsMainBusiness')?.scrollIntoView({behavior:'smooth',block:'center'})">Explore Services Below ↓</button></div>
+        <div class="ocs-super-hero-copy"><div class="k">Home Services</div><h1>Trusted help for your home</h1><p>Clear service rates, matching Service Providers and OCS support.</p><button onclick="openModule('Home Services','customer')">Book Home Service</button></div>
       </div>
       <div class="ocs-super-slide" style="background-image:url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=900&q=82')">
         <div class="ocs-super-hero-copy"><div class="k">Property</div><h1>Find the right place</h1><p>Rent, buy and builder listings inside One Call Solution.</p><button onclick="openModule('Property')">Explore Property</button></div>
