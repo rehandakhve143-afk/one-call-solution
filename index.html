@@ -818,7 +818,7 @@ setTimeout(function(){
     <div class="ocs-super-head"><h2>Shops, Property & More</h2></div>
     <div class="ocs-super-market" id="ocsMarketGrid">
       
-      <button class="ocs-market-card" onclick="openModule('Local Shop')"><span class="photo" style="background-image:url('https://www.dolarlc.com/_next/image?q=75&url=%2Fimages%2Fassets%2Felectricidad-3.webp&w=3840')"></span><span class="ocs-market-badge">NEARBY</span><span class="ocs-market-copy"><b>Local Shop</b><small>Electrical • Hardware</small></span></button>
+      <button class="ocs-market-card" onclick="openModule('Local Shop')"><span class="photo" style="background-image:url('https://www.dolarlc.com/_next/image?q=75&url=%2Fimages%2Fassets%2Felectricidad-3.webp&w=3840')"></span><span class="ocs-market-copy"><b>Local Shop</b><small>Electrical • Hardware</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Modular Kitchen')"><span class="photo" style="background-image:url('https://indiframe-cms-media.s3.ap-south-1.amazonaws.com/blog122_26d5a6b6f3.jpg')"></span><span class="ocs-market-copy"><b>Modular Kitchen</b><small>Design • Measurement • Quote</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Sliding / Aluminium')"><span class="photo" style="background-image:url('https://alukhome.com/getmedia/91e760ec-478f-4946-95ad-9d816394422c/Aluk-home-showroom-Lucknow-7.jpg')"></span><span class="ocs-market-copy"><b>Sliding / Aluminium</b><small>Windows • Doors • Glass</small></span></button>
       <button class="ocs-market-card" onclick="openModule('Welding / Fabrication')"><span class="photo" style="background-image:url('https://www.whatjobs.com/news/wj-material/uploads/2023/09/dreamstime_m_36857075-scaled-1.jpg')"></span><span class="ocs-market-copy"><b>Welding / Fabrication</b><small>Gate • Grill • Metal Work</small></span></button>
@@ -4823,8 +4823,8 @@ async function refreshHomeLiveWindowPosters(){
      photo.style.backgroundImage='url('+JSON.stringify(img)+')';
      photo.dataset.ocsLivePosterUrl=img;
    }
-   let badge=card.querySelector('.ocs-market-badge');if(!badge){badge=document.createElement('span');badge.className='ocs-market-badge';card.insertBefore(badge,card.querySelector('.ocs-market-copy'))}
-   badge.textContent='LIVE AD';
+   // Category navigation cards are not paid advertisements. Never mark them LIVE AD.
+   const badge=card.querySelector('.ocs-market-badge');if(badge)badge.remove();
  });
  ocsWindowPosterTick++;
 }
