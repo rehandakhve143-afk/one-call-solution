@@ -3196,7 +3196,11 @@ async function booking(){
        try{window.scrollTo(0,0)}catch(e){}
        return;
      }
-   }catch(e){console.error("Active booking check failed",e)}
+   }catch(e){
+     console.error("Active booking check failed",e);
+     alert("Active booking check nahi ho paya. Network ya server connection check karke Retry karein. Duplicate booking se bachne ke liye nayi booking abhi submit nahi hogi.");
+     return;
+   }
  }
  if(S.activeBookingId&&!S.bookingClosedAt){await ocsStartLive("customer");try{window.scrollTo(0,0)}catch(e){}return}
  prepareProfileMatching();
