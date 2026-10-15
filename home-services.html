@@ -1015,7 +1015,7 @@ async function ocsLoadLive(role){
           S.providerVerificationStatus=approved?"Approved":(pending?"Verification Pending":"Profile Saved");
           S.providerVerified=approved;
           S.available=pp.available_for_work!==false;
-          S.wallet=Number(pp.wallet_balance||100);
+          S.wallet=Number(pp.wallet_balance ?? 0);
           S.adminPaused=!!pp.admin_paused;
           S.jobAccess=!S.adminPaused;
           if(!S.provider||/^SP\d+$/i.test(S.provider)||S.provider==="Matching Provider")S.provider=S.registeredProviderName;
