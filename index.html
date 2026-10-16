@@ -805,6 +805,21 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
  #ocsSuperHome .ocs-super-hero>.ocs-super-dots button.on{width:21px!important;min-width:21px!important;background:#ffcb45!important}
 }
 </style>
+<style id="ocs-builder-photo-and-hero-stability-20261016">
+/* Restore photographic builder card without changing Property navigation or booking logic. */
+#ocsSuperHome .ocs-builder-property-strip{position:relative!important;isolation:isolate!important;min-height:185px!important;background:#0b4052!important;padding:20px!important;align-items:center!important}
+#ocsSuperHome .ocs-builder-property-strip::before{content:"";position:absolute;inset:0;background-image:linear-gradient(90deg,rgba(4,38,56,.96) 0%,rgba(5,51,67,.89) 47%,rgba(5,51,67,.14) 100%),url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=900&q=82');background-size:cover;background-position:center;z-index:-1}
+#ocsSuperHome .ocs-builder-property-visual{display:none!important}
+#ocsSuperHome .ocs-builder-property-copy{max-width:82%!important}
+#ocsSuperHome .ocs-builder-property-copy h2{font-size:22px!important;line-height:1.17!important}
+#ocsSuperHome .ocs-builder-property-copy button{background:#ffcf54!important;color:#203345!important}
+@media(max-width:600px){
+ #ocsSuperHome .ocs-super-hero{display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;flex:none!important;width:100%!important;height:218px!important;min-height:218px!important;margin:0 0 12px!important;overflow:hidden!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-slide.on{visibility:visible!important}
+ #ocsSuperHome .ocs-builder-property-strip{min-height:186px!important}
+ #ocsSuperHome .ocs-builder-property-copy{max-width:90%!important}
+}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
@@ -869,7 +884,7 @@ setTimeout(function(){
 
     <section id="ocsBuilderPropertyHomeStrip" class="ocs-builder-property-strip" aria-label="Builder and property listings">
       <div class="ocs-builder-property-copy"><span class="ocs-builder-property-label">PROPERTY & BUILDER</span><h2>Find Your Next Property</h2><p>Flats • Bungalows • Land • Builder Projects</p><button type="button" onclick="openModule('Property')">Explore Property →</button></div>
-      <div class="ocs-builder-property-visual" aria-hidden="true">🏢</div>
+      <div class="ocs-builder-property-visual" aria-hidden="true"></div>
     </section>
     <div class="ocs-super-head"><h2>Quick Home Service Shortcuts</h2><button onclick="openModule('Home Services','customer')">All Services</button></div>
     <div class="ocs-super-services">
