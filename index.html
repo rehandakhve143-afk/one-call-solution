@@ -782,6 +782,24 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
  .ocs-super-hero .ocs-super-dots{position:absolute!important;bottom:8px!important;left:0!important;right:0!important;z-index:5!important;pointer-events:auto!important}
 }
 </style>
+<style id="ocs-premium-mobile-polish-20261016">
+/* OCS mobile visual refinement: no changes to booking, wallet, or provider logic */
+@media(max-width:600px){
+ html{scroll-behavior:auto!important}
+ body{overflow-x:hidden!important;background:#f7f9fc!important;color:#182b40!important}
+ .ocs-super-hero{border-radius:18px!important;box-shadow:0 7px 22px rgba(20,42,65,.09)!important}
+ .ocs-super-hero .ocs-super-slide .ocs-super-hero-copy h1{font-weight:800!important;letter-spacing:-.35px!important}
+ .ocs-super-hero .ocs-super-slide .ocs-super-hero-copy p{line-height:1.4!important}
+ button,[role="button"]{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+ button:focus-visible,[role="button"]:focus-visible{outline:2px solid #e9ac26!important;outline-offset:2px}
+ .ocs-super-hero .ocs-super-dots{min-height:16px!important}
+ img{max-width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto!important}
+ .ocs-super-hero *, .ocs-super-hero *::before,.ocs-super-hero *::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
