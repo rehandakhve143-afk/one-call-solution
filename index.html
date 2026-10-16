@@ -800,6 +800,16 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
  .ocs-super-hero *, .ocs-super-hero *::before,.ocs-super-hero *::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
 </style>
+<style id="ocs-builder-property-home-restore-20261016">
+.ocs-builder-property-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:152px;margin:13px 0 16px;padding:18px;border-radius:20px;overflow:hidden;background:linear-gradient(115deg,#123a53,#176d79);color:white;box-shadow:0 8px 20px rgba(20,57,77,.13)}
+.ocs-builder-property-copy{position:relative;z-index:1;min-width:0}
+.ocs-builder-property-label{font-size:10px;font-weight:850;letter-spacing:1.1px;color:#ffdc84}
+.ocs-builder-property-copy h2{font-size:21px;line-height:1.15;margin:7px 0 5px;color:white}
+.ocs-builder-property-copy p{font-size:11px;line-height:1.4;margin:0 0 12px;color:#e5f3f5}
+.ocs-builder-property-copy button{border:0;border-radius:11px;background:#ffcc59;color:#193247;font-size:12px;font-weight:800;padding:10px 13px;min-height:39px;touch-action:manipulation}
+.ocs-builder-property-visual{font-size:67px;line-height:1;flex:0 0 auto;filter:drop-shadow(0 6px 12px rgba(0,0,0,.15))}
+@media(max-width:380px){.ocs-builder-property-strip{padding:14px;min-height:145px}.ocs-builder-property-copy h2{font-size:18px}.ocs-builder-property-visual{font-size:51px}}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
@@ -862,6 +872,10 @@ setTimeout(function(){
 
 
 
+    <section id="ocsBuilderPropertyHomeStrip" class="ocs-builder-property-strip" aria-label="Builder and property listings">
+      <div class="ocs-builder-property-copy"><span class="ocs-builder-property-label">PROPERTY & BUILDER</span><h2>Find Your Next Property</h2><p>Flats • Bungalows • Land • Builder Projects</p><button type="button" onclick="openModule('Property')">Explore Property →</button></div>
+      <div class="ocs-builder-property-visual" aria-hidden="true">🏢</div>
+    </section>
     <div class="ocs-super-head"><h2>Quick Home Service Shortcuts</h2><button onclick="openModule('Home Services','customer')">All Services</button></div>
     <div class="ocs-super-services">
       <button class="ocs-super-service" onclick="openModule('Home Services','customer','Electrical')"><span class="icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.2 14.5A6 6 0 1 1 15.8 14.5C14.7 15.4 14 16.5 14 18h-4c0-1.5-.7-2.6-1.8-3.5Z"/><path d="M12 2v2"/></svg></span><b>Electrical</b></button>
