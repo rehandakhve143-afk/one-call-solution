@@ -810,6 +810,23 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
 .ocs-builder-property-visual{font-size:67px;line-height:1;flex:0 0 auto;filter:drop-shadow(0 6px 12px rgba(0,0,0,.15))}
 @media(max-width:380px){.ocs-builder-property-strip{padding:14px;min-height:145px}.ocs-builder-property-copy h2{font-size:18px}.ocs-builder-property-visual{font-size:51px}}
 </style>
+<style id="ocs-slider-visibility-repair-20261016">
+/* Scope to the three-slide OCS home hero only. Prevent global slider CSS from hiding its text. */
+@media(max-width:600px){
+ #ocsSuperHome .ocs-super-hero{height:218px!important;min-height:218px!important;isolation:isolate!important;overflow:hidden!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-slide{position:absolute!important;inset:0!important;display:block!important;visibility:visible!important;pointer-events:none!important;opacity:0!important;z-index:0!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-slide.on{opacity:1!important;z-index:1!important;pointer-events:auto!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-slide.on:after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(90deg,rgba(5,43,53,.9),rgba(5,43,53,.64) 57%,rgba(5,43,53,.05))!important;z-index:0!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-slide.on>.ocs-super-hero-copy{display:flex!important;visibility:visible!important;opacity:1!important;position:absolute!important;top:15px!important;bottom:35px!important;left:16px!important;right:auto!important;width:76%!important;max-width:76%!important;z-index:3!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:5px!important;transform:none!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-slide.on>.ocs-super-hero-copy .k{display:block!important;color:#d9f2ef!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-slide.on>.ocs-super-hero-copy h1{display:block!important;color:#fff!important;font-size:21px!important;line-height:1.16!important;margin:0!important;max-height:52px!important;overflow:hidden!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-slide.on>.ocs-super-hero-copy p{display:block!important;color:#eaf4f3!important;font-size:10px!important;line-height:1.35!important;margin:0!important;max-height:29px!important;overflow:hidden!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-slide.on>.ocs-super-hero-copy button{display:block!important;visibility:visible!important;opacity:1!important;background:#fff!important;color:#075f58!important;margin:4px 0 0!important;min-height:34px!important;font-size:11px!important;padding:8px 12px!important;position:relative!important;z-index:4!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-dots{display:flex!important;position:absolute!important;left:16px!important;right:auto!important;bottom:11px!important;top:auto!important;width:auto!important;z-index:6!important;gap:7px!important;align-items:center!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-dots button{height:7px!important;min-height:7px!important;width:7px!important;min-width:7px!important;padding:0!important;border-radius:20px!important;background:#ffffff9c!important}
+ #ocsSuperHome .ocs-super-hero>.ocs-super-dots button.on{width:21px!important;min-width:21px!important;background:#ffcb45!important}
+}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
