@@ -746,7 +746,7 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
  .ocs-super-loc{margin-bottom:5px!important;padding:5px 9px!important}
  .ocs-super-main{padding-top:9px!important}
  .ocs-super-search{margin-bottom:10px!important}
- .ocs-super-hero{height:150px!important}
+ /* Hero height managed by ocs-slider-visibility-repair-20261016 */
  .ocs-super-hero-copy{top:12px!important}
  .ocs-super-hero-copy h1{font-size:20px!important}
  .ocs-super-head{margin-top:16px!important;margin-bottom:9px!important}
@@ -758,30 +758,8 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
  .ocs-market-card{min-height:128px!important}
 }
 </style>
-<style id="ocs-hero-overflow-fix-20261015">
-@media(max-width:600px){
- .ocs-super-hero{height:205px!important;overflow:hidden!important}
- .ocs-super-hero .ocs-super-hero-copy{top:12px!important;bottom:auto!important;max-width:78%!important}
- .ocs-super-hero .ocs-super-hero-copy h1{font-size:20px!important;line-height:1.12!important;margin:4px 0 6px!important}
- .ocs-super-hero .ocs-super-hero-copy p{font-size:11px!important;line-height:1.35!important;display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden!important;margin:0 0 7px!important}
- .ocs-super-hero .ocs-super-hero-copy button{margin-top:2px!important;min-height:34px!important;padding:7px 13px!important;font-size:12px!important;line-height:1.2!important}
- .ocs-super-hero .ocs-super-slide:first-child .ocs-super-hero-copy{top:12px!important;bottom:auto!important;max-width:78%!important}
- .ocs-super-hero .ocs-super-slide:first-child .ocs-super-hero-copy h1{font-size:19px!important;line-height:1.1!important;margin:5px 0 7px!important}
- .ocs-super-hero .ocs-super-slide:first-child .ocs-super-hero-copy p{display:none!important}
- .ocs-super-hero .ocs-super-slide:first-child .ocs-super-hero-copy button{margin-top:2px!important;min-height:32px!important;padding:7px 12px!important;font-size:12px!important;line-height:1.2!important}
-}
-</style>
-<style id="ocs-slider-safe-layout-20261015">
-@media(max-width:600px){
- .ocs-super-hero{height:218px!important;position:relative!important;overflow:hidden!important}
- .ocs-super-hero .ocs-super-slide .ocs-super-hero-copy{position:absolute!important;top:12px!important;bottom:32px!important;left:16px!important;right:auto!important;width:calc(100% - 32px)!important;max-width:78%!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:flex-start!important;gap:4px!important}
- .ocs-super-hero .ocs-super-hero-copy .k{flex:none!important;font-size:10px!important;line-height:1.2!important}
- .ocs-super-hero .ocs-super-hero-copy h1{flex:none!important;max-width:100%!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;font-size:19px!important;line-height:1.15!important;margin:0!important}
- .ocs-super-hero .ocs-super-hero-copy p{flex:0 1 auto!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;font-size:10px!important;line-height:1.3!important;margin:0!important;max-width:100%!important}
- .ocs-super-hero .ocs-super-hero-copy button{flex:none!important;position:relative!important;margin:4px 0 0!important;min-height:32px!important;max-width:100%!important;padding:7px 12px!important;font-size:12px!important;white-space:nowrap!important}
- .ocs-super-hero .ocs-super-dots{position:absolute!important;bottom:8px!important;left:0!important;right:0!important;z-index:5!important;pointer-events:auto!important}
-}
-</style>
+
+
 <style id="ocs-premium-mobile-polish-20261016">
 /* OCS mobile visual refinement: no changes to booking, wallet, or provider logic */
 @media(max-width:600px){
