@@ -820,6 +820,24 @@ html body.module-open #viewer.show:not(.home-service-view)>#frame{
  #ocsSuperHome .ocs-builder-property-copy{max-width:90%!important}
 }
 </style>
+<style id="ocs-slider-active-only-and-builder-photo-20261016">
+/* Hide every inactive slide's content, even if older CSS leaves it rendered. */
+#ocsSuperHome .ocs-super-hero>.ocs-super-slide:not(.on),
+#ocsSuperHome .ocs-super-hero>.ocs-super-slide:not(.on) .ocs-super-hero-copy{
+ opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+}
+#ocsSuperHome .ocs-super-hero>.ocs-super-slide.on,
+#ocsSuperHome .ocs-super-hero>.ocs-super-slide.on .ocs-super-hero-copy{
+ visibility:visible!important;opacity:1!important;
+}
+#ocsSuperHome .ocs-super-hero>.ocs-super-slide{transition:opacity .25s ease!important}
+#ocsSuperHome .ocs-builder-property-strip{
+ background-image:linear-gradient(90deg,rgba(4,38,56,.95) 0%,rgba(5,51,67,.86) 46%,rgba(5,51,67,.15) 100%),url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=900&q=82')!important;
+ background-size:cover!important;background-position:center!important;
+}
+#ocsSuperHome .ocs-builder-property-strip::before{content:none!important}
+@media(prefers-reduced-motion:reduce){#ocsSuperHome .ocs-super-hero>.ocs-super-slide{transition:none!important}}
+</style>
 </head><body><script>
 try{
   const q=new URLSearchParams(location.search||"");
