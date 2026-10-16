@@ -1448,3 +1448,22 @@ body:has(#bottomProfileModal.show) .ocs-super-nav{display:grid!important}
  .ocs-super-nav button.on,.ocs-super-nav button.active{color:#0f766e!important}
 }
 @media(max-width:350px){.ocs-super-services{gap:6px!important}.ocs-super-service b{font-size:9px!important}}
+
+/* OCS PREMIUM CATEGORY WINDOWS 2026-10-16 */
+@media(max-width:600px){
+ body:not(.module-open) #moduleGrid.ocs-slider-cards{gap:11px!important;padding-left:14px!important;padding-right:14px!important}
+ body:not(.module-open) #moduleGrid .ocs-window-card{
+  border:1px solid #e7edf4!important;border-radius:18px!important;
+  box-shadow:0 6px 18px rgba(24,43,64,.075)!important;
+  background-color:#fff!important;overflow:hidden!important;
+  transition:box-shadow .16s ease,transform .16s ease!important;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation
+ }
+ body:not(.module-open) #moduleGrid .ocs-window-card:active{transform:scale(.985)!important;box-shadow:0 3px 10px rgba(24,43,64,.09)!important}
+ body:not(.module-open) #moduleGrid .ocs-window-photo{overflow:hidden!important;border-radius:12px!important}
+ body:not(.module-open) #moduleGrid .ocs-window-copy b{color:#1c3047!important;font-weight:800!important;line-height:1.2!important;overflow-wrap:anywhere!important}
+ body:not(.module-open) #moduleGrid .ocs-window-copy small{color:#68798b!important;line-height:1.3!important}
+ body:not(.module-open) #moduleGrid .ocs-window-arrow{color:#0f766e!important}
+ body:not(.module-open) #moduleGrid .ocs-window-card:focus-visible{outline:2px solid #e9ac26!important;outline-offset:2px!important}
+}
+@media(prefers-reduced-motion:reduce){body:not(.module-open) #moduleGrid .ocs-window-card{transition:none!important}}
