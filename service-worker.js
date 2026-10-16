@@ -1,4 +1,4 @@
-const OCS_CACHE='ocs-shell-v48';
+const OCS_CACHE='ocs-shell-v49';
 const OCS_SHELL=[
   './',
   './index.html',
@@ -40,7 +40,7 @@ self.addEventListener('fetch',event=>{
   if(req.mode==='navigate'){
     const isServicePage=/\/(home-services|customer-services)\.html$/i.test(url.pathname);
     event.respondWith(
-      fetch(req,{cache:isServicePage?'reload':'default'})
+      fetch(req,{cache:'no-store'})
         .then(res=>{
           const copy=res.clone();
           caches.open(OCS_CACHE).then(cache=>cache.put(req,copy)).catch(()=>{});
