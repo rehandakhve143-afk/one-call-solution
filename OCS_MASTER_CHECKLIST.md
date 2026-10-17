@@ -26,6 +26,8 @@ Updated: 2026-10-17. This file tracks verified evidence, not promises. Update ea
 
 - [x] Supabase migration `hide_private_contact_fields_in_public_listing_metadata`: public listing RPC strips email and sensitive credential/identity keys; verified 19 records returned, 0 with `email`, while all 19 retained public `phone` fields. Further nested-metadata/privacy review remains open.
 
+- [x] Supabase migration `direct_provider_payments_wallet_commission_only`: `apply_provider_commission_v1` now only debits 9% once per booking for both cash and online/direct provider payment. Old 91% `online_settlement` wallet credit path removed. Function text verified (`online_settlement` absent). No live booking/payment test performed.
+
 ## Open technical and operational blockers
 - [x] **Transport offer acceptance wallet guard (database)**: provider wallet is rechecked when customer accepts a quote; function verified in Supabase. Live transaction/booking behavior remains to be tested.
 - [ ] **Real recharge**: verify actual IDBI bank credit/UTR before wallet credit; then test automatic wallet unblocking and notification with authorized real records. No fabricated transactions.
