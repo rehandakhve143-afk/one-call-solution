@@ -56,6 +56,14 @@ async function test(name,fn){
    assert.equal(call.args.p_latitude,19.2);assert.equal(call.args.p_longitude,73);
    assert.equal(h.applied.length,1);
  }],
+ ['Missing or invalid GPS pin cannot create a customer booking',async()=>{
+   for(const [lat,lng] of [[null,null],['',''],[91,73],[19.2,181],[0,0]]){
+     const h=harness();h.S.customerBookingLat=lat;h.S.customerBookingLng=lng;
+     await assert.rejects(()=>h.ocsCreateLiveBooking(),/Booking location missing or invalid/);
+     assert(!h.calls.some(c=>c.name==='create_customer_booking_v4'));
+     assert.equal(h.applied.length,0);
+   }
+ }],
  ['Customer without login cannot create backend booking',async()=>{
    const h=harness({loggedIn:false});
    await assert.rejects(()=>h.ocsCreateLiveBooking(),/OCS_LOGIN_REDIRECT/);
