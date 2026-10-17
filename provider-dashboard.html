@@ -393,6 +393,8 @@ async function loadProviderBookingTimeline(bookingId){
 }
 async function runProviderStep(action){
  if(providerActionBusy||!currentJob||!currentJob.id)return;
+ const allowedByStatus={on_way:['accepted'],reached:['on_way'],start:['reached'],complete:['working']};
+ if(allowedByStatus[action]&&!allowedByStatus[action].includes(currentJob.status)){alert('Booking status changed. Refreshing latest booking before next action.');await loadDashboard();return}
  const bookingId=currentJob.id;
  let otp=null;
  if(action==='start'){
