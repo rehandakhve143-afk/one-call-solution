@@ -446,10 +446,13 @@ async function confirmProviderCash(){
    const {data:directInfo,error:directError}=await sb.rpc('ocs_sp_direct_payment_snapshot_v1',{p_booking_id:currentJob.id});
    if(directError)throw directError;
    if(!pay||pay.method!=='cash'||pay.status!=='cash_marked')throw new Error('Direct payment pending record nahi mila.');
-   if(!directInfo||!['cash','upi'].includes(directInfo.channel)||directInfo.payment_id!==pay.id)throw new Error('Verified direct-provider Cash/UPI payment record missing. Contact support; do not confirm an unverified payment.');
+   // Legacy cash bookings may have no direct_sp_payment metadata. The server validates the assigned provider and cash_marked state.
+   // UPI-labelled records must match the pending payment; never infer UPI from missing metadata.
+   if(directInfo&&directInfo.payment_id&&directInfo.payment_id!==pay.id)throw new Error('Direct payment record mismatch. Contact support.');
+   if(directInfo&&directInfo.channel&&!['cash','upi'].includes(directInfo.channel))throw new Error('Unsupported direct payment channel.');
    const done=await sb.rpc('confirm_cash_received_v1',{p_payment_id:pay.id});
    if(done.error)throw done.error;
-   alert('Customer '+(directInfo?.channel==='upi'?'UPI':'Cash')+' payment receipt confirmed. Job completed; 9% OCS commission recorded.');
+   alert('Customer '+(directInfo?.channel==='upi'?'UPI':'Cash')+' receipt recorded. Job completed; 9% OCS commission recorded.');
    await loadDashboard();
  }catch(e){alert('Cash confirmation failed: '+(e.message||'Please retry'))}
  finally{providerActionBusy=false}
