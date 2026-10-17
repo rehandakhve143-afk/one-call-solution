@@ -28,6 +28,8 @@ Updated: 2026-10-17. This file tracks verified evidence, not promises. Update ea
 
 - [x] Supabase migration `direct_provider_payments_wallet_commission_only`: `apply_provider_commission_v1` now only debits 9% once per booking for both cash and online/direct provider payment. Old 91% `online_settlement` wallet credit path removed. Function text verified (`online_settlement` absent). No live booking/payment test performed.
 
+- [x] Supabase migration `block_legacy_customer_job_gateway_payment_intents`: revoked direct anon/authenticated EXECUTE on legacy `create_booking_payment_intent_v1`; privilege verification returned authenticated=false, service_role=true. **Service-role/Edge Function payment paths are not yet blocked**, and old frontend callers may now fail; migrate them to verified direct-to-provider flow before live use.
+
 ## Open technical and operational blockers
 - [x] **Transport offer acceptance wallet guard (database)**: provider wallet is rechecked when customer accepts a quote; function verified in Supabase. Live transaction/booking behavior remains to be tested.
 - [ ] **Real recharge**: verify actual IDBI bank credit/UTR before wallet credit; then test automatic wallet unblocking and notification with authorized real records. No fabricated transactions.
