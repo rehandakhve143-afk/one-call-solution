@@ -264,3 +264,10 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Business/Property/Slider posting flow: choose window → enter details/upload media → preview → select plan → pay if required → secure verification → immediately live; **no separate routine Admin approval**. Failed/unverified payment remains pending, not live. Free Jobs & Vacancies posts bypass payment and go live after server-side validation.
 - Owner panel: My Listings / My Ads, edit, renew, expiry reminders, enquiries and status. Admin can search/audit, suspend or remove fraud/abuse; Admin's authorized FREE posting override remains restricted and audited.
 - These are locked requirements. **Do not confuse requirements with verified end-to-end production implementation**; complete and test payment verification, GST invoicing, media upload, ownership checks, expiry and listing-owner enquiry routing before launch.
+
+## Buy & Sell – Household Items (17 Oct 2026)
+- First household-item ad is **FREE once per verified seller account**. From the second ad onward, **₹49 per ad for 1 month**, plus applicable GST (show full payable amount before payment). No commission on buyer-seller sale.
+- Free eligibility must be enforced in the backend against the verified seller identity, not a browser counter. Deleting or expiring the first ad does not reset free eligibility. Guard against repeat-account abuse.
+- Max 20 item photos; first is cover, reorder/remove; owner can edit, mark sold, delete, see My Ads, report abuse. Expiry and renewal must be server-controlled; renewal pricing must be shown before confirmation.
+- Direct buyer-to-seller contact; OCS does not collect item-sale payments or provide delivery. Paid posts go live only after verified company-bank payment; first free ad can go live after identity/listing validation, with post-publication fraud moderation. No routine manual Admin approval.
+- Current household-items.html is **preview UI only**, not a real backend posting or payment integration. Do not claim this is production-live.
