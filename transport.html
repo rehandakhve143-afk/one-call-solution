@@ -349,8 +349,11 @@ async function transportUseRewards(){
 }
 async function transportPayCash(){return transportPayDirect('cash')}
 async function transportPayUpi(){return transportPayDirect('upi')}
+let transportDirectPayBusy=false;
 async function transportPayDirect(channel){
- if(!currentTrip?.booking_id)return;
+ if(!currentTrip?.booking_id||transportDirectPayBusy)return;
+ transportDirectPayBusy=true;
+ try{
  channel=channel==='upi'?'upi':'cash';
  const amount=Number(currentTrip.booking_amount||0);
  const target=channel==='upi'?'Transport Provider ke independently verified UPI par':'assigned Transport Provider ko Cash';
@@ -363,6 +366,8 @@ async function transportPayDirect(channel){
   show('✓ '+(channel==='upi'?'Direct UPI':'Cash')+' marked. Provider receipt confirmation pending.',false);
   await loadTransportTrip();
  }catch(e){show(e&&e.message?e.message:'Direct receipt marking failed',true)}
+ finally{transportDirectPayBusy=false}
+ }
 }
 async function transportPayOnline(){
  if(!currentTrip?.booking_id)return;
