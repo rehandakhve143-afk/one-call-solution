@@ -299,3 +299,7 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Do not claim automated split settlement, payouts, or collections are live until payment routing, reconciliation, tax treatment, provider consent and bank verification are complete.
 - Wallet balance below Rs 200 holds NEW jobs, not already accepted jobs; honor the verified welcome-bonus grace rule until a separately approved policy change.
 - Never apply the 9% commission twice for the same booking. Require booking-linked idempotency, verified payment reference, audit logs and admin reconciliation before release.
+
+## Launch wallet bonus exhaustion rule (2026-10-17)
+
+For Home Service providers, Drivers and Goods Transport providers: onboarding requires no recharge. An approved provider gets one non-withdrawable INR 100 welcome bonus. While positive welcome-bonus wallet credit remains and no paid recharge has occurred, new jobs may continue. Once the usable bonus balance is exhausted (zero or negative), hold only NEW jobs. Require an actual verified INR 200 wallet recharge to resume new jobs automatically. Already accepted jobs continue. Deduct 9% commission once per completed job. Never treat unverified recharge or bonus credit as cash received by OCS. After the first paid recharge, apply the existing INR 200 minimum-balance gate to new jobs. Do not claim the wallet rule is deployed to Driver or Transport flows until their backend paths are checked.
