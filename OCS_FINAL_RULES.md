@@ -290,3 +290,12 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Cash payments and wallet commission debits require idempotent transaction identifiers to prevent double charging.
 - Record all admin corrections as date-stamped audit events with actor, reason, previous and new status; never silently rewrite payment history.
 - Treat audit reports as read-only until authorized actions and server-side validations are implemented and tested.
+
+## OCS launch payment split — 2026-10-17
+
+- Applies to completed Home Service, Driver Hire and Tempo / Goods Transport jobs: provider entitlement **91%**, OCS platform commission **9%** of the agreed eligible job amount (before any separately documented taxes/adjustments).
+- Intended direct-settlement model: customer pays the provider's 91% to that provider's own verified bank account; the remaining 9% is collected for OCS via a properly reconciled provider wallet debit and a **separately confirmed** business bank receipt. A wallet debit by itself is NOT proof of bank receipt.
+- OCS intended settlement account: IDBI Current, account display name Rihan Contractor, subject to merchant/KYC verification. Never expose bank identifiers in the public app or source repository.
+- Do not claim automated split settlement, payouts, or collections are live until payment routing, reconciliation, tax treatment, provider consent and bank verification are complete.
+- Wallet balance below Rs 200 holds NEW jobs, not already accepted jobs; honor the verified welcome-bonus grace rule until a separately approved policy change.
+- Never apply the 9% commission twice for the same booking. Require booking-linked idempotency, verified payment reference, audit logs and admin reconciliation before release.
