@@ -281,3 +281,12 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Household seller, buyer chat, job employer posting and job seeker application must **not require SP/Driver/Transport onboarding, KYC, bank details or full profile**. Collect only essential contact information and use lightweight phone OTP verification for actions prone to spam/impersonation.
 - For chat, existing authenticated RLS is still active; lightweight OTP must establish a valid limited user session before in-app chat works. Do not bypass database RLS or make private chats public.
 - Jobs & Vacancies remain FREE. Existing UI/backend may not yet reflect this lightweight onboarding; implementation and real end-to-end testing remain pending.
+
+
+## Booking/payment integrity — implementation gate (2026-10-17)
+- Never infer that a completed booking has been paid solely from `bookings.status = completed`. Verify the associated `booking_payments` status and verified bank/gateway reference independently.
+- Searching bookings older than 24 hours need an admin review flag; do not automatically cancel or reassign accepted jobs.
+- For every completed booking, reconcile customer payment, the locked booking amount, the 9% platform commission and 91% provider entitlement; do not mark a bank payout successful without an external bank confirmation.
+- Cash payments and wallet commission debits require idempotent transaction identifiers to prevent double charging.
+- Record all admin corrections as date-stamped audit events with actor, reason, previous and new status; never silently rewrite payment history.
+- Treat audit reports as read-only until authorized actions and server-side validations are implemented and tested.
