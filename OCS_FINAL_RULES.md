@@ -271,3 +271,5 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Max 20 item photos; first is cover, reorder/remove; owner can edit, mark sold, delete, see My Ads, report abuse. Expiry and renewal must be server-controlled; renewal pricing must be shown before confirmation.
 - Direct buyer-to-seller contact; OCS does not collect item-sale payments or provide delivery. Paid posts go live only after verified company-bank payment; first free ad can go live after identity/listing validation, with post-publication fraud moderation. No routine manual Admin approval.
 - Current household-items.html is **preview UI only**, not a real backend posting or payment integration. Do not claim this is production-live.
+
+- Household-item ad media: up to **20 photos plus 1 optional video**. Video maximum **30 seconds and 50 MB**, preview/remove before submission. Video included in the ad price (no extra fee). Client-side checks exist; repeat validation and safe file storage on the server before live publication.
