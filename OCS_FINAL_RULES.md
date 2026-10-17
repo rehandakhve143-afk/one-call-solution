@@ -244,3 +244,12 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Admin moderation is **after publication**: review reports, hide/unpublish, remove, block fraudulent or abusive vacancies, and keep an audit trail. Automatic anti-spam/abuse safeguards may reject unsafe submissions, but ordinary legitimate vacancies must not wait for manual Admin approval.
 - Employer identity and ownership must be validated server-side; do not allow arbitrary browser-side flags to mark a vacancy live. Posting remains subject to safety and content checks, not payment.
 - The Jobs & Vacancies UI/backend is still proposed, not deployed; do not claim it is live until implemented and tested.
+
+## Scalable provider, driver and transport KYC approvals (2026-10-17)
+
+- Customer OTP sign-in and free Jobs & Vacancies postings do **not** require manual Admin approval. Paid business listings go live after confirmed payment and validation, without a separate manual listing approval.
+- Service Providers, hired Drivers, and Goods Transport providers must complete identity and role-specific KYC **before** accepting real jobs. SP: identity/selfie and payout verification as required; Driver: identity, valid DL and payout details before settlement; Transport: identity, applicable DL, RC, insurance and payout details before settlement.
+- **Target at scale:** integrate a reputable authorized verification provider for automated document authenticity, expiry, selfie/liveness and identity checks where legally available. Auto-approve only after a genuine server-side verified PASS and required checks; do not treat uploading a photo or matching typed numbers as verified. Until verification integration is working, retain human review; never auto-approve unverified documents.
+- Only failed, mismatched, expired, duplicate, suspicious, or otherwise unresolved cases enter Admin review. Allow delegated Admin KYC reviewers with least-privilege roles, audit trails, escalation and revocation; the owner should not manually approve every applicant.
+- Status model: draft → submitted → verifying → verified/approved OR needs-review/rejected; suspend or revoke on subsequent safety findings. Work ON and job acceptance must be server-side blocked unless approved. Record verification provider reference, timestamp and reviewer/action history; protect document images and personal information with restricted access and retention rules.
+- Automated KYC is a **future implementation target**, not an already-connected service or a claim that current KYC is approved.
