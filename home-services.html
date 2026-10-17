@@ -2722,7 +2722,7 @@ async function openProviderWalletQuick(){
         '<div class="box"><small>OCS Commission</small><b>'+commissionRate+'%</b></div>'+
         '<div class="box"><small>New Job Access</small><b>'+(d.admin_paused?'Admin Hold':!d.available_for_work?'Work OFF':bal<200?'Eligible • Low Wallet':'Eligible')+'</b></div>'+
       '</div>'+
-      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Wallet ₹200 se niche hai. Recharge optional hai; new jobs allowed when approved, Work ON and location verified. OCS commission still payable.</div>':'')+
+      ((bal<=0||d.wallet_warning)?'<div class="notice provider-wallet-warning"><b>Wallet Reminder</b><br>Maintain your OCS Wallet to continue jobs. Welcome bonus khatam hone par NEW jobs hold hongi. ₹200 verified recharge karein; accepted jobs continue. 9% commission payable.</div>':'')+
       (d.admin_paused?'<div class="notice bad"><b>Admin Hold</b><br>New jobs OCS Admin ne pause ki hain.</div>':'')+
       '<div class="provider-wallet-actions"><button class="btn" onclick="rechargeWallet()">Add Money</button><button class="btn alt" onclick="openProviderPayoutPanel()">Bank &amp; Payout</button></div>'+
       '<div class="provider-payout-summary"><div class="rowline"><span>Today Credit</span><b>₹'+todayCredit.toFixed(2)+'</b></div><div class="rowline"><span>Today Debit</span><b>₹'+todayDebit.toFixed(2)+'</b></div></div>'+
@@ -4518,7 +4518,7 @@ ${S.category==="Tempo / Goods Transport"&&S.requestType==="quote"
  :'<div class="row"><button class="btn ok" onclick="providerDecision(\'accept\')">Accept</button><button class="btn red" onclick="providerDecision(\'reject\')">Reject</button></div>'}
 </div>`;
  }else if(Number(S.wallet||0)<200){
-   h=`<div class="card"><h3>Wallet Reminder</h3><div class="notice">Wallet ₹${Number(S.wallet||0).toFixed(2)}. Recharge optional hai, new jobs allowed.</div><button class="btn" onclick="openProviderWalletQuick()">Recharge Wallet</button></div>`;
+   h=`<div class="card"><h3>Wallet Reminder</h3><div class="notice">Wallet ₹${Number(S.wallet||0).toFixed(2)}. Maintain wallet to continue jobs. ₹100 welcome bonus khatam hone par NEW jobs hold ho sakti hain; verified ₹200 recharge se resume karein. Accepted jobs continue.</div><button class="btn" onclick="openProviderWalletQuick()">Recharge Wallet</button></div>`;
  }else if(S.adminPaused||!S.jobAccess){
    h=`<div class="card"><h3>New Jobs Paused by OCS Admin</h3><div class="notice">OCS Admin ne new jobs pause kiye hain.</div></div>`;
  }else{
