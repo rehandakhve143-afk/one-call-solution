@@ -216,3 +216,11 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 ## Deployment note
 - **Live GitHub Pages entry file: `index.html`**
 - Files named old/backup/earlier final variants are references only unless explicitly promoted.
+
+## OLX-inspired self-posting UX decision (17 Oct 2026)
+- Adopt the **interaction pattern**, not OLX branding, imagery, assets or exact visual design: uncluttered two-column category chooser on mobile, clear category icons/labels, category-specific fields, and a consistently visible Next action where appropriate.
+- For **Used Vehicle** listings, show conditional fields: car (brand/model, registration/manufacture year, fuel, transmission, km driven, ownership count, title, description, photos); two-wheeler (brand/model, year, km, ownership, title, description, photos). Validate required fields before moving forward; don't force car-only fields on bikes.
+- For **Property** and **Local Shop**, keep their own category-specific forms; never route every category to a generic vehicle form. Preserve existing owner-specific enquiry routing, paid-listing verification and immediate publishing only after confirmed payment where applicable.
+- Use clear Back/Next navigation, save draft on interruption where supported, and preserve mobile keyboard/safe-area visibility. Keep pages stable without unexpected scrolling or auto-navigation.
+- **Jobs listing marketplace** (data entry, teaching, sales etc.) is a **future discussion item only**, not approved for this launch. Do not confuse recruitment ads with OCS Driver Hire booking.
+- This is a product requirement/design decision, **not proof that these UI changes are implemented or live**. Prioritize production deployment and live booking verification before broad UI additions.
