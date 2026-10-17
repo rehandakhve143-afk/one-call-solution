@@ -29,3 +29,9 @@ Status: implementation specification, not deployed/tested.
 - 9% commission reconciliation for cash and online jobs; bank confirmation.
 - Admin date-wise history and KYC privacy checks.
 No feature is marked complete solely because this document was committed.
+## Verified demo milestone — 17 Oct 2026
+- Customer completed Electrical fan fitting/capacitor change demo booking at ₹239 labour-only, quantity 1.
+- Demo booking TEST-08862912 showed simulated SP acceptance, on-the-way, reached, Start OTP verified, work started, customer completion confirmation, and simulated direct UPI receipt confirmation.
+- Displayed 9% platform share ₹21.51 and 91% SP share ₹217.49; actual money transferred ₹0.
+- This **demo path is already tested**. Do not ask the user to repeat the same Electrical demo without a concrete regression or changed implementation.
+- This is NOT proof of live provider matching, real bank payment, actual commission collection, or rating completion. These require separate controlled verification before launch.
