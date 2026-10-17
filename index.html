@@ -3098,12 +3098,16 @@ function handleProviderSelfie(input){
    box.innerHTML='<div style="display:flex;align-items:center;gap:12px;max-width:100%;overflow:hidden"><img alt="Service Provider selfie preview" src="'+url+'" style="display:block!important;width:96px!important;height:96px!important;max-width:96px!important;max-height:96px!important;min-width:96px!important;min-height:96px!important;object-fit:cover!important;border-radius:18px!important;border:2px solid #d7e9e4!important"><div><b style="font-size:12px;color:#173f46">Selfie selected</b><div style="font-size:10.5px;color:#718185;margin-top:3px">Private verification only</div></div></div>';
  }
 }
+let transportKycSaving=false;
 async function saveTransportKycLater(){
+ if(transportKycSaving)return;
  const st=document.getElementById('paTransportKycStatus');
  const dl=(document.getElementById('paTransportDrivingLicence')?.value||'').trim();
  const rc=(document.getElementById('paTransportRcNumber')?.value||'').trim();
  const ins=(document.getElementById('paTransportInsuranceNumber')?.value||'').trim();
  if(!dl||!rc||!ins){alert('Driving Licence, RC aur Insurance tino required hain.');return}
+ if([dl,rc,ins].some(x=>x.length<5||x.length>60)){alert('DL, RC aur Insurance number 5 se 60 characters ke beech hone chahiye.');return}
+ transportKycSaving=true;
  try{
    const {data,error}=await ocsSupabase.rpc('save_provider_transport_kyc_v1',{
      p_driving_licence:dl,
@@ -3117,7 +3121,7 @@ async function saveTransportKycLater(){
  }catch(e){
    if(st){st.textContent='KYC save nahi hua: '+(e&&e.message?e.message:'Unknown error');st.style.color='#a33'}
    alert('Transport KYC save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
- }
+ }finally{transportKycSaving=false}
 }
 async function saveProviderAccount(){
  const name=paName.value.trim(),mobile=paMobile.value.trim(),area=paArea.value.trim(),radius=Number(paRadius.value||12);
