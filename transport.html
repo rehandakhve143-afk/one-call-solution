@@ -352,12 +352,11 @@ async function transportPayUpi(){return transportPayDirect('upi')}
 let transportDirectPayBusy=false;
 async function transportPayDirect(channel){
  if(!currentTrip?.booking_id||transportDirectPayBusy)return;
- transportDirectPayBusy=true;
- try{
  channel=channel==='upi'?'upi':'cash';
  const amount=Number(currentTrip.booking_amount||0);
  const target=channel==='upi'?'Transport Provider ke independently verified UPI par':'assigned Transport Provider ko Cash';
  if(!confirm('Kya aapne ₹'+amount.toFixed(2)+' '+target+' WAKAI pay kiya hai? OCS company QR par transport fare mat bhejein. Provider khud receipt confirm karega.'))return;
+ transportDirectPayBusy=true;
  try{
   const {data:preview,error:pe}=await sb.rpc('customer_reward_payment_preview_v1',{p_booking_id:currentTrip.booking_id,p_purpose:'job'});if(pe)throw pe;
   if(Number(preview&&preview.remaining_amount||0)<=0){await loadTransportTrip();return}
@@ -367,7 +366,6 @@ async function transportPayDirect(channel){
   await loadTransportTrip();
  }catch(e){show(e&&e.message?e.message:'Direct receipt marking failed',true)}
  finally{transportDirectPayBusy=false}
- }
 }
 async function transportPayOnline(){
  if(!currentTrip?.booking_id)return;
