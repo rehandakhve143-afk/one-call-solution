@@ -159,6 +159,10 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - The invoice/email must clearly show the purchased **plan duration** (for example 28 Days or 6 Months), validity start date and expiry/end date.
 - **Admin FREE override = ₹0 payment and ₹0 GST.**
 - Admin can mark a specific **Slider Ad, Property post, Shop/Business window listing or other paid window post** as FREE directly while creating it; no payment step is required and it goes LIVE for the selected validity after a server-authorized override. Normal users cannot use this control.
+- Admin can **create a new listing on behalf of any business or owner**, not merely waive payment on an existing submission: choose any available business window or slider placement, enter the owner/business name, contact, location, photos/video, description, start date and validity, preview, then publish with the authorized FREE override.
+- Admin can subsequently edit, renew, hide/unpublish or remove its own free listings. Record creator Admin ID, beneficiary/owner, reason for free placement, timestamps, validity and all status changes in the admin audit history.
+- The FREE override must be enforced server-side for an authenticated, authorized Admin; never trust a client-side free flag, zero-price plan, hidden form field or editable browser storage. No fabricated bank payment, UTR or GST receipt is required for an Admin FREE post.
+- Paid self-service posting and its payment verification remain unchanged for ordinary users. **Do not mark the Admin FREE creation UI/backend as implemented until a real Admin workflow and authorization checks have been verified.**
 - This rule does **not** add 18% to normal Customer Home Service booking prices.
 - This rule does **not** change the launch Home Service Provider commission rule: OCS commission remains **9% total** under the current launch pricing decision.
 - Service Provider activation/verification remains separate from paid business advertising/listing plans.
