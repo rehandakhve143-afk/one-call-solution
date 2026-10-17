@@ -10,9 +10,9 @@ Important:
 - **No mandatory Razorpay Route, RazorpayX or service payment gateway required for provider-direct job flow.** Legacy online checkout/settlement is not the active provider-direct model.
 - Home Services commission = **9%**
 - SP Welcome Bonus = **₹100 OCS Wallet credit**
-- **Launch:** approved SP can start and receive NEW jobs on ₹100 welcome bonus; ₹200 minimum NEW-job gate currently OFF until announced
+- **Current backend wallet rule (17 Oct 2026):** An approved SP with a one-time ₹100 welcome bonus and no previous recharge can receive NEW jobs while the starter wallet remains above ₹0, provided independent KYC/work/admin checks pass. At ₹0 or negative, new jobs are wallet-held; already accepted jobs continue. After the first verified recharge, new-job eligibility requires a wallet balance of at least ₹200. A verified recharge bringing a wallet-specific hold to ₹200 or more can auto-resume new jobs, but must not clear independent admin/safety holds. This describes backend logic, not a completed real-money end-to-end test.
 - **₹200 withdrawal reserve** remains protected; only eligible funds above ₹200, excluding non-withdrawable bonuses/rewards, can be considered for transfer when payout API is active
-- Future ₹200 minimum applies only when explicitly enabled; existing accepted jobs continue. No fixed ₹500 Company Due threshold
+- The ₹200 minimum applies after the first verified recharge; existing accepted jobs continue during a wallet hold. No fixed ₹500 Company Due threshold.
 - Visit charge = **₹199 (1–6 km)** / **₹249 (>6–12 km)**
 - Local Shop = **₹99 / 28 days**
 - Property Single = **₹199 / 28 days**
