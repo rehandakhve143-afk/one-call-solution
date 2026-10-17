@@ -58,6 +58,7 @@ async function load(){
  const ses=await sb.auth.getSession();if(!(ses.data&&ses.data.session)){location.replace('index.html?login=1');return}
  const {data,error}=await sb.rpc('transport_driver_dashboard_v1');if(error){$('work').innerHTML='<div class="card">Driver dashboard load failed: '+esc(error.message)+'</div>';return}
  D=data||{};render();
+ const {data:walletGate,error:we}=await sb.rpc('ocs_sp_wallet_new_job_status_v1');D.walletGate=we?null:walletGate;
  const {data:jobs,error:je}=await sb.rpc('provider_open_jobs_v4');OPEN=!je&&Array.isArray(jobs)?jobs.find(x=>String(x.category||'').trim().toLowerCase()==='tempo / goods transport')||null:null;renderWork()
 }
 function render(){
@@ -83,9 +84,10 @@ function renderWork(){
  const box=$('work'),c=transportCurrent(),p=D?.profile||{},t=D?.transport||{};
  if(c.has_booking){box.innerHTML=currentCard(c);return}
  if(D?.current?.has_booking&&!isTransportTrip(D.current)){box.innerHTML='<div class="card empty"><b>Another OCS job is active</b>Us job ko complete karein. Nayi Transport trip filhal available nahi hai.</div>';return}
+ if(D?.walletGate?.new_jobs_wallet_blocked){box.innerHTML='<div class="card empty"><b>Wallet Hold — New Transport Quotes Paused</b>Recharge wallet to continue new jobs. ₹100 welcome bonus works until exhausted; after first recharge minimum ₹200 applies. Accepted trips continue.</div>';return}
  if(OPEN){box.innerHTML=requestCard(OPEN);return}
  const bal=Number(p.wallet_balance??D?.wallet?.wallet_balance??0);
- const reason=p.admin_paused?'OCS Admin ne new jobs pause kiye hain.':p.onboarding_status!=='approved'?'Admin approval required.':!t.kyc_complete?'Transport KYC complete karein.':bal<200?'New trips ke liye minimum ₹200 wallet chahiye.':!p.available_for_work?'Work ON karne par matching requests aayengi.':'Matching Transport request milte hi yahan dikhegi.';
+ const reason=p.admin_paused?'OCS Admin ne new jobs pause kiye hain.':p.onboarding_status!=='approved'?'Admin approval required.':!t.kyc_complete?'Transport KYC complete karein.':D?.walletGate?.new_jobs_wallet_blocked?'Wallet recharge required for new jobs.':!p.available_for_work?'Work ON karne par matching requests aayengi.':'Matching Transport request milte hi yahan dikhegi.';
  box.innerHTML='<div class="card empty"><b>No active Transport request</b>'+esc(reason)+'</div>'
 }
 function currentCard(c){const r=c.booking_readiness||{};let actions='';const s=String(c.status||'').toLowerCase();
@@ -109,7 +111,7 @@ function renderActivity(){
  }).join(''):'<div class="card empty"><b>No Past Transport Trips</b></div>';
 }
 async function toggleWork(){const on=!!(D&&D.profile&&D.profile.available_for_work);try{const {error}=await sb.rpc('set_provider_available',{p_available:!on});if(error)throw error;await load()}catch(e){alert(e.message||'Work status update failed')}}
-async function sendOffer(){if(!OPEN)return;const a=Number(prompt('Transport final quote ₹'));if(!a||a<=0)return;const note=(prompt('Quote note (optional)')||'').trim();const {error}=await sb.rpc('provider_send_transport_offer_v1',{p_booking_id:OPEN.id,p_amount:a,p_note:note||null});if(error){alert(error.message);return}alert('Quote Customer ko bhej diya gaya.');await load()}
+async function sendOffer(){if(!OPEN)return;if(D?.walletGate?.new_jobs_wallet_blocked){alert('Wallet Hold: Recharge required before new Transport quote.');return;}const a=Number(prompt('Transport final quote ₹'));if(!a||a<=0)return;const note=(prompt('Quote note (optional)')||'').trim();const {error}=await sb.rpc('provider_send_transport_offer_v1',{p_booking_id:OPEN.id,p_amount:a,p_note:note||null});if(error){alert(error.message);return}alert('Quote Customer ko bhej diya gaya.');await load()}
 async function rejectOpen(){if(!OPEN)return;const {error}=await sb.rpc('reject_booking_v2',{p_booking_id:OPEN.id,p_reason:'Transport provider rejected'});if(error){alert(error.message);return}OPEN=null;await load()}
 async function tripAction(a){const c=D.current;if(!c||!c.id)return;const {error}=await sb.rpc('provider_booking_action',{p_booking_id:c.id,p_action:a,p_start_otp:null});if(error){alert(error.message);return}await load()}
 async function startTrip(){const c=D.current;if(!c||!c.id)return;const otp=(prompt('Customer Start OTP enter kare')||'').trim();if(!otp)return;const {error}=await sb.rpc('provider_booking_action',{p_booking_id:c.id,p_action:'start',p_start_otp:otp});if(error){alert(error.message);return}await load()}
