@@ -3760,8 +3760,9 @@ async function payCash(purpose,channel){
    if(Number(rp&&rp.remaining_amount||0)<=0){await ocsLoadLive("customer");render();return}
    if(!confirm(channel==="upi"?"Kya aapne assigned SP ke VERIFIED personal UPI par payment khud kar diya hai? OCS koi UPI transfer nahi karega. SP khud receipt confirm karega.":"Kya aapne assigned SP ko Cash WAKAI de diya hai? Payment dene ke baad hi proceed karein; SP khud receipt confirm karega."))return;
    const {data:directResult,error:ie}=await ocsSupabase.rpc("ocs_customer_direct_to_sp_v1",{p_booking_id:S.activeBookingId,p_purpose:p,p_channel:channel});
-   const intent={id:directResult&&directResult.payment_id,amount:directResult&&directResult.amount};
    if(ie)throw ie;
+   if(!directResult||!directResult.payment_id)throw new Error("Direct payment record missing. Please retry; payment not marked.");
+   const intent={id:directResult.payment_id,amount:directResult.amount};
    S.backendPaymentId=intent.id;S.payPurpose=purpose;S.payment=channel==="upi"?"DIRECT UPI":"CASH";S.cashDue=Number(intent.amount||0);
    await ocsLoadLive("customer");render();
    hist("Customer marked "+(channel==="upi"?"Direct UPI":"Cash")+" Paid • waiting for Service Provider confirmation");
