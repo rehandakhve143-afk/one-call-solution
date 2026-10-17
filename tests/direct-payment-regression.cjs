@@ -10,6 +10,8 @@ assert.match(customer,/Direct Provider Payment/);
 assert.match(services,/Direct Provider Payment/);
 assert.match(provider,/confirm_cash_received_v1/);
 assert.match(provider,/ocs_sp_direct_payment_snapshot_v1/);
+assert.match(provider,/directInfo\.payment_id!==pay\.id/);
+assert.match(provider,/directError\)throw directError/);
 assert.match(driver,/Direct Cash\/UPI payment marked/);
 assert.match(demo,/Demo only • No real QR or payment collection/);
 assert.doesNotMatch(demo,/OCS Company QR • Prototype\/Test/);
