@@ -4285,42 +4285,7 @@ async function ocsPayPaidPost(opts){
  if(claimError)throw claimError;
  alert('UTR received for bank verification. Listing PENDING hai. IDBI statement match hone ke baad hi LIVE hogi. Dobara payment mat karein.');
  return {pending:true,paymentId:intent.id,requestId:bankRequest.request_id,claimStatus:claim?.status||'claimed'};
- // Legacy gateway path below is deliberately unreachable in provider-direct launch mode.
- await ensureOcsRazorpay();
- const {data:orderPack,error:oe}=await ocsSupabase.functions.invoke('ocs-create-razorpay-order',{body:{kind:'paid_post',id:intent.id}});
- if(oe)throw oe;
- if(orderPack&&orderPack.error)throw new Error(orderPack.error);
- const key=orderPack&&orderPack.key_id,order=orderPack&&orderPack.order;
- if(!key||!order||!order.id)throw new Error('Razorpay order create nahi hua');
- return await new Promise((resolve,reject)=>{
-   const rz=new Razorpay({
-     key,amount:order.amount,currency:order.currency||'INR',name:'One Call Solution',
-     description:String(o.title||'OCS Paid Post')+' • '+String(o.planLabel||days+' Days'),
-     order_id:order.id,
-     prefill:{email},
-     notes:{ocs_paid_post_id:intent.id},
-     theme:{},
-     handler:async(resp)=>{
-       try{
-         const {data:vr,error:ve}=await ocsSupabase.functions.invoke('ocs-verify-razorpay-payment',{body:{
-           kind:'paid_post',id:intent.id,
-           razorpay_order_id:resp.razorpay_order_id,
-           razorpay_payment_id:resp.razorpay_payment_id,
-           razorpay_signature:resp.razorpay_signature
-         }});
-         if(ve)throw ve;if(vr&&vr.error)throw new Error(vr.error);
-         // Payment verification and backend activation must BOTH be confirmed.
-         if(!vr||vr.ok!==true||!vr.result||String(vr.result.status||'').toLowerCase()!=='verified'){
-           throw new Error('Payment confirm hua ho sakta hai, lekin listing abhi LIVE verified nahi hui. Payment dubara na karein; OCS Support se payment ID share karein.');
-         }
-         resolve({ok:true,paymentId:intent.id,razorpayPaymentId:resp.razorpay_payment_id,result:vr.result});
-       }catch(e){reject(e)}
-     },
-     modal:{ondismiss:()=>resolve(null)}
-   });
-   rz.on('payment.failed',r=>reject(new Error(r&&r.error&&r.error.description?r.error.description:'Payment failed')));
-   rz.open();
- });
+
 }
 window.ocsPayPaidPost=ocsPayPaidPost;
 
