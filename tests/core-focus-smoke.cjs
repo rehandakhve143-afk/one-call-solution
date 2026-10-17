@@ -42,7 +42,7 @@ function roleRoute(skill){
  });
  await check('Direct payment and cash receipt guards remain in all four flows',()=>{
   const hs=read('home-services.html');
-  assert(hs.includes('if(!directResult||!directResult.payment_id)'), 'Customer SP must reject missing payment record');
+  assert(/if\s*\(!directResult\s*\|\|\s*!directResult\.payment_id\)/.test(hs), 'Customer SP must reject missing payment record');
   assert(driver.includes('driverCashMarkBusy=true'), 'Driver customer must prevent duplicate payment requests');
   assert(driver.includes('if(!data?.payment_id)'), 'Driver customer must verify payment record');
   assert(transport.includes('transportDirectPayBusy=true'), 'Transport customer must prevent duplicate requests');
