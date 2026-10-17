@@ -233,3 +233,10 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Use clear Back/Next navigation, save draft on interruption where supported, and preserve mobile keyboard/safe-area visibility. Keep pages stable without unexpected scrolling or auto-navigation.
 - **Jobs listing marketplace** (data entry, teaching, sales etc.) is a **future discussion item only**, not approved for this launch. Do not confuse recruitment ads with OCS Driver Hire booking.
 - This is a product requirement/design decision, **not proof that these UI changes are implemented or live**. Prioritize production deployment and live booking verification before broad UI additions.
+
+## Jobs & Vacancies — proposed module (17 Oct 2026)
+- Add a distinct Jobs & Vacancies discovery window inspired by classified job boards, separate from Home Services booking and SP KYC.
+- Employer: create vacancy with business identity, title, category, locality/city, salary range, work type, experience, openings, contact method and closing date; edit/expire/close posts.
+- Job seeker: search/filter by locality, salary, category, full-time/part-time and experience; apply/contact via employer-authorized methods. Avoid publishing applicant personal information publicly.
+- Safety: report/block suspicious ads; prohibit recruitment advance fees and misleading salary/identity claims; admin moderation, employer verification and complaint history.
+- Pricing for vacancy posts, whether employer posts are free or paid, and whether to offer 28-day/6-month packages are **pending user approval**. Do not silently activate charges or claim this module is deployed.
