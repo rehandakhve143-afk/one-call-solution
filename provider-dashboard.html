@@ -243,13 +243,19 @@ async function loadDashboard(){
      currentJob=null;
      return;
    }
-   // Launch rule: ₹200 minimum job gate OFF; no low-balance reminder.
    const walletBalance=Number(profile.wallet_balance||0);
    const canReceiveNewJobs=profile.service_location_set===true&&profile.admin_paused!==true;
-   // Launch: ₹100 welcome bonus enables starting work; ₹200 wallet gate will be announced later.
+   // This is a dashboard reminder, not a bank receipt or a backend job-gate decision.
+   const walletMessage=walletBalance<=0
+     ?'Wallet '+money(walletBalance)+': Welcome bonus exhausted. New jobs may be held. Recharge ₹200 to continue receiving jobs. Accepted jobs continue.'
+     :(walletBalance<200
+       ?'Maintain your OCS Wallet to continue jobs. Balance '+money(walletBalance)+'. ₹100 welcome bonus lets new providers start; after it is exhausted, recharge ₹200 to resume new jobs.'
+       :'Wallet balance '+money(walletBalance)+'. Maintain your wallet to continue receiving new jobs.');
    const walletNotice=profile.service_location_set!==true
      ?'<div class="error" style="margin-top:12px">Service location pin is missing. Set location before accepting NEW jobs.</div>'
-     :(profile.admin_paused===true?'<div class="error" style="margin-top:12px">New jobs are paused by OCS Admin. Existing work can continue.</div>':'<div class="muted" style="margin-top:12px">OCS Launch Offer: ₹100 Welcome Bonus se kaam shuru karein. Abhi ₹200 minimum wallet rule lagu nahi hai; future change se pehle notice milega.</div>');
+     :(profile.admin_paused===true
+       ?'<div class="error" style="margin-top:12px">New jobs are paused by OCS Admin. Existing work can continue.</div>'
+       :'<div class="'+(walletBalance<=0?'error':'muted')+'" style="margin-top:12px">'+esc(walletMessage)+'</div>');
    setStableDashboardHtml(pb,'<div class="profile"><div><b>'+esc(profile.full_name||'Service Provider')+'</b><small>'+esc(profile.phone||'Mobile not added')+'</small></div><div class="wallet">'+money(walletBalance)+'<small>OCS Wallet</small></div></div><div class="chips">'+(skills.length?skills.map(x=>'<span class="chip">'+esc(skillLabel(x))+(x.approved===true?' ✓':'')+'</span>').join(''):'<span class="chip">No skill selected</span>')+'</div>'+walletNotice);
 
    let booking=null;
