@@ -40,6 +40,19 @@ function roleRoute(skill){
    ['transport.html',transport],['transport-driver.html',truck],
    ['provider-dashboard.html',sp]].forEach(([p,s])=>syntaxCheck(p,s));
  });
+ await check('Direct payment and cash receipt guards remain in all four flows',()=>{
+  const hs=read('home-services.html');
+  assert(hs.includes('if(!directResult||!directResult.payment_id)'), 'Customer SP must reject missing payment record');
+  assert(driver.includes('driverCashMarkBusy=true'), 'Driver customer must prevent duplicate payment requests');
+  assert(driver.includes('if(!data?.payment_id)'), 'Driver customer must verify payment record');
+  assert(transport.includes('transportDirectPayBusy=true'), 'Transport customer must prevent duplicate requests');
+  assert(transport.includes('finally{transportDirectPayBusy=false}'), 'Transport customer must release busy state');
+  assert(transport.includes('if(!data?.payment_id)'), 'Transport customer must verify payment record');
+  assert(provider.includes('driverCashConfirmBusy=true'), 'Driver receipt must prevent double submission');
+  assert(provider.includes("payment.status!=='cash_marked'"), 'Driver receipt must verify payment status');
+  assert(truck.includes('transportCashConfirmBusy=true'), 'Transport receipt must prevent double submission');
+  assert(truck.includes("p.status!=='cash_marked'"), 'Transport receipt must verify payment status');
+ });
  await check('Main four OCS tiles visible above secondary property and listings',()=>{
   const start=home.indexOf('id="ocsMainBusiness"');
   const property=home.indexOf('id="ocsBuilderPropertyHomeStrip"');
