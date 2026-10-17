@@ -52,3 +52,8 @@ Updated: 2026-10-17. This file tracks verified evidence, not promises. Update ea
 - No verified `recharge` wallet transaction exists. Cannot claim live bank recharge -> wallet auto-resume test.
 - Existing `tests/booking-smoke.cjs` and `tests/sp-wallet-bank-browser.cjs` use mocked Supabase; they do not prove real E2E. Running them in this session was blocked by inability to fetch repository files into a local runner (GitHub DNS unavailable). No test suite execution claimed.
 - **BLOCKED:** authenticated Customer -> Provider real booking, OTP, payment receipt (UPI/Cash), 9% debit, wallet recharge and auto-unblock still need isolated sandbox/test identities and a verified test transaction. Do not charge real users for tests.
+
+### Final-complete order progress — 2026-10-18
+- Added `tests/direct-payment-regression.cjs` (commit `0b5d6092`), asserting direct provider payment guidance in homepage/customer pages, provider cash receipt RPC presence, driver direct receipt guidance and demo-only QR labeling.
+- Wired regression into `.github/workflows/pages.yml` (commit `178da3f2`) before deployment. Workflow queued at initial inspection; do not claim pass until GitHub Actions confirms.
+- Still blocked for launch: live E2E with authorized separate identities, verified bank/UPI receipt, recharge auto-unblock, production domain alignment, and Play Store release requirements. Static checks are not substitutes for these.
