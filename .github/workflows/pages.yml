@@ -33,6 +33,8 @@ jobs:
         run: node tests/push-optin-smoke.cjs
       - name: Verify customer/SP booking and Start OTP with mocked backend
         run: node tests/booking-smoke.cjs
+      - name: Verify direct-to-provider payment guidance and receipt wiring (static only)
+        run: node tests/direct-payment-regression.cjs
       - name: Verify Customer SP Driver Transport priorities without live data
         run: node tests/core-focus-smoke.cjs
       - name: Install mobile browser test dependencies
