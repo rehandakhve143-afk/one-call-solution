@@ -167,4 +167,18 @@ test('No accidental navigation via duplicate category-wide Enquiry button',()=>{
  assert(!index.includes("try{injectCompactWindowEnquiry(n)}"));
 });
 
+test('Paid listing collection remains verification-gated and has no legacy checkout',()=>{
+ const start=index.indexOf('async function ocsPayPaidPost(opts){');
+ const end=index.indexOf('window.ocsPayPaidPost=ocsPayPaidPost;',start);
+ assert(start>=0&&end>start);
+ const fn=index.slice(start,end);
+ assert(fn.includes("create_paid_post_payment_intent_v1"));
+ assert(fn.includes("ocs_direct_payment_status_v1"));
+ assert(fn.includes("ocs_create_manual_bank_payment_v1"));
+ assert(fn.includes("ocs_claim_manual_bank_payment_v1"));
+ assert(fn.includes("return {pending:true"),'Payment claim must remain pending');
+ assert(!fn.includes("ensureOcsRazorpay()"),'Legacy checkout must not run for paid posts');
+ assert(!fn.includes("rz.open()"),'Unverified Razorpay checkout must not run');
+});
+
 console.log('\nOCS smoke checks: '+passed+' passed, '+(process.exitCode?'failures detected':'0 failed'));
