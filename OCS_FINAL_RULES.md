@@ -157,6 +157,11 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - GST invoice should show the configured OCS legal business name, GSTIN, registered address, invoice number/date, taxable value, GST rate/amount and total.
 - Every paid ad/listing must collect a valid **billing/invoice email**. After successful verified payment, the GST invoice is queued/sent to that email.
 - The invoice/email must clearly show the purchased **plan duration** (for example 28 Days or 6 Months), validity start date and expiry/end date.
+- **All paid advertising placements** — home slider/banner, Property Owner, Builder, Local Shop, Sliding/Aluminium, Welding, Beauty, Used/New Vehicle, Medical, Diagnostic Lab, Modular Kitchen and every other paid business window — must offer **two selectable plans: 1 Month (existing 28-day billing cycle) and 6 Months (existing 6-month plan)**. Show both plan prices, selected validity, GST breakdown and payable amount before confirmation; apply the selected plan to the resulting listing and expiry date.
+- Keep each category's independently configurable 1-month and 6-month prices; do not silently calculate or invent a 6-month price from the monthly rate. Keep existing admin price configuration and legacy active listing terms intact.
+- Admin-created FREE posts may choose either validity with zero payment, subject to server-authorized Admin override and audit trail. No ordinary user can choose FREE.
+- This is a requirement across **all posting forms**, not merely an Admin pricing table. Verify every actual post flow and server-side duration validation before marking it deployed.
+
 - **Admin FREE override = ₹0 payment and ₹0 GST.**
 - Admin can mark a specific **Slider Ad, Property post, Shop/Business window listing or other paid window post** as FREE directly while creating it; no payment step is required and it goes LIVE for the selected validity after a server-authorized override. Normal users cannot use this control.
 - Admin can **create a new listing on behalf of any business or owner**, not merely waive payment on an existing submission: choose any available business window or slider placement, enter the owner/business name, contact, location, photos/video, description, start date and validity, preview, then publish with the authorized FREE override.
