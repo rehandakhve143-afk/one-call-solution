@@ -127,6 +127,6 @@ function roleRoute(skill){
   assert(driver.includes("ocs_customer_driver_no_show_v1"),'Customer can request company intervention');
   assert(driver.includes("create_customer_driver_package_booking_v2"),'Customer booking uses server-side fare');
  });
- console.log('OCS main-business smoke: '+successes+'/12 passed');
- if(successes!==12)process.exitCode=1;
+ console.log('OCS main-business smoke: '+successes+'/13 passed');
+ if(successes!==13)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});
