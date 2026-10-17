@@ -239,4 +239,6 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Employer: create vacancy with business identity, title, category, locality/city, salary range, work type, experience, openings, contact method and closing date; edit/expire/close posts.
 - Job seeker: search/filter by locality, salary, category, full-time/part-time and experience; apply/contact via employer-authorized methods. Avoid publishing applicant personal information publicly.
 - Safety: report/block suspicious ads; prohibit recruitment advance fees and misleading salary/identity claims; admin moderation, employer verification and complaint history.
-- Pricing for vacancy posts, whether employer posts are free or paid, and whether to offer 28-day/6-month packages are **pending user approval**. Do not silently activate charges or claim this module is deployed.
+- **Final pricing decision (17 Oct 2026): Jobs & Vacancies is FREE for both employers posting genuine vacancies and job seekers searching/applying. ₹0 listing fee, ₹0 application fee, no payment gateway or paid-plan selection in this module.** Do not reuse paid business-window pricing or require wallet recharge to post/apply.
+- Admin can still review, hide, remove or block fraudulent or abusive vacancy listings. Posting remains subject to safety and content checks, not payment.
+- The Jobs & Vacancies UI/backend is still proposed, not deployed; do not claim it is live until implemented and tested.
