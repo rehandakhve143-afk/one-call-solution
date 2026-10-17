@@ -275,3 +275,9 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Household-item ad media: up to **20 photos plus 1 optional video**. Video maximum **30 seconds and 50 MB**, preview/remove before submission. Video included in the ad price (no extra fee). Client-side checks exist; repeat validation and safe file storage on the server before live publication.
 
 - **Final household ad price (17 Oct 2026):** First ad FREE once per verified seller. From second ad, **₹49 total per ad for one month, inclusive of 18% GST** when GST applies: taxable base ₹41.53, GST ₹7.47, total ₹49. Do NOT add 18% on top of ₹49. This supersedes earlier household text saying '+ applicable GST'. Confirm invoicing and GST registration compliance before live collection.
+
+## Lightweight access for Buy & Sell and Jobs (17 Oct 2026)
+- Public browsing/search of household items and job vacancies requires **no login or full profile**.
+- Household seller, buyer chat, job employer posting and job seeker application must **not require SP/Driver/Transport onboarding, KYC, bank details or full profile**. Collect only essential contact information and use lightweight phone OTP verification for actions prone to spam/impersonation.
+- For chat, existing authenticated RLS is still active; lightweight OTP must establish a valid limited user session before in-app chat works. Do not bypass database RLS or make private chats public.
+- Jobs & Vacancies remain FREE. Existing UI/backend may not yet reflect this lightweight onboarding; implementation and real end-to-end testing remain pending.
