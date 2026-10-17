@@ -1349,6 +1349,7 @@ async function ocsCreateLiveBooking(){
     console.error("Customer account bootstrap failed",e);
     throw new Error("Customer account verify nahi ho paya. Network check karke dobara try karein. Booking abhi create nahi hui.");
   }
+  if(!Number.isFinite(Number(S.customerBookingLat))||!Number.isFinite(Number(S.customerBookingLng))||!Number(S.customerBookingLat)||!Number(S.customerBookingLng))throw new Error("Booking location missing. Please select your location pin before booking.");
   const items=(S.selectedItems||[]).map(x=>({name:x.name,price:Number(x.price||0),qty:Number(x.qty||1)}));
   const {data,error}=await ocsSupabase.rpc("create_customer_booking_v4",{
     p_category:S.category||"",
