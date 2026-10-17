@@ -19,9 +19,11 @@ Updated: 2026-10-17. This file tracks verified evidence, not promises. Update ea
 - [x] Supabase: commission-trigger wallet hold respects first-recharge distinction.
 - [x] GitHub: provider-dashboard.html, driver-provider.html and transport-driver.html updated to reflect server wallet eligibility.
 - [x] GitHub Actions Pages deployment for commit d682e71db6193f354fe320e23cddb183c109703f succeeded on 2026-10-17 (run 39052704244). Mock booking and mobile Chromium workflow steps passed.
+- [x] GitHub Pages deployed checklist commit c5f6863715d99f84fb5cce489af0abc55280ca4c successfully (GitHub Actions).
+- [x] Supabase migrations `transport_wallet_eligibility_helper` and `guard_transport_quote_accept_with_provider_wallet` applied successfully. Read-only verification confirms `customer_accept_transport_offer_v1` calls `ocs_transport_provider_wallet_eligible_v1`. This is database verification, not a live customer booking test.
 
 ## Open technical and operational blockers
-- [ ] **Transport offer acceptance**: recheck the chosen transport provider's wallet eligibility when customer accepts, not only when provider submits offer. SQL modification attempt was blocked by tool safety checks; do not mark fixed.
+- [x] **Transport offer acceptance wallet guard (database)**: provider wallet is rechecked when customer accepts a quote; function verified in Supabase. Live transaction/booking behavior remains to be tested.
 - [ ] **Real recharge**: verify actual IDBI bank credit/UTR before wallet credit; then test automatic wallet unblocking and notification with authorized real records. No fabricated transactions.
 - [ ] **Actual end-to-end**: Customer → Provider accept → Start OTP → Complete → direct payment → 9% wallet debit → rating. Mock tests are not proof.
 - [ ] **Driver and Transport end-to-end**: check each independently, including wallet holds and existing-job continuity.
