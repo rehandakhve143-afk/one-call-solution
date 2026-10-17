@@ -6855,7 +6855,7 @@ async function ocsCheckForNewBuild(){
   return false;
 }
 </script>
-<script>setTimeout(()=>document.documentElement.classList.add('ocs-css-ready'),12000)</script>
+<script>setTimeout(()=>{if(!document.documentElement.classList.contains("ocs-css-ready")){const css=document.createElement("link");css.rel="stylesheet";css.href="assets/ocs-home.css?v=20261016-premiumwindows2";css.onload=()=>document.documentElement.classList.add("ocs-css-ready");css.onerror=()=>document.documentElement.classList.add("ocs-css-ready");document.head.appendChild(css);setTimeout(()=>document.documentElement.classList.add("ocs-css-ready"),2000)}},3500)</script>
 <script id="ocsEndToEndOpenRoute">
 (function(){
   async function openRequested(){
