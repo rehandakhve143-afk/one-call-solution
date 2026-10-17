@@ -1379,7 +1379,7 @@ body:has(#accountModal.show) .ocs-super-nav{visibility:hidden!important;pointer-
   </div>
   <div id="paTransportKycLater" style="display:none;margin-top:12px">
     <h3 style="margin:10px 0 6px">Complete Transport KYC</h3>
-    <div class="help">Basic profile save hone ke baad ye step complete karein.</div>
+    <div class="help">Ye verification sirf pehli registration par karein. Har booking ke liye DL, RC ya Insurance dobara bharne ki zarurat nahi. Vehicle/driver badalne ya document expire hone par update karein.</div>
     <label>Driving Licence No. *</label><input id="paTransportDrivingLicence" placeholder="Driving Licence number">
     <label>Vehicle RC No. *</label><input id="paTransportRcNumber" placeholder="RC number">
     <label>Insurance Policy / Ref. No. *</label><input id="paTransportInsuranceNumber" placeholder="Insurance number">
@@ -2877,7 +2877,7 @@ async function showProviderProfileSummary(){
       (category==='Tempo / Goods Transport'
         ?'<div class="ocs-sp-summary-row"><span>Transport Vehicle</span><b>'+ocsEsc(tp.vehicle_type||local.transportVehicleType||'Required')+'</b></div>'+
          '<div class="ocs-sp-summary-row"><span>Vehicle No.</span><b>'+ocsEsc(tp.vehicle_number||local.transportVehicleNumber||'Required')+'</b></div>'+
-         '<div class="ocs-sp-summary-row"><span>Transport KYC</span><b class="'+((tp.kyc_complete)?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+(tp.kyc_complete?'✓ Licence + RC + Insurance':'Required')+'</b></div>'
+         '<div class="ocs-sp-summary-row"><span>Transport KYC</span><b class="'+((tp.kyc_complete)?'ocs-sp-summary-check':'ocs-sp-summary-missing')+'">'+(tp.kyc_complete?'✓ Saved once • no repeat per booking':'One-time verification required')+'</b></div>'
         :'')+
     '</div>'+
     (status==='pending'
