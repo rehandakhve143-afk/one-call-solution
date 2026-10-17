@@ -3123,7 +3123,9 @@ async function saveTransportKycLater(){
    alert('Transport KYC save nahi hua: '+(e&&e.message?e.message:'Unknown error'));
  }finally{transportKycSaving=false}
 }
+let providerAccountSaving=false;
 async function saveProviderAccount(){
+ if(providerAccountSaving)return;
  const name=paName.value.trim(),mobile=paMobile.value.trim(),area=paArea.value.trim(),radius=Number(paRadius.value||12);
  const session=await refreshOcsEmailStatus();
  if(!session||!session.user){alert('Pehle OCS login complete karein.');return}
@@ -3166,7 +3168,7 @@ async function saveProviderAccount(){
  }
  if(!selfieAlready&&!providerSelfieFile){alert('Selfie verification required hai.');return}
 
-
+ providerAccountSaving=true;
  try{
    const sync=await syncProviderRegistrationToBackend(name,mobile,skills);
 
@@ -3227,7 +3229,7 @@ async function saveProviderAccount(){
  }catch(e){
    console.error('Provider onboarding submit failed',e);
    alert('SP profile submit nahi hua: '+(e&&e.message?e.message:'Unknown error'));
- }
+ }finally{providerAccountSaving=false}
 }
 function getCustomerProfile(){return ocsGetAccountProfile('customer')}
 function getProviderProfile(){return ocsGetAccountProfile('provider')}
