@@ -1,0 +1,16 @@
+/* Static regression only: no money, login or live E2E. */
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const read=p=>fs.readFileSync(require('node:path').join(__dirname,'..',p),'utf8');
+const home=read('index.html'),customer=read('customer-launch-v1.html'),services=read('customer-services.html');
+const provider=read('provider-dashboard.html'),demo=read('home-services-flow.html'),driver=read('driver-service.html');
+assert.match(home,/Job payment directly assigned provider ko UPI\/Bank/);
+assert.match(home,/Provider actual receipt confirm karega/);
+assert.match(customer,/Direct Provider Payment/);
+assert.match(services,/Direct Provider Payment/);
+assert.match(provider,/confirm_cash_received_v1/);
+assert.match(provider,/ocs_sp_direct_payment_snapshot_v1/);
+assert.match(driver,/Direct Cash\/UPI payment marked/);
+assert.match(demo,/Demo only • No real QR or payment collection/);
+assert.doesNotMatch(demo,/OCS Company QR • Prototype\/Test/);
+console.log('PASS: direct-payment guidance and provider receipt wiring (static only; NOT live E2E)');
