@@ -42,7 +42,7 @@ function roleRoute(skill){
  });
  await check('Main four OCS tiles visible above secondary property and listings',()=>{
   const start=home.indexOf('id="ocsMainBusiness"');
-  const property=home.indexOf('ocs-feature-property');
+  const property=home.indexOf('id="ocsBuilderPropertyHomeStrip"');
   assert(start>0&&property>start);
   for(const klass of ['ocs-core-customer','ocs-core-sp','ocs-core-driver','ocs-core-transport']){
    assert.equal((home.match(new RegExp('class="ocs-core-tile [^"]*'+klass+'"','g'))||[]).length,1,klass);
