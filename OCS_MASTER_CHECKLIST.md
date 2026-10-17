@@ -22,6 +22,8 @@ Updated: 2026-10-17. This file tracks verified evidence, not promises. Update ea
 - [x] GitHub Pages deployed checklist commit c5f6863715d99f84fb5cce489af0abc55280ca4c successfully (GitHub Actions).
 - [x] Supabase migrations `transport_wallet_eligibility_helper` and `guard_transport_quote_accept_with_provider_wallet` applied successfully. Read-only verification confirms `customer_accept_transport_offer_v1` calls `ocs_transport_provider_wallet_eligible_v1`. This is database verification, not a live customer booking test.
 
+- [x] Supabase migration `restrict_direct_execution_of_wallet_trigger_functions`: removed anon/authenticated direct EXECUTE on welcome-credit and commission-hold trigger functions; read-only privilege checks returned false for both roles.
+
 ## Open technical and operational blockers
 - [x] **Transport offer acceptance wallet guard (database)**: provider wallet is rechecked when customer accepts a quote; function verified in Supabase. Live transaction/booking behavior remains to be tested.
 - [ ] **Real recharge**: verify actual IDBI bank credit/UTR before wallet credit; then test automatic wallet unblocking and notification with authorized real records. No fabricated transactions.
