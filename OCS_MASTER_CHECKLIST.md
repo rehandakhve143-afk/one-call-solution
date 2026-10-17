@@ -45,3 +45,10 @@ Updated: 2026-10-17. This file tracks verified evidence, not promises. Update ea
 3. Record every completed change with commit/migration and test evidence here.
 4. Do not request repetitive screenshots or move testing between platforms without a clear verified reason.
 5. Never report launch readiness until all release blockers are closed.
+
+### E2E verification audit — 2026-10-18
+- GitHub Pages latest commit `163954c8` deploy workflow and Pages build both SUCCESS.
+- Live database read-only audit: bookings 2 completed, 5 searching, 16 cancelled; completed bookings without commission = 0; duplicate commission booking IDs = 0; 2 commission transactions totaling -₹90; no `online_settlement` wallet transactions.
+- No verified `recharge` wallet transaction exists. Cannot claim live bank recharge -> wallet auto-resume test.
+- Existing `tests/booking-smoke.cjs` and `tests/sp-wallet-bank-browser.cjs` use mocked Supabase; they do not prove real E2E. Running them in this session was blocked by inability to fetch repository files into a local runner (GitHub DNS unavailable). No test suite execution claimed.
+- **BLOCKED:** authenticated Customer -> Provider real booking, OTP, payment receipt (UPI/Cash), 9% debit, wallet recharge and auto-unblock still need isolated sandbox/test identities and a verified test transaction. Do not charge real users for tests.
