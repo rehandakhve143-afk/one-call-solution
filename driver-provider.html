@@ -63,7 +63,9 @@ async function load(){
    else if(!gate?.driver_selected)detail='Driver Service selected nahi hai. Current category: '+String(gate?.current_category||'None')+'. Existing SP category ko mat badlein. Driver test ke liye separate email se naya account use karein.';
    else if(!gate?.driver_approved||gate?.onboarding_status!=='approved')detail='Driver Service verification/Admin approval pending hai. Work ON approval ke baad milega.';
    else if(!gate?.location_set)detail='Driver Service pickup matching ke liye work location set karein.';
+   else if(gate?.admin_paused&&gate?.wallet_new_jobs_blocked)detail='Wallet Hold: New Driver jobs paused. Welcome bonus ke baad wallet ₹0 ya negative ho to recharge karein; first recharge ke baad minimum ₹200 chahiye. Accepted jobs continue.';
    else if(gate?.admin_paused)detail='OCS Admin ne nayi bookings hold par rakhi hain.';
+   else if(gate?.wallet_new_jobs_blocked)detail='Wallet Hold: New Driver jobs paused. First recharge ke baad minimum ₹200 wallet balance chahiye; accepted jobs continue.';
    else detail='Driver Service currently unavailable.';
    $('driverEligibilityHelp').textContent=detail;
    $('openJobs').textContent='Driver requests tabhi milengi jab Driver category approved aur work location ready ho.';
