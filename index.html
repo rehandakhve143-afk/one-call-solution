@@ -3137,8 +3137,8 @@ async function saveProviderAccount(){
    alert('Full Name required hai.');
    paName.scrollIntoView({behavior:'smooth',block:'center'});paName.focus();return
  }
- if(mobile.replace(/\D/g,'').length<10){
-   alert('Valid 10-digit Mobile Number required hai.');
+ if(!/^[6-9][0-9]{9}$/.test(mobile.replace(/\D/g,''))){
+   alert('Valid 10-digit Indian Mobile Number required hai.');
    paMobile.scrollIntoView({behavior:'smooth',block:'center'});paMobile.focus();return
  }
  if(!area){
@@ -3154,8 +3154,11 @@ async function saveProviderAccount(){
  const locationAlready=!!ob.location_added;
  const selfieAlready=!!ob.selfie_added;
 
- if(!locationAlready&&(providerWorkLat===null||providerWorkLng===null)){
-   alert('Use Current Work Location press karke work location set karein.');return
+ if(!locationAlready&&(!Number.isFinite(providerWorkLat)||!Number.isFinite(providerWorkLng)||Math.abs(providerWorkLat)>90||Math.abs(providerWorkLng)>180)){
+   alert('Use Current Work Location press karke valid GPS work location set karein.');return
+ }
+ if(!Number.isFinite(radius)||radius<1||radius>100){
+   alert('Work radius 1 se 100 km ke beech set karein.');return
  }
  if(!selfieAlready&&!providerSelfieFile){alert('Selfie verification required hai.');return}
 
