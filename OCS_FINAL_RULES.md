@@ -273,3 +273,5 @@ Use the finalized OCS rate-card data. Do not replace fixed listed labour rates w
 - Current household-items.html is **preview UI only**, not a real backend posting or payment integration. Do not claim this is production-live.
 
 - Household-item ad media: up to **20 photos plus 1 optional video**. Video maximum **30 seconds and 50 MB**, preview/remove before submission. Video included in the ad price (no extra fee). Client-side checks exist; repeat validation and safe file storage on the server before live publication.
+
+- **Final household ad price (17 Oct 2026):** First ad FREE once per verified seller. From second ad, **₹49 total per ad for one month, inclusive of 18% GST** when GST applies: taxable base ₹41.53, GST ₹7.47, total ₹49. Do NOT add 18% on top of ₹49. This supersedes earlier household text saying '+ applicable GST'. Confirm invoicing and GST registration compliance before live collection.
