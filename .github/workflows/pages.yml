@@ -58,6 +58,16 @@ jobs:
       - name: Verify SP wallet, optional bank setup and Work OFF/ON in mobile Chromium (mocked)
         run: |
           node tests/sp-wallet-bank-browser.cjs
+      - name: Verify GitHub Pages base-path compatibility
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const files=['manifest.json','service-worker.js','assets/ocs-home.css'];
+          for(const file of files){if(!fs.existsSync(file))throw Error('Missing published asset: '+file);}
+          if(!html.includes('manifest.json'))throw Error('Missing manifest reference');
+          console.log('Published entry assets exist; browser/network integration still requires live verification');
+          NODE
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
