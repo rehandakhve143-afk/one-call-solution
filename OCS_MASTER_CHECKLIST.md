@@ -57,3 +57,6 @@ Updated: 2026-10-17. This file tracks verified evidence, not promises. Update ea
 - Added `tests/direct-payment-regression.cjs` (commit `0b5d6092`), asserting direct provider payment guidance in homepage/customer pages, provider cash receipt RPC presence, driver direct receipt guidance and demo-only QR labeling.
 - Wired regression into `.github/workflows/pages.yml` (commit `178da3f2`) before deployment. Workflow queued at initial inspection; do not claim pass until GitHub Actions confirms.
 - Still blocked for launch: live E2E with authorized separate identities, verified bank/UPI receipt, recharge auto-unblock, production domain alignment, and Play Store release requirements. Static checks are not substitutes for these.
+
+- [x] 2026-10-18: SP direct-payment confirmation duplicate dialog removed; static regression test added; GitHub Pages workflow `e0aa1ce5` successful. This does **not** prove production Netlify or live payment E2E.
+- [ ] Verify SP/Driver/Transport wallet recharge and commission with authenticated real-flow test; frontend wallet wording must be checked against pre-recharge ₹100 bonus / post-recharge ₹200 minimum.
