@@ -13,6 +13,8 @@ assert.match(provider,/ocs_sp_direct_payment_snapshot_v1/);
 assert.match(provider,/directInfo\.payment_id!==pay\.id/);
 assert.match(provider,/Legacy cash bookings may have no direct_sp_payment metadata/);
 assert.match(provider,/directError\)throw directError/);
+assert.equal((provider.match(/payment sach me receive hua\?/g)||[]).length,1);
+assert.doesNotMatch(provider,/Kya aapko Customer se paise WAKAI receive hue hain\?/);
 assert.match(driver,/Direct Cash\/UPI payment marked/);
 assert.match(demo,/Demo only • No real QR or payment collection/);
 assert.doesNotMatch(demo,/OCS Company QR • Prototype\/Test/);
