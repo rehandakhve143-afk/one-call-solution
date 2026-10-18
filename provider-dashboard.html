@@ -437,7 +437,7 @@ async function sendInitialQuote(){
 }
 async function confirmProviderCash(){
  if(providerActionBusy||!currentJob||!['cash_wait','visit_cash_wait'].includes(currentJob.status))return;
- if(!confirm('Kya aapko Customer se paise WAKAI receive hue hain? Yeh confirmation Job Complete karega aur OCS ka 9% commission record karega.'))return;
+
  providerActionBusy=true;
  try{
    const {data,error}=await sb.rpc('payment_snapshot_v1',{p_booking_id:currentJob.id});
