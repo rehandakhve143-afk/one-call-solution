@@ -60,3 +60,5 @@ Updated: 2026-10-17. This file tracks verified evidence, not promises. Update ea
 
 - [x] 2026-10-18: SP direct-payment confirmation duplicate dialog removed; static regression test added; GitHub Pages workflow `e0aa1ce5` successful. This does **not** prove production Netlify or live payment E2E.
 - [ ] Verify SP/Driver/Transport wallet recharge and commission with authenticated real-flow test; frontend wallet wording must be checked against pre-recharge ₹100 bonus / post-recharge ₹200 minimum.
+
+- [x] 2026-10-18: Transport wallet screen wording corrected: no mandatory joining recharge, ₹100 welcome bonus first, new-job hold at zero/negative, ₹200 minimum after first verified recharge. GitHub commit `743b9eab`.
