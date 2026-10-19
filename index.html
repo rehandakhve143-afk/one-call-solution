@@ -2379,8 +2379,11 @@ async function ocsLoadSavedDashboardRole(session){
  try{
   const {data,error}=await ocsSupabase.from('profiles').select('active_role').eq('id',session.user.id).maybeSingle();
   if(error)throw error;
+  // A real server preference takes precedence across devices. A null preference
+  // is a first-use state, not permission to reuse stale device data.
+  if(data&&data.active_role===null)return '';
   const role=({sp:'provider',customer:'customer',driver:'driver',transport:'transport'})[data&&data.active_role];
-  return role||ocsReadDashboardRole(session);
+  return role||'';
  }catch(e){
   console.warn('Dashboard preference unavailable; using this device only',e);
   return ocsReadDashboardRole(session);
