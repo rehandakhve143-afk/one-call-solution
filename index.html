@@ -2220,6 +2220,18 @@ async function routeAfterOcsLogin(role){
       location.href=back;
       return;
     }
+    // Normal Customer login may restore a previously used provider dashboard.
+    // Never grant access based on localStorage: provider routing checks user_roles
+    // and resolves the real approved category through the backend snapshot.
+    const remembered=ocsReadDashboardRole(session);
+    if(['provider','driver','transport'].includes(remembered)){
+      const hasSp=await ocsUserHasRole('service_provider');
+      if(hasSp){
+        await openHomeProviderDashboard();
+        return;
+      }
+    }
+    ocsRememberDashboardRole(session,'customer');
     bottomHome();
     await renderHomeDashboardShortcuts();
   }finally{
