@@ -35,6 +35,8 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 
 - [x] 2026-10-19: Verified Netlify production deploy `6ad5a590fb10db3a5e5e64e0` is READY and matches GitHub main commit `9f8e4a5c`; GitHub Pages workflows succeeded. This confirms deployment, NOT live booking/OTP/payment/wallet E2E.
 
+- [ ] Final direct-payment UX requirement (2026-10-19): SP, Driver, and Transport operators use their own external UPI/banking app scanner to receive customer payment. No OCS bank-account/UPI linking is required for service fare. After actual receipt provider confirms in OCS; debit 9% from wallet. Wallet recharge and listing payments remain separate. Audit all three flows for unnecessary mandatory bank setup and legacy full-fare gateway paths; do not claim implemented until verified.
+
 ## Open technical and operational blockers
 - [x] **Transport offer acceptance wallet guard (database)**: provider wallet is rechecked when customer accepts a quote; function verified in Supabase. Live transaction/booking behavior remains to be tested.
 - [ ] **Real recharge**: verify actual IDBI bank credit/UTR before wallet credit; then test automatic wallet unblocking and notification with authorized real records. No fabricated transactions.
