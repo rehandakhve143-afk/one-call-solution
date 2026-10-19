@@ -10,6 +10,8 @@ assert.match(home,/Provider actual receipt confirm karega/);
 assert.match(customer,/Direct Provider Payment/);
 assert.match(services,/Direct Provider Payment/);
 assert.match(provider,/confirm_cash_received_v1/);
+assert.match(provider,/personal UPI app \(PhonePe\/GPay\/Paytm\)/);
+assert.match(provider,/bank link karna zaroori nahi/);
 assert.match(provider,/const requestedBookingId=currentJob\.id/);
 assert.match(provider,/currentJob\.id!==requestedBookingId/);
 assert.match(provider,/pay\.booking_id !== requestedBookingId/);
