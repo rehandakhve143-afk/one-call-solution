@@ -104,6 +104,14 @@ async function test(name,fn){
    assert.equal(call.args.p_start_otp,'123456');assert.equal(call.args.p_action,'start');
    assert.equal(h.applied.length,1);
  }],
+ ['Invalid provider actions and malformed start OTP never reach backend',async()=>{
+   for(const [action,otp] of [['cancel','123456'],['start','12345'],['start','12345678'],['start','12ab56'],['start','']]){
+     const h=harness();
+     await assert.rejects(()=>h.ocsProviderActionLive(action,otp),/Invalid provider job action|Start OTP must be exactly 6 digits/);
+     assert.equal(h.calls.length,0);
+     assert.equal(h.applied.length,0);
+   }
+ }],
  ['Missing booking ID cannot report OTP verified / work started',async()=>{
    const h=harness({bookingId:null});
    await assert.rejects(()=>h.ocsProviderActionLive('start','123456'),/Booking ID missing/);
