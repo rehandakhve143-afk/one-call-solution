@@ -42,6 +42,8 @@ const assert=require('node:assert/strict');
   await page.evaluate(()=>setRole('customer'));
   const feePreview=await page.locator('body').innerText();
   assert.match(feePreview,/9%/,'Demo must explain 9% platform fee separately');
+  assert.match(feePreview,/₹48\.51/,'9% of ₹539 must be ₹48.51');
+  assert.match(feePreview,/₹490\.49/,'91% of ₹539 must be ₹490.49');
   assert.match(feePreview,/no real payment|no real money|Simulation only|₹0 actual transfer/i,'Demo must not imply a real bank or wallet transfer');
   // Regression: quote handoff must preserve the selected service, not show Electrical defaults.
   await page.evaluate(()=>{
