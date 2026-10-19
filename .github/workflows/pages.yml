@@ -39,6 +39,8 @@ jobs:
         run: node tests/direct-payment-regression.cjs
       - name: Verify Customer SP Driver Transport priorities without live data
         run: node tests/core-focus-smoke.cjs
+      - name: Verify wallet Option B migration preserves provider Work ON/OFF (static only)
+        run: node tests/wallet-option-b-regression.cjs
       - name: Install mobile browser test dependencies
         run: |
           npm install --no-save playwright@1.56.1
