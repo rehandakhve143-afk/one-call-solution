@@ -119,7 +119,7 @@ async function test(name,fn){
  }],
  ['Backend OTP error does not update the working job state',async()=>{
    const h=harness({failRpc:'provider_booking_action'});
-   await assert.rejects(()=>h.ocsProviderActionLive('start','wrong'),/Test backend error/);
+   await assert.rejects(()=>h.ocsProviderActionLive('start','123456'),/Test backend error/);
    assert.equal(h.applied.length,0);assert.equal(h.S.status,'REQUESTED');
  }],
  ['Complete action must be confirmed by backend before UI advances',async()=>{
