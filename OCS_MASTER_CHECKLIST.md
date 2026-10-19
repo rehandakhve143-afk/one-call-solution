@@ -1,5 +1,5 @@
 # OCS — Master Implementation and Release Checklist
-Updated: 2026-10-17. This file tracks verified evidence, not promises. Update each item only after checking code, DB or actual deployment.
+Updated: 2026-10-19. This file tracks verified evidence, not promises. Update each item only after checking code, DB or actual deployment.
 
 ## Locked business decisions
 - Customer pays SP/Driver/Transport directly, via their own payment arrangement; OCS does not collect the full job amount.
@@ -62,3 +62,9 @@ Updated: 2026-10-17. This file tracks verified evidence, not promises. Update ea
 - [ ] Verify SP/Driver/Transport wallet recharge and commission with authenticated real-flow test; frontend wallet wording must be checked against pre-recharge ₹100 bonus / post-recharge ₹200 minimum.
 
 - [x] 2026-10-18: Transport wallet screen wording corrected: no mandatory joining recharge, ₹100 welcome bonus first, new-job hold at zero/negative, ₹200 minimum after first verified recharge. GitHub commit `743b9eab`.
+
+### Verification update — 2026-10-19
+- [x] Automated GitHub Pages tests previously passed for commit `b31dbfb0` (static/mock tests only).
+- [x] Read-only Supabase audit confirmed IDBI recharge verification has admin authorization, UTR and exact amount matching, duplicate prevention, dues recovery and conditional wallet auto-resume.
+- [ ] No verified bank recharge in live records as of last audit; do not claim real recharge-to-unblock PASS.
+- [ ] Complete authorized customer/provider/driver/transport real-flow testing and reconcile production Netlify release before launch.
