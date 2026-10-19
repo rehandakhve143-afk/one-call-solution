@@ -438,9 +438,10 @@ async function sendInitialQuote(){
 async function confirmProviderCash(){
  if(providerActionBusy||!currentJob||!['cash_wait','visit_cash_wait'].includes(currentJob.status))return;
 
+ const requestedBookingId=currentJob.id;
  providerActionBusy=true;
  try{
-   const {data,error}=await sb.rpc('payment_snapshot_v1',{p_booking_id:currentJob.id});
+   const {data,error}=await sb.rpc('payment_snapshot_v1',{p_booking_id:requestedBookingId});
    if(error)throw error;
    const pay=data&&data.payment;
    const {data:directInfo,error:directError}=await sb.rpc('ocs_sp_direct_payment_snapshot_v1',{p_booking_id:currentJob.id});
@@ -451,6 +452,7 @@ async function confirmProviderCash(){
    if(directInfo&&directInfo.payment_id&&directInfo.payment_id!==pay.id)throw new Error('Direct payment record mismatch. Contact support.');
    if(directInfo&&directInfo.channel&&!['cash','upi'].includes(directInfo.channel))throw new Error('Unsupported direct payment channel.');
    if(!confirm('Assigned Customer se '+(directInfo?.channel==='upi'?'UPI':'Cash')+' payment sach me receive hua? Sirf paisa milne ke baad Confirm karein.'))return;
+   if(!currentJob||currentJob.id!==requestedBookingId)throw new Error('Booking changed. Reload and verify the payment before confirming.');
    const done=await sb.rpc('confirm_cash_received_v1',{p_payment_id:pay.id});
    if(done.error)throw done.error;
    alert('Customer '+(directInfo?.channel==='upi'?'UPI':'Cash')+' receipt recorded. Job completed; 9% OCS commission recorded.');
