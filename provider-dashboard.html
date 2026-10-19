@@ -420,8 +420,12 @@ async function runProviderStep(action){
  if(action==='complete'&&!confirm('Kaam sach me complete ho gaya hai? Customer se alag confirmation li jayegi.'))return;
  providerActionBusy=true;
  try{
-   const {error}=await sb.rpc('provider_booking_action',{p_booking_id:bookingId,p_action:action,p_start_otp:otp});
+   const {data,error}=await sb.rpc('provider_booking_action',{p_booking_id:bookingId,p_action:action,p_start_otp:otp});
    if(error)throw error;
+   if(action==='start'&&data?.status!=='working'){
+     alert(data?.otp_locked_until&&new Date(data.otp_locked_until)>new Date()?'Too many incorrect OTP attempts. Try again after the 15-minute lock.':'Incorrect Start OTP. Please check with the customer.');
+     await loadDashboard();return;
+   }
    await loadDashboard();
  }catch(e){alert('Action failed: '+(e.message||'Please try again'))}
  finally{providerActionBusy=false}
