@@ -68,7 +68,7 @@ function render(){
 function startCart(){
  const opt='<div class="grid2"><button class="'+(state.mode==='fixed'?'on':'')+'" onclick="selectMode(\'fixed\')">2 Fixed Services</button><button class="'+(state.mode==='quote'?'on':'')+'" onclick="selectMode(\'quote\')">Get Quote</button></div>';
  const items=state.mode==='fixed'?'<div class="preview">'+state.items.map(x=>'<div class="row"><span>'+esc(x.name)+' × '+Number(x.qty||1)+'</span><b>'+esc(rupees(Number(x.qty||1)*x.price))+'</b></div>').join('')+'</div><div class="money">'+rupees(moneyTotal(state.items))+'</div>':'<p class="muted">Test SP will send a quote; Customer must accept it before work starts.</p><label>Describe Test Work</label><textarea id="testDescription" rows="2" placeholder="Example: Main distribution board work">'+esc(state.draftDescription||"Electrical fault inspection and repair (demo)")+'</textarea>';
- return card('1. Create Safe Test Booking','<p class="muted">Aapki ₹539 wali Electrical selection pehle se ready hai. Koi real request nahi jayegi.</p>'+opt+items+
+ return card('1. Create Safe Test Booking','<p class="muted">'+esc(state.mode==='quote'?(state.service||'New Service Request')+' • Get Quote (demo)':state.category+' • '+rupees(moneyTotal(state.items))+' (demo)')+'. Koi real request nahi jayegi.</p>'+opt+items+
  '<label>Demo Address (not shared)</label><input value="OCS Test Address, Khopoli" disabled>'+
  '<label>Simulated Direct Payment</label><div class="grid2"><button class="'+(state.pay!=='cash'?'on':'')+'" onclick="setPay(\'direct_upi\')">UPI to SP (Demo)</button><button class="'+(state.pay==='cash'?'on':'')+'" onclick="setPay(\'cash\')">Cash to SP (Demo)</button></div>'+ 
  '<div class="preview"><b>Payee: OCS DEMO Service Provider (not a real person).</b><br>Customer sees who receives payment. SP separately owes OCS 9% after receipt. Real payments and provider details will need approval and verification.</div>'+ 
@@ -78,7 +78,7 @@ function startCart(){
 function bookingDetails(){
  const b=state.booking;
  return card('Test Booking', '<span class="pill">'+esc(stageName(b.status))+'</span>'+
- row('Reference',b.id)+row('Category',b.category)+row('Service',b.mode==='quote'?'Get Quote':b.items.map(x=>x.name+' × '+x.qty).join(', '))+
+ row('Reference',b.id)+row('Category',b.category)+row('Service',b.mode==='quote'?(b.service||'Get Quote'):b.items.map(x=>x.name+' × '+x.qty).join(', '))+
  row('Booking Amount',b.mode==='quote'&&!b.quoteAccepted?'Awaiting Test Quote':rupees(b.amount))+
  row('Payment receiver','OCS DEMO Service Provider • simulated only')+
  row('Payment method',paymentLabel(b.pay))+
@@ -136,7 +136,7 @@ function makeBooking(){
  if(state.mode==='quote'&&description.length<5){toast('Test work description likhein.',true);return}
  const amount=state.mode==='fixed'?moneyTotal(state.items):0;
  state.booking={id:newId(),mode:state.mode,items:state.items.map(x=>({...x})),category:state.category,
-   amount,description,pay:state.pay,status:'searching',quote:null,quoteAccepted:false,otp:null};
+   amount,description,service:state.mode==='quote'?(state.service||'New Service Request'):'',pay:state.pay,status:'searching',quote:null,quoteAccepted:false,otp:null};
  log('Customer created isolated demo booking '+state.booking.id);save();toast('Safe test booking created. No real request sent.');render();
 }
 function toggleWork(){state.workOn=!state.workOn;log('Demo SP Work '+(state.workOn?'ON':'OFF'));save();render()}
@@ -177,6 +177,7 @@ try{
      }));
    if(quote||items.length){
      state.category=String(imported.category||'Electrical').slice(0,60);
+     state.service=String(imported.service||'New Service Request').slice(0,120);
      if(items.length)state.items=items;
      state.mode=quote?'quote':'fixed';
      state.pay=imported.pay==='cash'?'cash':'direct_upi';
