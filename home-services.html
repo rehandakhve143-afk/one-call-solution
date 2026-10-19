@@ -4690,9 +4690,9 @@ async function adminLoadProviderOnboarding(){
        '<div class="muted" style="margin-top:5px">'+ocsSafe(x.phone||"")+'</div>'+
        '<div class="row" style="margin-top:9px"><span>Work Category</span><b>'+ocsSafe(x.service_name||x.category||"Not set")+'</b></div>'+
        '<div class="row"><span>Service Area</span><b>'+ocsSafe(x.service_area||"Not set")+' • '+Number(x.service_radius_km||12)+' km</b></div>'+
-       '<div class="row"><span>Bank</span><b>'+ocsSafe(x.bank_name||"Not added")+' '+ocsSafe(x.masked_account||"")+'</b></div>'+
+       '<div class="row"><span>Bank (optional)</span><b>'+ocsSafe(x.bank_name||"Not required for direct payment")+' '+ocsSafe(x.masked_account||"")+'</b></div>'+
        '<div class="row"><span>IFSC</span><b>'+ocsSafe(x.ifsc||"—")+'</b></div>'+
-       '<div class="row"><span>Bank Status</span><b>'+ocsSafe(String(x.bank_status||"pending").toUpperCase())+'</b></div>'+
+       '<div class="row"><span>Bank Status (optional)</span><b>'+ocsSafe(String(x.bank_status||"not provided").toUpperCase())+'</b></div>'+
        '<button class="btn gray" onclick="adminViewProviderSelfie(OCS_ADMIN_SP_ONBOARDING[\''+key+'\'].selfie_path)">View Selfie</button>'+
        '<div class="row"><button class="btn ok" onclick="adminReviewProviderOnboarding(\''+key+'\',\'approved\')">Approve SP</button>'+
        '<button class="btn red" onclick="adminReviewProviderOnboarding(\''+key+'\',\'rejected\')">Reject</button></div>'+
@@ -4705,6 +4705,9 @@ async function adminLoadProviderOnboarding(){
 async function adminReviewProviderOnboarding(key,decision){
  const x=window.OCS_ADMIN_SP_ONBOARDING&&window.OCS_ADMIN_SP_ONBOARDING[key];
  if(!x){alert("SP approval record missing.");return}
+ if(!x.provider_id){alert("Verified provider ID missing. No action taken.");return}
+ if(!["approved","rejected"].includes(decision)){alert("Invalid review decision.");return}
+ if(!confirm((decision==="approved"?"Approve":"Reject")+" SP "+String(x.provider_name||x.provider_id)+"? This changes the real provider record."))return;
  let reason=null;
  if(decision==="rejected"){
    reason=(prompt("Reject reason (optional)")||"").trim()||null;
