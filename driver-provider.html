@@ -162,7 +162,7 @@ async function reportDriverSafety(){
  }catch(e){alert('Safety report failed: '+(e.message||'Retry'))}
 }
 async function act(a){try{const {error}=await sb.rpc('provider_booking_action',{p_booking_id:current.id,p_action:a,p_start_otp:null});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'Update failed')}}
-async function startOtp(){const otp=(prompt('Customer ka Start OTP enter karein')||'').trim();if(!otp)return;try{const {error}=await sb.rpc('provider_booking_action',{p_booking_id:current.id,p_action:'start',p_start_otp:otp});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'OTP invalid')}}
+async function startOtp(){const otp=(prompt('Customer ka Start OTP enter karein')||'').trim();if(!/^\d{4}$/.test(otp)){alert('Customer ka 4-digit Start OTP enter karein.');return;}try{const {error}=await sb.rpc('provider_booking_action',{p_booking_id:current.id,p_action:'start',p_start_otp:otp});if(error)throw error;await loadCurrent()}catch(e){alert(e.message||'OTP invalid')}}
 let driverCashConfirmBusy=false;
 async function confirmDriverCash(){
  if(!current||String(current.status||'').toLowerCase()!=='cash_wait'||driverCashConfirmBusy)return;
