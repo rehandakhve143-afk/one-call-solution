@@ -2407,6 +2407,9 @@ async function openHomeProviderDashboard(){
     const skills=Array.isArray(data&&data.skills)?data.skills:[];
     const isDriver=skills.some(x=>String(x.category||'').trim()==='Driver Service'&&x.enabled_by_provider!==false);
     const isTransport=skills.some(x=>String(x.category||'').trim()==='Tempo / Goods Transport'&&x.enabled_by_provider!==false);
+    // A missing or disabled category must never silently route to generic SP.
+    const activeSkills=skills.filter(x=>x&&x.enabled_by_provider!==false);
+    if(!activeSkills.length)throw new Error('No active provider category found');
     await ocsSaveDashboardRole(session,isDriver?'driver':(isTransport?'transport':'provider'));
     location.href=isDriver?'driver-provider.html?v=20261006-driver2':(isTransport?'transport-driver.html?v=20261006-driver-e2e1':'provider-dashboard.html?v=20261008-oneapp1');
   }catch(e){
