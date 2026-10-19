@@ -126,7 +126,7 @@ async function confirmTransportCash(){
    const {data:snap,error:se}=await sb.rpc('payment_snapshot_v1',{p_booking_id:c.id});if(se)throw se;
    const p=snap&&snap.payment;
    if(!p||!p.id||String(p.method||'').toLowerCase()!=='cash'||p.status!=='cash_marked'||p.purpose!=='job')throw new Error('Pending cash payment record nahi mila.');
-   if(!confirm('Confirm karein: Customer se ₹'+Number(p.amount||0).toFixed(2)+' cash sach mein receive hua hai? Isse booking complete hogi aur OCS 9% commission wallet/due ledger mein record hoga.'))return;
+   if(!confirm('Confirm karein: Customer se ₹'+Number(p.amount||0).toFixed(2)+' apne Cash ya personal UPI app mein sach mein receive hua hai? Bank link karna zaroori nahi. Isse booking complete hogi aur OCS 9% commission wallet/due ledger mein record hoga.'))return;
    const {error}=await sb.rpc('confirm_cash_received_v1',{p_payment_id:p.id});if(error)throw error;
    alert('Cash received confirmed. Trip completed; OCS platform fee recorded.');
    await load();
