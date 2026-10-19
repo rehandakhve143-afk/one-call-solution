@@ -113,6 +113,16 @@ async function test(name,fn){
    await assert.rejects(()=>h.ocsProviderActionLive('start','wrong'),/Test backend error/);
    assert.equal(h.applied.length,0);assert.equal(h.S.status,'REQUESTED');
  }],
+ ['Complete action must be confirmed by backend before UI advances',async()=>{
+   const h=harness();await h.ocsProviderActionLive('complete','');
+   const call=h.calls.find(c=>c.name==='provider_booking_action');
+   assert(call);assert.equal(call.args.p_action,'complete');assert.equal(h.applied.length,1);
+ }],
+ ['Failed completion must not mark job complete locally',async()=>{
+   const h=harness({failRpc:'provider_booking_action'});
+   await assert.rejects(()=>h.ocsProviderActionLive('complete',''),/Test backend error/);
+   assert.equal(h.applied.length,0);assert.equal(h.S.status,'REQUESTED');
+ }],
  ['No Supabase connection blocks acceptance instead of returning false',async()=>{
    const h=harness({connected:false});
    await assert.rejects(()=>h.ocsProviderDecisionLive('accept'),/online booking connection/);
