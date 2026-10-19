@@ -447,6 +447,7 @@ async function confirmProviderCash(){
    const {data:directInfo,error:directError}=await sb.rpc('ocs_sp_direct_payment_snapshot_v1',{p_booking_id:currentJob.id});
    if(directError)throw directError;
    if(!pay||pay.method!=='cash'||pay.status!=='cash_marked')throw new Error('Direct payment pending record nahi mila.');
+   if(pay.booking_id && pay.booking_id !== requestedBookingId) throw new Error('Payment booking mismatch. Refresh the dashboard.');
    // Legacy cash bookings may have no direct_sp_payment metadata. The server validates the assigned provider and cash_marked state.
    // UPI-labelled records must match the pending payment; never infer UPI from missing metadata.
    if(directInfo&&directInfo.payment_id&&directInfo.payment_id!==pay.id)throw new Error('Direct payment record mismatch. Contact support.');
