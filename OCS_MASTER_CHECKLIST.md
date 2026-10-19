@@ -120,3 +120,10 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - `accept_booking_v3`, `provider_booking_action`, and `confirm_cash_received_v1` allow authenticated EXECUTE but deny anon EXECUTE; `apply_provider_commission_v1` denies both anon and authenticated direct EXECUTE. Function-text inspection finds auth.uid() checks; accept function references wallet, booking action references OTP. These are code checks only, not proof of successful authorization paths.
 - No verified provider top-ups or bank credits exist. No production data, payments, sessions, wallets or bookings were modified by this audit.
 - **LIVE E2E BLOCKED:** fresh Customer + Provider authenticated sessions and authorized isolated booking are needed. Never simulate success by forging JWTs, bypassing OTP or inserting fabricated financial transactions.
+
+### Owner authorization — 2026-10-19
+- Owner authorized continuing ordinary OCS development, code corrections, safe backend updates, and nonfinancial tests without repeatedly requesting approval for each small change.
+- Authorization is **not** proof that live authenticated tests, real bank payments, production data edits, paid purchases, or Play Store publication are safe or completed. Seek specific confirmation where material financial/security/publication consequences arise.
+- Latest GitHub Pages workflows at inspection: commit `09af1624`, both workflow and Pages deployment SUCCESS. This confirms static/mock CI only.
+- Confirmed `provider-dashboard.html` checks 4-digit Start Work OTP in its frontend; cross-module and server-side OTP verification remain open.
+- Next priority: audit all real login/start OTP paths and direct payment client callers, fix concrete mismatches with regression tests; then isolated authenticated E2E.
