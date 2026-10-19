@@ -58,7 +58,7 @@ function card(title,body){return'<section class="card"><h2>'+esc(title)+'</h2>'+
 function stageName(s){return({searching:'Waiting for Test SP',accepted:'Accepted',on_way:'On The Way',reached:'Reached • Start OTP',working:'Work In Progress',completion_requested:'Customer Confirmation Pending',payment_pending:'Payment Pending',cash_wait:'Direct Payment Confirmation Pending',direct_wait:'Direct Payment Confirmation Pending',completed:'Completed (Demo)',support_review:'Support Review (Demo)'})[s]||s}
 function logHtml(){return state.events.length?'<ul class="timeline">'+state.events.map(x=>'<li>'+esc(x.time)+' • '+esc(x.msg)+'</li>').join('')+'</ul>':'<p class="muted">No test actions yet.</p>'}
 function setRole(role){if(!['customer','sp'].includes(role))return;state.role=role;save();render()}
-function randomDigits(){const arr=new Uint32Array(1);crypto.getRandomValues(arr);return String(1000+(arr[0]%9000))}
+function randomDigits(){const arr=new Uint32Array(1);crypto.getRandomValues(arr);return String(100000+(arr[0]%900000))}
 function newId(){const a=new Uint32Array(1);crypto.getRandomValues(a);return 'TEST-'+(a[0]%100000000).toString().padStart(8,'0')}
 function render(){
  byId('customerTab').classList.toggle('active',state.role==='customer');
@@ -118,7 +118,7 @@ function spHTML(){
    next=b.quote===null?'<label>Quotation ₹</label><input type="number" min="1" id="quoteAmount" placeholder="Enter labour quote">'+button('Send TEST Quote','spQuote()'):'';
   }else{hint='Test SP customer ke address par nikal sakta hai.';next=button('On The Way',"spStep('on_way')");}
  }else if(b.status==='on_way'){hint='Reached tabhi mark karein jab simulated arrival ho.';next=button('Reached Customer',"spStep('reached')");}
- else if(b.status==='reached'){hint='Customer side par Start OTP dikhega. SP side par secret show nahi hoga.';next='<label>Customer se 4-digit OTP</label><input id="spOtp" type="text" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4-digit Start OTP">'+button('Verify OTP & Start Work',"spStep('start')");}
+ else if(b.status==='reached'){hint='Customer side par Start OTP dikhega. SP side par secret show nahi hoga.';next='<label>Customer se 6-digit OTP</label><input id="spOtp" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="6-digit Start OTP">'+button('Verify OTP & Start Work',"spStep('start')");}
  else if(b.status==='working'){hint='Work finish hone par Customer confirmation request karein.';next=button('Request Work Completion',"spStep('complete')");}
  else if(b.status==='completion_requested'){hint='Waiting for Customer confirmation.';next=button('Switch to Customer',"setRole('customer')");}
  else if(b.status==='payment_pending'){hint='Customer payment simulation pending.';next=button('Switch to Customer',"setRole('customer')");}
@@ -149,7 +149,7 @@ function spStep(action){
  const b=state.booking;if(!b)return;
  if(action==='on_way'){if(b.status!=='accepted'||(b.mode==='quote'&&!b.quoteAccepted))return;b.status='on_way';log('Test SP on the way')}
  else if(action==='reached'){if(b.status!=='on_way')return;b.status='reached';b.otp=randomDigits();log('Test SP reached: Customer received demo Start OTP')}
- else if(action==='start'){if(b.status!=='reached')return;const pin=String(byId('spOtp')?.value||'').trim();if(!/^\d{4}$/.test(pin)||pin!==b.otp){toast('Wrong demo OTP. Customer screen par OTP check karein.',true);return}b.status='working';b.otp=null;log('Start OTP verified • demo work started')}
+ else if(action==='start'){if(b.status!=='reached')return;const pin=String(byId('spOtp')?.value||'').trim();if(!/^\d{6}$/.test(pin)||pin!==b.otp){toast('Wrong demo OTP. Customer screen par OTP check karein.',true);return}b.status='working';b.otp=null;log('Start OTP verified • demo work started')}
  else if(action==='complete'){if(b.status!=='working')return;b.status='completion_requested';log('Test SP requested completion confirmation')}
  else return;
  save();render();
