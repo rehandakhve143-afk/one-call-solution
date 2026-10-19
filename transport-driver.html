@@ -90,6 +90,7 @@ function renderWork(){
  if(c.has_booking){box.innerHTML=currentCard(c);return}
  if(D?.current?.has_booking&&!isTransportTrip(D.current)){box.innerHTML='<div class="card empty"><b>Another OCS job is active</b>Us job ko complete karein. Nayi Transport trip filhal available nahi hai.</div>';return}
  if(D?.walletGate?.new_jobs_wallet_blocked){box.innerHTML='<div class="card empty"><b>Wallet Hold — New Transport Quotes Paused</b>Recharge wallet to continue new jobs. ₹100 welcome bonus works until exhausted; after first recharge minimum ₹200 applies. Accepted trips continue.</div>';return}
+ if(p.admin_paused||p.onboarding_status!=='approved'||!t.kyc_complete||!p.available_for_work){OPEN=null;}
  if(OPEN){box.innerHTML=requestCard(OPEN);return}
  const bal=Number(p.wallet_balance??D?.wallet?.wallet_balance??0);
  const reason=p.admin_paused?'OCS Admin ne new jobs pause kiye hain.':p.onboarding_status!=='approved'?'Admin approval required.':!t.kyc_complete?'Transport KYC complete karein.':D?.walletGate?.new_jobs_wallet_blocked?'Wallet recharge required for new jobs.':!p.available_for_work?'Work ON karne par matching requests aayengi.':'Matching Transport request milte hi yahan dikhegi.';
