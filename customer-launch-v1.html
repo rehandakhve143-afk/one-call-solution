@@ -226,6 +226,7 @@ function openSafeTestMode(mode){
   const items=isQuote?[]:selected.map(x=>({name:String(x.name||''),qty:Number(x.qty||1),price:Number(x.price||0)}));
   const transfer={
     category:category||'Electrical',
+    service:isQuote?String(quoteServiceName||'New Service Request').slice(0,120):'',
     mode:isQuote?'quote':'fixed',
     items,
     pay:String(bookingPayment||'ONLINE').toLowerCase(),
