@@ -4044,6 +4044,13 @@ function submitOcsRating(){
  alert('OCS rating & comment saved.');
 }
 
+function ocsIsDemoNotification(n){
+ const text=String(n?.title||'')+' '+String(n?.body||'');
+ return /admin cleanup|test notification|\\bXYZ Demo\\b|\\bXYZ Modular Kitchen\\b|\\bXYZ Hotel\\b/i.test(text);
+}
+function ocsVisibleNotifications(rows){
+ return (Array.isArray(rows)?rows:[]).filter(n=>!ocsIsDemoNotification(n));
+}
 async function openNotifications(){
  const body=document.getElementById('notificationsBody'),modal=document.getElementById('notificationsModal');
  if(!body||!modal)return;
@@ -4058,7 +4065,7 @@ async function openNotifications(){
   const {data,error}=await ocsSupabase.rpc('list_notifications_v1',{p_limit:60});
   if(error)throw error;
   const rows=Array.isArray(data)?data:[];
-  const visible=rows.filter(n=>!/admin cleanup|test notification/i.test(String(n.title||'')+' '+String(n.body||'')));
+  const visible=ocsVisibleNotifications(rows);
   body.replaceChildren();
   if(!visible.length){body.innerHTML='<div class="bottom-hub-card"><b>No notifications yet</b><small>Your new job, discussion and booking updates will appear here.</small></div>';return}
   for(const n of visible){
@@ -4087,13 +4094,15 @@ async function openNotifications(){
  }catch(e){body.innerHTML='<div class="bottom-hub-card"><b>Could not load notifications</b><small>Check connection and try again.</small><div class="bottom-hub-actions"><button class="main" onclick="openNotifications()">Retry</button></div></div>'}
 }
 async function refreshHomeNotificationCount(){
- const bell=document.querySelector('.ocs-super-iconbtn[aria-label="Notifications"]');
+ const bell=document.querySelector('.ocs-super-iconbtn[aria-label^="Notifications"],.ocs-super-iconbtn[data-unread]');
  if(!bell||!ocsSupabase)return;
  const session=await getOcsSession();
  if(!session?.user){bell.removeAttribute('data-unread');bell.setAttribute('aria-label','Notifications');return}
- const {data,error}=await ocsSupabase.rpc('ocs_my_unread_notifications_count_v1');
+ // Use the same visible rows as the notifications screen; the raw backend count
+ // includes old demo reminders and would otherwise show a misleading badge.
+ const {data,error}=await ocsSupabase.rpc('list_notifications_v1',{p_limit:200});
  if(error)return;
- const count=Math.max(0,Number(data||0));
+ const count=ocsVisibleNotifications(data).filter(n=>!n.read_at).length;
  bell.dataset.unread=count>0?(count>99?'99+':String(count)):'';
  bell.setAttribute('aria-label',count+' unread notifications');
 }
