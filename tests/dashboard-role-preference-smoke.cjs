@@ -3,6 +3,8 @@ assert.match(html,/if\(hasSp\)\{\s*await openHomeProviderDashboard\(\)/);
 assert.match(html,/await ocsSaveDashboardRole\(session,'customer'\)/);
 assert.match(html,/\.from\('profiles'\)\.select\('active_role'\)/);
 assert.match(html,/\.from\('profiles'\)\.update\(\{active_role:dbRole\}\)/);
+assert.match(html,/\.select\('active_role'\)\.maybeSingle\(\)/);
+assert.match(html,/if\(!data\|\|data\.active_role!==dbRole\)throw new Error/);
 assert.match(html,/if\(!activeSkills\.length\)throw new Error\('No active provider category found'\)/);
 assert.match(html,/console\.error\('Provider category routing unavailable',e\)/);
 console.log('PASS per-account dashboard preference is stored only after login; provider access still role-checked (static only)');
