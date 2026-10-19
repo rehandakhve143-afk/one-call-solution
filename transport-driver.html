@@ -63,7 +63,7 @@ async function load(){
  }
  if(error){$('work').innerHTML='<div class="card">Driver dashboard load failed: '+esc(error.message)+'</div>';return}
  D=data||{};render();
- const {data:walletGate,error:we}=await sb.rpc('ocs_sp_wallet_new_job_status_v1');D.walletGate=we?null:walletGate;
+ const {data:walletGate,error:we}=await sb.rpc('ocs_sp_wallet_new_job_status_v1');D.walletGate=we?null:walletGate;render();
  const {data:jobs,error:je}=await sb.rpc('provider_open_jobs_v4');OPEN=!je&&Array.isArray(jobs)?jobs.find(x=>String(x.category||'').trim().toLowerCase()==='tempo / goods transport')||null:null;renderWork()
 }
 function render(){
@@ -73,7 +73,7 @@ function render(){
  $('vehicle').textContent=t.vehicle_type||'Not set';$('vehicleNo').textContent=t.vehicle_number||'—';$('kycBadge').textContent=t.kyc_complete?'DOCUMENT DETAILS ADDED':'DOCUMENT DETAILS PENDING';
  const on=!!p.available_for_work&&!p.admin_paused,bal=Number(p.wallet_balance??w.wallet_balance??0);
  $('toggle').classList.toggle('on',on);$('toggle').textContent=p.available_for_work?'ON':'OFF';
- $('availText').textContent=p.admin_paused?'New trips paused by OCS Admin':p.onboarding_status!=='approved'?'OCS Admin approval required':!t.kyc_complete?'Complete Transport KYC for new trips':bal<200?'New trips on hold • Recharge ₹'+Math.ceil(200-bal)+' to reach ₹200':on?'Receiving matching Transport requests':'Work ON to receive matching Transport requests';
+ $('availText').textContent=p.admin_paused?'New trips paused by OCS Admin':p.onboarding_status!=='approved'?'OCS Admin approval required':!t.kyc_complete?'Complete Transport KYC for new trips':D?.walletGate?.new_jobs_wallet_blocked?'Wallet Hold • New trips paused (₹100 bonus until exhausted; ₹200 minimum after first recharge)':on?'Receiving matching Transport requests':'Work ON to receive matching Transport requests';
  $('walletBal').textContent=money(w.wallet_balance);$('walletStat').textContent=money(w.wallet_balance);$('withdraw').textContent=money(w.withdrawable_amount);
  $('completed').textContent=h.filter(x=>['completed','done'].includes(String(x.status||'').toLowerCase())).length;$('pastCount').textContent=h.length;
  renderWork();renderActivity();
