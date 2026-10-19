@@ -2088,17 +2088,7 @@ async function secureQuotePayment(mode){
      await ocsLoadLive("customer");render();return;
    }catch(e){alert("Cash at completion select nahi hua: "+(e&&e.message?e.message:"Unknown error"));return}
  }
- try{
-   const {data:rp,error:rpe}=await ocsSupabase.rpc("customer_reward_payment_preview_v1",{p_booking_id:S.activeBookingId,p_purpose:"secure_hold"});
-   if(rpe)throw rpe;
-   if(Number(rp&&rp.remaining_amount||0)<=0){await ocsLoadLive("customer");render();return}
-   const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
-     p_booking_id:S.activeBookingId,p_purpose:"secure_hold",p_method:"online"
-   });
-   if(ie)throw ie;
-   S.backendPaymentId=intent.id;S.payPurpose="SECURE_HOLD";
-   await ocsLaunchRazorpay("booking",intent.id,"OCS Secure Payment",Number(intent.amount||amt));
- }catch(e){alert("Secure online payment start nahi hua: "+(e&&e.message?e.message:"Unknown error"))}
+ alert("OCS ab full booking amount collect nahi karta. Quote ke liye 'Cash at completion' chunein; provider ko directly Cash ya personal UPI se pay karein. Secure online checkout disabled hai.");
 }
 function secureExtraQuoteAmount(amount,desc){
  amount=Number(amount)||0;if(amount<=0)return;
@@ -3722,25 +3712,9 @@ async function ocsLaunchRazorpay(kind,id,title,amount){
 }
 
 async function openOnline(purpose){
- const required=purpose==="VISIT"?"VISIT_PAYMENT":"PAYMENT";
- if(!ocsRequireStage(required,"Online payment"))return;
- if(!ocsGuardAction("open-online-"+purpose,1000))return;
- ensureBookingAmount();
- try{
-   const p=purpose==="VISIT"?"visit":"job";
-   const {data:rp,error:rpe}=await ocsSupabase.rpc("customer_reward_payment_preview_v1",{p_booking_id:S.activeBookingId,p_purpose:p});
-   if(rpe)throw rpe;
-   if(Number(rp&&rp.remaining_amount||0)<=0){await ocsLoadLive("customer");render();return}
-   const {data:intent,error:ie}=await ocsSupabase.rpc("create_booking_payment_intent_v1",{
-     p_booking_id:S.activeBookingId,p_purpose:p,p_method:"online"
-   });
-   if(ie)throw ie;
-   S.backendPaymentId=intent.id;S.payPurpose=purpose;S.payment="ONLINE";
-   await ocsLaunchRazorpay("booking",intent.id,purpose==="VISIT"?"OCS Visit Charge":"OCS Service Payment",Number(intent.amount||0));
- }catch(e){
-   console.error("Online payment failed",e);
-   alert("Online payment complete nahi hua: "+(e&&e.message?e.message:"Unknown error"));
- }
+ // OCS never collects full service fares. Provider receives UPI directly;
+ // provider receipt confirmation later applies the 9% wallet commission.
+ return payCash(purpose,"upi");
 }
 
 function onlineSuccess(){
