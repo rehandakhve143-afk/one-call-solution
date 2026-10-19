@@ -68,3 +68,5 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - [x] Read-only Supabase audit confirmed IDBI recharge verification has admin authorization, UTR and exact amount matching, duplicate prevention, dues recovery and conditional wallet auto-resume.
 - [ ] No verified bank recharge in live records as of last audit; do not claim real recharge-to-unblock PASS.
 - [ ] Complete authorized customer/provider/driver/transport real-flow testing and reconcile production Netlify release before launch.
+
+- [x] 2026-10-19: Supabase migration `ocs_admin_work_on_respects_wallet_eligibility` applied and verified: admin `on` now requires pre-recharge positive welcome-bonus wallet or post-recharge wallet >= ₹200, in addition to KYC/skill/location. No real recharge E2E performed.
