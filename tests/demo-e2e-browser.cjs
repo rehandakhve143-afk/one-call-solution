@@ -28,9 +28,11 @@ const assert=require('node:assert/strict');
   await page.evaluate(()=>spStep('start'));
   assert.equal((await state()).booking.status,'working');
   assert.equal((await state()).booking.otp,null,'Verified OTP must be consumed');
-  await page.locator('#spOtp').fill(otp);
+  // Successful start re-renders the SP screen and intentionally removes #spOtp.
+  // Replay the action directly: a consumed OTP must not restart the booking.
+  assert.equal(await page.locator('#spOtp').count(),0,'OTP input must disappear after work starts');
   await page.evaluate(()=>spStep('start'));
-  assert.equal((await state()).booking.status,'working','Reused OTP must not restart or reset work');
+  assert.equal((await state()).booking.status,'working','Reused Start action must not restart or reset work');
   await page.evaluate(()=>spStep('complete'));
   await page.evaluate(()=>setRole('customer'));
   await page.evaluate(()=>confirmWork());
