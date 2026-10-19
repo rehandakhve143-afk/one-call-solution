@@ -99,27 +99,27 @@ async function test(name,fn){
  }],
  ['Start OTP forwards exact code; state changes only after server confirmation',async()=>{
    const h=harness();
-   await h.ocsProviderActionLive('start','123456');
+   await h.ocsProviderActionLive('start','1234');
    const call=h.calls[0];assert.equal(call.name,'provider_booking_action');
-   assert.equal(call.args.p_start_otp,'123456');assert.equal(call.args.p_action,'start');
+   assert.equal(call.args.p_start_otp,'1234');assert.equal(call.args.p_action,'start');
    assert.equal(h.applied.length,1);
  }],
  ['Invalid provider actions and malformed start OTP never reach backend',async()=>{
-   for(const [action,otp] of [['cancel','123456'],['start','12345'],['start','12345678'],['start','12ab56'],['start','']]){
+   for(const [action,otp] of [['cancel','1234'],['start','123'],['start','123456'],['start','12ab'],['start','']]){
      const h=harness();
-     await assert.rejects(()=>h.ocsProviderActionLive(action,otp),/Invalid provider job action|Start OTP must be exactly 6 digits/);
+     await assert.rejects(()=>h.ocsProviderActionLive(action,otp),/Invalid provider job action|Start OTP must be exactly 4 digits/);
      assert.equal(h.calls.length,0);
      assert.equal(h.applied.length,0);
    }
  }],
  ['Missing booking ID cannot report OTP verified / work started',async()=>{
    const h=harness({bookingId:null});
-   await assert.rejects(()=>h.ocsProviderActionLive('start','123456'),/Booking ID missing/);
+   await assert.rejects(()=>h.ocsProviderActionLive('start','1234'),/Booking ID missing/);
    assert.equal(h.calls.length,0);assert.equal(h.applied.length,0);
  }],
  ['Backend OTP error does not update the working job state',async()=>{
    const h=harness({failRpc:'provider_booking_action'});
-   await assert.rejects(()=>h.ocsProviderActionLive('start','123456'),/Test backend error/);
+   await assert.rejects(()=>h.ocsProviderActionLive('start','1234'),/Test backend error/);
    assert.equal(h.applied.length,0);assert.equal(h.S.status,'REQUESTED');
  }],
  ['Complete action must be confirmed by backend before UI advances',async()=>{
@@ -140,7 +140,7 @@ async function test(name,fn){
  ['No login cannot reject, start or complete a provider job',async()=>{
    for(const [method,args] of [
      ['ocsProviderDecisionLive',['reject']],
-     ['ocsProviderActionLive',['start','123456']],
+     ['ocsProviderActionLive',['start','1234']],
      ['ocsProviderActionLive',['complete','']]
    ]){
      const h=harness({loggedIn:false});
@@ -165,7 +165,7 @@ async function test(name,fn){
  ['No Supabase connection blocks acceptance instead of returning false',async()=>{
    const h=harness({connected:false});
    await assert.rejects(()=>h.ocsProviderDecisionLive('accept'),/online booking connection/);
-   await assert.rejects(()=>h.ocsProviderActionLive('start','123456'),/online booking connection/);
+   await assert.rejects(()=>h.ocsProviderActionLive('start','1234'),/online booking connection/);
  }]
  ];
  for(const [name,fn] of tests)if(await test(name,fn))success++;
