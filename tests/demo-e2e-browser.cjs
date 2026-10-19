@@ -30,6 +30,21 @@ const assert=require('node:assert/strict');
   await page.evaluate(()=>spCashReceived());
   assert.equal((await state()).booking.status,'completed');
   assert.equal((await state()).booking.amount,539);
+  // Regression: quote handoff must preserve the selected service, not show Electrical defaults.
+  await page.evaluate(()=>{
+    localStorage.removeItem('ocs_test_mode_demo_v1');
+    sessionStorage.setItem('ocsSafeTestCartTransfer',JSON.stringify({category:'Appliance Repair',service:'Refrigerator Repair / Service',mode:'quote',items:[],pay:'direct_upi',description:'TEST ONLY refrigerator cooling issue'}));
+  });
+  await page.reload();
+  assert.match(await page.locator('body').innerText(),/Refrigerator Repair \\/ Service/);
+  await page.locator('#testDescription').fill('TEST ONLY refrigerator cooling issue');
+  await page.getByRole('button',{name:/Create TEST Booking/}).click();
+  const quoteState=await state();
+  assert.equal(quoteState.booking.category,'Appliance Repair');
+  assert.equal(quoteState.booking.service,'Refrigerator Repair / Service');
+  assert.equal(quoteState.booking.mode,'quote');
+  assert.equal(quoteState.booking.amount,0);
+  console.log('PASS demo quote handoff: selected Refrigerator service preserved; no default Electrical ₹539 booking');
   console.log('PASS demo mobile E2E: Work OFF -> ON + Accept -> Arrival -> OTP -> Completion -> simulated receipt (no real payments)');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exit(1)});
