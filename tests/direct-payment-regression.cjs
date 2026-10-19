@@ -29,6 +29,18 @@ assert.match(provider,/directError\)throw directError/);
 assert.equal((provider.match(/payment sach me receive hua\?/g)||[]).length,1);
 assert.doesNotMatch(provider,/Kya aapko Customer se paise WAKAI receive hue hain\?/);
 assert.match(driver,/Direct Cash\/UPI payment marked/);
+// Driver and Transport must never complete a job on customer assertion alone.
+for(const [role,html] of [['Driver',driverProvider],['Transport',transport]]){
+ assert.match(html,/confirm_cash_received_v1/,`${role}: provider receipt confirmation RPC required`);
+ assert.match(html,/p_payment_id/,`${role}: payment-specific confirmation required`);
+ assert.doesNotMatch(html,/create_booking_payment_intent_v1|ocs-create-razorpay-order/,`${role}: full fare gateway prohibited`);
+ assert.match(html,/wallet/,`${role}: wallet guidance required`);
+}
+assert.match(driverProvider,/ocs_driver_account_eligibility_v1/);
+assert.match(transport,/transport_driver_dashboard_v1/);
+assert.match(driverProvider,/JWT issued at future/);
+assert.match(transport,/JWT issued at future/);
+
 assert.match(transport,/joining recharge zaroori nahi/);
 assert.match(transport,/₹100 welcome bonus/);
 assert.match(transport,/First verified recharge ke baad new jobs ke liye ₹200/);
