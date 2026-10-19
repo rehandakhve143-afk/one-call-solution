@@ -9,6 +9,17 @@ assert.match(home,/Job payment directly assigned provider ko UPI\/Bank/);
 assert.match(home,/Provider actual receipt confirm karega/);
 assert.match(customer,/Direct Provider Payment/);
 assert.match(services,/Direct Provider Payment/);
+// Admin actions must be backed by RPCs, not static demo-only toggles.
+const admin=read('admin.html'),legacyAdmin=read('OCS_ADMIN_PANEL_V1.html');
+assert.match(admin,/home-services\.html\?tab=admin/);
+assert.match(legacyAdmin,/home-services\.html\?tab=admin/);
+assert.doesNotMatch(legacyAdmin,/function pauseJobs\(\)|function resumeJobs\(\)/);
+assert.match(booking,/admin_set_provider_pause_v1/);
+assert.match(booking,/admin_review_provider_onboarding_v1/);
+assert.match(booking,/admin_reward_search_v1/);
+assert.match(booking,/admin_platform_records_v1/);
+assert.match(booking,/if\(!x\.provider_id\)/);
+assert.match(booking,/This changes the real provider record/);
 assert.match(provider,/confirm_cash_received_v1/);
 const booking=read('home-services.html');
 assert.doesNotMatch(booking,/create_booking_payment_intent_v1/,'Customer must not create full-fare gateway intents');
