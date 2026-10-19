@@ -65,4 +65,11 @@ assert.doesNotMatch(transport,/payout-details\.html\?from=transport/);
 assert.match(provider,/₹100 welcome bonus permits initial jobs/);
 assert.match(demo,/Demo only • No real QR or payment collection/);
 assert.doesNotMatch(demo,/OCS Company QR • Prototype\/Test/);
+// Home notification panel and bell must use the same demo-filtered feed.
+assert.match(home,/function ocsIsDemoNotification\(n\)/);
+assert.match(home,/function ocsVisibleNotifications\(rows\)/);
+assert.match(home,/const visible=ocsVisibleNotifications\(rows\)/);
+assert.match(home,/const count=ocsVisibleNotifications\(data\)\.filter\(n=>!n\.read_at\)\.length/);
+assert.match(home,/ocs_mark_notification_read_v1/);
+assert.match(home,/list_notifications_v1/);
 console.log('PASS: direct-payment guidance and provider receipt wiring (static only; NOT live E2E)');
