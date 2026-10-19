@@ -152,3 +152,14 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - `confirm_cash_received_v1(p_payment_id)` requires signed-in assigned provider and a `cash_marked` payment; it calls `apply_provider_commission_v1` then records `cash_confirmed` and completes the booking. The inner commission function checks an existing commission entry, with a unique partial index preventing duplicate commission ledger entries for the same provider/booking.
 - `apply_provider_commission_v1` itself does not verify booking status, but is not directly executable by `anon` or `authenticated` roles. Other internal callers include legacy `finalize_online_booking_payment_service_v1`, `apply_customer_rewards_v1`, and `customer_confirm_completion_v2` for secured-payment/reward paths. Do not assume those legacy paths are inactive without caller audit.
 - **Risk requiring verification:** exact status/purpose checks for direct payment marking and legacy gateway/reward paths, idempotent completion and automatic wallet unhold after verified recharge. Do not delete legacy functions or change financial data without regression coverage and approval.
+
+
+### Direct-payment reward reconciliation audit — 2026-10-20
+- [x] SP, Driver and Transport direct-receipt screens retain basic pending payment and positive-amount guards. Strict equality of payment amount and booking gross removed to allow legitimate reward discounts.
+- [x] Confirmed business rule: 9% commission on original booking gross; OCS bears customer reward cost. Example: ₹2,000 gross, ₹100 reward, ₹1,900 direct receipt, ₹180 commission. Provider requires actual ₹100 subsidy/credit to preserve ₹1,820 net.
+- [x] wallet_commission_booking_once is a partial UNIQUE INDEX on wallet_transactions, not a table; do not use generic SQL targeting it as a table.
+- [ ] P0 verify customer_reward_subsidy ledger, wallet credit, provider ability to use or withdraw subsidy, and actual payout.
+- [ ] P0 server-side amount reconciliation inside confirm_cash_received_v1: original gross, reward, customer payment, commission, subsidy. Client-side checks cannot replace DB checks.
+- [ ] P0 verify subsidy once-only ledger protection and atomic balance updates; existing commission unique index alone is insufficient for subsidy.
+- [ ] P0 isolated E2E for SP, Driver and Transport: ₹2,000/₹100/₹1,900/₹180/₹100 plus retries, status and wallet-hold transitions.
+- [ ] Verify new commits in CI; no real money tests or production financial mutations performed.
