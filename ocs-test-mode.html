@@ -111,7 +111,7 @@ function spHTML(){
  let next='',hint='';
  if(b.status==='searching'){
   hint=state.workOn?'A simulated matching request is waiting.':'Work OFF hai. Accept ke liye Work ON karein.';
-  next=button('Accept TEST Booking','spAccept()',state.workOn?'':'alt');
+  next=state.workOn?button('Accept TEST Booking','spAccept()'):button('Turn Work ON & Accept TEST Booking','spEnableAndAccept()');
  }else if(b.status==='accepted'){
   if(b.mode==='quote'&&!b.quoteAccepted){
    hint=b.quote===null?'Official demo quote bhejein.':'Customer quote approval pending.';
@@ -141,6 +141,7 @@ function makeBooking(){
 }
 function toggleWork(){state.workOn=!state.workOn;log('Demo SP Work '+(state.workOn?'ON':'OFF'));save();render()}
 function spAccept(){const b=state.booking;if(!b||b.status!=='searching'||!state.workOn)return;b.status='accepted';log('Test SP accepted booking');save();render()}
+function spEnableAndAccept(){if(!state.booking||state.booking.status!=='searching')return;state.workOn=true;log('Demo SP Work ON');spAccept()}
 function spQuote(){const b=state.booking;if(!b||b.mode!=='quote'||b.status!=='accepted'||b.quote!==null)return;const value=Number(byId('quoteAmount')?.value);if(!Number.isFinite(value)||value<=0||value>10000000){toast('Enter a valid test quotation amount.',true);return}b.quote=Math.round(value*100)/100;log('Test SP sent quotation '+rupees(b.quote));save();render()}
 function acceptQuote(){const b=state.booking;if(!b||b.quote===null||b.status!=='accepted')return;b.quoteAccepted=true;b.amount=b.quote;log('Customer accepted test quote '+rupees(b.quote));save();render()}
 function rejectQuote(){const b=state.booking;if(!b||b.quote===null||b.quoteAccepted||b.status!=='accepted')return;b.quote=null;log('Customer rejected test quotation');save();render()}
@@ -162,7 +163,7 @@ function simulatePayment(){const b=state.booking;if(!b||b.status!=='payment_pend
 }
 function spCashReceived(){const b=state.booking;if(!b||!['direct_wait','cash_wait'].includes(b.status))return;b.status='completed';log('Test SP confirmed simulated direct payment • 9% shown separately • no real money');save();render()}
 function resetDemo(){if(!confirm('Only this device ka test booking clear karna hai? Real OCS data untouched.'))return;state=fresh();save();toast('Demo reset. No real booking touched.');render()}
-Object.assign(window,{setRole,selectMode,setPay,makeBooking,toggleWork,spAccept,spQuote,acceptQuote,rejectQuote,spStep,confirmWork,reportIssue,simulatePayment,spCashReceived,resetDemo});
+Object.assign(window,{setRole,selectMode,setPay,makeBooking,toggleWork,spAccept,spEnableAndAccept,spQuote,acceptQuote,rejectQuote,spStep,confirmWork,reportIssue,simulatePayment,spCashReceived,resetDemo});
 try{
  const imported=JSON.parse(sessionStorage.getItem('ocsSafeTestCartTransfer')||'null');
  if(imported&&!state.booking){
