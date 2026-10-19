@@ -148,6 +148,12 @@ function roleRoute(skill){
   assert(fn.indexOf('OPEN=null')<fn.indexOf('if(OPEN){box.innerHTML=requestCard(OPEN)'));
   assert(fn.indexOf('if(c.has_booking)')<fn.indexOf('OPEN=null'),'Accepted trips remain visible');
  });
- console.log('OCS main-business smoke: '+successes+'/16 passed');
- if(successes!==16)process.exitCode=1;
+ await check('Driver Work OFF and unapproved accounts cannot display new offers',()=>{
+  const fn=provider.slice(provider.indexOf('async function loadOpenJobs()'),provider.indexOf('function jobCard('));
+  assert(fn.includes('if(!driverEligible||!workOn)'));
+  assert(fn.indexOf('if(!driverEligible||!workOn)')<fn.indexOf("sb.rpc('provider_open_jobs_v4')"));
+  assert(fn.includes('Accepted trip par koi asar nahi'));
+ });
+ console.log('OCS main-business smoke: '+successes+'/17 passed');
+ if(successes!==17)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});
