@@ -12,6 +12,7 @@ assert.match(services,/Direct Provider Payment/);
 assert.match(provider,/confirm_cash_received_v1/);
 assert.match(provider,/const requestedBookingId=currentJob\.id/);
 assert.match(provider,/currentJob\.id!==requestedBookingId/);
+assert.match(provider,/pay\.booking_id !== requestedBookingId/);
 assert.match(provider,/ocs_sp_direct_payment_snapshot_v1/);
 assert.match(provider,/directInfo\.payment_id!==pay\.id/);
 assert.match(provider,/Legacy cash bookings may have no direct_sp_payment metadata/);
