@@ -169,3 +169,10 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - [ ] OCS-funded customer reward must have a distinct provider subsidy liability/credit. For ₹2,000 gross, ₹100 reward and ₹1,900 direct payment, provider must receive or realize ₹100 subsidy in addition to customer payment; merely labeling provider net as ₹1,820 does not settle subsidy.
 - [ ] Audit existing reward credit ledger and withdrawability before selecting wallet credit versus verified separate payout. Non-withdrawable welcome/referral bonuses must not be silently treated as cash compensation.
 - [ ] Reconcile server-authoritative reward, direct payment and gross before completing booking; never accept client-supplied financial fields as truth.
+
+### Verified reward subsidy SQL — 2026-10-20
+- [x] Read live definitions of apply_customer_rewards_v1 and confirm_cash_received_v1. Cash receipt RPC adds customer reward subsidy to provider_status.wallet_balance and inserts wallet_transactions kind customer_reward_subsidy; commission is calculated on gross booking/visit amount.
+- [x] Existing wallet_transactions partial unique indexes cover commission and online_settlement but NOT customer_reward_subsidy. Read-only duplicate scan found zero duplicates; no subsidy ledger rows currently exist.
+- [ ] P0 create a reviewed, additive partial unique index on (provider_id,booking_id,kind) for customer_reward_subsidy after preflight, and verify duplicate receipt behavior in isolated tests; no live financial mutation performed in this audit.
+- [ ] P0 fully-reward-funded booking: apply_customer_rewards_v1 completes booking and charges commission without explicit provider cash payout. Verify and fix provider compensation before enabling 100% reward completion.
+- [ ] P0 confirm wallet subsidy withdrawability, reserve and whether credit is a true provider payment; wallet balance credit alone is not proof of cash payout.
