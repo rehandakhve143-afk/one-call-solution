@@ -7,4 +7,6 @@ assert.match(html,/\.select\('active_role'\)\.maybeSingle\(\)/);
 assert.match(html,/if\(!data\|\|data\.active_role!==dbRole\)throw new Error/);
 assert.match(html,/if\(!activeSkills\.length\)throw new Error\('No active provider category found'\)/);
 assert.match(html,/console\.error\('Provider category routing unavailable',e\)/);
+assert.match(html,/if\(data&&data\.active_role===null\)return ''/);
+assert.match(html,/return role\|\|''/);
 console.log('PASS per-account dashboard preference is stored only after login; provider access still role-checked (static only)');
