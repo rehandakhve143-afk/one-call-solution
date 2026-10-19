@@ -156,6 +156,12 @@ function roleRoute(skill){
   assert(fn.indexOf('if(!driverEligible||!workOn||driverAdminPaused||driverWalletBlocked)')<fn.indexOf("sb.rpc('provider_open_jobs_v4')"));
   assert(fn.includes('Accepted trip par koi asar nahi'));
  });
- console.log('OCS main-business smoke: '+successes+'/17 passed');
- if(successes!==17)process.exitCode=1;
+ await check('Transport Send Quote rechecks Work ON, KYC and admin hold at click time',()=>{
+  const fn=truck.slice(truck.indexOf('async function sendOffer()'),truck.indexOf('async function rejectOpen()'));
+  assert(fn.includes("p.admin_paused||p.onboarding_status!=='approved'||!t.kyc_complete||!p.available_for_work"));
+  assert(fn.indexOf('p.admin_paused')<fn.indexOf("sb.rpc('provider_send_transport_offer_v1'"));
+  assert(fn.includes('D?.walletGate?.new_jobs_wallet_blocked'));
+ });
+ console.log('OCS main-business smoke: '+successes+'/18 passed');
+ if(successes!==18)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});
