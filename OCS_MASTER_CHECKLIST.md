@@ -82,3 +82,33 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 
 - [x] 2026-10-19: Supabase Edge Function `ocs-create-razorpay-order` deployed ACTIVE v5: `kind=booking` now rejected before Razorpay order creation, preserving `wallet_topup` and `paid_post` paths. Existing paid booking verification left intact for reconciliation. **No live checkout test claimed.**
 - [ ] Audit all client payment callers to ensure direct-to-provider Cash/UPI flow and no broken legacy booking checkout buttons; verify with authenticated E2E.
+
+
+## Owner-approved completion execution plan — 2026-10-19
+**Status vocabulary:** CODED = source exists; MOCK PASS = automated mocked test passes; DEPLOYED = published revision verified; LIVE PASS = independently verified with authorized test identities. Never collapse these statuses into "done".
+
+### P0 — Core release blockers (do these first)
+- [ ] **A. Identity/auth:** customer + provider + admin isolated test sessions; 6-digit email/mobile OTP, resend, logout, role switch; prove session separation and permissions. PASS = real authorized login/logout on separate sessions, no cross-role access.
+- [ ] **B. Customer dispatch:** location persistence, exact rate card, booking, provider matching, notification, accept/reject. PASS = persisted booking reaches intended eligible provider; declined job does not become accepted.
+- [ ] **C. SP execution:** Start OTP, one active + one next job, add-on quote, complete/reschedule. PASS = server-side state transitions, rejected/wrong OTP fails, audit trail remains.
+- [ ] **D. Direct provider payment:** customer pays provider personally via cash/UPI; provider confirms actual receipt; OCS does not collect full fare. PASS = receipt tied to correct booking, commission 9% debited **once**, no 91% settlement credit; no live money transfer without owner authorization.
+- [ ] **E. Wallet eligibility:** ₹100 nonwithdrawable welcome, no compulsory onboarding recharge; before first verified recharge allow positive bonus and negative after job, hold new jobs at zero/negative; after first verified recharge require ₹200. PASS = wallet gates for SP/Driver/Transport; accepted jobs continue; verified recharge auto-resumes wallet hold only, preserving manual/admin/KYC/safety holds.
+- [ ] **F. Driver independent E2E:** hourly/package rates including 14 hours, booking/accept/OTP/complete/direct receipt/wallet. PASS = authenticated driver scenario.
+- [ ] **G. Goods Transport independent E2E:** pickup/drop, vehicle, photo, quotes, customer acceptance, complete/direct receipt/wallet. PASS = authenticated transport scenario.
+- [ ] **H. Admin/security:** KYC approval, searchable date-wise job/payment histories, customer/provider controls, RLS and privileged RPC review. PASS = non-admin cannot invoke admin controls or access unrelated personal data.
+
+### P1 — Listings and customer experience
+- [ ] Self-posting and immediate paid activation for each approved listing window: Property Owner/Builder, Local Shop Electrical/Hardware, Modular Kitchen, Medical/Lab, Beauty, Welding/Sliding, Used/New Vehicle, Hotel/Restaurant and Ads. PASS = listing tied to correct owner, category, expiry, renewal, enquiry routing, and privacy; no false demo content for customers.
+- [ ] Mobile UI review: consistent back navigation, search, location persistence, notifications, screen stability and no duplicate dashboards. PASS = multi-device manual/mobile browser scenarios.
+- [ ] Verify posting payment and bank reconciliation independently of provider job fare. PASS = actual authorized settlement evidence and audit.
+
+### P2 — Release
+- [ ] Verify custom-domain release revision vs GitHub Pages; select funded hosting, HTTPS and domain; do not spend without permission.
+- [ ] Full release test matrix (Customer, SP, Driver, Transport, Admin), backup/recovery, privacy policy and support.
+- [ ] Android packaging, store listing and Play Store review after live E2E and compliance gates.
+
+### Verified evidence and current limits
+- 2026-10-19 GitHub Pages deployment and workflow succeeded for commit `cc418190`; this proves **mock/static CI and deploy**, not live payments.
+- 2026-10-19 demo listing renewal notifications filtered in customer UI and unread badge aligned, commit `14f8cdda`; regression guard commit `cc418190` passed CI. Existing database demo records were not deleted.
+- Existing Supabase test account/test booking tables are known to exist, but an attempt to inspect designated account counts was blocked by tool safety checks. Do not bypass safety checks or claim authenticated E2E PASS.
+- **Next technical action:** use explicitly authorized isolated test identities and safe credentials through supported authenticated test tooling. Without that access, continue code/static/browser-mock regression and clearly flag live test BLOCKED.
