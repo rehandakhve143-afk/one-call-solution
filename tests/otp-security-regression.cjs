@@ -21,4 +21,4 @@ for(const [file,fn] of modules){
  assert(body.includes("data?.status!=='working'"),file+': successful working status not checked');
  assert(body.includes('\\d{4}'),file+': four digit OTP validation missing');
 }
-console.log('PASS: provider Start OTP static safeguards; live authenticated E2E still required');
+console.log('PASS: provider, Home Services, Driver and Transport Start OTP static safeguards; live authenticated E2E still required');
