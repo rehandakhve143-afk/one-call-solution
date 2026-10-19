@@ -194,7 +194,15 @@ async function loadDashboard(){
      location.replace('index.html?v=20261008-oneapp1&login=1&open=sp-dashboard');
      return;
    }
-   const snap=await sb.rpc('provider_profile_snapshot_v1');
+   let snap=await sb.rpc('provider_profile_snapshot_v1');
+   if(snap.error&&/JWT issued at future|JWT.*future/i.test(String(snap.error.message||''))){
+     // Clock-skewed/stale access token: refresh once, never loop or bypass authentication.
+     const renewed=await sb.auth.refreshSession();
+     if(renewed.error||!(renewed.data&&renewed.data.session)){
+       throw new Error('Login token time mismatch. Phone ka Automatic date & time ON karein, phir logout/login karein.');
+     }
+     snap=await sb.rpc('provider_profile_snapshot_v1');
+   }
    if(snap.error)throw snap.error;
    profile=snap.data||{};
    if(profile.registered!==true){
