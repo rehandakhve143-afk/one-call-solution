@@ -2378,6 +2378,7 @@ async function openHomeCustomerDashboard(){
   const session=await getOcsSession();
   if(!session||!session.user){openLogin();return}
   closeAllBottomHubs();
+  await ocsSaveDashboardRole(session,'customer');
   openCustomerDashboard();
 }
 // Per-account dashboard preference only; never grants access to a role.
