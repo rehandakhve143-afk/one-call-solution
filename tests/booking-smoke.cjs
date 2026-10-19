@@ -27,7 +27,7 @@ function harness({connected=true,loggedIn=true,bookingId='test-booking-uuid',fai
   calls.push({name,args});
   if(name===failRpc)return {error:new Error('Test backend error'),data:null};
   if(name==='ensure_customer_account_v1')return {error:null};
-  return {data:{id:bookingId,status:name==='accept_booking_v3'?'accepted':'searching'},error:null};
+  return {data:{id:bookingId,status:name==='accept_booking_v3'?'accepted':name==='provider_booking_action'?'working':'searching'},error:null};
  }}:null;
  const ctx={S,ocsSupabase,OCS_LIVE_BOOKING_ID:bookingId,
    ocsSession:async()=>loggedIn?{user:{id:'mock-user'}}:null,
