@@ -18,7 +18,7 @@ for(const [file,fn] of modules){
  const body=src.slice(start,start+2400);
  assert(body.includes('provider_booking_action'),file+': backend OTP check missing');
  assert(body.includes('p_start_otp:otp'),file+': incorrect OTP argument');
- assert(body.includes("data?.status!=='working'"),file+': successful working status not checked');
+ assert(body.includes("data?.status!=='working'") || body.includes('data?.status!=="working"'),file+': successful working status not checked');
  assert(body.includes('\\d{4}'),file+': four digit OTP validation missing');
 }
 console.log('PASS: provider, Home Services, Driver and Transport Start OTP static safeguards; live authenticated E2E still required');
