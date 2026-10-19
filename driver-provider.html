@@ -44,7 +44,11 @@ async function load(){
  if(!sess.data?.session){location.href='index.html?login=1&open=sp-profile';return}
  $('workBtn').disabled=true;
  try{
-  const {data:gate,error:ge}=await sb.rpc('ocs_driver_account_eligibility_v1');
+  let {data:gate,error:ge}=await sb.rpc('ocs_driver_account_eligibility_v1');
+  if(ge&&/JWT issued at future|JWT.*future/i.test(String(ge.message||''))){
+   const refreshed=await sb.auth.refreshSession();
+   if(!refreshed.error&&refreshed.data?.session)({data:gate,error:ge}=await sb.rpc('ocs_driver_account_eligibility_v1'));
+  }
   if(ge)throw ge;
   const {data:snap,error:pe}=await sb.rpc('provider_profile_snapshot_v1');if(pe)throw pe;
   driverEligible=!!gate?.can_work;
