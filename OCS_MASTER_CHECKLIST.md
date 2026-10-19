@@ -134,3 +134,10 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - [x] Provider dashboard validates a 4-digit Start OTP and checks returned booking status before treating Start as successful (source inspection).
 - [ ] Authenticated isolated 5-wrong-OTP / 15-minute-lock / correct-OTP E2E still unverified; do not mark LIVE PASS.
 - [ ] Audit other RPCs and customer/provider read paths for sensitive OTP fields before launch.
+
+### Wallet risk decision — 2026-10-19 (owner-approved planning update)
+- **Keep current live wallet rules unchanged:** ₹100 non-withdrawable welcome bonus, no mandatory joining recharge, positive bonus wallet permits initial new jobs, zero/negative wallet holds only NEW jobs; accepted jobs continue. After first verified recharge, ₹200 minimum for new jobs. Admin/safety holds stay independent. Customer pays provider directly; OCS charges 9% to provider wallet once per completed booking.
+- **Do not implement** mandatory 9% upfront freeze/pre-deduction, automatic customer platform fees, job-value caps, credit-limit changes, or new payment collection without separate product/legal review and owner approval. These are proposed options, NOT current policy.
+- **Open risk:** direct Cash/UPI means OCS cannot guarantee collection of 9% on large jobs (₹5,000–₹20,000); ₹100 bonus does not cover ₹450–₹1,800 fees. Investigate tiered risk controls and verified payment options without penalizing new providers or blocking accepted jobs.
+- **Compliance gate:** have a qualified Indian payments lawyer and tax professional assess actual advance-ledger/PPI structure, GST/invoicing, customer/provider agreements, cancellation/refunds, and any regulated payment partner before financial-flow changes. Neither all advances being PPI nor a fixed Razorpay Route turnover threshold is established here.
+- **Next safe verification:** audit Driver eligibility, auto-unblock after verified recharge, once-only 9% commission, and completion/receipt evidence with read-only inspection or isolated nonfinancial tests. Do not change production wallet balances or customer transactions to test.
