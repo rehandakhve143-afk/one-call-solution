@@ -81,8 +81,8 @@ function mockSupabase(kind){
    assert.equal(await wallet.locator('#verifiedAdvance').innerText(),'₹100.00');
    assert.equal(await wallet.locator('#reserveAmount').innerText(),'₹200.00');
    assert.equal(await wallet.locator('#withdrawableEstimate').innerText(),'₹0.00');
-   assert.match(await wallet.locator('#walletNote').innerText(),/₹100.*job shuru|₹100.*kaam shuru/i);
-   assert.match(await wallet.locator('#walletNote').innerText(),/OFF/);
+   assert.match(await wallet.locator('#walletNote').innerText(),/₹200 minimum/i);
+   assert.doesNotMatch(await wallet.locator('#walletNote').innerText(),/minimum abhi OFF/i);
    assert.equal(await wallet.locator('#adminSection').count(),0);
    assert(await wallet.locator('a[href*="payout-details.html"]').isVisible());
    console.log('PASS: ₹100 launch wallet, ₹200 protected reserve, zero payout, no Admin card');
