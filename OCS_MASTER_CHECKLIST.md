@@ -33,6 +33,8 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 
 - [x] 2026-10-19: Provider receipt flow now rejects payment snapshots belonging to a different booking (`provider-dashboard.html`, commit `40fe82b1`); static regression added (commit `5b29b6e6`). GitHub Actions static payment test passed; full mobile/deploy run and live E2E still pending.
 
+- [x] 2026-10-19: Verified Netlify production deploy `6ad5a590fb10db3a5e5e64e0` is READY and matches GitHub main commit `9f8e4a5c`; GitHub Pages workflows succeeded. This confirms deployment, NOT live booking/OTP/payment/wallet E2E.
+
 ## Open technical and operational blockers
 - [x] **Transport offer acceptance wallet guard (database)**: provider wallet is rechecked when customer accepts a quote; function verified in Supabase. Live transaction/booking behavior remains to be tested.
 - [ ] **Real recharge**: verify actual IDBI bank credit/UTR before wallet credit; then test automatic wallet unblocking and notification with authorized real records. No fabricated transactions.
