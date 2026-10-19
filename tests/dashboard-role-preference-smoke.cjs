@@ -9,4 +9,7 @@ assert.match(html,/if\(!activeSkills\.length\)throw new Error\('No active provid
 assert.match(html,/console\.error\('Provider category routing unavailable',e\)/);
 assert.match(html,/if\(data&&data\.active_role===null\)return ''/);
 assert.match(html,/return role\|\|''/);
+assert.match(html,/OCS session dashboard restore unavailable/);
+assert.match(html,/if\(!await ocsUserHasRole\('service_provider'\)\)return/);
+assert.match(html,/q\.has\('fresh'\).*q\.has\('login'\).*q\.has\('open'\)/);
 console.log('PASS per-account dashboard preference is stored only after login; provider access still role-checked (static only)');
