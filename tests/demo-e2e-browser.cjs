@@ -36,7 +36,7 @@ const assert=require('node:assert/strict');
     sessionStorage.setItem('ocsSafeTestCartTransfer',JSON.stringify({category:'Appliance Repair',service:'Refrigerator Repair / Service',mode:'quote',items:[],pay:'direct_upi',description:'TEST ONLY refrigerator cooling issue'}));
   });
   await page.reload();
-  assert.match(await page.locator('body').innerText(),/Refrigerator Repair \\/ Service/);
+  assert.ok((await page.locator('body').innerText()).includes('Refrigerator Repair / Service'));
   await page.locator('#testDescription').fill('TEST ONLY refrigerator cooling issue');
   await page.getByRole('button',{name:/Create TEST Booking/}).click();
   const quoteState=await state();
