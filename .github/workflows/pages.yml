@@ -41,6 +41,8 @@ jobs:
         run: node tests/core-focus-smoke.cjs
       - name: Verify wallet Option B migration preserves provider Work ON/OFF (static only)
         run: node tests/wallet-option-b-regression.cjs
+      - name: Verify account-scoped dashboard preference and provider role gate (static only)
+        run: node tests/dashboard-role-preference-smoke.cjs
       - name: Install mobile browser test dependencies
         run: |
           npm install --no-save playwright@1.56.1
