@@ -137,6 +137,11 @@ function roleRoute(skill){
    assert(section.indexOf('/^\\d{4}$/.test(otp)')<section.indexOf("p_action:'start'"),name+' must validate before sending');
   }
  });
- console.log('OCS main-business smoke: '+successes+'/14 passed');
- if(successes!==14)process.exitCode=1;
+ await check('Transport wallet banner follows backend gate, not unconditional ₹200 threshold',()=>{
+  assert(!truck.includes("bal<200?'New trips on hold"),'Transport must not block ₹100 starter bonus solely for balance below ₹200');
+  assert(truck.includes("D?.walletGate?.new_jobs_wallet_blocked?'Wallet Hold"),'Transport banner must use backend eligibility');
+  assert(truck.includes('D.walletGate=we?null:walletGate;render();'),'Transport banner must refresh after wallet eligibility loads');
+ });
+ console.log('OCS main-business smoke: '+successes+'/15 passed');
+ if(successes!==15)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});
