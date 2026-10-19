@@ -163,3 +163,9 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - [ ] P0 verify subsidy once-only ledger protection and atomic balance updates; existing commission unique index alone is insufficient for subsidy.
 - [ ] P0 isolated E2E for SP, Driver and Transport: ₹2,000/₹100/₹1,900/₹180/₹100 plus retries, status and wallet-hold transitions.
 - [ ] Verify new commits in CI; no real money tests or production financial mutations performed.
+
+### Reward subsidy policy guard — 2026-10-20
+- [x] Cross-checked OCS_FINAL_RULES.md: service fare goes directly to assigned SP/Driver/Transport, not via OCS; do not trigger legacy 91% online settlement for provider-direct UPI.
+- [ ] OCS-funded customer reward must have a distinct provider subsidy liability/credit. For ₹2,000 gross, ₹100 reward and ₹1,900 direct payment, provider must receive or realize ₹100 subsidy in addition to customer payment; merely labeling provider net as ₹1,820 does not settle subsidy.
+- [ ] Audit existing reward credit ledger and withdrawability before selecting wallet credit versus verified separate payout. Non-withdrawable welcome/referral bonuses must not be silently treated as cash compensation.
+- [ ] Reconcile server-authoritative reward, direct payment and gross before completing booking; never accept client-supplied financial fields as truth.
