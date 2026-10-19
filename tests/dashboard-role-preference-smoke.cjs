@@ -13,4 +13,6 @@ assert.match(html,/OCS session dashboard restore unavailable/);
 assert.match(html,/if\(!await ocsUserHasRole\('service_provider'\)\)return/);
 assert.match(html,/q\.has\('fresh'\).*q\.has\('login'\).*q\.has\('open'\)/);
 assert.match(html,/async function openHomeCustomerDashboard\(\)\{[\s\S]*?await ocsSaveDashboardRole\(session,'customer'\);\s*openCustomerDashboard\(\)/);
+assert.match(html,/if\(saved==='customer'\)\{\s*closeAllBottomHubs\(\);\s*openCustomerDashboard\(\)/);
+assert.match(html,/if\(ocsLoginRouteBusy\|\|document\.getElementById\('accountModal'\)\?\.classList\.contains\('show'\)\)return/);
 console.log('PASS per-account dashboard preference is stored only after login; provider access still role-checked (static only)');
