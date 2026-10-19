@@ -56,7 +56,12 @@ function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&l
 function showTab(id){['home','activity','walletView','account'].forEach(x=>$(x).classList.toggle('active',x===id));[['navHome','home'],['navActivity','activity'],['navWallet','walletView'],['navAccount','account']].forEach(x=>$(x[0]).classList.toggle('active',x[1]===id));$('title').textContent=id==='activity'?'Activity':id==='walletView'?'Wallet':id==='account'?'Account':'Transport Home';window.scrollTo(0,0)}
 async function load(){
  const ses=await sb.auth.getSession();if(!(ses.data&&ses.data.session)){location.replace('index.html?login=1');return}
- const {data,error}=await sb.rpc('transport_driver_dashboard_v1');if(error){$('work').innerHTML='<div class="card">Driver dashboard load failed: '+esc(error.message)+'</div>';return}
+ let {data,error}=await sb.rpc('transport_driver_dashboard_v1');
+ if(error&&/JWT issued at future|JWT.*future/i.test(String(error.message||''))){
+  const refreshed=await sb.auth.refreshSession();
+  if(!refreshed.error&&refreshed.data?.session)({data,error}=await sb.rpc('transport_driver_dashboard_v1'));
+ }
+ if(error){$('work').innerHTML='<div class="card">Driver dashboard load failed: '+esc(error.message)+'</div>';return}
  D=data||{};render();
  const {data:walletGate,error:we}=await sb.rpc('ocs_sp_wallet_new_job_status_v1');D.walletGate=we?null:walletGate;
  const {data:jobs,error:je}=await sb.rpc('provider_open_jobs_v4');OPEN=!je&&Array.isArray(jobs)?jobs.find(x=>String(x.category||'').trim().toLowerCase()==='tempo / goods transport')||null:null;renderWork()
