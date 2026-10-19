@@ -45,6 +45,8 @@ jobs:
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/ocs-browser-server.log 2>&1 &
           node tests/mobile-browser-smoke.cjs
+      - name: Verify complete isolated demo booking in mobile Chromium (no real money)
+        run: node tests/demo-e2e-browser.cjs
       - name: Verify Driver package rate controls in mobile Chromium (mocked backend)
         run: |
           node tests/driver-packages-browser.cjs
