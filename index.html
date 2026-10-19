@@ -2355,6 +2355,22 @@ function ocsStartSupabaseHooks(){
       }
     }catch(e){console.error('SP route failed',e)}
   },120);
+  // Restore the last dashboard on a normal app launch, after Supabase has
+  // finished loading its persisted session. Do not interfere with explicit
+  // login, onboarding, admin, or SP deep-link flows.
+  setTimeout(async()=>{
+    try{
+      const q=new URLSearchParams(location.search||'');
+      if(q.has('fresh')||q.has('login')||q.has('open')||q.has('join')||q.has('role')||q.has('return')||q.has('booking'))return;
+      if(ocsProviderProfileMenuIntent||ocsRequestedSpDashboard()||ocsRequestedSpProfile())return;
+      const session=await getOcsSession();
+      if(!session||!session.user)return;
+      const saved=await ocsLoadSavedDashboardRole(session);
+      if(!['provider','driver','transport'].includes(saved))return;
+      if(!await ocsUserHasRole('service_provider'))return;
+      await openHomeProviderDashboard();
+    }catch(e){console.warn('OCS session dashboard restore unavailable',e)}
+  },350);
 }
 if(ocsSupabase)ocsStartSupabaseHooks();
 
