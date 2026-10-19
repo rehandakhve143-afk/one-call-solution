@@ -112,3 +112,11 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - 2026-10-19 demo listing renewal notifications filtered in customer UI and unread badge aligned, commit `14f8cdda`; regression guard commit `cc418190` passed CI. Existing database demo records were not deleted.
 - Existing Supabase test account/test booking tables are known to exist, but an attempt to inspect designated account counts was blocked by tool safety checks. Do not bypass safety checks or claim authenticated E2E PASS.
 - **Next technical action:** use explicitly authorized isolated test identities and safe credentials through supported authenticated test tooling. Without that access, continue code/static/browser-mock regression and clearly flag live test BLOCKED.
+
+### Live login and wallet audit — 2026-10-19 (read-only)
+- Five designated internal test accounts all match `auth.users`; five email-confirmed and five have prior sign-in timestamps. Zero designated accounts had an unexpired `auth.sessions.not_after > now()` session at inspection. Historical sign-in does not establish a usable current session.
+- Of five provider statuses, all Work OFF; two admin-paused. All five wallet balances positive but below ₹200 (wallet bands audit). Three provider onboarding records approved, one pending.
+- Two designated test providers are approved, unpaused, positive-wallet, with recorded skills, service locations, and empty current/next job slots. These are *candidates*, not confirmed live-match eligible until authenticated Work ON and actual location/category matching.
+- `accept_booking_v3`, `provider_booking_action`, and `confirm_cash_received_v1` allow authenticated EXECUTE but deny anon EXECUTE; `apply_provider_commission_v1` denies both anon and authenticated direct EXECUTE. Function-text inspection finds auth.uid() checks; accept function references wallet, booking action references OTP. These are code checks only, not proof of successful authorization paths.
+- No verified provider top-ups or bank credits exist. No production data, payments, sessions, wallets or bookings were modified by this audit.
+- **LIVE E2E BLOCKED:** fresh Customer + Provider authenticated sessions and authorized isolated booking are needed. Never simulate success by forging JWTs, bypassing OTP or inserting fabricated financial transactions.
