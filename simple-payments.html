@@ -69,6 +69,7 @@ details.card[open]>summary:after{content:'⌃'}
 <section class="card">
 <h2>Recharge & Bank Status</h2>
 <div id="bankState" class="status pending" role="status">Status check ho raha hai…</div>
+<div id="rechargePanel" hidden style="margin-top:12px"><label for="rechargeAmount">Wallet Recharge Amount</label><select id="rechargeAmount" style="display:block;width:100%;padding:11px;margin:8px 0;border:1px solid #d5e5e1;border-radius:10px"><option value="200">₹200</option><option value="500">₹500</option><option value="1000">₹1,000</option></select><button class="btn" id="requestRecharge" type="button">Create Recharge Request</button><p class="hint">Request banane se wallet credit nahi hota. Bank mein payment verify hone ke baad hi credit milega.</p><div id="rechargeResult" role="status" class="muted"></div></div>
 </section>
 <section class="card" id="loginCard" hidden>
 <h2>Login zaroori hai</h2><p class="muted">Payment aur SP balance dekhne ke liye apne OCS account se login karein.</p>
@@ -94,6 +95,15 @@ function addEntries(target,items,makeLabel,emptyText){
 }
 function safeDate(v){const d=new Date(v);return Number.isNaN(d.getTime())?'':d.toLocaleDateString('en-IN')}
 let loading=false;
+let rechargeReady=false;
+$('requestRecharge').addEventListener('click',async()=>{
+ if(!rechargeReady)return;
+ const btn=$('requestRecharge');btn.disabled=true;$('rechargeResult').textContent='Recharge request ban rahi hai…';
+ try{const amount=Number($('rechargeAmount').value);const {data,error}=await sb.rpc('ocs_sp_request_idbi_wallet_recharge_v1',{p_amount:amount});if(error)throw error;
+ $('rechargeResult').textContent='₹'+amount+' ki request bani hai. Payment sirf verified OCS business payment instructions par karein. Wallet credit bank verification ke baad hoga.';
+ await refresh();
+ }catch(e){$('rechargeResult').textContent='Request nahi bani: '+String(e.message||'Please try again');}finally{btn.disabled=false;}
+});
 async function refresh(){
  if(loading)return;loading=true;$('refreshBtn').disabled=true;$('updated').textContent='Refresh ho raha hai…';
  try{
@@ -101,10 +111,12 @@ async function refresh(){
   if(setup.error)throw setup.error;
   const cfg=setup.data||{};
   const active=!!cfg.manual_collection_available;
+  rechargeReady=active;
   $('bankState').className='status'+(active?'':' pending');
   $('bankState').textContent=active?'Verified IDBI recharge setup available.':'Recharge abhi band hai • Bank aur tax verification pending. Kisi ko advance payment na bhejein.';
   const session=(await sb.auth.getSession()).data.session;
   show('loginCard',!session);
+  show('rechargePanel',active&&!!session);
   if(!session){show('spCard',false);show('spHistory',false);show('advanceHistory',false);show('paymentRequests',false);return}
   const [sp,adv,req,gate,withdraw]=await Promise.allSettled([
    sb.rpc('ocs_sp_direct_commission_summary_v1',{p_limit:20}),
@@ -119,6 +131,7 @@ async function refresh(){
   const avValue=adv.status==='fulfilled'&&!adv.value.error?adv.value.data:null;
   const isSP=!!(spValue||avValue);
   show('spCard',isSP);show('spHistory',isSP);show('advanceHistory',isSP);
+  show('rechargePanel',active&&isSP);
   if(isSP){
    
    $('verifiedAdvance').textContent=rupees(gateValue?.wallet_balance??spValue?.wallet_balance??0);
