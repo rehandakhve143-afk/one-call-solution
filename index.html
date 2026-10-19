@@ -2365,9 +2365,17 @@ function ocsStartSupabaseHooks(){
       if(ocsProviderProfileMenuIntent||ocsRequestedSpDashboard()||ocsRequestedSpProfile())return;
       const session=await getOcsSession();
       if(!session||!session.user)return;
+      if(ocsLoginRouteBusy||document.getElementById('accountModal')?.classList.contains('show'))return;
       const saved=await ocsLoadSavedDashboardRole(session);
+      if(ocsLoginRouteBusy||document.getElementById('accountModal')?.classList.contains('show'))return;
+      if(saved==='customer'){
+        closeAllBottomHubs();
+        openCustomerDashboard();
+        return;
+      }
       if(!['provider','driver','transport'].includes(saved))return;
       if(!await ocsUserHasRole('service_provider'))return;
+      if(ocsLoginRouteBusy||document.getElementById('accountModal')?.classList.contains('show'))return;
       await openHomeProviderDashboard();
     }catch(e){console.warn('OCS session dashboard restore unavailable',e)}
   },350);
