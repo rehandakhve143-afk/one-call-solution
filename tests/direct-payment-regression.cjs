@@ -10,6 +10,13 @@ assert.match(home,/Provider actual receipt confirm karega/);
 assert.match(customer,/Direct Provider Payment/);
 assert.match(services,/Direct Provider Payment/);
 assert.match(provider,/confirm_cash_received_v1/);
+const booking=read('home-services.html');
+assert.doesNotMatch(booking,/create_booking_payment_intent_v1/,'Customer must not create full-fare gateway intents');
+assert.match(booking,/async function openOnline\(purpose\)\{[\s\S]*?return payCash\(purpose,"upi"\);/);
+assert.match(booking,/ocs_customer_direct_to_sp_v1/);
+assert.match(booking,/function applyCommission\(amount,method\)\{[\s\S]*?S\.wallet=Math\.round/);
+assert.doesNotMatch(booking,/Online job settlement recorded • Provider net amount credited to Wallet/);
+
 assert.match(provider,/personal UPI app \(PhonePe\/GPay\/Paytm\)/);
 assert.match(provider,/bank link karna zaroori nahi/);
 assert.match(provider,/const requestedBookingId=currentJob\.id/);
