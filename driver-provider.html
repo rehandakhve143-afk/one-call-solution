@@ -174,6 +174,9 @@ async function confirmDriverCash(){
   const {data:snap,error:se}=await sb.rpc('payment_snapshot_v1',{p_booking_id:current.id});if(se)throw se;
   const payment=snap?.payment;
   if(!payment?.id||payment.method!=='cash'||payment.status!=='cash_marked'||payment.purpose!=='job')throw new Error('Pending cash payment record not found');
+  if(payment.booking_id&&payment.booking_id!==current.id)throw new Error('Payment booking mismatch. Reload.');
+  const paymentGross=Number(payment.amount),bookingGross=Number(current.booking_amount);
+  if(!Number.isFinite(paymentGross)||paymentGross<=0||!Number.isFinite(bookingGross)||bookingGross<=0||Math.abs(paymentGross-bookingGross)>0.01)throw new Error('Booking/payment amount mismatch. Contact OCS support.');
   if(!confirm('I confirm I have actually received ₹'+Number(payment.amount||0).toFixed(2)+' directly from the Customer by Cash or my own UPI app. This will complete the booking and record OCS 9% commission from the driver wallet, with any shortfall recorded as due. Continue?'))return;
   const {error}=await sb.rpc('confirm_cash_received_v1',{p_payment_id:payment.id});if(error)throw error;
   alert('Cash receipt confirmed. Driver booking completed; OCS platform fee recorded.');
