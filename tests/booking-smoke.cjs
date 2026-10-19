@@ -104,6 +104,18 @@ async function test(name,fn){
    assert.equal(call.args.p_start_otp,'1234');assert.equal(call.args.p_action,'start');
    assert.equal(h.applied.length,1);
  }],
+ ['Wrong Start OTP must not report success when backend keeps reached status',async()=>{
+   const h=harness();
+   h.ocsSupabase.rpc=async(name,args)=>{h.calls.push({name,args});return {data:{id:'test-booking-uuid',status:'reached'},error:null};};
+   await assert.rejects(()=>h.ocsProviderActionLive('start','0000'),/Incorrect Start OTP/);
+   assert.equal(h.applied.length,0);
+ }],
+ ['Locked Start OTP must not report success',async()=>{
+   const h=harness();
+   h.ocsSupabase.rpc=async(name,args)=>{h.calls.push({name,args});return {data:{id:'test-booking-uuid',status:'reached',otp_locked_until:new Date(Date.now()+900000).toISOString()},error:null};};
+   await assert.rejects(()=>h.ocsProviderActionLive('start','1111'),/locked/);
+   assert.equal(h.applied.length,0);
+ }],
  ['Invalid provider actions and malformed start OTP never reach backend',async()=>{
    for(const [action,otp] of [['cancel','1234'],['start','123'],['start','123456'],['start','12ab'],['start','']]){
      const h=harness();
