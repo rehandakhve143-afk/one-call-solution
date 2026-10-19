@@ -2410,7 +2410,10 @@ async function openHomeProviderDashboard(){
     await ocsSaveDashboardRole(session,isDriver?'driver':(isTransport?'transport':'provider'));
     location.href=isDriver?'driver-provider.html?v=20261006-driver2':(isTransport?'transport-driver.html?v=20261006-driver-e2e1':'provider-dashboard.html?v=20261008-oneapp1');
   }catch(e){
-    location.href='provider-dashboard.html?v=20261008-oneapp1';
+    // A failed provider snapshot cannot prove Driver/Transport/SP category.
+    // Keep the user on the account screen instead of sending to the wrong dashboard.
+    console.error('Provider category routing unavailable',e);
+    await openAccount('provider',true);
   }
 }
 async function openHomeAdminDashboard(){
