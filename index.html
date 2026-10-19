@@ -2725,7 +2725,8 @@ async function openAccount(role,forceProviderSetup){
    await openLogin(isProvider?'provider':'customer');
    return;
  }
- if(!isProvider)ocsRememberDashboardRole(signedIn,'customer');
+ // Customer tab selection is an explicit role choice: persist across devices.
+ if(!isProvider)await ocsSaveDashboardRole(signedIn,'customer');
  forceProviderSetup=forceProviderSetup===true;
  const existingProfile=isProvider?getProviderProfile():getCustomerProfile();
  document.getElementById('accountRolePill').textContent=isProvider?'SERVICE PROVIDER':'CUSTOMER';
