@@ -127,6 +127,16 @@ function roleRoute(skill){
   assert(driver.includes("ocs_customer_driver_no_show_v1"),'Customer can request company intervention');
   assert(driver.includes("create_customer_driver_package_booking_v2"),'Customer booking uses server-side fare');
  });
- console.log('OCS main-business smoke: '+successes+'/13 passed');
- if(successes!==13)process.exitCode=1;
+ await check('Driver and Transport require exactly 4-digit Start OTP before backend transition',()=>{
+  for(const [name,source,fn] of [['Driver',provider,'startOtp'],['Transport',truck,'startTrip']]){
+   const start=source.indexOf('async function '+fn+'()');
+   assert(start>=0,name+' Start OTP function missing');
+   const section=source.slice(start,start+650);
+   assert(section.includes('/^\\d{4}$/.test(otp)'),name+' must validate 4-digit OTP');
+   assert(section.includes("p_action:'start',p_start_otp:otp"),name+' must send OTP to backend');
+   assert(section.indexOf('/^\\d{4}$/.test(otp)')<section.indexOf("p_action:'start'"),name+' must validate before sending');
+  }
+ });
+ console.log('OCS main-business smoke: '+successes+'/14 passed');
+ if(successes!==14)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});
