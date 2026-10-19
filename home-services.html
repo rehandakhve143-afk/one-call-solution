@@ -1390,6 +1390,7 @@ async function ocsProviderActionLive(action,otp){
   return true;
 }
 async function ocsToggleAvailabilityLive(v){
+  if(!await ocsSession()){location.href="index.html?login=1";throw new Error("OCS_LOGIN_REDIRECT");}
   if(!ocsSupabase)return false;
   const {data,error}=await ocsSupabase.rpc("set_provider_available",{p_available:!!v});
   if(error)throw error;
