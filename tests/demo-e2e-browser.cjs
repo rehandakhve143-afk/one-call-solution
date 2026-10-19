@@ -18,7 +18,7 @@ const assert=require('node:assert/strict');
   await page.evaluate(()=>spStep('on_way'));
   await page.evaluate(()=>spStep('reached'));
   const otp=(await state()).booking.otp;
-  assert.match(otp,/^\d{4}$/);
+  assert.match(otp,/^\d{6}$/);
   await page.locator('#spOtp').fill(otp);
   await page.evaluate(()=>spStep('start'));
   assert.equal((await state()).booking.status,'working');
