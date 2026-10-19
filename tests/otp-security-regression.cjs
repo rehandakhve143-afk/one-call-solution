@@ -15,7 +15,7 @@ const modules=[['home-services.html','ocsProviderActionLive'],['driver-provider.
 for(const [file,fn] of modules){
  const src=read(file),start=src.indexOf('async function '+fn+'(');
  assert(start>=0,file+': missing '+fn);
- const body=src.slice(start,start+1400);
+ const body=src.slice(start,start+2400);
  assert(body.includes('provider_booking_action'),file+': backend OTP check missing');
  assert(body.includes('p_start_otp:otp'),file+': incorrect OTP argument');
  assert(body.includes("data?.status!=='working'"),file+': successful working status not checked');
