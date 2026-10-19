@@ -2387,14 +2387,21 @@ async function ocsLoadSavedDashboardRole(session){
  }
 }
 async function ocsSaveDashboardRole(session,role){
- ocsRememberDashboardRole(session,role);
- if(!session||!session.user||!ocsSupabase)return;
+ if(!session||!session.user)return false;
  const dbRole=({provider:'sp',customer:'customer',driver:'driver',transport:'transport'})[role];
- if(!dbRole)return;
+ if(!dbRole)return false;
+ if(!ocsSupabase){ocsRememberDashboardRole(session,role);return false}
  try{
-  const {error}=await ocsSupabase.from('profiles').update({active_role:dbRole}).eq('id',session.user.id);
+  const {data,error}=await ocsSupabase.from('profiles').update({active_role:dbRole}).eq('id',session.user.id).select('active_role').maybeSingle();
   if(error)throw error;
- }catch(e){console.warn('Dashboard preference save unavailable',e)}
+  if(!data||data.active_role!==dbRole)throw new Error('Profile preference update was not confirmed');
+  ocsRememberDashboardRole(session,role);
+  return true;
+ }catch(e){
+  console.warn('Dashboard preference not saved to account; device fallback only',e);
+  ocsRememberDashboardRole(session,role);
+  return false;
+ }
 }
 async function openHomeProviderDashboard(){
   const session=await getOcsSession();
