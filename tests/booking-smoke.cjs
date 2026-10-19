@@ -123,6 +123,11 @@ async function test(name,fn){
    await assert.rejects(()=>h.ocsProviderActionLive('complete',''),/Test backend error/);
    assert.equal(h.applied.length,0);assert.equal(h.S.status,'REQUESTED');
  }],
+ ['No login cannot accept or complete another provider booking',async()=>{
+   const h=harness({loggedIn:false});
+   await assert.rejects(()=>h.ocsProviderDecisionLive('accept'),/OCS_LOGIN_REDIRECT/);
+   assert.equal(h.calls.length,0);assert.equal(h.applied.length,0);
+ }],
  ['No Supabase connection blocks acceptance instead of returning false',async()=>{
    const h=harness({connected:false});
    await assert.rejects(()=>h.ocsProviderDecisionLive('accept'),/online booking connection/);
