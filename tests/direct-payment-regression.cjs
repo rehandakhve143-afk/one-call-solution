@@ -47,6 +47,11 @@ for(const [role,html] of [['Driver',driverProvider],['Transport',transport]]){
  assert.doesNotMatch(html,/create_booking_payment_intent_v1|ocs-create-razorpay-order/,`${role}: full fare gateway prohibited`);
  assert.match(html,/wallet/,`${role}: wallet guidance required`);
 }
+// All three provider UIs must require provider-confirmed receipt before completion.
+for(const [role,html] of [['SP',provider],['Driver',driverProvider],['Transport',transport]]){
+ assert.match(html,/confirm_cash_received_v1/,`${role}: receipt confirmation must be wired to backend`);
+ assert.match(html,/p_payment_id/,`${role}: receipt confirmation must target a payment ID`);
+}
 assert.match(driverProvider,/ocs_driver_account_eligibility_v1/);
 assert.match(transport,/transport_driver_dashboard_v1/);
 assert.match(driverProvider,/JWT issued at future/);
