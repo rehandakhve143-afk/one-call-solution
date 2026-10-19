@@ -7,7 +7,6 @@ const assert=require('node:assert/strict');
   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   await page.goto('http://127.0.0.1:8765/ocs-test-mode.html');
   const state=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('ocs_test_mode_demo_v1')));
-  await page.evaluate(()=>{resetDemo=undefined}); // no reset; use clean browser context
   await page.evaluate(()=>makeBooking());
   assert.equal((await state()).booking.status,'searching');
   await page.evaluate(()=>{toggleWork();setRole('sp')});
@@ -19,7 +18,7 @@ const assert=require('node:assert/strict');
   await page.evaluate(()=>spStep('on_way'));
   await page.evaluate(()=>spStep('reached'));
   const otp=(await state()).booking.otp;
-  assert.match(otp,/^\\d{4}$/);
+  assert.match(otp,/^\d{4}$/);
   await page.locator('#spOtp').fill(otp);
   await page.evaluate(()=>spStep('start'));
   assert.equal((await state()).booking.status,'working');
