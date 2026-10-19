@@ -128,6 +128,20 @@ async function test(name,fn){
    await assert.rejects(()=>h.ocsProviderDecisionLive('accept'),/OCS_LOGIN_REDIRECT/);
    assert.equal(h.calls.length,0);assert.equal(h.applied.length,0);
  }],
+ ['No login cannot reject, start or complete a provider job',async()=>{
+   for(const [method,args] of [
+     ['ocsProviderDecisionLive',['reject']],
+     ['ocsProviderActionLive',['start','123456']],
+     ['ocsProviderActionLive',['complete','']]
+   ]){
+     const h=harness({loggedIn:false});
+     await assert.rejects(()=>h[method](...args),/OCS_LOGIN_REDIRECT/);
+     assert.equal(h.calls.length,0);
+     assert.equal(h.applied.length,0);
+     assert.equal(h.S.status,'REQUESTED');
+     assert.match(h.location.href,/login=1/);
+   }
+ }],
  ['No Supabase connection blocks acceptance instead of returning false',async()=>{
    const h=harness({connected:false});
    await assert.rejects(()=>h.ocsProviderDecisionLive('accept'),/online booking connection/);
