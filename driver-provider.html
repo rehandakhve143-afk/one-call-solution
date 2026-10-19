@@ -100,6 +100,7 @@ async function toggleWork(){
  try{const {error}=await sb.rpc('set_provider_available',{p_available:!workOn});if(error)throw error;await load()}catch(e){alert(e.message||'Work status update failed')}
 }
 async function loadOpenJobs(){
+ if(!driverEligible||!workOn){$('openJobs').innerHTML='<div class="empty">Work ON aur Driver approval ke baad hi nayi requests milengi. Accepted trip par koi asar nahi.</div>';return}
  try{
    const {data,error}=await sb.rpc('provider_open_jobs_v4');if(error)throw error;
    const rows=(Array.isArray(data)?data:[]).filter(x=>String(x.category||'')==='Driver Service');
