@@ -59,7 +59,7 @@ details.card[open]>summary:after{content:'⌃'}
 <div class="metric"><span class="label">Wallet Balance</span><strong id="verifiedAdvance">₹0.00</strong><small>₹100 bonus included • cash-out nahi</small></div>
 <div class="metric"><span class="label">Withdrawal Preview*</span><strong id="withdrawableEstimate">₹0.00</strong><small>Bank payout pending</small></div>
 </div>
-<div class="launch-note" id="walletNote" role="status">₹100 bonus par kaam shuru • ₹200 job minimum abhi OFF</div>
+<div class="launch-note" id="walletNote" role="status">₹100 welcome bonus se shuru karein; recharge ke baad new jobs ke liye ₹200 minimum</div>
 <div class="total-row"><span>Withdrawal ke liye Wallet Reserve</span><b id="reserveAmount">₹200.00</b></div>
 <div class="total-row"><span>Commission recorded</span><b id="commissionTotal">₹0.00</b></div>
 <div class="total-row"><span>Commission baki</span><b id="commissionDue">₹0.00</b></div>
@@ -127,7 +127,7 @@ async function refresh(){
    $('withdrawalNote').textContent='*Sirf estimate. Bonus/rewards withdraw nahi honge. Bank payout abhi pending hai.';
    $('commissionTotal').textContent=rupees(spValue&&spValue.commission_total);
    $('commissionDue').textContent=rupees(avValue&&avValue.unpaid_commission || spValue&&spValue.unpaid_commission);
-   $('walletNote').textContent=gateValue?.rule_active?'New jobs ke liye ₹200 minimum active • Low wallet par new jobs hold.':'₹100 welcome bonus par job shuru • ₹200 job minimum abhi OFF; baad mein notice milega.';
+   $('walletNote').textContent=gateValue?.starter_bonus_grace?'₹100 welcome bonus active: abhi recharge zaroori nahi. Bonus khatam hone par new jobs hold; verified recharge ke baad ₹200 minimum.':gateValue?.new_jobs_wallet_blocked?'New jobs WALLET HOLD par hain. Verified recharge ke baad balance ₹200+ hone par wallet hold hat sakta hai; manual Work OFF aur admin hold alag hain.':'Wallet eligible hai. Recharge ke baad new jobs ke liye ₹200 minimum; Work ON, KYC aur admin rules bhi lagu hain.';
    addEntries('spRows',spValue&&spValue.recent_jobs||[],p=>(p.channel||'Cash').toUpperCase()+' • '+rupees(p.amount)+' • Commission '+rupees(p.commission_amount)+' • '+p.status,'Abhi koi direct payment record nahi.');
    addEntries('advanceRows',avValue&&avValue.history||[],p=>safeDate(p.created_at)+' • '+String(p.entry_kind||'').replaceAll('_',' ')+' • '+rupees(p.delta),'IDBI mein abhi koi verified advance nahi.');
   }
