@@ -79,3 +79,6 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - [ ] Complete authorized customer/provider/driver/transport real-flow testing and reconcile production Netlify release before launch.
 
 - [x] 2026-10-19: Supabase migration `ocs_admin_work_on_respects_wallet_eligibility` applied and verified: admin `on` now requires pre-recharge positive welcome-bonus wallet or post-recharge wallet >= ₹200, in addition to KYC/skill/location. No real recharge E2E performed.
+
+- [x] 2026-10-19: Supabase Edge Function `ocs-create-razorpay-order` deployed ACTIVE v5: `kind=booking` now rejected before Razorpay order creation, preserving `wallet_topup` and `paid_post` paths. Existing paid booking verification left intact for reconciliation. **No live checkout test claimed.**
+- [ ] Audit all client payment callers to ensure direct-to-provider Cash/UPI flow and no broken legacy booking checkout buttons; verify with authenticated E2E.
