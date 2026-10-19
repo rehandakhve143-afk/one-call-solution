@@ -150,8 +150,10 @@ function roleRoute(skill){
  });
  await check('Driver Work OFF and unapproved accounts cannot display new offers',()=>{
   const fn=provider.slice(provider.indexOf('async function loadOpenJobs()'),provider.indexOf('function jobCard('));
-  assert(fn.includes('if(!driverEligible||!workOn)'));
-  assert(fn.indexOf('if(!driverEligible||!workOn)')<fn.indexOf("sb.rpc('provider_open_jobs_v4')"));
+  assert(fn.includes('if(!driverEligible||!workOn||driverAdminPaused||driverWalletBlocked)'));
+  assert(provider.includes('driverWalletBlocked=gate?.wallet_new_jobs_blocked===true'));
+  assert(provider.includes('driverAdminPaused=ps?.admin_paused===true'));
+  assert(fn.indexOf('if(!driverEligible||!workOn||driverAdminPaused||driverWalletBlocked)')<fn.indexOf("sb.rpc('provider_open_jobs_v4')"));
   assert(fn.includes('Accepted trip par koi asar nahi'));
  });
  console.log('OCS main-business smoke: '+successes+'/17 passed');
