@@ -2223,7 +2223,7 @@ async function routeAfterOcsLogin(role){
     // Normal Customer login may restore a previously used provider dashboard.
     // Never grant access based on localStorage: provider routing checks user_roles
     // and resolves the real approved category through the backend snapshot.
-    const remembered=ocsReadDashboardRole(session);
+    const remembered=await ocsLoadSavedDashboardRole(session);
     if(['provider','driver','transport'].includes(remembered)){
       const hasSp=await ocsUserHasRole('service_provider');
       if(hasSp){
@@ -2231,7 +2231,7 @@ async function routeAfterOcsLogin(role){
         return;
       }
     }
-    ocsRememberDashboardRole(session,'customer');
+    await ocsSaveDashboardRole(session,'customer');
     bottomHome();
     await renderHomeDashboardShortcuts();
   }finally{
@@ -2373,6 +2373,29 @@ function ocsReadDashboardRole(session){
  if(!session||!session.user)return '';
  try{return ['customer','provider','driver','transport'].includes(localStorage.getItem('ocsLastDashboard:'+session.user.id))?localStorage.getItem('ocsLastDashboard:'+session.user.id):''}catch(e){return ''}
 }
+// Server-backed dashboard preference. Database value is UX state only.
+async function ocsLoadSavedDashboardRole(session){
+ if(!session||!session.user||!ocsSupabase)return ocsReadDashboardRole(session);
+ try{
+  const {data,error}=await ocsSupabase.from('profiles').select('active_role').eq('id',session.user.id).maybeSingle();
+  if(error)throw error;
+  const role=({sp:'provider',customer:'customer',driver:'driver',transport:'transport'})[data&&data.active_role];
+  return role||ocsReadDashboardRole(session);
+ }catch(e){
+  console.warn('Dashboard preference unavailable; using this device only',e);
+  return ocsReadDashboardRole(session);
+ }
+}
+async function ocsSaveDashboardRole(session,role){
+ ocsRememberDashboardRole(session,role);
+ if(!session||!session.user||!ocsSupabase)return;
+ const dbRole=({provider:'sp',customer:'customer',driver:'driver',transport:'transport'})[role];
+ if(!dbRole)return;
+ try{
+  const {error}=await ocsSupabase.from('profiles').update({active_role:dbRole}).eq('id',session.user.id);
+  if(error)throw error;
+ }catch(e){console.warn('Dashboard preference save unavailable',e)}
+}
 async function openHomeProviderDashboard(){
   const session=await getOcsSession();
   if(!session||!session.user){ocsProviderProfileMenuIntent=true;openLogin('provider');return}
@@ -2384,7 +2407,7 @@ async function openHomeProviderDashboard(){
     const skills=Array.isArray(data&&data.skills)?data.skills:[];
     const isDriver=skills.some(x=>String(x.category||'').trim()==='Driver Service'&&x.enabled_by_provider!==false);
     const isTransport=skills.some(x=>String(x.category||'').trim()==='Tempo / Goods Transport'&&x.enabled_by_provider!==false);
-    ocsRememberDashboardRole(session,isDriver?'driver':(isTransport?'transport':'provider'));
+    await ocsSaveDashboardRole(session,isDriver?'driver':(isTransport?'transport':'provider'));
     location.href=isDriver?'driver-provider.html?v=20261006-driver2':(isTransport?'transport-driver.html?v=20261006-driver-e2e1':'provider-dashboard.html?v=20261008-oneapp1');
   }catch(e){
     location.href='provider-dashboard.html?v=20261008-oneapp1';
