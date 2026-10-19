@@ -39,6 +39,9 @@ const assert=require('node:assert/strict');
   await page.evaluate(()=>spCashReceived());
   assert.equal((await state()).booking.status,'completed');
   assert.equal((await state()).booking.amount,539);
+  const feePreview=await page.locator('body').innerText();
+  assert.match(feePreview,/9%/,'Demo must explain 9% platform fee separately');
+  assert.match(feePreview,/no real payment|no real money|Simulation only|₹0 actual transfer/i,'Demo must not imply a real bank or wallet transfer');
   // Regression: quote handoff must preserve the selected service, not show Electrical defaults.
   await page.evaluate(()=>{
     localStorage.removeItem('ocs_test_mode_demo_v1');
