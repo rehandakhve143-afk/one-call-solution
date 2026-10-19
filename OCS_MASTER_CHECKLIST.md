@@ -127,3 +127,10 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - Latest GitHub Pages workflows at inspection: commit `09af1624`, both workflow and Pages deployment SUCCESS. This confirms static/mock CI only.
 - Confirmed `provider-dashboard.html` checks 4-digit Start Work OTP in its frontend; cross-module and server-side OTP verification remain open.
 - Next priority: audit all real login/start OTP paths and direct payment client callers, fix concrete mismatches with regression tests; then isolated authenticated E2E.
+
+### Provider Start OTP security verification — 2026-10-19
+- [x] `provider_current_booking()` masks `start_otp`, `otp_attempts`, `otp_locked_until`, and `otp_expires_at` in the provider RPC result; verified function definition in Supabase.
+- [x] `provider_booking_action()` has database attempt counting, expiry, lock, assigned-provider check, and masks `start_otp` on return. NULL-aware lock-expiry expression updated at both occurrences and verified in database definition.
+- [x] Provider dashboard validates a 4-digit Start OTP and checks returned booking status before treating Start as successful (source inspection).
+- [ ] Authenticated isolated 5-wrong-OTP / 15-minute-lock / correct-OTP E2E still unverified; do not mark LIVE PASS.
+- [ ] Audit other RPCs and customer/provider read paths for sensitive OTP fields before launch.
