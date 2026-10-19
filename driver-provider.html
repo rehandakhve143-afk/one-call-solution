@@ -35,7 +35,7 @@
 <script>
 const SB_URL='https://uipmkrsggpkupgbgoxkg.supabase.co',SB_KEY='sb_publishable_YmgIixuDsztWjCWcJS5m_g_Zfi6Vjto';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let workOn=false,current=null,driverEligible=false;
+let workOn=false,current=null,driverEligible=false,driverAdminPaused=false,driverWalletBlocked=false;
 let driverCategoryConflict=false;
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
@@ -52,6 +52,7 @@ async function load(){
   if(ge)throw ge;
   const {data:snap,error:pe}=await sb.rpc('provider_profile_snapshot_v1');if(pe)throw pe;
   driverEligible=!!gate?.can_work;
+  driverWalletBlocked=gate?.wallet_new_jobs_blocked===true;
   driverCategoryConflict=!!(gate?.current_category&&gate.current_category!=='Driver Service');
   $('driverSeparateAccountBtn').hidden=!driverCategoryConflict;
   $('driverAccountSeparateAccountBtn').hidden=!driverCategoryConflict;
@@ -79,6 +80,7 @@ async function load(){
   $('workBtn').hidden=false;
   const {data:ps,error:se}=await sb.from('provider_status').select('available_for_work,wallet_balance,admin_paused').maybeSingle();if(se)throw se;
   workOn=!!ps?.available_for_work;
+  driverAdminPaused=ps?.admin_paused===true;
   $('workState').textContent=workOn?'WORK ON':'WORK OFF';
   $('workBtn').textContent=workOn?'Turn Work OFF':'Turn Work ON';
   $('workBtn').disabled=false;
@@ -100,7 +102,7 @@ async function toggleWork(){
  try{const {error}=await sb.rpc('set_provider_available',{p_available:!workOn});if(error)throw error;await load()}catch(e){alert(e.message||'Work status update failed')}
 }
 async function loadOpenJobs(){
- if(!driverEligible||!workOn){$('openJobs').innerHTML='<div class="empty">Work ON aur Driver approval ke baad hi nayi requests milengi. Accepted trip par koi asar nahi.</div>';return}
+ if(!driverEligible||!workOn||driverAdminPaused||driverWalletBlocked){$('openJobs').innerHTML='<div class="empty">Work ON aur Driver approval ke baad hi nayi requests milengi. Accepted trip par koi asar nahi.</div>';return}
  try{
    const {data,error}=await sb.rpc('provider_open_jobs_v4');if(error)throw error;
    const rows=(Array.isArray(data)?data:[]).filter(x=>String(x.category||'')==='Driver Service');
