@@ -11,7 +11,8 @@ function extract(start,next){
 const functions=[
  extract('async function ocsCreateLiveBooking(){','async function ocsProviderDecisionLive(d){'),
  extract('async function ocsProviderDecisionLive(d){','async function ocsProviderActionLive(action,otp){'),
- extract('async function ocsProviderActionLive(action,otp){','async function ocsToggleAvailabilityLive(v){')
+ extract('async function ocsProviderActionLive(action,otp){','async function ocsToggleAvailabilityLive(v){'),
+ extract('async function ocsToggleAvailabilityLive(v){','async function ocsSyncQuoteAndChat(role,booking){')
 ].join('\n');
 function harness({connected=true,loggedIn=true,bookingId='test-booking-uuid',failRpc=''}={}){
  const calls=[],applied=[],storage={};
@@ -141,6 +142,17 @@ async function test(name,fn){
      assert.equal(h.S.status,'REQUESTED');
      assert.match(h.location.href,/login=1/);
    }
+ }],
+ ['Provider availability requires login and backend confirmation',async()=>{
+   const noLogin=harness({loggedIn:false});
+   await assert.rejects(()=>noLogin.ocsToggleAvailabilityLive(true),/OCS_LOGIN_REDIRECT/);
+   assert.equal(noLogin.calls.length,0);
+   const ok=harness();
+   await ok.ocsToggleAvailabilityLive(false);
+   assert.equal(ok.calls[0].name,'set_provider_available');
+   assert.equal(ok.calls[0].args.p_available,false);
+   const failed=harness({failRpc:'set_provider_available'});
+   await assert.rejects(()=>failed.ocsToggleAvailabilityLive(true),/Test backend error/);
  }],
  ['No Supabase connection blocks acceptance instead of returning false',async()=>{
    const h=harness({connected:false});
