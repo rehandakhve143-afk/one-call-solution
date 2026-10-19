@@ -142,6 +142,12 @@ function roleRoute(skill){
   assert(truck.includes("D?.walletGate?.new_jobs_wallet_blocked?'Wallet Hold"),'Transport banner must use backend eligibility');
   assert(truck.includes('D.walletGate=we?null:walletGate;render();'),'Transport banner must refresh after wallet eligibility loads');
  });
- console.log('OCS main-business smoke: '+successes+'/15 passed');
- if(successes!==15)process.exitCode=1;
+ await check('Transport never offers new request while Work OFF, KYC pending, or admin hold',()=>{
+  const fn=truck.slice(truck.indexOf('function renderWork()'),truck.indexOf('function currentCard('));
+  assert(fn.includes("p.admin_paused||p.onboarding_status!=='approved'||!t.kyc_complete||!p.available_for_work"));
+  assert(fn.indexOf('OPEN=null')<fn.indexOf('if(OPEN){box.innerHTML=requestCard(OPEN)'));
+  assert(fn.indexOf('if(c.has_booking)')<fn.indexOf('OPEN=null'),'Accepted trips remain visible');
+ });
+ console.log('OCS main-business smoke: '+successes+'/16 passed');
+ if(successes!==16)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});
