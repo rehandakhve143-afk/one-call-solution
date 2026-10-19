@@ -462,8 +462,6 @@ async function confirmProviderCash(){
    if(pay.booking_id && pay.booking_id !== requestedBookingId) throw new Error('Payment booking mismatch. Refresh the dashboard.');
    if(!Number.isFinite(Number(pay.amount))||Number(pay.amount)<=0)throw new Error('Invalid direct payment amount. Contact support.');
    if(!['job','visit'].includes(pay.purpose))throw new Error('Unexpected payment purpose. Contact support.');
-   const expectedGross=pay.purpose==='visit'?Number(currentJob.visit_charge):Number(currentJob.booking_amount);
-   if(!Number.isFinite(expectedGross)||expectedGross<=0||Math.abs(Number(pay.amount)-expectedGross)>0.01)throw new Error('Booking and payment amounts do not match. Refresh or contact support.');
    // Legacy cash bookings may have no direct_sp_payment metadata. The server validates the assigned provider and cash_marked state.
    // UPI-labelled records must match the pending payment; never infer UPI from missing metadata.
    if(directInfo&&directInfo.payment_id&&directInfo.payment_id!==pay.id)throw new Error('Direct payment record mismatch. Contact support.');
