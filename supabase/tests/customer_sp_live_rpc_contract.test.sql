@@ -14,6 +14,6 @@ SELECT has_table('public','provider_service_locations','SP location table is pre
 SELECT has_table('public','provider_onboarding','SP approval table is present');
 SELECT has_table('public','provider_transport_profiles','Transport provider table is present');
 SELECT has_table('public','provider_skills','SP skills table is present');
-SELECT has_function('public','ocs_sp_wallet_new_jobs_allowed_v1',ARRAY[]::text[],'SP wallet acceptance gate is present');
+SELECT has_function('public','ocs_sp_wallet_new_jobs_allowed_v1','SP wallet acceptance gate is present');
 SELECT * FROM finish();
 ROLLBACK;
