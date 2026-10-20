@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(20);
+SELECT plan(26);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -123,6 +123,44 @@ SELECT is(
     (SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),239),
   21.51::numeric,
   'Repeated commission request is idempotent'
+);
+-- Provider confirms an actual cash-marked ledger item via the authenticated RPC.
+INSERT INTO public.booking_payments(booking_id,customer_id,provider_id,purpose,method,amount,status)
+SELECT id,customer_id,provider_id,'job','cash',239,'cash_marked'
+FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid;
+SELECT set_config('request.jwt.claim.role','authenticated',true);
+SELECT lives_ok(
+  $ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
+       WHERE status='cash_marked' AND customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1)) $,
+  'Assigned SP confirms direct cash receipt'
+);
+SELECT is(
+  (SELECT status FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),
+  'completed',
+  'Cash confirmation completes the booking'
+);
+SELECT is(
+  (SELECT current_booking_id FROM public.provider_status WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid),
+  NULL::uuid,
+  'Completed job releases provider current slot'
+);
+SELECT is(
+  (SELECT commission_amount FROM public.booking_payments
+   WHERE status='cash_confirmed' AND customer_id='f2222222-2222-4222-8222-222222222222'::uuid ORDER BY created_at DESC LIMIT 1),
+  21.51::numeric,
+  'Cash confirmation records 9 percent fee'
+);
+SELECT lives_ok(
+  $ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
+       WHERE status='cash_confirmed' AND customer_id='f2222222-2222-4222-8222-222222222222'::uuid
+       ORDER BY created_at DESC LIMIT 1)) $,
+  'Cash confirmation is safe to repeat'
+);
+SELECT is(
+  (SELECT count(*)::integer FROM public.wallet_transactions
+   WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),
+  1,
+  'Repeated cash confirmation never duplicates commission'
 );
 SELECT * FROM finish();
 ROLLBACK;
