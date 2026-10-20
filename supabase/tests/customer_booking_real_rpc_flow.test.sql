@@ -130,8 +130,8 @@ SELECT id,customer_id,provider_id,'job','cash',239,'cash_marked'
 FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid;
 SELECT set_config('request.jwt.claim.role','authenticated',true);
 SELECT lives_ok(
-  $ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
-       WHERE status='cash_marked' AND customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1)) $,
+  $$ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
+       WHERE status='cash_marked' AND customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1)) $$,
   'Assigned SP confirms direct cash receipt'
 );
 SELECT is(
@@ -151,9 +151,9 @@ SELECT is(
   'Cash confirmation records 9 percent fee'
 );
 SELECT lives_ok(
-  $ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
+  $$ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
        WHERE status='cash_confirmed' AND customer_id='f2222222-2222-4222-8222-222222222222'::uuid
-       ORDER BY created_at DESC LIMIT 1)) $,
+       ORDER BY created_at DESC LIMIT 1)) $$,
   'Cash confirmation is safe to repeat'
 );
 SELECT is(
