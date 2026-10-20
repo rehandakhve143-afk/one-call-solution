@@ -1376,7 +1376,7 @@ async function ocsProviderDecisionLive(d){
   const args=d==="accept"?{p_booking_id:S.activeBookingId}:{p_booking_id:S.activeBookingId,p_reason:"Provider rejected"};
   const {data,error}=await ocsSupabase.rpc(fn,args);
   if(error)throw error;
-  if(d==="accept")ocsApplyBackendBooking(data);
+  if(d==="accept"){if(!data||String(data.status||"").toLowerCase()!=="accepted")throw new Error("Provider acceptance not confirmed by backend.");ocsApplyBackendBooking(data);}
   else{S.status="SELECT_SERVICE";S.activeBookingId=null;OCS_LIVE_BOOKING_ID=null}
   return true;
 }
@@ -1388,6 +1388,7 @@ async function ocsProviderActionLive(action,otp){
   if(!S.activeBookingId)throw new Error("Booking ID missing. Refresh Current Job before continuing.");
   const {data,error}=await ocsSupabase.rpc("provider_booking_action",{p_booking_id:S.activeBookingId,p_action:action,p_start_otp:otp||null});
   if(error)throw error;
+  if(action==="complete"&&(!data||!["completion_requested","completed","cash_wait","payment_pending"].includes(String(data.status||"").toLowerCase())))throw new Error("Job completion not confirmed by backend.");
   if(action==="start"&&data?.status!=="working"){
     const locked=data?.otp_locked_until&&new Date(data.otp_locked_until)>new Date();
     throw new Error(locked?"Start OTP locked. Try again after 15 minutes.":"Incorrect Start OTP. Work has not started.");
