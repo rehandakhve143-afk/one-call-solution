@@ -45,6 +45,8 @@ jobs:
         run: node tests/dashboard-role-preference-smoke.cjs
       - name: Verify reward settlement arithmetic for SP Driver and Transport (no live payments)
         run: node tests/reward-settlement-contract.test.cjs
+      - name: Verify admin subsidy screen and bank safety contracts (no payments)
+        run: node tests/admin-subsidy-contract.test.cjs
       - name: Install mobile browser test dependencies
         run: |
           npm install --no-save playwright@1.56.1
