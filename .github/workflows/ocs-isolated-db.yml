@@ -59,6 +59,26 @@ jobs:
             echo '::error::Missing baseline schema: migrations alter public.profiles but do not create it. Add an initial schema migration before running isolated database tests.'
             exit 1
           fi
+      - name: Normalize legacy date-only migration versions in isolated checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Historical repository files use YYYYMMDD instead of the 14-digit
+          # versions required by Supabase. Rename only the ephemeral CI copy;
+          # never repair or change the production migration history.
+          n=0
+          while IFS= read -r file; do
+            n=$((n + 1))
+            base="${file##*/}"
+            day="${base%%_*}"
+            suffix="${base#*_}"
+            printf -v version '%s%06d' "$day" "$n"
+            mv -- "$file" "supabase/migrations/${version}_${suffix}"
+          done < <(find supabase/migrations -maxdepth 1 -type f -regextype posix-extended -regex '.*/[0-9]{8}_[^/]+[.]sql' | sort)
+          if find supabase/migrations -maxdepth 1 -type f -regextype posix-extended -regex '.*/[0-9]{8}_[^/]+[.]sql' | grep -q .; then
+            echo '::error::Date-only migration version remains'
+            exit 1
+          fi
       - name: Start isolated Supabase stack
         run: supabase start
       - name: Verify isolated endpoint
