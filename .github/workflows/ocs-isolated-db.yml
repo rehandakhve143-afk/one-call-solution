@@ -50,7 +50,7 @@ jobs:
           fi
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.54.11
       - name: Verify baseline schema exists before isolated migration tests
         shell: bash
         run: |
