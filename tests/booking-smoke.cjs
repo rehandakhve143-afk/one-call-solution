@@ -90,6 +90,12 @@ async function test(name,fn){
    await assert.rejects(()=>h.ocsProviderActionLive('complete',''),/completion not confirmed/);
    assert.equal(h.applied.length,0);
  }],
+ ['Backend confirmation must refer to the requested booking ID',async()=>{
+   const h=harness();
+   h.ocsSupabase.rpc=async(name,args)=>{h.calls.push({name,args});return {data:{id:'different-booking-uuid',status:'accepted'},error:null};};
+   await assert.rejects(()=>h.ocsProviderDecisionLive('accept'),/booking ID mismatch/i);
+   assert.equal(h.applied.length,0);
+ }],
  ['Missing booking ID stops Accept and prevents false success',async()=>{
    const h=harness({bookingId:null});
    await assert.rejects(()=>h.ocsProviderDecisionLive('accept'),/Booking ID missing/);
