@@ -160,6 +160,16 @@ async function test(name,fn){
    await assert.rejects(()=>h.ocsProviderActionLive('start','123456'),/Test backend error/);
    assert.equal(h.applied.length,0);assert.equal(h.S.status,'REQUESTED');
  }],
+ ['Start OTP response for a different booking must not update current job',async()=>{
+   const h=harness();h.ocsSupabase.rpc=async()=>({data:{id:'wrong-booking-id',status:'working'},error:null});
+   await assert.rejects(()=>h.ocsProviderActionLive('start','123456'),/booking ID mismatch/);
+   assert.equal(h.applied.length,0);assert.equal(h.S.status,'REQUESTED');
+ }],
+ ['Complete response for a different booking must not update current job',async()=>{
+   const h=harness();h.ocsSupabase.rpc=async()=>({data:{id:'wrong-booking-id',status:'completion_requested'},error:null});
+   await assert.rejects(()=>h.ocsProviderActionLive('complete',''),/booking ID mismatch/);
+   assert.equal(h.applied.length,0);assert.equal(h.S.status,'REQUESTED');
+ }],
  ['Complete action must be confirmed by backend before UI advances',async()=>{
    const h=harness();await h.ocsProviderActionLive('complete','');
    const call=h.calls.find(c=>c.name==='provider_booking_action');
