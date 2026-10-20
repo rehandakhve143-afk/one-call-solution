@@ -26,9 +26,24 @@
 #ocs-subsidy-review .sub-record p{font-size:13px;line-height:1.7;color:#50646c}
 #ocs-subsidy-review .sub-record button{border:0;background:#07565e;color:#fff;padding:12px;border-radius:10px;font-weight:650;margin-top:8px}
 @media(max-width:370px){#ocs-subsidy-review .sub-fields{grid-template-columns:1fr}}
-</style><div class="sub-wrap"><div class="sub-top"><button class="sub-back" id="ocs-subsidy-close">← Back</button><h2>Provider Subsidy</h2></div><div class="sub-card"><h3>Customer Reward Settlement</h3><p class="sub-muted">Review OCS-funded rewards and track actual bank transfers. This screen does not send money automatically.</p><div class="sub-fields"><input id="ocs-subsidy-booking" placeholder="Booking ID (advanced)" aria-label="Booking ID"><select id="ocs-subsidy-purpose" aria-label="Reward type"><option value="job">Job</option><option value="visit">Visit</option></select></div><button class="sub-primary" id="ocs-subsidy-prepare">Find Applied Reward</button><p class="sub-muted">Only use a Booking ID when a reward has actually been applied. No payment is made here.</p></div><div class="sub-card"><h3>Bank Transfer Records</h3><div id="ocs-subsidy-rows" class="sub-muted">Loading records…</div></div></div>`;
+</style><div class="sub-wrap"><div class="sub-top"><button class="sub-back" id="ocs-subsidy-close">← Back</button><h2>Provider Subsidy</h2></div><div class="sub-card"><h3>Customer Reward Settlement</h3><p class="sub-muted">Review OCS-funded rewards and track actual bank transfers. This screen does not send money automatically.</p><div class="sub-fields"><input id="ocs-subsidy-booking" placeholder="Booking ID (advanced)" aria-label="Booking ID"><select id="ocs-subsidy-purpose" aria-label="Reward type"><option value="job">Job</option><option value="visit">Visit</option></select></div><button class="sub-primary" id="ocs-subsidy-prepare">Find Applied Reward</button><p class="sub-muted">Only use a Booking ID when a reward has actually been applied. No payment is made here.</p></div><div class="sub-card"><h3>Rewards Awaiting Preparation</h3><p class="sub-muted">Applied customer rewards appear here automatically. Preparing a record does not transfer money.</p><div id="ocs-subsidy-unprepared" class="sub-muted">Loading…</div></div><div class="sub-card"><h3>Bank Transfer Records</h3><div id="ocs-subsidy-rows" class="sub-muted">Loading records…</div></div></div>`;
   root.querySelector('#ocs-subsidy-prepare').onclick=async()=>{const booking=root.querySelector('#ocs-subsidy-booking').value.trim(),purpose=root.querySelector('#ocs-subsidy-purpose').value;if(!/^[0-9a-f-]{36}$/i.test(booking)){alert('Enter valid booking UUID');return}if(!confirm('Prepare an unpaid subsidy record only for a genuine applied customer reward?'))return;const {error}=await ocsSupabase.rpc('ocs_admin_prepare_provider_subsidy_v1',{p_booking_id:booking,p_purpose:purpose});if(error){alert(error.message);return}await open()};
   root.querySelector('#ocs-subsidy-close').onclick=()=>root.remove();
+  const pendingBox=root.querySelector('#ocs-subsidy-unprepared');
+  const {data:unprepared,error:unpreparedError}=await ocsSupabase.rpc('ocs_admin_unprepared_rewards_v1',{p_limit:50});
+  if(unpreparedError){pendingBox.textContent='Pending reward list unavailable. Existing manual preparation remains available.';}
+  else {
+   const pending=Array.isArray(unprepared)?unprepared:[];
+   pendingBox.innerHTML=pending.length?pending.map((x,i)=>'<article class="sub-record"><b>₹'+esc(x.reward_amount)+'</b><p>Booking: '+esc(x.booking_id)+'<br>Provider: '+esc(x.provider_id)+'<br>Purpose: '+esc(x.purpose)+'</p><button data-prepare-row="'+i+'">Prepare Settlement Record</button></article>').join(''):'No applied rewards awaiting preparation.';
+   pendingBox.querySelectorAll('[data-prepare-row]').forEach(b=>b.onclick=async()=>{
+    const x=pending[Number(b.dataset.prepareRow)];
+    if(!confirm('Create an unpaid settlement record for this applied reward? No money is sent.'))return;
+    b.disabled=true;
+    const {error:prepareError}=await ocsSupabase.rpc('ocs_admin_prepare_provider_subsidy_v1',{p_booking_id:x.booking_id,p_purpose:x.purpose});
+    if(prepareError){alert(prepareError.message);b.disabled=false;return}
+    await open();
+   });
+  }
   const {data,error}=await ocsSupabase.rpc('ocs_admin_provider_subsidy_queue_v1',{p_limit:50});
   if(error){root.querySelector('#ocs-subsidy-rows').textContent=error.message;return}
   const rows=Array.isArray(data)?data:[];
