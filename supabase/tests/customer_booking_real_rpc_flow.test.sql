@@ -124,9 +124,9 @@ SELECT is(
   'Cash confirmation records 9 percent fee'
 );
 SELECT throws_ok(
-  $ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
+  $tag$ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
        WHERE status='cash_confirmed' AND customer_id='f2222222-2222-4222-8222-222222222222'::uuid
-       ORDER BY created_at DESC LIMIT 1)) $,
+       ORDER BY created_at DESC LIMIT 1)) $tag$,
   'P0001',
   'cash payment not pending',
   'Repeated confirmation is rejected without charging again'
