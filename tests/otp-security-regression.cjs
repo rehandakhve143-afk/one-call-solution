@@ -6,7 +6,7 @@ const assert=require('node:assert/strict');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const provider=read('provider-dashboard.html');
 assert.match(provider,/async function runProviderStep\(action\)/);
-assert.match(provider,/if\(!\/\^\\d\{4\}\$\/\.test\(otp\)\)/,'Start OTP must be exactly six digits');
+assert.match(provider,/if\(!\/\^\\d\{6\}\$\/\.test\(otp\)\)/,'Start OTP must be exactly six digits');
 assert.match(provider,/sb\.rpc\('provider_booking_action'/,'Start OTP must be checked server-side');
 assert.match(provider,/action==='start'&&data\?\.status!=='working'/,'Unsuccessful OTP must not advance UI');
 assert.match(provider,/Too many incorrect OTP attempts/,'Locked OTP feedback required');
