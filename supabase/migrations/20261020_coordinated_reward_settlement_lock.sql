@@ -84,6 +84,10 @@ begin
 end;
 $function$;
 
+-- IMPORTANT: This migration only records bank UTR after an external transfer.
+-- The check and the actual external bank transfer are NOT atomic. Operators must
+-- reserve the payout before transferring funds; until reservation is implemented,
+-- do not initiate manual bank subsidy payouts. Wallet credits remain the existing path.
 -- Admin-only record of externally executed transfer, never sends funds.
 CREATE OR REPLACE FUNCTION public.ocs_admin_mark_provider_subsidy_sent_v1(
  p_disbursement_id uuid, p_bank_utr text
