@@ -26,9 +26,14 @@
   });
  }
  window.ocsOpenAdminSubsidyReview=open;
- document.addEventListener('DOMContentLoaded',()=>{
+ function mountAdminSubsidyButton(){
   const b=document.createElement('button');b.textContent='Admin Subsidy Review';b.style.cssText='position:fixed;bottom:70px;right:12px;z-index:9998;padding:10px;background:#122a47;color:white;border-radius:8px;display:none';
   b.onclick=open;document.body.appendChild(b);
-  if(typeof ocsUserHasRole==='function')setInterval(async()=>{try{b.style.display=await ocsUserHasRole('admin')?'block':'none'}catch(e){b.style.display='none'}},10000);
- });
+  if(typeof ocsUserHasRole==='function'){
+   const refresh=async()=>{try{b.style.display=await ocsUserHasRole('admin')?'block':'none'}catch(e){b.style.display='none'}};
+   refresh();setInterval(refresh,10000);
+  }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountAdminSubsidyButton,{once:true});
+ else mountAdminSubsidyButton();
 })();
