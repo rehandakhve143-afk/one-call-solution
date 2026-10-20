@@ -88,6 +88,10 @@ jobs:
           const expected='js/ocs-admin-subsidy-review.js?v=20261020';
           if(!html.includes(expected)) throw Error('Expected admin subsidy script reference missing');
           if(!fs.existsSync('js/ocs-admin-subsidy-review.js')) throw Error('Referenced JS missing');
+          const script=fs.readFileSync('js/ocs-admin-subsidy-review.js','utf8');
+          if(!script.includes('ocs_admin_prepare_provider_subsidy_v1')||!script.includes('ocs_admin_mark_provider_subsidy_sent_v1')||!script.includes('ocs_admin_verify_provider_subsidy_v1')) throw Error('Missing prepare/sent/verify subsidy wiring');
+          const published=fs.readFileSync('assets/ocs-admin-subsidy-review.js','utf8');
+          if(published!==script) throw Error('Admin subsidy JS copies have drifted');
           const workflow=fs.readFileSync('.github/workflows/pages.yml','utf8');
           if(!workflow.includes('cp -- js/ocs-admin-subsidy-review.js')) throw Error('Script not copied into Pages artifact');
           console.log('PASS: Admin subsidy script reference matches Pages copy rule');
