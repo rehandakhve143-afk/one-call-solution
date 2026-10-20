@@ -17,6 +17,12 @@ for(const migration of ['20261020_admin_prepare_provider_subsidy.sql','20261020_
 }
 assert.match(fs.readFileSync('supabase/migrations/20261020_subsidy_verify_utr_must_match_sent.sql','utf8'),/v_row\.bank_utr IS DISTINCT FROM v_utr/);
 assert.match(js,/This screen does not send money automatically/);
+assert.match(js,/New bank subsidy transfers are on hold/,'Admin must explain bank payout hold');
+assert.match(js,/x\.status==='sent'\?'<input data-utr=/,'Only already-sent records may expose UTR verification');
+assert.match(js,/data-action=\\"verify\\"/,'Sent records must retain verification action');
+assert.doesNotMatch(js,/data-action=\\"sent\\"/,'Pending bank subsidy must not expose Mark Sent action');
+assert.match(js,/Bank payout on hold: reservation and reconciliation safeguards are not yet enabled/);
+
 assert.match(js,/Rewards Awaiting Preparation/);
 assert.match(js,/Prepare Settlement Record/);
 assert.match(fs.readFileSync('supabase/migrations/20261020_admin_unprepared_rewards_queue.sql','utf8'),/NOT EXISTS/,'Pending list must exclude already prepared records');
