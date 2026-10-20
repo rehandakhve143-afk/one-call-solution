@@ -152,7 +152,7 @@ async function test(name,fn){
  ['No login cannot reject, start or complete a provider job',async()=>{
    for(const [method,args] of [
      ['ocsProviderDecisionLive',['reject']],
-     ['ocsProviderActionLive',['start','1234']],
+     ['ocsProviderActionLive',['start','123456']],
      ['ocsProviderActionLive',['complete','']]
    ]){
      const h=harness({loggedIn:false});
