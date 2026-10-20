@@ -1,6 +1,12 @@
 name: OCS Isolated Database Validation
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/**'
+      - 'tests/**'
+      - '.github/workflows/ocs-isolated-db.yml'
   pull_request:
     paths:
       - 'supabase/**'
