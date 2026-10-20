@@ -5,6 +5,7 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - Customer pays SP/Driver/Transport directly, via their own payment arrangement; OCS does not collect the full job amount.
 - OCS earns 9% per completed job, charged against provider wallet; IDBI is the intended receiving bank for verified wallet recharges and listing payments.
 - Verified new provider: ₹100 nonwithdrawable welcome bonus; no compulsory upfront recharge.
+- Referral: ₹50 to referrer and ₹50 to referred member after referred member's first genuinely completed job with confirmed provider payment; credit only once per referred member, nonwithdrawable OCS-only; anti-self-referral and duplicate checks required before release.
 - Before first verified recharge: eligible with positive bonus-backed balance; completed job can bring wallet negative. After first verified recharge: new jobs require wallet >= ₹200.
 - Wallet hold blocks only **new** jobs; already accepted work continues. Recharge auto-resume must not override KYC, admin or safety holds.
 - Rules apply consistently to SP, Driver and Goods Transport. Preserve audit logs and date-wise history.
