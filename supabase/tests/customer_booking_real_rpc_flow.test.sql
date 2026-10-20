@@ -41,7 +41,7 @@ VALUES ('f3333333-3333-4333-8333-333333333333','Electrical:Fan','Electrical','Fa
 SELECT set_config('request.jwt.claim.sub','f3333333-3333-4333-8333-333333333333',true);
 SELECT is(public.ocs_sp_wallet_new_jobs_allowed_v1(),true,'New SP welcome wallet allows initial job');
 SELECT lives_ok(
-  $ SELECT public.accept_booking_v3((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1)) $,
+  $$ SELECT public.accept_booking_v3((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1)) $$,
   'Approved SP accepts actual customer booking'
 );
 SELECT is(
