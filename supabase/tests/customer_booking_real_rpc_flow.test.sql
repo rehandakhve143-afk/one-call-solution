@@ -56,11 +56,11 @@ SELECT is(
 );
 -- Continue the SAME booking through the real provider OTP state machine.
 SELECT lives_ok(
-  $ SELECT public.provider_booking_action((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),'on_way',NULL) $,
+  $$ SELECT public.provider_booking_action((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),'on_way',NULL) $$,
   'Assigned SP starts travelling'
 );
 SELECT lives_ok(
-  $ SELECT public.provider_booking_action((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),'reached',NULL) $,
+  $$ SELECT public.provider_booking_action((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),'reached',NULL) $$,
   'Assigned SP arrives and creates start OTP'
 );
 SELECT is(
@@ -69,11 +69,11 @@ SELECT is(
   'Real OTP has six digits'
 );
 SELECT lives_ok(
-  $ SELECT public.provider_booking_action(
+  $$ SELECT public.provider_booking_action(
     (SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),
     'start',
     (SELECT start_otp FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1)
-  ) $,
+  ) $$,
   'SP starts work using generated OTP'
 );
 SELECT is(
@@ -82,7 +82,7 @@ SELECT is(
   'Correct OTP transitions booking to working'
 );
 SELECT lives_ok(
-  $ SELECT public.provider_booking_action((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),'complete',NULL) $,
+  $$ SELECT public.provider_booking_action((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),'complete',NULL) $$,
   'SP requests work completion'
 );
 SELECT is(
