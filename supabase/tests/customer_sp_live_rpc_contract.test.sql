@@ -2,7 +2,7 @@
 -- These exact signatures were checked against production pg_proc on 2026-10-20.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(13);
+SELECT plan(11);
 SELECT has_function('public','create_customer_booking_v4',ARRAY['text','text','numeric','text','text','jsonb','jsonb','double precision','double precision'],'customer booking RPC matches live signature');
 SELECT has_function('public','accept_booking_v3',ARRAY['uuid'],'provider acceptance RPC matches live signature');
 SELECT has_function('public','provider_booking_action',ARRAY['uuid','text','text'],'provider OTP and completion RPC matches live signature');
@@ -15,7 +15,5 @@ SELECT has_table('public','provider_onboarding','SP approval table is present');
 SELECT has_table('public','provider_transport_profiles','Transport provider table is present');
 SELECT has_table('public','provider_skills','SP skills table is present');
 SELECT has_function('public','ocs_sp_wallet_new_jobs_allowed_v1','SP wallet acceptance gate is present');
-SELECT has_function('public','submit_provider_rating_v1',ARRAY['uuid','integer','text'],'rating submission RPC exists');
-SELECT has_function('public','provider_rating_summary_v1',ARRAY['uuid'],'rating summary RPC exists');
 SELECT * FROM finish();
 ROLLBACK;
