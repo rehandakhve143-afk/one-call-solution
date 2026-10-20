@@ -124,6 +124,13 @@ SELECT is(
   21.51::numeric,
   'Repeated commission request is idempotent'
 );
+-- Isolated test-only stand-in for reward use lookup. No production schema change.
+CREATE TABLE IF NOT EXISTS public.customer_booking_reward_uses (
+  booking_id uuid NOT NULL,
+  purpose text NOT NULL,
+  status text NOT NULL,
+  amount numeric NOT NULL DEFAULT 0
+);
 -- Provider confirms an actual cash-marked ledger item via the authenticated RPC.
 INSERT INTO public.booking_payments(booking_id,customer_id,provider_id,purpose,method,amount,status)
 SELECT id,customer_id,provider_id,'job','cash',239,'cash_marked'
@@ -150,11 +157,13 @@ SELECT is(
   21.51::numeric,
   'Cash confirmation records 9 percent fee'
 );
-SELECT lives_ok(
-  $$ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
+SELECT throws_ok(
+  $ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
        WHERE status='cash_confirmed' AND customer_id='f2222222-2222-4222-8222-222222222222'::uuid
-       ORDER BY created_at DESC LIMIT 1)) $$,
-  'Cash confirmation is safe to repeat'
+       ORDER BY created_at DESC LIMIT 1)) $,
+  'P0001',
+  'cash payment not pending',
+  'Repeated confirmation is rejected without charging again'
 );
 SELECT is(
   (SELECT count(*)::integer FROM public.wallet_transactions
