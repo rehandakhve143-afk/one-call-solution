@@ -1,6 +1,6 @@
 -- Coordinated booking-row lock on both sides of reward settlement.
 -- Existing cash function locks bookings FOR UPDATE; sent recorder now locks same booking.
--- Block double reward compensation; abort payment confirmation rather than silently lose subsidy.
+-- Customer booking reward reconciliation only; unrelated to ₹100 welcome or ₹50 referral bonuses.
 CREATE OR REPLACE FUNCTION public.confirm_cash_received_v1(p_payment_id uuid)
  RETURNS booking_payments
  LANGUAGE plpgsql
@@ -82,7 +82,7 @@ begin
 
   return pmt;
 end;
-$function$
+$function$;
 
 -- Admin-only record of externally executed transfer, never sends funds.
 CREATE OR REPLACE FUNCTION public.ocs_admin_mark_provider_subsidy_sent_v1(
