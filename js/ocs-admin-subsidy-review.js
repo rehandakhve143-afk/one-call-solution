@@ -3,7 +3,7 @@
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  async function open(){
   if(typeof ocsUserHasRole!=='function'||!await ocsUserHasRole('admin')){alert('OCS Admin only');return}
-  if(!window.ocsSupabase){alert('Login / database connection required');return}
+  if(typeof ocsSupabase==='undefined'||!ocsSupabase){alert('Login / database connection required');return}
   let root=document.getElementById('ocs-subsidy-review');
   if(!root){root=document.createElement('section');root.id='ocs-subsidy-review';root.style.cssText='position:fixed;inset:0;background:#fff;z-index:2147483000;overflow:auto;padding:20px;color:#222';document.body.appendChild(root)}
   root.innerHTML='<button id="ocs-subsidy-close">← Close</button><h2>Provider Reward Subsidy — Admin Review</h2><p>Record externally sent bank transfer only after checking actual bank evidence. Verification is separate; no money is sent here.</p><div id="ocs-subsidy-rows">Loading…</div>';
