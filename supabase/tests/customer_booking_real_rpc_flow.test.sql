@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(15);
+SELECT plan(20);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -89,6 +89,40 @@ SELECT is(
   (SELECT status FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),
   'completion_requested',
   'Full isolated booking reaches completion_requested'
+);
+-- Synthetic direct cash payment: no payment gateway or production funds.
+INSERT INTO public.booking_payments(booking_id,customer_id,provider_id,purpose,method,amount,status)
+SELECT id,customer_id,provider_id,'job','cash',239,'cash_confirmed'
+FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid;
+SELECT is(
+  (SELECT status FROM public.booking_payments WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),
+  'cash_confirmed',
+  'Isolated direct cash receipt is recorded'
+);
+-- Commission RPC is privileged: invoke as service_role in isolated transaction only.
+SELECT set_config('request.jwt.claim.role','service_role',true);
+SELECT is(
+  public.apply_provider_commission_v1(
+    (SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),239),
+  21.51::numeric,
+  'Nine percent of Rs 239 is Rs 21.51'
+);
+SELECT is(
+  (SELECT wallet_balance FROM public.provider_status WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid),
+  78.49::numeric,
+  'Welcome wallet Rs 100 less commission Rs 21.51'
+);
+SELECT is(
+  (SELECT count(*)::integer FROM public.wallet_transactions
+   WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),
+  1,
+  'Commission creates exactly one wallet ledger entry'
+);
+SELECT is(
+  public.apply_provider_commission_v1(
+    (SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),239),
+  21.51::numeric,
+  'Repeated commission request is idempotent'
 );
 SELECT * FROM finish();
 ROLLBACK;
