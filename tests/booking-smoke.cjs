@@ -78,6 +78,14 @@ async function test(name,fn){
    assert.equal(h.calls[0].args.p_booking_id,'test-booking-uuid');
    assert.equal(h.applied.length,1);
  }],
+ ['Next accepted booking and quote discussion are valid backend outcomes',async()=>{
+   for(const status of ['next_accepted','discussion']){
+     const h=harness();
+     h.ocsSupabase.rpc=async(name,args)=>{h.calls.push({name,args});return {data:{id:'test-booking-uuid',status},error:null};};
+     await h.ocsProviderDecisionLive('accept');
+     assert.equal(h.applied.length,1);
+   }
+ }],
  ['Accept must not report success for unconfirmed backend state',async()=>{
    const h=harness();
    h.ocsSupabase.rpc=async(name,args)=>{h.calls.push({name,args});return {data:{id:'test-booking-uuid',status:'searching'},error:null};};
