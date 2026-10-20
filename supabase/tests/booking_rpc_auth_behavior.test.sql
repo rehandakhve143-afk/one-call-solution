@@ -25,13 +25,13 @@ SELECT throws_ok(
 -- Isolated database only; no auth.users row, booking, or payment is created.
 SELECT set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
 SELECT throws_ok(
-  $ SELECT public.create_customer_booking_v4('Electrical','Fan',239,'cash','Isolated test address','[]'::jsonb,'{}'::jsonb,19.0,73.0) $,
+  $$ SELECT public.create_customer_booking_v4('Electrical','Fan',239,'cash','Isolated test address','[]'::jsonb,'{}'::jsonb,19.0,73.0) $$,
   'P0001',
   'Customer profile required',
   'Authenticated identity without customer role cannot create booking'
 );
 SELECT throws_ok(
-  $ SELECT public.accept_booking_v3('00000000-0000-0000-0000-000000000003'::uuid) $,
+  $$ SELECT public.accept_booking_v3('00000000-0000-0000-0000-000000000003'::uuid) $$,
   'P0001',
   'service_provider role required',
   'Authenticated identity without SP role cannot accept booking'
