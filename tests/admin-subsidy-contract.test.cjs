@@ -19,8 +19,8 @@ assert.match(fs.readFileSync('supabase/migrations/20261020_subsidy_verify_utr_mu
 assert.match(js,/This screen does not send money automatically/);
 assert.match(js,/New bank subsidy transfers are on hold/,'Admin must explain bank payout hold');
 assert.match(js,/x\.status==='sent'\?'<input data-utr=/,'Only already-sent records may expose UTR verification');
-assert.match(js,/data-action=\\"verify\\"/,'Sent records must retain verification action');
-assert.doesNotMatch(js,/data-action=\\"sent\\"/,'Pending bank subsidy must not expose Mark Sent action');
+assert.match(js,/data-action="verify"/,'Sent records must retain verification action');
+assert.doesNotMatch(js,/data-action="sent"/,'Pending bank subsidy must not expose Mark Sent action');
 assert.match(js,/Bank payout on hold: reservation and reconciliation safeguards are not yet enabled/);
 
 assert.match(js,/Rewards Awaiting Preparation/);
