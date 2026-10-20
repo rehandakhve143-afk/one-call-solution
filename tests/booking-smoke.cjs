@@ -27,7 +27,7 @@ function harness({connected=true,loggedIn=true,bookingId='test-booking-uuid',fai
   calls.push({name,args});
   if(name===failRpc)return {error:new Error('Test backend error'),data:null};
   if(name==='ensure_customer_account_v1')return {error:null};
-  return {data:{id:bookingId,status:name==='accept_booking_v3'?'accepted':name==='provider_booking_action'?'working':'searching'},error:null};
+  return {data:{id:bookingId,status:name==='accept_booking_v3'?'accepted':name==='provider_booking_action'?(args.p_action==='complete'?'completion_requested':'working'):'searching'},error:null};
  }}:null;
  const ctx={S,ocsSupabase,OCS_LIVE_BOOKING_ID:bookingId,
    ocsSession:async()=>loggedIn?{user:{id:'mock-user'}}:null,
@@ -77,6 +77,18 @@ async function test(name,fn){
    assert.equal(h.calls[0].name,'accept_booking_v3');
    assert.equal(h.calls[0].args.p_booking_id,'test-booking-uuid');
    assert.equal(h.applied.length,1);
+ }],
+ ['Accept must not report success for unconfirmed backend state',async()=>{
+   const h=harness();
+   h.ocsSupabase.rpc=async(name,args)=>{h.calls.push({name,args});return {data:{id:'test-booking-uuid',status:'searching'},error:null};};
+   await assert.rejects(()=>h.ocsProviderDecisionLive('accept'),/acceptance not confirmed/);
+   assert.equal(h.applied.length,0);
+ }],
+ ['Complete must not report success for unconfirmed backend state',async()=>{
+   const h=harness();
+   h.ocsSupabase.rpc=async(name,args)=>{h.calls.push({name,args});return {data:{id:'test-booking-uuid',status:'working'},error:null};};
+   await assert.rejects(()=>h.ocsProviderActionLive('complete',''),/completion not confirmed/);
+   assert.equal(h.applied.length,0);
  }],
  ['Missing booking ID stops Accept and prevents false success',async()=>{
    const h=harness({bookingId:null});
