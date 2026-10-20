@@ -90,40 +90,6 @@ SELECT is(
   'completion_requested',
   'Full isolated booking reaches completion_requested'
 );
--- Synthetic direct cash payment: no payment gateway or production funds.
-INSERT INTO public.booking_payments(booking_id,customer_id,provider_id,purpose,method,amount,status)
-SELECT id,customer_id,provider_id,'job','cash',239,'cash_confirmed'
-FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid;
-SELECT is(
-  (SELECT status FROM public.booking_payments WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),
-  'cash_confirmed',
-  'Isolated direct cash receipt is recorded'
-);
--- Commission RPC is privileged: invoke as service_role in isolated transaction only.
-SELECT set_config('request.jwt.claim.role','service_role',true);
-SELECT is(
-  public.apply_provider_commission_v1(
-    (SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),239),
-  21.51::numeric,
-  'Nine percent of Rs 239 is Rs 21.51'
-);
-SELECT is(
-  (SELECT wallet_balance FROM public.provider_status WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid),
-  78.49::numeric,
-  'Welcome wallet Rs 100 less commission Rs 21.51'
-);
-SELECT is(
-  (SELECT count(*)::integer FROM public.wallet_transactions
-   WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),
-  1,
-  'Commission creates exactly one wallet ledger entry'
-);
-SELECT is(
-  public.apply_provider_commission_v1(
-    (SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),239),
-  21.51::numeric,
-  'Repeated commission request is idempotent'
-);
 -- Isolated test-only stand-in for reward use lookup. No production schema change.
 CREATE TABLE IF NOT EXISTS public.customer_booking_reward_uses (
   booking_id uuid NOT NULL,
@@ -170,6 +136,37 @@ SELECT is(
    WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),
   1,
   'Repeated cash confirmation never duplicates commission'
+);
+SELECT is(
+  (SELECT status FROM public.booking_payments
+   WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),
+  'cash_confirmed',
+  'Cash receipt is confirmed'
+);
+SELECT is(
+  (SELECT wallet_balance FROM public.provider_status
+   WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid),
+  78.49::numeric,
+  'Welcome wallet less nine percent commission'
+);
+SELECT is(
+  (SELECT count(*)::integer FROM public.wallet_transactions
+   WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),
+  1,
+  'Cash receipt creates one commission ledger entry'
+);
+SELECT is(
+  (SELECT coalesce(sum(amount),0) FROM public.wallet_transactions
+   WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),
+  (-21.51)::numeric,
+  'Commission ledger records Rs 21.51 debit'
+);
+SELECT is(
+  (SELECT count(*)::integer FROM public.booking_status_events
+   WHERE booking_id=(SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1)
+     AND status='completed'),
+  1,
+  'Booking completed event recorded exactly once'
 );
 SELECT * FROM finish();
 ROLLBACK;
