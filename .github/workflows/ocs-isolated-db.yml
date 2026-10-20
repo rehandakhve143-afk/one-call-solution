@@ -39,6 +39,14 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+      - name: Verify baseline schema exists before isolated migration tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! grep -R -l -E 'CREATE TABLE( IF NOT EXISTS)? (public\.)?profiles' supabase/migrations --include='*.sql' | grep -q .; then
+            echo '::error::Missing baseline schema: migrations alter public.profiles but do not create it. Add an initial schema migration before running isolated database tests.'
+            exit 1
+          fi
       - name: Start isolated Supabase stack
         run: supabase start
       - name: Verify isolated endpoint
