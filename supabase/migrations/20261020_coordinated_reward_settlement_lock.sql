@@ -94,12 +94,15 @@ BEGIN
  IF auth.uid() IS NULL OR NOT public.is_admin() THEN RAISE EXCEPTION 'OCS Admin only'; END IF;
  v_utr:=upper(regexp_replace(btrim(coalesce(p_bank_utr,'')),'[ -]','','g'));
  IF v_utr !~ '^[A-Z0-9]{8,35}$' THEN RAISE EXCEPTION 'Actual bank transfer UTR required'; END IF;
+ -- Always lock booking before subsidy row, matching confirm_cash_received_v1.
+ SELECT booking_id INTO v_row.booking_id FROM public.ocs_provider_subsidy_disbursements WHERE id=p_disbursement_id;
+ IF v_row.booking_id IS NULL THEN RAISE EXCEPTION 'Disbursement not found'; END IF;
+ PERFORM 1 FROM public.bookings WHERE id=v_row.booking_id FOR UPDATE;
  SELECT * INTO v_row FROM public.ocs_provider_subsidy_disbursements WHERE id=p_disbursement_id FOR UPDATE;
  IF v_row.id IS NULL THEN RAISE EXCEPTION 'Disbursement not found'; END IF;
  IF v_row.status='sent' AND v_row.bank_utr=v_utr THEN RETURN jsonb_build_object('status','sent','already_recorded',true); END IF;
  IF v_row.status<>'pending' THEN RAISE EXCEPTION 'Transfer record cannot be overwritten'; END IF;
- -- Lock the same booking row used by cash confirmation before checking wallet credit.
- SELECT provider_id INTO v_provider FROM public.bookings WHERE id=v_row.booking_id FOR UPDATE;
+ SELECT provider_id INTO v_provider FROM public.bookings WHERE id=v_row.booking_id;
  IF v_provider IS DISTINCT FROM v_row.provider_id THEN RAISE EXCEPTION 'Provider mismatch'; END IF;
  SELECT coalesce(sum(amount),0) INTO v_reward FROM public.customer_booking_reward_uses
  WHERE booking_id=v_row.booking_id AND purpose=v_row.purpose AND status='applied';
