@@ -31,6 +31,12 @@ begin
     and purpose=case when pmt.purpose='visit' then 'visit' else 'job' end
     and status='applied';
 
+  -- Serialize subsidy decisions with the bank-disbursement workflow for this booking.
+  PERFORM 1 FROM public.ocs_provider_subsidy_disbursements
+   WHERE booking_id=b.id AND provider_id=b.provider_id
+     AND purpose=case when pmt.purpose='visit' then 'visit' else 'job' end
+   FOR UPDATE;
+
   if v_reward>0 then
     if exists (select 1 from public.ocs_provider_subsidy_disbursements d where d.booking_id=b.id and d.provider_id=b.provider_id and d.purpose=case when pmt.purpose='visit' then 'visit' else 'job' end and d.status in ('sent','verified')) then
       v_subsidy_exists:=true;
