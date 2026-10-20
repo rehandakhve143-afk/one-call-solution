@@ -1376,7 +1376,7 @@ async function ocsProviderDecisionLive(d){
   const args=d==="accept"?{p_booking_id:S.activeBookingId}:{p_booking_id:S.activeBookingId,p_reason:"Provider rejected"};
   const {data,error}=await ocsSupabase.rpc(fn,args);
   if(error)throw error;
-  if(d==="accept"){if(!data||String(data.status||"").toLowerCase()!=="accepted")throw new Error("Provider acceptance not confirmed by backend.");ocsApplyBackendBooking(data);}
+  if(d==="accept"){if(!data||String(data.status||"").toLowerCase()!=="accepted")throw new Error("Provider acceptance not confirmed by backend.");if(String(data.id||"")!==String(S.activeBookingId))throw new Error("Provider booking ID mismatch. Refresh Incoming Jobs.");ocsApplyBackendBooking(data);}
   else{S.status="SELECT_SERVICE";S.activeBookingId=null;OCS_LIVE_BOOKING_ID=null}
   return true;
 }
