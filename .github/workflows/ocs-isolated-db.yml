@@ -85,7 +85,7 @@ jobs:
           set -euo pipefail
           # A single historical migration is not a complete production baseline.
           # Fail with an actionable message before downloading Docker images.
-          if ! grep -R -l -i -E 'create[[:space:]]+table[[:space:]]+(if[[:space:]]+not[[:space:]]+exists[[:space:]]+)?(public\\.)?ocs_provider_subsidy_disbursements([[:space:]]|\\()' supabase/migrations --include='*.sql' | grep -q .; then
+          if ! grep -R -l -i -F 'CREATE TABLE IF NOT EXISTS public.ocs_provider_subsidy_disbursements' supabase/migrations --include='*.sql' | grep -q .; then
             echo '::error::Incomplete isolated baseline: missing CREATE TABLE public.ocs_provider_subsidy_disbursements, required by ocs_admin_mark_provider_subsidy_sent_v1. Recover the complete schema before running migrations.'
             exit 1
           fi
