@@ -6,11 +6,13 @@ on:
     paths:
       - 'supabase/**'
       - 'tests/**'
+      - 'home-services.html'
       - '.github/workflows/ocs-isolated-db.yml'
   pull_request:
     paths:
       - 'supabase/**'
       - 'tests/**'
+      - 'home-services.html'
       - '.github/workflows/ocs-isolated-db.yml'
 permissions:
   contents: read
