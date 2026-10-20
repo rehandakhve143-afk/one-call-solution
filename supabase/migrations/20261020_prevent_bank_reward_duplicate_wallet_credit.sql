@@ -33,12 +33,13 @@ begin
 
   if v_reward>0 then
     if exists (select 1 from public.ocs_provider_subsidy_disbursements d where d.booking_id=b.id and d.provider_id=b.provider_id and d.purpose=case when pmt.purpose='visit' then 'visit' else 'job' end and d.status in ('sent','verified')) then
-      raise exception 'Bank subsidy already sent; reward wallet credit blocked to prevent double compensation';
-    end if;
-    select exists(
+      v_subsidy_exists:=true;
+    else
+      select exists(
       select 1 from public.wallet_transactions
       where provider_id=b.provider_id and booking_id=b.id and kind='customer_reward_subsidy'
     ) into v_subsidy_exists;
+    end if;
 
     if not v_subsidy_exists then
       update public.provider_status
