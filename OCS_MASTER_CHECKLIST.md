@@ -176,3 +176,8 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - [ ] P0 create a reviewed, additive partial unique index on (provider_id,booking_id,kind) for customer_reward_subsidy after preflight, and verify duplicate receipt behavior in isolated tests; no live financial mutation performed in this audit.
 - [ ] P0 fully-reward-funded booking: apply_customer_rewards_v1 completes booking and charges commission without explicit provider cash payout. Verify and fix provider compensation before enabling 100% reward completion.
 - [ ] P0 confirm wallet subsidy withdrawability, reserve and whether credit is a true provider payment; wallet balance credit alone is not proof of cash payout.
+
+### P0 verified withdrawal blocker — 2026-10-20
+- [x] Live SQL inspected: create_provider_withdrawal_v1 unconditionally raises `Automatic payouts activation pending` after validation; provider_withdrawal_preview_v1 returns auto_payout_enabled=false and can_withdraw=false. Therefore customer_reward_subsidy wallet credit is NOT a verified cash payout.
+- [ ] Do not complete fully reward-funded booking solely via apply_customer_rewards_v1 until actual provider compensation/payout is available and reconciled; existing function currently marks completed and applies commission without verified payout.
+- [ ] Design a compliant OCS-funded manual/automatic provider subsidy disbursement with auditable proof and idempotency; verify service-provider, driver and transport authorization and payout access. No live financial RPC changed in this audit.
