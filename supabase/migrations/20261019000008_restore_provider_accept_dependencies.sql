@@ -44,6 +44,12 @@ CREATE TABLE IF NOT EXISTS public.provider_skills (
  service_id uuid REFERENCES public.service_catalog(id),
  PRIMARY KEY(provider_id,skill)
 );
+-- Core migration may have created a minimal provider_skills table first.
+ALTER TABLE public.provider_skills ADD COLUMN IF NOT EXISTS category text;
+ALTER TABLE public.provider_skills ADD COLUMN IF NOT EXISTS service_name text;
+ALTER TABLE public.provider_skills ADD COLUMN IF NOT EXISTS verification_status text NOT NULL DEFAULT 'pending';
+ALTER TABLE public.provider_skills ADD COLUMN IF NOT EXISTS enabled_by_provider boolean NOT NULL DEFAULT true;
+ALTER TABLE public.provider_skills ADD COLUMN IF NOT EXISTS service_id uuid REFERENCES public.service_catalog(id);
 ALTER TABLE public.provider_service_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.provider_onboarding ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.provider_transport_profiles ENABLE ROW LEVEL SECURITY;
