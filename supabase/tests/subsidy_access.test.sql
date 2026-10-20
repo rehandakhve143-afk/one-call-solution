@@ -14,10 +14,10 @@ select throws_ok($$select public.ocs_admin_verify_provider_subsidy_v1('00000000-
 reset role;
 -- Authenticated without an admin JWT must also be rejected.
 set local role authenticated;
-select throws_ok($select public.ocs_admin_prepare_provider_subsidy_v1('00000000-0000-0000-0000-000000000001'::uuid,'job')$,'P0001','OCS Admin only','non-admin cannot prepare subsidy');
-select throws_ok($select public.ocs_admin_provider_subsidy_queue_v1(10)$,'P0001','OCS Admin only','non-admin cannot read queue');
-select throws_ok($select public.ocs_admin_mark_provider_subsidy_sent_v1('00000000-0000-0000-0000-000000000001'::uuid,'TESTUTR12345')$,'P0001','OCS Admin only','non-admin cannot mark sent');
-select throws_ok($select public.ocs_admin_verify_provider_subsidy_v1('00000000-0000-0000-0000-000000000001'::uuid,'TESTUTR12345')$,'P0001','OCS Admin only','non-admin cannot verify');
+select throws_ok($$select public.ocs_admin_prepare_provider_subsidy_v1('00000000-0000-0000-0000-000000000001'::uuid,'job')$$,'P0001','OCS Admin only','non-admin cannot prepare subsidy');
+select throws_ok($$select public.ocs_admin_provider_subsidy_queue_v1(10)$$,'P0001','OCS Admin only','non-admin cannot read queue');
+select throws_ok($$select public.ocs_admin_mark_provider_subsidy_sent_v1('00000000-0000-0000-0000-000000000001'::uuid,'TESTUTR12345')$$,'P0001','OCS Admin only','non-admin cannot mark sent');
+select throws_ok($$select public.ocs_admin_verify_provider_subsidy_v1('00000000-0000-0000-0000-000000000001'::uuid,'TESTUTR12345')$$,'P0001','OCS Admin only','non-admin cannot verify');
 reset role;
 select is((select relrowsecurity from pg_class where oid='public.ocs_provider_subsidy_disbursements'::regclass),true,'subsidy ledger has RLS enabled');
 select * from finish();
