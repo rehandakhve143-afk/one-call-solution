@@ -1,0 +1,61 @@
+name: OCS Isolated Database Validation
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - 'tests/**'
+      - '.github/workflows/ocs-isolated-db.yml'
+permissions:
+  contents: read
+jobs:
+  isolated-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SUPABASE_ACCESS_TOKEN: ''
+      SUPABASE_DB_PASSWORD: ''
+      SUPABASE_PROJECT_ID: ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject production credentials and endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "${SUPABASE_ACCESS_TOKEN}" || -n "${SUPABASE_DB_PASSWORD}" || -n "${SUPABASE_PROJECT_ID}" ]]; then
+            echo "::error::Production Supabase credentials are forbidden in isolated tests"
+            exit 1
+          fi
+          if grep -R -n -E 'uipmkrsggpkupgbgoxkg|https://[^[:space:]]+\.supabase\.co' supabase/config.toml 2>/dev/null; then
+            echo "::error::Production endpoint found in local Supabase config"
+            exit 1
+          fi
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start isolated Supabase stack
+        run: supabase start
+      - name: Verify isolated endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase status
+          local_url="$(supabase status -o env | sed -n 's/^API_URL=//p' | tr -d '"')"
+          if [[ "$local_url" != http://127.0.0.1:54321 && "$local_url" != http://localhost:54321 ]]; then
+            echo "::error::Refusing tests against nonlocal Supabase: $local_url"
+            exit 1
+          fi
+      - name: Apply repository migrations in isolated database
+        run: supabase db reset --local --yes
+      - name: Run database pgTAP tests if present
+        shell: bash
+        run: |
+          set -euo pipefail
+          if find supabase/tests -type f -name '*.sql' -print -quit 2>/dev/null | grep -q .; then
+            supabase test db
+          else
+            echo "::notice::No pgTAP tests yet; migrations-only validation, NOT an E2E PASS"
+          fi
+      - name: Stop isolated stack
+        if: always()
+        run: supabase stop --no-backup || true
