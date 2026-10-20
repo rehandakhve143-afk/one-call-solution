@@ -24,8 +24,8 @@ assert.match(booking,/This changes the real provider record/);
 // Wallet and payment rules must remain separate from customer reward bank subsidy.
 const rewardSql=read('supabase/migrations/20261020_coordinated_reward_settlement_lock.sql');
 assert.equal((rewardSql.match(/CREATE OR REPLACE FUNCTION/g)||[]).length,2,'both settlement RPCs present');
-assert.equal((rewardSql.match(/\\$function\\$;/g)||[]).length,2,'both SQL functions terminated');
-assert.match(rewardSql,/FROM public\\.bookings WHERE id=v_row\\.booking_id FOR UPDATE/,'bank payout recorder locks booking');
+assert.equal((rewardSql.match(/\$function\$;/g)||[]).length,2,'both SQL functions terminated');
+assert.match(rewardSql,/FROM public\.bookings WHERE id=v_row\.booking_id FOR UPDATE/,'bank payout recorder locks booking');
 assert.match(rewardSql,/kind='customer_reward_subsidy'/,'duplicate wallet reward guarded');
 assert.match(rewardSql,/do not initiate manual bank subsidy payouts/,'bank transfer remains disabled until reservation is safe');
 assert.match(provider,/confirm_cash_received_v1/);
