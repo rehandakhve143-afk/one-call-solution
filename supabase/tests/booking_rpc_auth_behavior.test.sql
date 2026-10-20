@@ -16,7 +16,7 @@ SELECT throws_ok(
   'Customer cannot create a booking without authentication'
 );
 SELECT throws_ok(
-  $ SELECT public.accept_booking_v3('00000000-0000-0000-0000-000000000002'::uuid) $,
+  $$ SELECT public.accept_booking_v3('00000000-0000-0000-0000-000000000002'::uuid) $$,
   'P0001',
   'login required',
   'A second unauthenticated booking acceptance is also rejected'
