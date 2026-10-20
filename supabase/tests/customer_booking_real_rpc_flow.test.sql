@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(26);
+SELECT plan(32);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -167,6 +167,23 @@ SELECT is(
      AND status='completed'),
   1,
   'Booking completed event recorded exactly once'
+);
+-- Rating is only accepted after payment completes the same booking.
+SELECT set_config('request.jwt.claim.sub','f2222222-2222-4222-8222-222222222222',true);
+SELECT lives_ok(
+  $rating$ SELECT public.submit_provider_rating_v1((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),5,'Excellent service') $rating$,
+  'Booking customer rates the completed job'
+);
+SELECT is((SELECT stars FROM public.provider_ratings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid),5,'Five-star rating saved');
+SELECT is((public.provider_rating_summary_v1('f3333333-3333-4333-8333-333333333333'::uuid)->>'count')::integer,1,'SP rating summary counts one review');
+SELECT lives_ok(
+  $rating$ SELECT public.submit_provider_rating_v1((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),4,'Updated review') $rating$,
+  'Same customer may update their booking rating'
+);
+SELECT is((SELECT count(*)::integer FROM public.provider_ratings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid),1,'Rating update does not duplicate reviews');
+SELECT throws_ok(
+  $rating$ SELECT public.submit_provider_rating_v1((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),6,'Invalid') $rating$,
+  'P0001','rating must be 1 to 5','Ratings above five are rejected'
 );
 SELECT * FROM finish();
 ROLLBACK;
