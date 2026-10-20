@@ -91,6 +91,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/ocs-public-site"
           find . -maxdepth 1 -type f \( -name '*.html' -o -name 'manifest.json' -o -name 'app-version.json' -o -name 'service-worker.js' \) -exec cp -- '{}' "$RUNNER_TEMP/ocs-public-site/" \;
           cp -R -- assets "$RUNNER_TEMP/ocs-public-site/assets"
+          mkdir -p "$RUNNER_TEMP/ocs-public-site/js"
+          cp -- js/ocs-admin-subsidy-review.js "$RUNNER_TEMP/ocs-public-site/js/ocs-admin-subsidy-review.js"
+          test -s "$RUNNER_TEMP/ocs-public-site/js/ocs-admin-subsidy-review.js"
           test -s "$RUNNER_TEMP/ocs-public-site/index.html"
           test -s "$RUNNER_TEMP/ocs-public-site/service-worker.js"
           test -f "$RUNNER_TEMP/ocs-public-site/assets/ocs-home.css"
