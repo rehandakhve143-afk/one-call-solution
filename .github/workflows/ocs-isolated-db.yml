@@ -115,3 +115,28 @@ jobs:
       - name: Stop isolated stack
         if: always()
         run: supabase stop --no-backup || true
+
+  demo-mobile-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser test dependencies
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install --with-deps chromium
+      - name: Run customer-SP simulated mobile booking through payment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/ocs-demo-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:8765/ocs-test-mode.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/demo-e2e-browser.cjs
