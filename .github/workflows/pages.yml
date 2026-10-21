@@ -38,6 +38,8 @@ jobs:
         run: node tests/otp-security-regression.cjs
       - name: Verify direct-to-provider payment guidance and receipt wiring (static only)
         run: node tests/direct-payment-regression.cjs
+      - name: Verify booking commission exactly once for SP Driver Transport (static only)
+        run: node tests/commission-once-regression.cjs
       - name: Verify Customer SP Driver Transport priorities without live data
         run: node tests/core-focus-smoke.cjs
       - name: Verify wallet Option B migration preserves provider Work ON/OFF (static only)
@@ -105,7 +107,7 @@ jobs:
           {
             echo "## OCS automated test and deployment report"
             echo ""
-            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Commit: \u0060$GITHUB_SHA\u0060"
             echo "- Automated checks: see the steps above for individual results."
             echo "- These checks use mocks/static contracts and isolated browser demos; they do not verify live customer payments, real bank receipts or production E2E bookings."
             echo "- Release gate: real Customer -> SP -> OTP -> Completion -> direct payment -> 9% wallet ledger -> rating, plus separate Driver/Transport verification."
@@ -124,7 +126,6 @@ jobs:
           cp -R -- assets "$RUNNER_TEMP/ocs-public-site/assets"
           mkdir -p "$RUNNER_TEMP/ocs-public-site/js"
           cp -- js/ocs-admin-subsidy-review.js "$RUNNER_TEMP/ocs-public-site/js/ocs-admin-subsidy-review.js"
-          test -s "$RUNNER_TEMP/ocs-public-site/js/ocs-admin-subsidy-review.js"
           test -s "$RUNNER_TEMP/ocs-public-site/js/ocs-admin-subsidy-review.js"
           test -s "$RUNNER_TEMP/ocs-public-site/index.html"
           test -s "$RUNNER_TEMP/ocs-public-site/service-worker.js"
