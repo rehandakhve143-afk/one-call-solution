@@ -2,6 +2,8 @@
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 SELECT plan(6);
+-- Test-only dependency used by wallet/reward lookup in the real RPC; rolled back.
+CREATE TABLE IF NOT EXISTS public.customer_booking_reward_uses (booking_id uuid NOT NULL,purpose text NOT NULL,status text NOT NULL,amount numeric NOT NULL DEFAULT 0);
 INSERT INTO auth.users(id,email,raw_user_meta_data)
 VALUES ('a2222222-2222-4222-8222-222222222222','guard-customer@test.invalid','{"role":"customer"}'::jsonb),
 ('a3333333-3333-4333-8333-333333333333','guard-provider@test.invalid','{"role":"service_provider"}'::jsonb);
