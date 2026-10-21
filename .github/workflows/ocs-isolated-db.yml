@@ -64,7 +64,10 @@ jobs:
             tests/sp-inbox-signals-browser.cjs \
             tests/dashboard-role-preference-smoke.cjs \
             tests/reward-settlement-contract.test.cjs \
-            tests/admin-subsidy-contract.test.cjs; do
+            tests/admin-subsidy-contract.test.cjs \
+            tests/mobile-browser-smoke.cjs \
+            tests/official-export-browser.cjs \
+            tests/push-optin-smoke.cjs; do
             echo "::group::$test"
             node "$test"
             echo "::endgroup::"
