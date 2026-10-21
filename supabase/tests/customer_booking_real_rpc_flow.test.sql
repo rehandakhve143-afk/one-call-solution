@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(35);
+SELECT plan(38);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -186,6 +186,25 @@ SELECT is(
    WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),
   1,
   'Commission replay cannot duplicate ledger rows'
+);
+-- Malicious/accidental replay with a different amount must not create a second debit.
+SELECT is(
+  public.apply_provider_commission_v1(
+    (SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),2000),
+  180::numeric,
+  'Changed amount replay returns the requested fee without a new debit'
+);
+SELECT is(
+  (SELECT wallet_balance FROM public.provider_status
+   WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid),
+  78.49::numeric,
+  'Changed amount replay leaves wallet unchanged'
+);
+SELECT is(
+  (SELECT count(*)::integer FROM public.wallet_transactions
+   WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),
+  1,
+  'Changed amount replay creates no extra commission row'
 );
 -- Rating is only accepted after payment completes the same booking.
 SELECT set_config('request.jwt.claim.sub','f2222222-2222-4222-8222-222222222222',true);
