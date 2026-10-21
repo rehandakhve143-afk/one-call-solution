@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(88);
+SELECT plan(91);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -440,5 +440,14 @@ SELECT lives_ok(
 );
 SELECT is((SELECT count(*)::integer FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Transport completed rating success'),1,'Completed transport trip creates exactly one rating');
 SELECT is((SELECT r.provider_id::text FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Transport completed rating success' LIMIT 1),'f3333333-3333-4333-8333-333333333333','Transport rating belongs to assigned provider');
+-- Re-rating the same completed transport trip updates, not duplicates, its review.
+SELECT set_config('request.jwt.claim.sub','f2222222-2222-4222-8222-222222222222',true);
+SELECT lives_ok(
+  $transport_rerate$ SELECT public.submit_provider_rating_v1(
+    (SELECT id FROM public.bookings WHERE service_name='Transport completed rating success' LIMIT 1),4,'Updated transport feedback') $transport_rerate$,
+  'Customer can update rating for the same completed transport trip'
+);
+SELECT is((SELECT count(*)::integer FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Transport completed rating success'),1,'Transport re-rating does not duplicate the review');
+SELECT is((SELECT r.stars FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Transport completed rating success' LIMIT 1),4,'Transport re-rating saves the updated stars');
 SELECT * FROM finish();
 ROLLBACK;
