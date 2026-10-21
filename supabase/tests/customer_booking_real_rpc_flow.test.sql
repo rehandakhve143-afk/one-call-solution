@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(80);
+SELECT plan(82);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -408,5 +408,15 @@ SELECT throws_ok(
   'P0001','rating allowed after closed booking','Driver payment-pending booking cannot be rated'
 );
 SELECT is((SELECT count(*)::integer FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Driver payment pending rating guard'),0,'Driver pending payment creates no rating');
+-- Driver Service booking in support review must not receive a rating.
+INSERT INTO public.bookings(customer_id,provider_id,category,service_name,booking_amount,payment_method,status,address)
+VALUES ('f2222222-2222-4222-8222-222222222222','f3333333-3333-4333-8333-333333333333','Driver Service','Driver dispute rating guard',239,'cash','support_review','Isolated pickup');
+SELECT set_config('request.jwt.claim.sub','f2222222-2222-4222-8222-222222222222',true);
+SELECT throws_ok(
+  $driver_dispute$ SELECT public.submit_provider_rating_v1(
+    (SELECT id FROM public.bookings WHERE service_name='Driver dispute rating guard' LIMIT 1),5,'Disputed') $driver_dispute$,
+  'P0001','rating allowed after closed booking','Disputed driver booking cannot be rated'
+);
+SELECT is((SELECT count(*)::integer FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Driver dispute rating guard'),0,'Driver support review creates no rating');
 SELECT * FROM finish();
 ROLLBACK;
