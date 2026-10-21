@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(46);
+SELECT plan(49);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -260,5 +260,8 @@ SELECT throws_ok(
   $rating$ SELECT public.submit_provider_rating_v1((SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),6,'Invalid') $rating$,
   'P0001','rating must be 1 to 5','Ratings above five are rejected'
 );
+SELECT is((SELECT provider_id FROM public.provider_ratings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid),'f3333333-3333-4333-8333-333333333333'::uuid,'Completed booking rating belongs to assigned SP');
+SELECT is((public.provider_rating_summary_v1('f4444444-4444-4444-8444-444444444444'::uuid)->>'count')::integer,0,'Unassigned SP receives no rating');
+SELECT is((SELECT count(*)::integer FROM public.provider_ratings WHERE provider_id='f4444444-4444-4444-8444-444444444444'::uuid),0,'Rating table has no entry for unrelated SP');
 SELECT * FROM finish();
 ROLLBACK;
