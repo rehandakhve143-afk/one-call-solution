@@ -45,6 +45,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/ocs-regression-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:8765/ocs-test-mode.html >/dev/null; then break; fi
+            sleep 1
+          done
           for test in \
             tests/smoke.cjs \
             tests/core-focus-smoke.cjs \
