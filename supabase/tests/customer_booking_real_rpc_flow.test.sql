@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(70);
+SELECT plan(72);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -358,5 +358,15 @@ SELECT lives_ok(
   'Existing RPC allows rating settled cancellation'
 );
 SELECT is((SELECT stars FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Settled cancellation rating test'),3,'Settled cancellation rating is recorded against that booking');
+-- Transport cancellation is not a completed trip even when settlement is closed.
+INSERT INTO public.bookings(customer_id,provider_id,category,service_name,booking_amount,payment_method,status,address)
+VALUES ('f2222222-2222-4222-8222-222222222222','f3333333-3333-4333-8333-333333333333','Tempo / Goods Transport','Transport settled cancellation test',239,'cash','cancelled_settled','Isolated transport address');
+SELECT set_config('request.jwt.claim.sub','f2222222-2222-4222-8222-222222222222',true);
+SELECT throws_ok(
+  $transport_cancel$ SELECT public.submit_provider_rating_v1(
+    (SELECT id FROM public.bookings WHERE service_name='Transport settled cancellation test' LIMIT 1),5,'Cancelled transport') $transport_cancel$,
+  'P0001','Transport rating allowed only after completed trip','Transport cancellation cannot be rated as completed trip'
+);
+SELECT is((SELECT count(*)::integer FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Transport settled cancellation test'),0,'Transport cancelled settlement creates no rating');
 SELECT * FROM finish();
 ROLLBACK;
