@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(52);
+SELECT plan(55);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -277,5 +277,15 @@ SELECT throws_ok(
 );
 SELECT is((SELECT stars FROM public.provider_ratings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid),4,'Other customer cannot change owner rating');
 SELECT is((SELECT count(*)::integer FROM public.provider_ratings WHERE customer_id='f5555555-5555-4555-8555-555555555555'::uuid),0,'No review is created for unauthorized customer');
+-- The assigned provider cannot impersonate the customer to review their own job.
+SELECT set_config('request.jwt.claim.sub','f3333333-3333-4333-8333-333333333333',true);
+SELECT throws_ok(
+  $self_rating$ SELECT public.submit_provider_rating_v1(
+    (SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),
+    1,'Provider self review') $self_rating$,
+  'P0001','customer booking required','Assigned SP cannot rate their own completed booking'
+);
+SELECT is((SELECT stars FROM public.provider_ratings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid),4,'Provider self-rating attempt leaves original customer stars intact');
+SELECT is((SELECT count(*)::integer FROM public.provider_ratings WHERE customer_id='f3333333-3333-4333-8333-333333333333'::uuid),0,'No provider-authored rating is inserted');
 SELECT * FROM finish();
 ROLLBACK;
