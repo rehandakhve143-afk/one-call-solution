@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(62);
+SELECT plan(64);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -318,5 +318,15 @@ SELECT throws_ok(
   'P0001','rating allowed after closed booking','Cancelled booking is not eligible for a review'
 );
 SELECT is((SELECT count(*)::integer FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Cancelled rating test'),0,'Cancelled booking creates no review');
+-- A not-completed visit is not eligible for a completed-job review.
+INSERT INTO public.bookings(customer_id,provider_id,category,service_name,booking_amount,payment_method,status,address)
+VALUES ('f2222222-2222-4222-8222-222222222222','f3333333-3333-4333-8333-333333333333','Electrical','Not completed rating test',239,'cash','not_completed','Isolated visit address');
+SELECT set_config('request.jwt.claim.sub','f2222222-2222-4222-8222-222222222222',true);
+SELECT throws_ok(
+  $notdone$ SELECT public.submit_provider_rating_v1(
+    (SELECT id FROM public.bookings WHERE service_name='Not completed rating test' LIMIT 1),5,'Incomplete job') $notdone$,
+  'P0001','rating allowed after closed booking','Not completed booking cannot receive completed-job rating'
+);
+SELECT is((SELECT count(*)::integer FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Not completed rating test'),0,'Not completed booking has no provider review');
 SELECT * FROM finish();
 ROLLBACK;
