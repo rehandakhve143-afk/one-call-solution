@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(44);
+SELECT plan(46);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -160,6 +160,19 @@ SELECT is(
    WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),
   1,
   'Repeated cash confirmation never duplicates commission'
+);
+SELECT is(
+  (SELECT wallet_balance FROM public.provider_status
+   WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid),
+  78.49::numeric,
+  'Repeated cash confirmation preserves exact provider wallet balance'
+);
+SELECT is(
+  (SELECT count(*)::integer FROM public.booking_status_events
+   WHERE booking_id=(SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1)
+     AND status='completed'),
+  1,
+  'Repeated cash confirmation cannot duplicate completed audit event'
 );
 SELECT is(
   (SELECT status FROM public.booking_payments
