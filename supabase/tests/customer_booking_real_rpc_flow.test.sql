@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(38);
+SELECT plan(41);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -101,6 +101,20 @@ CREATE TABLE IF NOT EXISTS public.customer_booking_reward_uses (
 INSERT INTO public.booking_payments(booking_id,customer_id,provider_id,purpose,method,amount,status)
 SELECT id,customer_id,provider_id,'job','cash',239,'cash_marked'
 FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid;
+-- Unassigned SP cannot confirm the customer's cash ledger.
+INSERT INTO auth.users(id,email,raw_user_meta_data)
+VALUES ('f4444444-4444-4444-8444-444444444444','ocs-unassigned-sp@test.invalid','{"role":"service_provider"}'::jsonb);
+INSERT INTO public.user_roles(user_id,role)
+VALUES ('f4444444-4444-4444-8444-444444444444','service_provider');
+SELECT set_config('request.jwt.claim.sub','f4444444-4444-4444-8444-444444444444',true);
+SELECT throws_ok(
+  $other_sp$ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
+    WHERE status='cash_marked' AND customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1)) $other_sp$,
+  'P0001','assigned provider required','Unassigned SP cannot confirm another SP cash payment'
+);
+SELECT is((SELECT status FROM public.booking_payments WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),'cash_marked','Unassigned SP leaves payment pending');
+SELECT is((SELECT count(*)::integer FROM public.wallet_transactions WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),0,'Unassigned SP cannot debit assigned provider wallet');
+SELECT set_config('request.jwt.claim.sub','f3333333-3333-4333-8333-333333333333',true);
 SELECT set_config('request.jwt.claim.role','authenticated',true);
 SELECT lives_ok(
   $$ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
