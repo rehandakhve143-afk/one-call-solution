@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(72);
+SELECT plan(74);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -368,5 +368,15 @@ SELECT throws_ok(
   'P0001','Transport rating allowed only after completed trip','Transport cancellation cannot be rated as completed trip'
 );
 SELECT is((SELECT count(*)::integer FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Transport settled cancellation test'),0,'Transport cancelled settlement creates no rating');
+-- Transport still in progress must not receive a completed-trip rating.
+INSERT INTO public.bookings(customer_id,provider_id,category,service_name,booking_amount,payment_method,status,address)
+VALUES ('f2222222-2222-4222-8222-222222222222','f3333333-3333-4333-8333-333333333333','Tempo / Goods Transport','Transport ongoing rating test',239,'cash','completion_requested','Isolated transport route');
+SELECT set_config('request.jwt.claim.sub','f2222222-2222-4222-8222-222222222222',true);
+SELECT throws_ok(
+  $transport_ongoing$ SELECT public.submit_provider_rating_v1(
+    (SELECT id FROM public.bookings WHERE service_name='Transport ongoing rating test' LIMIT 1),5,'Trip not finished') $transport_ongoing$,
+  'P0001','rating allowed after closed booking','Ongoing transport trip cannot receive a completed-trip rating'
+);
+SELECT is((SELECT count(*)::integer FROM public.provider_ratings r JOIN public.bookings b ON b.id=r.booking_id WHERE b.service_name='Transport ongoing rating test'),0,'Ongoing transport trip creates no rating');
 SELECT * FROM finish();
 ROLLBACK;
