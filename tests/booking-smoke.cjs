@@ -75,7 +75,9 @@ async function test(name,fn){
      s=>{s.total=Infinity},
      s=>{s.selectedItems=[]},
      s=>{s.selectedItems=[{name:'Fan',price:-5,qty:1}]},
-     s=>{s.selectedItems=[{name:'Fan',price:239,qty:0}]}
+     s=>{s.selectedItems=[{name:'Fan',price:239,qty:0}]},
+     s=>{s.selectedItems=[{name:'Fan',price:239,qty:1.5}]},
+     s=>{s.selectedItems=[{name:'Fan',price:0,qty:1}]}
    ]){
      const h=harness();change(h.S);
      await assert.rejects(()=>h.ocsCreateLiveBooking(),/Invalid booking amount|Invalid service selection/);
