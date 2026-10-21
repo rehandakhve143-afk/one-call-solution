@@ -29,6 +29,35 @@ jobs:
           node-version: '22'
       - name: Run mock booking smoke tests (no live database or payments)
         run: node tests/booking-smoke.cjs
+  comprehensive-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run core OCS regression suite (mock/local only; no live payments)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test in \
+            tests/smoke.cjs \
+            tests/core-focus-smoke.cjs \
+            tests/direct-payment-regression.cjs \
+            tests/otp-security-regression.cjs \
+            tests/wallet-option-b-regression.cjs \
+            tests/driver-packages-browser.cjs \
+            tests/sp-wallet-bank-browser.cjs \
+            tests/sp-work-control-browser.cjs \
+            tests/sp-inbox-signals-browser.cjs \
+            tests/dashboard-role-preference-smoke.cjs \
+            tests/reward-settlement-contract.test.cjs \
+            tests/admin-subsidy-contract.test.cjs; do
+            echo "::group::$test"
+            node "$test"
+            echo "::endgroup::"
+          done
   isolated-database:
     runs-on: ubuntu-latest
     timeout-minutes: 25
