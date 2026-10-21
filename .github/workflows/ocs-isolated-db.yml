@@ -15,6 +15,8 @@ on:
       - 'supabase/**'
       - 'tests/**'
       - 'home-services.html'
+      - 'driver-provider.html'
+      - 'transport-driver.html'
       - '.github/workflows/ocs-isolated-db.yml'
 permissions:
   contents: read
