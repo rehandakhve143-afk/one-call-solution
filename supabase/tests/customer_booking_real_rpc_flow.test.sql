@@ -273,7 +273,7 @@ SELECT throws_ok(
   $stranger_rating$ SELECT public.submit_provider_rating_v1(
     (SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),
     1,'Unauthorized rating') $stranger_rating$,
-  'P0001','invalid booking for rating','Other customer cannot rate completed booking'
+  'P0001','customer booking required','Other customer cannot rate completed booking'
 );
 SELECT is((SELECT stars FROM public.provider_ratings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid),4,'Other customer cannot change owner rating');
 SELECT is((SELECT count(*)::integer FROM public.provider_ratings WHERE customer_id='f5555555-5555-4555-8555-555555555555'::uuid),0,'No review is created for unauthorized customer');
