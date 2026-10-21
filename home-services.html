@@ -1352,13 +1352,13 @@ async function ocsCreateLiveBooking(){
   const lat=S.customerBookingLat, lng=S.customerBookingLng;
   if(lat==null||lng==null||String(lat).trim()===""||String(lng).trim()===""||!Number.isFinite(Number(lat))||!Number.isFinite(Number(lng))||Math.abs(Number(lat))>90||Math.abs(Number(lng))>180||(Number(lat)===0&&Number(lng)===0))throw new Error("Booking location missing or invalid. Please select your location pin before booking.");
   const items=(S.selectedItems||[]).map(x=>({name:x.name,price:Number(x.price),qty:Number(x.qty)}));
-  const bookingAmount=Number(S.total||S.base||0);
+  const bookingAmount=Number(S.total ?? S.base ?? 0);
   if(!Number.isFinite(bookingAmount)||bookingAmount<=0)throw new Error("Invalid booking amount. Please review the rate card before booking.");
   if(!items.length||items.some(x=>!x.name||!Number.isFinite(x.price)||x.price<=0||!Number.isInteger(x.qty)||x.qty<=0))throw new Error("Invalid service selection. Please select a valid rate-card item before booking.");
   const {data,error}=await ocsSupabase.rpc("create_customer_booking_v4",{
     p_category:S.category||"",
     p_service_name:S.service||S.serviceName||S.category||"Home Service",
-    p_booking_amount:Number(S.total||S.base||0),
+    p_booking_amount:Number(S.total ?? S.base ?? 0),
     p_payment_method:String(S.paymentChoice||"ONLINE").toLowerCase(),
     p_address:S.address||"",
     p_selected_items:items,
