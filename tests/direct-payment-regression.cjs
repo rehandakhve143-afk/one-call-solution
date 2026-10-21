@@ -84,4 +84,20 @@ assert.match(home,/const visible=ocsVisibleNotifications\(rows\)/);
 assert.match(home,/const count=ocsVisibleNotifications\(data\)\.filter\(n=>!n\.read_at\)\.length/);
 assert.match(home,/ocs_mark_notification_read_v1/);
 assert.match(home,/list_notifications_v1/);
+// Ensure provider receipt and server-side wallet commission stay linked.
+const receiptSql=read('supabase/migrations/20261019000012_confirm_direct_cash_payment.sql');
+for(const required of [
+  "p.status='cash_confirmed' THEN RETURN p",
+  "p.status<>'cash_marked'",
+  "p.amount IS DISTINCT FROM b.booking_amount",
+  "b.provider_id IS DISTINCT FROM auth.uid()",
+  "public.apply_provider_commission_v1(b.id,p.amount)",
+  "status='completed'"
+]){
+ assert(receiptSql.includes(required),'Missing receipt safeguard: '+required);
+}
+for(const [role,html] of [['Driver',driverProvider],['Transport',transport]]){
+ assert(html.includes("s==='payment_pending'"),role+' missing pending payment state');
+ assert(html.includes("s==='cash_wait'"),role+' missing receipt confirmation state');
+}
 console.log('PASS: direct-payment guidance and provider receipt wiring (static only; NOT live E2E)');
