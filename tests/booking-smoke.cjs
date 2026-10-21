@@ -68,6 +68,20 @@ async function test(name,fn){
      assert.equal(h.applied.length,0);
    }
  }],
+ ['Invalid booking amount or service items never reach booking RPC',async()=>{
+   for(const change of [
+     s=>{s.total=-1;s.base=-1},
+     s=>{s.total=Infinity},
+     s=>{s.selectedItems=[]},
+     s=>{s.selectedItems=[{name:'Fan',price:-5,qty:1}]},
+     s=>{s.selectedItems=[{name:'Fan',price:239,qty:0}]}
+   ]){
+     const h=harness();change(h.S);
+     await assert.rejects(()=>h.ocsCreateLiveBooking(),/Invalid booking amount|Invalid service selection/);
+     assert(!h.calls.some(c=>c.name==='create_customer_booking_v4'));
+     assert.equal(h.applied.length,0);
+   }
+ }],
  ['Missing or invalid GPS pin cannot create a customer booking',async()=>{
    for(const [lat,lng] of [[null,null],['',''],[91,73],[19.2,181],[0,0]]){
      const h=harness();h.S.customerBookingLat=lat;h.S.customerBookingLng=lng;
