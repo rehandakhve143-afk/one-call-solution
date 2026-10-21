@@ -12,7 +12,8 @@ permissions:
 
 concurrency:
   group: "pages"
-  cancel-in-progress: true
+  # Finish the active deployment instead of cancelling it when another push arrives.
+  cancel-in-progress: false
 
 jobs:
   deploy:
