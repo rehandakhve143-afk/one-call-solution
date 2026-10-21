@@ -2,7 +2,7 @@
 -- These are behavior tests, not a simulated browser flow; no real user or payment.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(5);
+SELECT plan(8);
 SELECT throws_ok(
   $$ SELECT public.accept_booking_v3('00000000-0000-0000-0000-000000000001'::uuid) $$,
   'P0001',
@@ -35,6 +35,19 @@ SELECT throws_ok(
   'P0001',
   'service_provider role required',
   'Authenticated identity without SP role cannot accept booking'
+);
+SELECT set_config('request.jwt.claim.sub','',true);
+SELECT throws_ok(
+  $ SELECT public.customer_dispute_completion_v2('00000000-0000-0000-0000-000000000004'::uuid,'Unauthorized') $,
+  'P0001','login required','Anonymous caller cannot open completion dispute'
+);
+SELECT throws_ok(
+  $ SELECT public.confirm_cash_received_v1('00000000-0000-0000-0000-000000000005'::uuid) $,
+  'P0001','login required','Anonymous caller cannot confirm direct cash'
+);
+SELECT throws_ok(
+  $ SELECT public.submit_provider_rating_v1('00000000-0000-0000-0000-000000000006'::uuid,5,'Test') $,
+  'P0001','login required','Anonymous caller cannot rate a provider'
 );
 SELECT * FROM finish();
 ROLLBACK;
