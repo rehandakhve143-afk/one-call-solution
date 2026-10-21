@@ -57,6 +57,17 @@ async function test(name,fn){
    assert.equal(call.args.p_latitude,19.2);assert.equal(call.args.p_longitude,73);
    assert.equal(h.applied.length,1);
  }],
+ ['Customer booking must reject an unconfirmed or mismatched backend response',async()=>{
+   for(const response of [null,{}, {id:'test-booking-uuid',status:'failed'}, {id:null,status:'searching'}]){
+     const h=harness();
+     h.ocsSupabase.rpc=async(name,args)=>{
+       h.calls.push({name,args});
+       return name==='create_customer_booking_v4'?{data:response,error:null}:{data:null,error:null};
+     };
+     await assert.rejects(()=>h.ocsCreateLiveBooking(),/Customer booking not confirmed by backend/);
+     assert.equal(h.applied.length,0);
+   }
+ }],
  ['Missing or invalid GPS pin cannot create a customer booking',async()=>{
    for(const [lat,lng] of [[null,null],['',''],[91,73],[19.2,181],[0,0]]){
      const h=harness();h.S.customerBookingLat=lat;h.S.customerBookingLng=lng;
