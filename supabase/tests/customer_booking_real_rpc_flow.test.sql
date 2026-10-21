@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(55);
+SELECT plan(58);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -97,6 +97,17 @@ CREATE TABLE IF NOT EXISTS public.customer_booking_reward_uses (
   status text NOT NULL,
   amount numeric NOT NULL DEFAULT 0
 );
+-- Pending completion is not a completed paid booking: no early customer review.
+SELECT set_config('request.jwt.claim.sub','f2222222-2222-4222-8222-222222222222',true);
+SELECT throws_ok(
+  $early_rating$ SELECT public.submit_provider_rating_v1(
+    (SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),
+    5,'Early review') $early_rating$,
+  'P0001','rating allowed after closed booking','Customer cannot rate completion_requested booking before cash confirmation'
+);
+SELECT is((SELECT count(*)::integer FROM public.provider_ratings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid),0,'Early rating creates no review row');
+SELECT is((SELECT status FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),'completion_requested','Early rating attempt leaves booking pending');
+SELECT set_config('request.jwt.claim.sub','f3333333-3333-4333-8333-333333333333',true);
 -- Provider confirms an actual cash-marked ledger item via the authenticated RPC.
 INSERT INTO public.booking_payments(booking_id,customer_id,provider_id,purpose,method,amount,status)
 SELECT id,customer_id,provider_id,'job','cash',239,'cash_marked'
