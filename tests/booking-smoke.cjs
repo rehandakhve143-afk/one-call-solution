@@ -71,6 +71,7 @@ async function test(name,fn){
  ['Invalid booking amount or service items never reach booking RPC',async()=>{
    for(const change of [
      s=>{s.total=-1;s.base=-1},
+     s=>{s.total=0;s.base=478},
      s=>{s.total=Infinity},
      s=>{s.selectedItems=[]},
      s=>{s.selectedItems=[{name:'Fan',price:-5,qty:1}]},
