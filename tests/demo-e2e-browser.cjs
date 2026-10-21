@@ -40,6 +40,9 @@ const assert=require('node:assert/strict');
   await page.evaluate(()=>setRole('sp'));
   await page.evaluate(()=>spCashReceived());
   assert.equal((await state()).booking.status,'completed');
+  const completedSnapshot=await state();
+  await page.evaluate(()=>simulatePayment());
+  assert.deepEqual(await state(),completedSnapshot,'Repeated customer payment action must not change completed booking');
   // Replaying provider receipt must not charge the customer or re-open a completed job.
   await page.evaluate(()=>spCashReceived());
   assert.equal((await state()).booking.status,'completed','Repeated provider receipt cannot reopen completed booking');
