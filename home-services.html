@@ -1364,6 +1364,7 @@ async function ocsCreateLiveBooking(){
     p_longitude:Number(S.customerBookingLng)
   });
   if(error)throw error;
+  if(!data||!data.id||!["searching","requested","pending","discussion"].includes(String(data.status||"").toLowerCase()))throw new Error("Customer booking not confirmed by backend. Please refresh before retrying.");
   ocsApplyBackendBooking(data);
   return data;
 }
