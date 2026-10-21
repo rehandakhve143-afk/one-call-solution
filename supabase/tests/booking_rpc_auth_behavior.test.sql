@@ -38,15 +38,15 @@ SELECT throws_ok(
 );
 SELECT set_config('request.jwt.claim.sub','',true);
 SELECT throws_ok(
-  $ SELECT public.customer_dispute_completion_v2('00000000-0000-0000-0000-000000000004'::uuid,'Unauthorized') $,
+  $authcheck$ SELECT public.customer_dispute_completion_v2('00000000-0000-0000-0000-000000000004'::uuid,'Unauthorized') $authcheck$,
   'P0001','login required','Anonymous caller cannot open completion dispute'
 );
 SELECT throws_ok(
-  $ SELECT public.confirm_cash_received_v1('00000000-0000-0000-0000-000000000005'::uuid) $,
+  $authcheck$ SELECT public.confirm_cash_received_v1('00000000-0000-0000-0000-000000000005'::uuid) $authcheck$,
   'P0001','login required','Anonymous caller cannot confirm direct cash'
 );
 SELECT throws_ok(
-  $ SELECT public.submit_provider_rating_v1('00000000-0000-0000-0000-000000000006'::uuid,5,'Test') $,
+  $authcheck$ SELECT public.submit_provider_rating_v1('00000000-0000-0000-0000-000000000006'::uuid,5,'Test') $authcheck$,
   'P0001','login required','Anonymous caller cannot rate a provider'
 );
 SELECT * FROM finish();
