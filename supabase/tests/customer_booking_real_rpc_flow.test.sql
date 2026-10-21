@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(41);
+SELECT plan(44);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -114,6 +114,16 @@ SELECT throws_ok(
 );
 SELECT is((SELECT status FROM public.booking_payments WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),'cash_marked','Unassigned SP leaves payment pending');
 SELECT is((SELECT count(*)::integer FROM public.wallet_transactions WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),0,'Unassigned SP cannot debit assigned provider wallet');
+SELECT set_config('request.jwt.claim.sub','f3333333-3333-4333-8333-333333333333',true);
+-- Booking customer is not the assigned provider and cannot confirm cash.
+SELECT set_config('request.jwt.claim.sub','f2222222-2222-4222-8222-222222222222',true);
+SELECT throws_ok(
+  $customer_cash$ SELECT public.confirm_cash_received_v1((SELECT id FROM public.booking_payments
+    WHERE status='cash_marked' AND customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1)) $customer_cash$,
+  'P0001','assigned provider required','Customer cannot impersonate provider for cash confirmation'
+);
+SELECT is((SELECT status FROM public.booking_payments WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),'cash_marked','Customer cash attempt leaves payment unchanged');
+SELECT is((SELECT count(*)::integer FROM public.wallet_transactions WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),0,'Customer cash attempt creates no provider commission');
 SELECT set_config('request.jwt.claim.sub','f3333333-3333-4333-8333-333333333333',true);
 SELECT set_config('request.jwt.claim.role','authenticated',true);
 SELECT lives_ok(
