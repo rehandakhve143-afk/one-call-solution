@@ -99,6 +99,18 @@ jobs:
           if(!workflow.includes('cp -- js/ocs-admin-subsidy-review.js')) throw Error('Script not copied into Pages artifact');
           console.log('PASS: Admin subsidy script reference matches Pages copy rule');
           NODE
+      - name: Publish mobile-friendly test summary
+        if: always()
+        run: |
+          {
+            echo "## OCS automated test and deployment report"
+            echo ""
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Automated checks: see the steps above for individual results."
+            echo "- These checks use mocks/static contracts and isolated browser demos; they do not verify live customer payments, real bank receipts or production E2E bookings."
+            echo "- Release gate: real Customer -> SP -> OTP -> Completion -> direct payment -> 9% wallet ledger -> rating, plus separate Driver/Transport verification."
+            echo "- Never interpret a green CI deployment as a live-payment PASS."
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
