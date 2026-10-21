@@ -2,7 +2,7 @@
 -- No production access, live payment, or simulated browser.
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(32);
+SELECT plan(35);
 INSERT INTO auth.users (id,email,raw_user_meta_data)
 VALUES ('f2222222-2222-4222-8222-222222222222','ocs-customer-integration@test.invalid','{"role":"customer"}'::jsonb);
 INSERT INTO public.user_roles(user_id,role)
@@ -167,6 +167,25 @@ SELECT is(
      AND status='completed'),
   1,
   'Booking completed event recorded exactly once'
+);
+-- Re-enter the real commission function after settlement: ledger and balance must stay stable.
+SELECT is(
+  public.apply_provider_commission_v1(
+    (SELECT id FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),239),
+  21.51::numeric,
+  'Replayed commission returns the original fee'
+);
+SELECT is(
+  (SELECT wallet_balance FROM public.provider_status
+   WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid),
+  78.49::numeric,
+  'Commission replay cannot debit wallet twice'
+);
+SELECT is(
+  (SELECT count(*)::integer FROM public.wallet_transactions
+   WHERE provider_id='f3333333-3333-4333-8333-333333333333'::uuid AND kind='commission'),
+  1,
+  'Commission replay cannot duplicate ledger rows'
 );
 -- Rating is only accepted after payment completes the same booking.
 SELECT set_config('request.jwt.claim.sub','f2222222-2222-4222-8222-222222222222',true);
