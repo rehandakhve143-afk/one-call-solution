@@ -3906,10 +3906,14 @@ function renderOcsHomeLocation(){
 function openLocationPicker(){
   const loc=getOcsLocation(),input=document.getElementById('ocsManualLocation');
   if(input)input.value=(loc&&loc.source==='manual')?(loc.label||''):'';
-  // A saved location is already usable: show GPS only when no location has been selected.
+  // Keep the location sheet focused on manual area changes. The GPS action is
+  // offered only for first-time setup, not repeatedly after a selection.
   for(const id of ['ocsLocationGpsDivider','ocsLocationGpsButton']){
-    const el=document.getElementById(id);if(el)el.style.display=loc?'none':'';
+    const el=document.getElementById(id);
+    if(el)el.hidden=!!loc;
   }
+  const note=document.querySelector('#locationModal .ocs-location-note');
+  if(note)note.textContent=loc?'Location saved. Enter a different area only if you want to change it.':'Choose an area or use GPS once to set your service location.';
   document.getElementById('locationModal').classList.add('show');
 }
 function closeLocationPicker(){document.getElementById('locationModal').classList.remove('show')}
