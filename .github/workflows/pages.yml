@@ -75,6 +75,8 @@ jobs:
       - name: Verify SP wallet, optional bank setup and Work OFF/ON in mobile Chromium (mocked)
         run: |
           node tests/sp-wallet-bank-browser.cjs
+      - name: Verify Get Quote category routing (static regression)
+        run: node tests/get-quote-category-regression.cjs
       - name: Verify GitHub Pages base-path compatibility
         run: |
           node - <<'NODE'
