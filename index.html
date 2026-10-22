@@ -3929,6 +3929,11 @@ function saveManualOcsLocation(){
   renderOcsHomeLocation();closeLocationPicker();
 }
 function useCurrentOcsLocation(){
+  const saved=getOcsLocation();
+  // Reusing an already saved GPS pin should be one tap, not another permission/picker cycle.
+  if(saved&&saved.source==='gps'&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))){
+    renderOcsHomeLocation();closeLocationPicker();return;
+  }
   if(!navigator.geolocation){alert('Current location is device/browser me available nahi hai.');return}
   navigator.geolocation.getCurrentPosition(async pos=>{
     const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude);
