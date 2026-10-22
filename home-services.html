@@ -2239,7 +2239,15 @@ async function submitCustomRequest(){
      p_longitude:Number(S.customerBookingLng)
    });
    if(error)throw error;
-   ocsApplyBackendBooking(data);
+   // Never show a successful Get Quote screen for an empty, demo or mismatched backend response.
+   const quoteRow=Array.isArray(data)?data[0]:data;
+   const quoteId=String(quoteRow?.id||quoteRow?.booking_id||"");
+   const returnedCategory=String(quoteRow?.category||quoteRow?.service_category||"");
+   const returnedService=String(quoteRow?.service_name||quoteRow?.service||"");
+   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(quoteId))throw new Error("Live quote booking ID not confirmed");
+   if(returnedCategory&&returnedCategory!==S.category)throw new Error("Live quote category mismatch");
+   if(returnedService&&returnedService!==S.service)throw new Error("Live quote service mismatch");
+   ocsApplyBackendBooking(quoteRow);
    S.status="QUOTE_WAIT";S.currentJob="Quote Request";S.quoteProviderAccepted=false;
    hist("LIVE Get Quote request sent • "+S.category+" • Photo/Video "+S.requestMedia.length);
    ocsStartLive("customer");
