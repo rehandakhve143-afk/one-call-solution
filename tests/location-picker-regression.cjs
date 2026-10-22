@@ -1,0 +1,17 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const html=fs.readFileSync('index.html','utf8');
+const between=(a,b)=>{const i=html.indexOf(a);assert(i>=0,'Missing '+a);const j=html.indexOf(b,i+a.length);assert(j>i,'Missing '+b);return html.slice(i,j)};
+const picker=between('function openLocationPicker(){','function closeLocationPicker()');
+assert.match(picker,/getOcsLocation\(\)/,'Saved location must be read');
+assert.match(picker,/el\.style\.display=loc\?'none':'']/,'Hide GPS after saved location');
+const manual=between('function saveManualOcsLocation(){','function useCurrentOcsLocation()');
+assert.match(manual,/localStorage\.setItem\(OCS_LOCATION_KEY/,'Manual location must persist');
+assert.match(manual,/renderOcsHomeLocation\(\);closeLocationPicker\(\)/,'Manual apply must update and close');
+const gps=between('function useCurrentOcsLocation(){','setTimeout(renderOcsHomeLocation,0)');
+assert.match(gps,/gpsButton\.disabled=true/,'GPS request must disable repeat tap');
+assert.match(gps,/gpsButton\.disabled=false/g,'GPS request must restore button');
+assert.match(gps,/getCurrentPosition\(/,'GPS must request position');
+assert.match(gps,/ocsManualLocation'\)\?\.focus\(\)/,'GPS failure must offer manual fallback');
+console.log('Location picker persistence and GPS fallback regression: PASS (static only)');
