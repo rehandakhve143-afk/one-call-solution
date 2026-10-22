@@ -3931,8 +3931,15 @@ function useCurrentOcsLocation(){
   if(saved&&saved.source==='gps'&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))){
     renderOcsHomeLocation();closeLocationPicker();return;
   }
-  if(!navigator.geolocation){alert('Current location is device/browser me available nahi hai.');return}
+  const gpsButton=document.getElementById('ocsLocationGpsButton');
+  if(!navigator.geolocation){
+    alert('GPS available nahi hai. Upar area ya pincode likhkar Apply karein.');
+    document.getElementById('ocsManualLocation')?.focus();
+    return;
+  }
+  if(gpsButton){gpsButton.disabled=true;gpsButton.setAttribute('aria-busy','true');}
   navigator.geolocation.getCurrentPosition(async pos=>{
+    if(gpsButton){gpsButton.disabled=false;gpsButton.removeAttribute('aria-busy');}
     const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude);
     localStorage.setItem(OCS_LOCATION_KEY,JSON.stringify({
       source:'gps',label:'Current location',lat,lng,accuracy:Number(pos.coords.accuracy||0),updatedAt:new Date().toISOString()
@@ -3945,7 +3952,11 @@ function useCurrentOcsLocation(){
     if(session&&session.user&&ocsSupabase){
       try{await ocsSupabase.rpc('save_user_preferences_v1',{p_notifications:x.notifications!==false,p_preferred_payment:x.payment||'ONLINE',p_language:x.language||'EN',p_location_allowed:true})}catch(e){console.error(e)}
     }
-  },()=>alert('Current location use karne ke liye phone/browser me Location allow karein.'),{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
+  },()=>{
+    if(gpsButton){gpsButton.disabled=false;gpsButton.removeAttribute('aria-busy');}
+    alert('GPS nahi mil raha. Upar area ya pincode likhkar Apply karein.');
+    document.getElementById('ocsManualLocation')?.focus();
+  },{enableHighAccuracy:false,timeout:8000,maximumAge:60000});
 }
 setTimeout(renderOcsHomeLocation,0);
 
