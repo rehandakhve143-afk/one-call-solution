@@ -3910,7 +3910,7 @@ function openLocationPicker(){
   // offered only for first-time setup, not repeatedly after a selection.
   for(const id of ['ocsLocationGpsDivider','ocsLocationGpsButton']){
     const el=document.getElementById(id);
-    if(el)el.hidden=!!loc;
+    if(el){el.hidden=!!loc;el.style.display=loc?'none':'';}
   }
   const note=document.querySelector('#locationModal .ocs-location-note');
   if(note)note.textContent=loc?'Location saved. Enter a different area only if you want to change it.':'Choose an area or use GPS once to set your service location.';
