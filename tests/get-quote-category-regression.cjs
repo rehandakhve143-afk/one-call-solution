@@ -16,6 +16,9 @@ assert.match(fn,/ocsApplyBackendBooking\(quoteRow\)/,'Validated backend booking 
 assert.match(fn,/Live quote booking ID not confirmed/,'Reject missing or demo booking IDs');
 assert.match(fn,/Live quote category mismatch/,'Reject wrong category');
 assert.match(fn,/Live quote service mismatch/,'Reject wrong service');
+assert.match(fn,/Backend did not create a quote request/,'Require quote request type');
+assert.match(fn,/Quote request is not in searching status/,'Require searching status');
+assert.match(fn,/Quote request customer mismatch/,'Require authenticated customer ownership');
 assert.match(fn,/^[\\s\\S]*quoteId[\\s\\S]*$/,'Quote ID validation exists');
 assert.match(fn,/returnedCategory&&returnedCategory!==S.category/,'Category mismatch blocks success');
 assert.match(fn,/returnedService&&returnedService!==S.service/,'Service mismatch blocks success');
