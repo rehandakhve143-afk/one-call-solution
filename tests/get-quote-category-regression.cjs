@@ -16,5 +16,8 @@ assert.match(fn,/ocsApplyBackendBooking\(quoteRow\)/,'Validated backend booking 
 assert.match(fn,/Live quote booking ID not confirmed/,'Reject missing or demo booking IDs');
 assert.match(fn,/Live quote category mismatch/,'Reject wrong category');
 assert.match(fn,/Live quote service mismatch/,'Reject wrong service');
+assert.match(fn,/^[\\s\\S]*quoteId[\\s\\S]*$/,'Quote ID validation exists');
+assert.match(fn,/returnedCategory&&returnedCategory!==S.category/,'Category mismatch blocks success');
+assert.match(fn,/returnedService&&returnedService!==S.service/,'Service mismatch blocks success');
 assert.doesNotMatch(fn,/Fan Fitting|Electrical.*demo|TEST-901/i,'Quote submit must not hardcode Electrical demo');
 console.log('PASS: Get Quote preserves selected category/service and uses live backend RPC (static guard only)');
