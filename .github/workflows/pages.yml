@@ -32,6 +32,8 @@ jobs:
         run: node tests/smoke.cjs
       - name: Verify safe push opt-in UI and service worker
         run: node tests/push-optin-smoke.cjs
+      - name: Verify location persistence and GPS fallback (static only)
+        run: node tests/location-picker-regression.cjs
       - name: Verify customer/SP booking and Start OTP with mocked backend
         run: node tests/booking-smoke.cjs
       - name: Verify provider Start OTP frontend safeguards (static only)
