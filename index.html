@@ -3937,11 +3937,12 @@ function useCurrentOcsLocation(){
     }));
     const x=getOcsSettings();x.locationAllowed=true;x.updatedAt=new Date().toISOString();localStorage.setItem(OCS_SETTINGS_KEY,JSON.stringify(x));
     const locState=document.getElementById('setLocationState');if(locState)locState.textContent='Allowed';
+    // Close the picker immediately after GPS is saved; preference sync must not keep the sheet open.
+    renderOcsHomeLocation();closeLocationPicker();
     const session=await getOcsSession();
     if(session&&session.user&&ocsSupabase){
       try{await ocsSupabase.rpc('save_user_preferences_v1',{p_notifications:x.notifications!==false,p_preferred_payment:x.payment||'ONLINE',p_language:x.language||'EN',p_location_allowed:true})}catch(e){console.error(e)}
     }
-    renderOcsHomeLocation();closeLocationPicker();
   },()=>alert('Current location use karne ke liye phone/browser me Location allow karein.'),{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
 }
 setTimeout(renderOcsHomeLocation,0);
