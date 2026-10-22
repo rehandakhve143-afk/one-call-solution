@@ -2247,6 +2247,9 @@ async function submitCustomRequest(){
    if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(quoteId))throw new Error("Live quote booking ID not confirmed");
    if(returnedCategory&&returnedCategory!==S.category)throw new Error("Live quote category mismatch");
    if(returnedService&&returnedService!==S.service)throw new Error("Live quote service mismatch");
+   if(String(quoteRow?.request_type||"").toLowerCase()!=="quote")throw new Error("Backend did not create a quote request");
+   if(String(quoteRow?.status||"").toLowerCase()!=="searching")throw new Error("Quote request is not in searching status");
+   if(String(quoteRow?.customer_id||"")!==String(session.user.id||""))throw new Error("Quote request customer mismatch");
    ocsApplyBackendBooking(quoteRow);
    S.status="QUOTE_WAIT";S.currentJob="Quote Request";S.quoteProviderAccepted=false;
    hist("LIVE Get Quote request sent • "+S.category+" • Photo/Video "+S.requestMedia.length);
