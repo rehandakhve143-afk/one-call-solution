@@ -1057,8 +1057,6 @@ setTimeout(function(){
 <div class="modal" id="locationModal"><div class="sheet ocs-location-sheet">
   <div class="bottom-hub-head"><div><h2>Select your location</h2><div class="muted">Search your area or use your current location</div></div><button class="x" onclick="closeLocationPicker()">×</button></div>
 
-  <div id="ocsLocationSelected" class="ocs-location-selected" style="display:none"></div>
-
   <div class="ocs-location-search-card">
     <div class="ocs-location-search-row">
       <span class="ocs-location-search-icon" aria-hidden="true">
@@ -3906,17 +3904,8 @@ function renderOcsHomeLocation(){
   sub.textContent=loc.source==='gps'?'':'Service location';
 }
 function openLocationPicker(){
-  const loc=getOcsLocation(),input=document.getElementById('ocsManualLocation'),selected=document.getElementById('ocsLocationSelected');
+  const loc=getOcsLocation(),input=document.getElementById('ocsManualLocation');
   if(input)input.value=(loc&&loc.source==='manual')?(loc.label||''):'';
-  if(selected){
-    if(loc){
-      selected.style.display='flex';
-      selected.innerHTML='<span class="ocs-location-selected-pin">⌖</span><span><b>Selected location</b><small>'+ocsSavedText(loc.label||'Current location')+'</small></span>';
-    }else{
-      selected.style.display='none';
-      selected.innerHTML='';
-    }
-  }
   document.getElementById('locationModal').classList.add('show');
 }
 function closeLocationPicker(){document.getElementById('locationModal').classList.remove('show')}
