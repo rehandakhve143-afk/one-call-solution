@@ -140,7 +140,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if ! supabase start --debug > /tmp/ocs-supabase-start.log 2>&1; then
+          # Registry throttling is transient. Retry only that failure, with bounded backoff.
+          # Never hide SQL, config, or other startup errors behind retries.
+          started=false
+          for attempt in 1 2 3; do
+            if supabase start --debug > /tmp/ocs-supabase-start.log 2>&1; then
+              started=true
+              break
+            fi
+            if grep -Eiq 'toomanyrequests|429 Too Many Requests|rate limit exceeded|retry-after:.*allowed:' /tmp/ocs-supabase-start.log && [[ "$attempt" -lt 3 ]]; then
+              echo "::warning::Docker registry rate limit during isolated Supabase startup; retry $attempt/2 after backoff"
+              sleep $((attempt * 30))
+            else
+              break
+            fi
+          done
+          if [[ "$started" != true ]]; then
             echo "::error::Isolated Supabase stack failed to start (production untouched)"
             echo "::group::Supabase start error details"
             tail -n 160 /tmp/ocs-supabase-start.log || true
