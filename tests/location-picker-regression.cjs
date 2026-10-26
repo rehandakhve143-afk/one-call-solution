@@ -5,7 +5,7 @@ const html=fs.readFileSync('index.html','utf8');
 const between=(a,b)=>{const i=html.indexOf(a);assert(i>=0,'Missing '+a);const j=html.indexOf(b,i+a.length);assert(j>i,'Missing '+b);return html.slice(i,j)};
 const picker=between('function openLocationPicker(){','function closeLocationPicker()');
 assert.match(picker,/getOcsLocation\(\)/,'Saved location must be read');
-assert.match(picker,/el\.style\.display=loc\?'none':'']/,'Hide GPS after saved location');
+assert.match(picker,/el\.hidden=!!loc/,'Hide GPS control after saved location');
 const manual=between('function saveManualOcsLocation(){','function useCurrentOcsLocation()');
 assert.match(manual,/localStorage\.setItem\(OCS_LOCATION_KEY/,'Manual location must persist');
 assert.match(manual,/renderOcsHomeLocation\(\);closeLocationPicker\(\)/,'Manual apply must update and close');
