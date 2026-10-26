@@ -1842,12 +1842,16 @@ async function ocsSyncBookingCustomerContact(){
   return true;
 }
 function ocsBookingLocationHTML(){
-  const ready=S.customerBookingLat!==null&&S.customerBookingLng!==null&&Number.isFinite(Number(S.customerBookingLat))&&Number.isFinite(Number(S.customerBookingLng));
-  return '<div class="notice '+(ready?"good":"")+'" style="margin:10px 0"><b>Location Pin '+(ready?"✓":"Required")+'</b><br><span>'+(ready?"Current booking location saved. Nearest matching SP search hoga.":"Nearest Service Provider ke liye current location pin set karein.")+'</span><button type="button" class="btn gray" style="margin-top:9px" onclick="ocsUseBookingLocation()">📍 Use Current Location</button></div>';
+  const ready=Number.isFinite(Number(S.customerBookingLat))&&Number.isFinite(Number(S.customerBookingLng))&&S.customerBookingLat!=null&&S.customerBookingLng!=null&&!(Number(S.customerBookingLat)===0&&Number(S.customerBookingLng)===0);
+  return '<div class="notice '+(ready?"good":"")+'" style="margin:10px 0"><b>Location Pin '+(ready?"✓":"Required")+'</b><br><span>'+(ready?"Booking GPS pin saved. Nearest matching SP search hoga.":"Nearest SP ke liye GPS pin chahiye. Sirf area/pincode likhna kaafi nahi hai.")+'</span><button type="button" class="btn gray" style="margin-top:9px" onclick="ocsUseBookingLocation()">📍 '+(ready?'Update Location Pin':'Use Current Location')+'</button></div>';
 }
 function ocsUseBookingLocation(){
-  if(!navigator.geolocation){alert("GPS location available nahi hai.");return}
-  navigator.geolocation.getCurrentPosition(p=>{S.customerBookingLat=Number(p.coords.latitude);S.customerBookingLng=Number(p.coords.longitude);saveHomeState();render();},()=>alert("Location permission allow karein. Nearest Service Provider ke liye location pin required hai."),{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
+  if(!navigator.geolocation){alert("GPS location available nahi hai. Booking ke liye GPS pin zaroori hai.");return}
+  navigator.geolocation.getCurrentPosition(p=>{
+    const lat=Number(p.coords.latitude),lng=Number(p.coords.longitude);
+    if(!Number.isFinite(lat)||!Number.isFinite(lng)||(lat===0&&lng===0)){alert("Invalid GPS location. Please retry.");return}
+    S.customerBookingLat=lat;S.customerBookingLng=lng;saveHomeState();render();
+  },()=>alert("Location permission allow karein. Booking ke liye GPS pin zaroori hai."),{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
 }
 
 
