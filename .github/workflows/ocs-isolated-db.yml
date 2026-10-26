@@ -137,7 +137,20 @@ jobs:
             exit 1
           fi
       - name: Start isolated Supabase stack
-        run: supabase start
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! supabase start --debug > /tmp/ocs-supabase-start.log 2>&1; then
+            echo "::error::Isolated Supabase stack failed to start (production untouched)"
+            echo "::group::Supabase start error details"
+            tail -n 160 /tmp/ocs-supabase-start.log || true
+            echo "::endgroup::"
+            echo "::group::Docker container status"
+            docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' || true
+            echo "::endgroup::"
+            exit 1
+          fi
+          tail -n 30 /tmp/ocs-supabase-start.log
       - name: Verify isolated endpoint
         shell: bash
         run: |
