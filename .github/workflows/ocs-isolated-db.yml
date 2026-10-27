@@ -136,6 +136,22 @@ jobs:
             echo '::error::Incomplete isolated baseline: missing CREATE TABLE public.ocs_provider_subsidy_disbursements, required by ocs_admin_mark_provider_subsidy_sent_v1. Recover the complete schema before running migrations.'
             exit 1
           fi
+      - name: Authenticate Docker Hub for isolated CI when credentials are configured
+        shell: bash
+        env:
+          OCS_DOCKERHUB_USERNAME: ${{ secrets.OCS_DOCKERHUB_USERNAME }}
+          OCS_DOCKERHUB_TOKEN: ${{ secrets.OCS_DOCKERHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$OCS_DOCKERHUB_USERNAME" && -n "$OCS_DOCKERHUB_TOKEN" ]]; then
+            printf '%s' "$OCS_DOCKERHUB_TOKEN" | docker login --username "$OCS_DOCKERHUB_USERNAME" --password-stdin
+            echo "::notice::Authenticated Docker Hub pull enabled for isolated database test"
+          elif [[ -z "$OCS_DOCKERHUB_USERNAME" && -z "$OCS_DOCKERHUB_TOKEN" ]]; then
+            echo "::warning::Anonymous Docker Hub pulls can be rate limited. Set both OCS_DOCKERHUB_USERNAME and OCS_DOCKERHUB_TOKEN repository secrets to enable authenticated image pulls."
+          else
+            echo "::error::Both OCS_DOCKERHUB_USERNAME and OCS_DOCKERHUB_TOKEN secrets are required together"
+            exit 1
+          fi
       - name: Start isolated Supabase stack
         shell: bash
         run: |
