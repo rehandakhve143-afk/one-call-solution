@@ -20,5 +20,13 @@ enabled = false
 enabled = false
 
 [inbucket]
-enabled = true
+enabled = false
 port = 54324
+
+# CI only needs Postgres and migration dependencies; skip optional services.
+[analytics]
+enabled = false
+[realtime]
+enabled = false
+[storage]
+enabled = false
