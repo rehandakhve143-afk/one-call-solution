@@ -8,8 +8,12 @@ BEGIN
  AND pg_get_function_identity_arguments(p.oid)='p_booking_id uuid, p_action text, p_start_otp text';
  IF fn IS NULL THEN RAISE EXCEPTION 'provider_booking_action signature not found'; END IF;
  original:=pg_get_functiondef(fn);
+ IF original LIKE '%floor(random()*9000)+1000%' AND original NOT LIKE '%floor(random()*900000)+100000%' THEN
+   RAISE NOTICE 'Four-digit Start OTP already configured';
+   RETURN;
+ END IF;
  IF original NOT LIKE '%floor(random()*900000)+100000%' THEN
-   RAISE EXCEPTION 'Expected six-digit OTP generator not found; manual review required';
+   RAISE EXCEPTION 'Unknown Start OTP generator; refusing unsafe replacement';
  END IF;
  patched:=replace(original,
    'lpad((floor(random()*900000)+100000)::int::text,6,''0'')',
