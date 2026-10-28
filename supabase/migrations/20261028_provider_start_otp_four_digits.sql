@@ -1,5 +1,10 @@
 -- Start OTP is four digits; login OTP remains six digits.
 -- Keep the existing authorization, expiry, attempt lockout and state guards intact.
+-- PRE-DEPLOY: verify a restorable Supabase backup or PITR is available.
+-- ROLLBACK: restore the exact original provider_booking_action function definition
+-- captured by SELECT pg_get_functiondef(oid) FROM pg_proc WHERE proname='provider_booking_action';
+-- This migration does not alter existing booking rows or login OTP.
+
 DO $migration$
 DECLARE fn oid; original text; patched text;
 BEGIN
