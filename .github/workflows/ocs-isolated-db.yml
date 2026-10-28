@@ -160,7 +160,7 @@ jobs:
           # Never hide SQL, config, or other startup errors behind retries.
           started=false
           for attempt in 1 2 3; do
-            if supabase start --debug > /tmp/ocs-supabase-start.log 2>&1; then
+            if supabase start --debug -x studio,inbucket,storage-api,imgproxy,logflare,vector,edge-runtime,realtime > /tmp/ocs-supabase-start.log 2>&1; then
               started=true
               break
             fi
