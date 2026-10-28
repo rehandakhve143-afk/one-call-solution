@@ -1406,7 +1406,8 @@ async function ocsToggleAvailabilityLive(v){
   if(!ocsSupabase)throw new Error("OCS online provider availability connection not ready. Retry.");
   const {data,error}=await ocsSupabase.rpc("set_provider_available",{p_available:!!v});
   if(error)throw error;
-  if(data)S.available=!!data.available_for_work;
+  if(!data||typeof data.available_for_work!=="boolean"||data.available_for_work!==!!v)throw new Error("Provider work status not confirmed by backend. Refresh and retry.");
+  S.available=data.available_for_work;
   return true;
 }
 
