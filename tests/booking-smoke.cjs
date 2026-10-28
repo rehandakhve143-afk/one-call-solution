@@ -218,6 +218,15 @@ async function test(name,fn){
    const call=h.calls.find(c=>c.name==='provider_booking_action');
    assert(call);assert.equal(call.args.p_action,'complete');assert.equal(h.applied.length,1);
  }],
+ ['Completion must not advance on unconfirmed backend status',async()=>{
+   for(const status of ['working','accepted','reached','searching',null]){
+     const h=harness();
+     h.ocsSupabase.rpc=async()=>({data:{id:'test-booking-uuid',status},error:null});
+     await assert.rejects(()=>h.ocsProviderActionLive('complete',''),/Job completion not confirmed by backend/);
+     assert.equal(h.applied.length,0);
+     assert.equal(h.S.status,'REQUESTED');
+   }
+ }],
  ['Failed completion must not mark job complete locally',async()=>{
    const h=harness({failRpc:'provider_booking_action'});
    await assert.rejects(()=>h.ocsProviderActionLive('complete',''),/Test backend error/);
