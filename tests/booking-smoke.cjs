@@ -252,6 +252,12 @@ async function test(name,fn){
    const failed=harness({failRpc:'set_provider_available'});
    await assert.rejects(()=>failed.ocsToggleAvailabilityLive(true),/Test backend error/);
  }],
+ ['Disconnected provider availability must fail visibly without changing work state',async()=>{
+   const h=harness({connected:false});
+   await assert.rejects(()=>h.ocsToggleAvailabilityLive(true),/provider availability connection not ready/);
+   assert.equal(h.calls.length,0);
+   assert.equal(h.S.available,undefined);
+ }],
  ['No Supabase connection blocks acceptance instead of returning false',async()=>{
    const h=harness({connected:false});
    await assert.rejects(()=>h.ocsProviderDecisionLive('accept'),/online booking connection/);
