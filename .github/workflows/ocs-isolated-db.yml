@@ -198,13 +198,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Read-only structural audit: does not change any production or test wallet.
-          docker exec supabase_db_ocs-isolated-tests psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "
-            SELECT column_name FROM information_schema.columns
-            WHERE table_schema='public' AND table_name='provider_status'
-              AND column_name IN ('wallet_hold','available_for_work','admin_paused')
-            ORDER BY column_name;"
-          echo "::notice::Wallet hold separation is an audit, not a claim of completed live wallet testing."
+          # Audit schema only; no user data or wallet balance is modified.
+          query="SELECT coalesce(string_agg(column_name, ',' ORDER BY column_name),'') FROM information_schema.columns WHERE table_schema='public' AND table_name='provider_status' AND column_name IN ('wallet_hold','available_for_work','admin_paused');"
+          cols="$(docker exec supabase_db_ocs-isolated-tests psql -U postgres -d postgres -v ON_ERROR_STOP=1 -tAc "$query")"
+          echo "provider_status control columns: $cols"
+          [[ ",$cols," == *",available_for_work,"* ]] || { echo "::error::Missing provider work toggle"; exit 1; }
+          [[ ",$cols," == *",admin_paused,"* ]] || { echo "::error::Missing provider admin hold"; exit 1; }
+          if [[ ",$cols," != *",wallet_hold,"* ]]; then
+            echo "::warning::Dedicated wallet_hold column missing. Wallet/admin separation still requires a migration and behavior tests."
+          else
+            echo "::notice::Dedicated wallet_hold column exists; behavior still needs tests."
+          fi
       - name: Run database pgTAP tests if present
         shell: bash
         run: |
