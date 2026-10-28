@@ -19,3 +19,9 @@ for(const path of paths){
  assert.match(sql,/Turn Work ON yourself/i,path);
 }
 console.log('PASS: wallet recharge preserves provider Work ON/OFF in both migrations (static only)');
+
+// Guard the current hold implementation against accidental admin-ban removal.
+const holdSql=fs.readFileSync('supabase/migrations/20261021_wallet_resume_preserve_provider_work_choice.sql','utf8');
+assert.match(holdSql,/ps\.admin_pause_reason='wallet'/,'Wallet resume must target wallet hold only');
+assert.doesNotMatch(holdSql,/SET[^;]*available_for_work\s*=/i,'Wallet resume cannot turn Work ON');
+console.log('PASS: wallet resume does not auto-enable provider or clear unrelated admin hold');
