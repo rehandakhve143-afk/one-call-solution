@@ -6,7 +6,7 @@ const assert=require('node:assert/strict');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const provider=read('provider-dashboard.html');
 assert.match(provider,/async function runProviderStep\(action\)/);
-assert.match(provider,/if\(!\/\^\\d\{6\}\$\/\.test\(otp\)\)/,'Start OTP must be exactly six digits');
+assert.match(provider,/if\(!\/\^\\d\{4\}\$\/\.test\(otp\)\)/,'Start OTP must be exactly four digits');
 assert.match(provider,/sb\.rpc\('provider_booking_action'/,'Start OTP must be checked server-side');
 assert.match(provider,/action==='start'&&data\?\.status!=='working'/,'Unsuccessful OTP must not advance UI');
 assert.match(provider,/Too many incorrect OTP attempts/,'Locked OTP feedback required');
@@ -19,6 +19,6 @@ for(const [file,fn] of modules){
  assert(body.includes('provider_booking_action'),file+': backend OTP check missing');
  assert(body.includes('p_start_otp:otp'),file+': incorrect OTP argument');
  assert(body.includes("data?.status!=='working'") || body.includes('data?.status!=="working"'),file+': successful working status not checked');
- assert(body.includes('\\d{6}'),file+': six digit OTP validation missing');
+ assert(body.includes('\\d{4}'),file+': four digit OTP validation missing');
 }
 console.log('PASS: provider, Home Services, Driver and Transport Start OTP static safeguards; live authenticated E2E still required');
