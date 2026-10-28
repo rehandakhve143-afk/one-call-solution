@@ -127,14 +127,14 @@ function roleRoute(skill){
   assert(driver.includes("ocs_customer_driver_no_show_v1"),'Customer can request company intervention');
   assert(driver.includes("create_customer_driver_package_booking_v2"),'Customer booking uses server-side fare');
  });
- await check('Driver and Transport require exactly 6-digit Start OTP before backend transition',()=>{
+ await check('Driver and Transport require exactly 4-digit Start OTP before backend transition',()=>{
   for(const [name,source,fn] of [['Driver',provider,'startOtp'],['Transport',truck,'startTrip']]){
    const start=source.indexOf('async function '+fn+'()');
    assert(start>=0,name+' Start OTP function missing');
    const section=source.slice(start,start+650);
-   assert(section.includes('/^\\d{6}$/.test(otp)'),name+' must validate 6-digit OTP');
+   assert(section.includes('/^\\d{4}$/.test(otp)'),name+' must validate 4-digit OTP');
    assert(section.includes("p_action:'start',p_start_otp:otp"),name+' must send OTP to backend');
-   assert(section.indexOf('/^\\d{6}$/.test(otp)')<section.indexOf("p_action:'start'"),name+' must validate before sending');
+   assert(section.indexOf('/^\\d{4}$/.test(otp)')<section.indexOf("p_action:'start'"),name+' must validate before sending');
   }
  });
  await check('Transport wallet banner follows backend gate, not unconditional ₹200 threshold',()=>{
