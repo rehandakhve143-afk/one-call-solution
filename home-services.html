@@ -1387,7 +1387,7 @@ async function ocsProviderDecisionLive(d){
 async function ocsProviderActionLive(action,otp){
   if(!await ocsSession()){location.href="index.html?login=1";throw new Error("OCS_LOGIN_REDIRECT");}
   if(!["start","complete"].includes(action))throw new Error("Invalid provider job action");
-  if(action==="start"&&!/^\d{6}$/.test(String(otp||"")))throw new Error("Start OTP must be exactly 6 digits");
+  if(action==="start"&&!/^\d{4}$/.test(String(otp||"")))throw new Error("Start OTP must be exactly 4 digits");
   if(!ocsSupabase)throw new Error("OCS online booking connection not ready. Retry.");
   if(!S.activeBookingId)throw new Error("Booking ID missing. Refresh Current Job before continuing.");
   const {data,error}=await ocsSupabase.rpc("provider_booking_action",{p_booking_id:S.activeBookingId,p_action:action,p_start_otp:otp||null});
