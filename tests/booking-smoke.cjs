@@ -143,6 +143,20 @@ async function test(name,fn){
    assert.equal(h.calls[0].name,'reject_booking_v2');
    assert.equal(h.S.status,'SELECT_SERVICE');assert.equal(h.S.activeBookingId,null);
  }],
+ ['Reject response for another booking must not clear current job',async()=>{
+   const h=harness();
+   h.ocsSupabase.rpc=async(name,args)=>{h.calls.push({name,args});return {data:{id:'another-booking-uuid',status:'rejected'},error:null};};
+   await assert.rejects(()=>h.ocsProviderDecisionLive('reject'),/booking ID mismatch/);
+   assert.equal(h.S.activeBookingId,'test-booking-uuid');
+   assert.equal(h.S.status,'REQUESTED');
+ }],
+ ['Reject response retaining accepted status must not clear current job',async()=>{
+   const h=harness();
+   h.ocsSupabase.rpc=async(name,args)=>{h.calls.push({name,args});return {data:{id:'test-booking-uuid',status:'accepted'},error:null};};
+   await assert.rejects(()=>h.ocsProviderDecisionLive('reject'),/rejection not confirmed/);
+   assert.equal(h.S.activeBookingId,'test-booking-uuid');
+   assert.equal(h.S.status,'REQUESTED');
+ }],
  ['Network/backend failure cannot fake Accept or Reject',async()=>{
    const h=harness({failRpc:'accept_booking_v3'});
    await assert.rejects(()=>h.ocsProviderDecisionLive('accept'),/Test backend error/);
