@@ -361,7 +361,7 @@ function renderJob(){
  }else if(st==='on_way'){
    actions.push(button('Reached Customer',"runProviderStep('reached')"));
  }else if(st==='reached'){
-   note='Customer ke mobile par OCS Activity me 6-digit Start OTP visible hai. OTP sirf customer se lein.';
+   note='Customer ke mobile par OCS Activity me 4-digit Start OTP visible hai. OTP sirf customer se lein.';
    actions.push(button('Start Work • Enter OTP',"runProviderStep('start')"));
  }else if(st==='working'){
    note='Work khatam hone ke baad hi Complete dabayein. Final confirmation Customer karega.';
@@ -412,10 +412,10 @@ async function runProviderStep(action){
  const bookingId=currentJob.id;
  let otp=null;
  if(action==='start'){
-   otp=prompt('Customer ka 6-digit Start OTP enter karein:');
+   otp=prompt('Customer ka 4-digit Start OTP enter karein:');
    if(otp===null)return;
    otp=String(otp).trim();
-   if(!/^\d{6}$/.test(otp)){alert('Customer ka 6-digit Start OTP daalein.');return}
+   if(!/^\d{4}$/.test(otp)){alert('Customer ka 4-digit Start OTP daalein.');return}
  }
  if(action==='complete'&&!confirm('Kaam sach me complete ho gaya hai? Customer se alag confirmation li jayegi.'))return;
  providerActionBusy=true;
