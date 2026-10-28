@@ -1,0 +1,20 @@
+-- Start OTP is four digits; login OTP remains six digits.
+-- Keep the existing authorization, expiry, attempt lockout and state guards intact.
+DO $migration$
+DECLARE fn oid; original text; patched text;
+BEGIN
+ SELECT p.oid INTO fn FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+ WHERE n.nspname='public' AND p.proname='provider_booking_action'
+ AND pg_get_function_identity_arguments(p.oid)='p_booking_id uuid, p_action text, p_start_otp text';
+ IF fn IS NULL THEN RAISE EXCEPTION 'provider_booking_action signature not found'; END IF;
+ original:=pg_get_functiondef(fn);
+ IF original NOT LIKE '%floor(random()*900000)+100000%' THEN
+   RAISE EXCEPTION 'Expected six-digit OTP generator not found; manual review required';
+ END IF;
+ patched:=replace(original,
+   'lpad((floor(random()*900000)+100000)::int::text,6,''0'')',
+   'lpad((floor(random()*9000)+1000)::int::text,4,''0'')');
+ IF patched=original THEN RAISE EXCEPTION 'OTP replacement did not match'; END IF;
+ EXECUTE patched;
+END
+$migration$;
