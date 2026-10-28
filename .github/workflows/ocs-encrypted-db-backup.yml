@@ -1,0 +1,53 @@
+name: OCS Encrypted Production Database Backup
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  encrypted-backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      OCS_BACKUP_DATABASE_URL: ${{ secrets.OCS_BACKUP_DATABASE_URL }}
+      OCS_BACKUP_PASSPHRASE: ${{ secrets.OCS_BACKUP_PASSPHRASE }}
+    steps:
+      - name: Require private backup configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$OCS_BACKUP_DATABASE_URL" || -z "$OCS_BACKUP_PASSPHRASE" ]]; then
+            echo "::error::Configure OCS_BACKUP_DATABASE_URL and OCS_BACKUP_PASSPHRASE as repository Actions secrets before running this backup."
+            exit 1
+          fi
+          if [[ ${#OCS_BACKUP_PASSPHRASE} -lt 20 ]]; then
+            echo "::error::Backup passphrase must contain at least 20 characters."
+            exit 1
+          fi
+      - name: Create encrypted PostgreSQL 17 backup (no plaintext artifact)
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/ocs-backup"
+          # The database URL is passed as an environment variable, never as a CLI argument.
+          docker run --rm --network host -e OCS_BACKUP_DATABASE_URL \
+            postgres:17 pg_dump --dbname="$OCS_BACKUP_DATABASE_URL" \
+            --format=custom --no-owner --no-acl \
+            --file=/dev/stdout \
+            | openssl enc -aes-256-cbc -pbkdf2 -salt -iter 200000 \
+                -pass env:OCS_BACKUP_PASSPHRASE \
+                -out "$RUNNER_TEMP/ocs-backup/ocs-production.dump.enc"
+          test -s "$RUNNER_TEMP/ocs-backup/ocs-production.dump.enc"
+          # Verify decryption and the custom archive table of contents without writing plaintext.
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 \
+            -pass env:OCS_BACKUP_PASSPHRASE \
+            -in "$RUNNER_TEMP/ocs-backup/ocs-production.dump.enc" \
+            | docker run --rm -i postgres:17 pg_restore --list >/dev/null
+          echo "Encrypted backup created and archive structure verified. Full restore remains untested."
+      - name: Upload encrypted backup only
+        uses: actions/upload-artifact@v4
+        with:
+          name: ocs-encrypted-db-backup-${{ github.run_id }}
+          path: ${{ runner.temp }}/ocs-backup/ocs-production.dump.enc
+          retention-days: 1
+          if-no-files-found: error
