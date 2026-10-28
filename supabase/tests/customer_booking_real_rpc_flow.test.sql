@@ -65,8 +65,8 @@ SELECT lives_ok(
 );
 SELECT is(
   (SELECT length(start_otp) FROM public.bookings WHERE customer_id='f2222222-2222-4222-8222-222222222222'::uuid LIMIT 1),
-  6,
-  'Real OTP has six digits'
+  4,
+  'Real OTP has four digits'
 );
 SELECT lives_ok(
   $$ SELECT public.provider_booking_action(
