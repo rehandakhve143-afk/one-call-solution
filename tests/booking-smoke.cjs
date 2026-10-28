@@ -252,6 +252,21 @@ async function test(name,fn){
    const failed=harness({failRpc:'set_provider_available'});
    await assert.rejects(()=>failed.ocsToggleAvailabilityLive(true),/Test backend error/);
  }],
+ ['Provider work ON requires confirmed matching backend state',async()=>{
+   const h=harness();
+   h.ocsSupabase.rpc=async(name,args)=>{h.calls.push({name,args});return {data:{available_for_work:true},error:null};};
+   assert.equal(await h.ocsToggleAvailabilityLive(true),true);
+   assert.equal(h.S.available,true);
+   assert.equal(h.calls[0].name,'set_provider_available');
+ }],
+ ['Provider work ON must not trust missing or conflicting backend state',async()=>{
+   for(const data of [null,{}, {available_for_work:false}, {available_for_work:'true'}]){
+     const h=harness();
+     h.ocsSupabase.rpc=async()=>({data,error:null});
+     await assert.rejects(()=>h.ocsToggleAvailabilityLive(true),/not confirmed by backend/);
+     assert.equal(h.S.available,undefined);
+   }
+ }],
  ['Disconnected provider availability must fail visibly without changing work state',async()=>{
    const h=harness({connected:false});
    await assert.rejects(()=>h.ocsToggleAvailabilityLive(true),/provider availability connection not ready/);
