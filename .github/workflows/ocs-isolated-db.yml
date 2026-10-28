@@ -196,6 +196,17 @@ jobs:
           fi
       - name: Apply repository migrations in isolated database
         run: supabase db reset --local --yes
+      - name: Verify four-digit Start OTP in isolated database
+        shell: bash
+        run: |
+          set -euo pipefail
+          query="SELECT CASE WHEN pg_get_functiondef(p.oid) LIKE '%floor(random()*9000)+1000%' AND pg_get_functiondef(p.oid) NOT LIKE '%floor(random()*900000)+100000%' THEN 'PASS' ELSE 'FAIL' END FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='provider_booking_action';"
+          result="$(docker exec supabase_db_ocs-isolated-tests psql -U postgres -d postgres -v ON_ERROR_STOP=1 -tAc "$query")"
+          if [[ "$result" != "PASS" ]]; then
+            echo "::error::Backend Start OTP is not four digits after migrations (result: $result)"
+            exit 1
+          fi
+          echo "::notice::Isolated backend Start OTP generator is four digits; live production remains separate"
       - name: Audit wallet hold separation in isolated schema
         shell: bash
         run: |
