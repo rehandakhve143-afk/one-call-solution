@@ -1381,7 +1381,7 @@ async function ocsProviderDecisionLive(d){
   const {data,error}=await ocsSupabase.rpc(fn,args);
   if(error)throw error;
   if(d==="accept"){if(!data||!["accepted","next_accepted","discussion"].includes(String(data.status||"").toLowerCase()))throw new Error("Provider acceptance not confirmed by backend.");if(String(data.id||"")!==String(S.activeBookingId))throw new Error("Provider booking ID mismatch. Refresh Incoming Jobs.");ocsApplyBackendBooking(data);}
-  else{S.status="SELECT_SERVICE";S.activeBookingId=null;OCS_LIVE_BOOKING_ID=null}
+  else{if(data&&typeof data==="object"&&!Array.isArray(data)){if(data.id&&String(data.id)!==String(S.activeBookingId))throw new Error("Provider booking ID mismatch. Refresh Incoming Jobs.");if(data.status&&["accepted","working","completed","completion_requested"].includes(String(data.status).toLowerCase()))throw new Error("Provider rejection not confirmed by backend.");}S.status="SELECT_SERVICE";S.activeBookingId=null;OCS_LIVE_BOOKING_ID=null}
   return true;
 }
 async function ocsProviderActionLive(action,otp){
