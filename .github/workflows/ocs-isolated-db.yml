@@ -220,9 +220,14 @@ jobs:
           [[ ",$cols," == *",available_for_work,"* ]] || { echo "::error::Missing provider work toggle"; exit 1; }
           [[ ",$cols," == *",admin_paused,"* ]] || { echo "::error::Missing provider admin hold"; exit 1; }
           if [[ ",$cols," != *",wallet_hold,"* ]]; then
-            echo "::warning::Dedicated wallet_hold column missing. Wallet/admin separation still requires a migration and behavior tests."
+            # Current OCS schema represents wallet hold using admin_paused +
+            # admin_pause_reason='wallet', not a dedicated wallet_hold column.
+            # Do not misreport this intentional implementation as a missing migration.
+            reason_col="$(docker exec supabase_db_ocs-isolated-tests psql -U postgres -d postgres -v ON_ERROR_STOP=1 -tAc "SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='provider_status' AND column_name='admin_pause_reason'")"
+            [[ "$reason_col" == "1" ]] || { echo "::error::Wallet hold has neither wallet_hold nor admin_pause_reason"; exit 1; }
+            echo "::notice::Wallet hold uses admin_paused + admin_pause_reason; behavior still requires tests"
           else
-            echo "::notice::Dedicated wallet_hold column exists; behavior still needs tests."
+            echo "::notice::Dedicated wallet_hold column exists; behavior still requires tests."
           fi
       - name: Run database pgTAP tests if present
         shell: bash
