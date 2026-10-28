@@ -269,6 +269,15 @@ async function test(name,fn){
    assert.equal(h.S.available,true);
    assert.equal(h.calls[0].name,'set_provider_available');
  }],
+ ['Provider work OFF requires backend confirmation',async()=>{
+   const ok=harness();
+   assert.equal(await ok.ocsToggleAvailabilityLive(false),true);
+   assert.equal(ok.S.available,false);
+   const mismatch=harness();
+   mismatch.ocsSupabase.rpc=async()=>({data:{available_for_work:true},error:null});
+   await assert.rejects(()=>mismatch.ocsToggleAvailabilityLive(false),/not confirmed by backend/);
+   assert.equal(mismatch.S.available,undefined);
+ }],
  ['Provider work ON must not trust missing or conflicting backend state',async()=>{
    for(const data of [null,{}, {available_for_work:false}, {available_for_work:'true'}]){
      const h=harness();
