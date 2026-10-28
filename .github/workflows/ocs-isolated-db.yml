@@ -8,7 +8,7 @@ on:
       - 'tests/**'
       - 'home-services.html'
       - 'ocs-test-mode.html'
-      - 'ocs-test-mode.html'
+      - 'customer-launch-v1.html'
       - 'driver-provider.html'
       - 'transport-driver.html'
       - '.github/workflows/ocs-isolated-db.yml'
@@ -16,6 +16,8 @@ on:
     paths:
       - 'supabase/**'
       - 'tests/**'
+      - 'ocs-test-mode.html'
+      - 'customer-launch-v1.html'
       - 'home-services.html'
       - 'driver-provider.html'
       - 'transport-driver.html'
