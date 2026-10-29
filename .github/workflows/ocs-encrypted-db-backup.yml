@@ -28,10 +28,11 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
+          export PGCONNECT_TIMEOUT=15
           mkdir -p "$RUNNER_TEMP/ocs-backup"
           # Expand the secret only inside the container, not in the host's
           # docker command arguments (which may be visible in process listings).
-          docker run --rm --network host -e OCS_BACKUP_DATABASE_URL \
+          docker run --rm --network host -e OCS_BACKUP_DATABASE_URL -e PGCONNECT_TIMEOUT \
             postgres:17 sh -c 'exec pg_dump --dbname="$OCS_BACKUP_DATABASE_URL" --format=custom --no-owner --no-acl --file=/dev/stdout' \
             | openssl enc -aes-256-cbc -pbkdf2 -salt -iter 200000 \
                 -pass env:OCS_BACKUP_PASSPHRASE \
