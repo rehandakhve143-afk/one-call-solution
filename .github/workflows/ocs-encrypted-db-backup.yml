@@ -48,5 +48,5 @@ jobs:
         with:
           name: ocs-encrypted-db-backup-${{ github.run_id }}
           path: ${{ runner.temp }}/ocs-backup/ocs-production.dump.enc
-          retention-days: 1
+          retention-days: 7
           if-no-files-found: error
