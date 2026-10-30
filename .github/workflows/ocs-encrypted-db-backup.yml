@@ -46,7 +46,8 @@ jobs:
           umask 077
           export PGCONNECT_TIMEOUT=15
           mkdir -p "$RUNNER_TEMP/ocs-backup"
-          echo "Starting PostgreSQL 17 encrypted export (credentials hidden)."\n          # Expand the secret only inside the container, not in the host's
+          echo "Starting PostgreSQL 17 encrypted export (credentials hidden)."
+          # Expand the secret only inside the container, not in the host's
           # docker command arguments (which may be visible in process listings).
           docker run --rm --network host -e OCS_BACKUP_DATABASE_URL -e PGCONNECT_TIMEOUT \
             postgres:17 sh -c 'exec pg_dump --dbname="$OCS_BACKUP_DATABASE_URL" --format=custom --no-owner --no-acl --file=/dev/stdout' \
