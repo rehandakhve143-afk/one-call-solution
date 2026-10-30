@@ -19,6 +19,15 @@ jobs:
             echo "::error::Configure OCS_BACKUP_DATABASE_URL and OCS_BACKUP_PASSPHRASE as repository Actions secrets before running this backup."
             exit 1
           fi
+          # Reject an unedited template without printing the credential.
+          if [[ "$OCS_BACKUP_DATABASE_URL" == *'[YOUR-PASSWORD]'* || "$OCS_BACKUP_DATABASE_URL" == *'%5BYOUR-PASSWORD%5D'* ]]; then
+            echo "::error::Database URL still contains the YOUR-PASSWORD placeholder. Set the real database password in the GitHub Actions secret (never paste it in logs)."
+            exit 1
+          fi
+          if [[ "$OCS_BACKUP_DATABASE_URL" != postgresql://* && "$OCS_BACKUP_DATABASE_URL" != postgres://* ]]; then
+            echo "::error::Database URL must begin with postgresql:// or postgres://."
+            exit 1
+          fi
           if [[ ${#OCS_BACKUP_PASSPHRASE} -lt 20 ]]; then
             echo "::error::Backup passphrase must contain at least 20 characters."
             exit 1
