@@ -76,6 +76,9 @@ jobs:
           set -euo pipefail
           umask 077
           export PGCONNECT_TIMEOUT=15
+          # Supabase may enforce a short per-statement timeout (currently 2min).
+          # Override only for this backup connection; never change DB defaults.
+          export PGOPTIONS="-c statement_timeout=0"
           mkdir -p "$RUNNER_TEMP/ocs-backup"
           echo "Starting PostgreSQL 17 encrypted export (credentials hidden)."
           # Expand the secret only inside the container, not in the host's
@@ -83,7 +86,7 @@ jobs:
           # Capture pg_dump diagnostics privately; do not expose connection credentials.
           error_file="$RUNNER_TEMP/ocs-backup/pg_dump.stderr"
           trap 'rm -f "$error_file"' EXIT
-          if ! (docker run --rm --network host -e OCS_BACKUP_DATABASE_URL -e PGCONNECT_TIMEOUT \
+          if ! (docker run --rm --network host -e OCS_BACKUP_DATABASE_URL -e PGCONNECT_TIMEOUT -e PGOPTIONS \
             postgres:17 sh -c 'exec pg_dump --verbose --dbname="$OCS_BACKUP_DATABASE_URL" --format=custom --no-owner --no-acl --file=/dev/stdout' \
             2>"$error_file" \
             | openssl enc -aes-256-cbc -pbkdf2 -salt -iter 200000 \
