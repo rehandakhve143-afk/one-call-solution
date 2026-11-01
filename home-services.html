@@ -3776,6 +3776,7 @@ async function cashReceived(){
  try{
    const {data,error}=await ocsSupabase.rpc("confirm_cash_received_v1",{p_payment_id:S.backendPaymentId});
    if(error)throw error;
+   if(!data||String(data.id||"")!==String(S.backendPaymentId)||String(data.booking_id||"")!==String(S.activeBookingId)||String(data.status||"").toLowerCase()!=="cash_confirmed")throw new Error("Payment receipt not confirmed by backend. Refresh booking before retrying.");
    S.paymentFinalized=true;S.payment="PROVIDER RECEIPT • CONFIRMED";S.commissionApplied=true;
    hist(S.provider+" confirmed Cash Received • Backend settlement completed • Commission "+money(Number(data.commission_amount||0)));
    await ocsLoadLive("provider");render();
