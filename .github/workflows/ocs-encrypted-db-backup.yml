@@ -53,12 +53,36 @@ jobs:
           error_file="$RUNNER_TEMP/ocs-backup/pg_dump.stderr"
           trap 'rm -f "$error_file"' EXIT
           if ! (docker run --rm --network host -e OCS_BACKUP_DATABASE_URL -e PGCONNECT_TIMEOUT \
-            postgres:17 sh -c 'exec pg_dump --dbname="$OCS_BACKUP_DATABASE_URL" --format=custom --no-owner --no-acl --file=/dev/stdout' \
+            postgres:17 sh -c 'exec pg_dump --verbose --dbname="$OCS_BACKUP_DATABASE_URL" --format=custom --no-owner --no-acl --file=/dev/stdout' \
             2>"$error_file" \
             | openssl enc -aes-256-cbc -pbkdf2 -salt -iter 200000 \
                 -pass env:OCS_BACKUP_PASSPHRASE \
                 -out "$RUNNER_TEMP/ocs-backup/ocs-production.dump.enc"); then
             rm -f "$RUNNER_TEMP/ocs-backup/ocs-production.dump.enc"
+            # Emit metadata only: stderr is private and may contain credentials.
+            # Verbose pg_dump helps distinguish connection, schema and table-data stages.
+            if grep -Eqi 'dumping contents of table|dumping data for table' "$error_file"; then
+              echo "::error::Export stage: table data (connection succeeded)."
+            elif grep -Eqi 'reading schemas|reading user-defined|reading extensions|reading tables|reading indexes|reading triggers|saving database definition' "$error_file"; then
+              echo "::error::Export stage: schema/metadata (connection succeeded)."
+            else
+              echo "::error::Export stage: connection/startup or unknown."
+            fi
+            if grep -Eqi 'canceling statement due to statement timeout|statement timeout|statement_timeout' "$error_file"; then
+              echo "::error::Cause: PostgreSQL statement timeout."
+            elif grep -Eqi 'terminating connection due to idle|idle.*timeout|pooler.*timeout' "$error_file"; then
+              echo "::error::Cause: pooler or idle session timeout."
+            elif grep -Eqi 'server closed the connection unexpectedly|unexpected EOF|SSL SYSCALL error|connection terminated|connection lost|broken pipe' "$error_file"; then
+              echo "::error::Cause: connection dropped during export."
+            elif grep -Eqi 'permission denied for (table|schema|sequence)|must be owner of|permission denied to' "$error_file"; then
+              echo "::error::Cause: insufficient database export privileges."
+            elif grep -Eqi 'server version:|server version mismatch|aborting because of server version mismatch' "$error_file"; then
+              echo "::error::Cause: PostgreSQL server/client version mismatch."
+            elif grep -Eqi 'invalid byte sequence|invalid input syntax|out of memory|no space left on device|disk full' "$error_file"; then
+              echo "::error::Cause: export data, memory or disk issue."
+            fi
+            # Report a nonreversible fingerprint for comparing repeated failures.
+            echo "::notice::Diagnostic fingerprint: $(sha256sum "$error_file" | cut -c1-12); stderr bytes: $(wc -c < "$error_file" | tr -d ' ')"
             # Report only fixed diagnostic labels, never raw stderr or connection strings.
             # A broad fallback distinguishes container/connection/export errors.
             if [[ ! -s "$error_file" ]]; then
