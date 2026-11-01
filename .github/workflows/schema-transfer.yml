@@ -1,3 +1,4 @@
+# Manual dispatch workflow for isolated test schema transfer
 name: OCS Schema-Only Transfer (Isolated Test)
 on:
   workflow_dispatch:
