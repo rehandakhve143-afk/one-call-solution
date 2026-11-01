@@ -49,7 +49,7 @@ jobs:
           trap 'rm -f "$err"' EXIT
           if ! result="$(docker run --rm --network host \
             -e OCS_BACKUP_DATABASE_URL -e PGCONNECT_TIMEOUT=15 \
-            postgres:17 sh -c 'exec psql "$OCS_BACKUP_DATABASE_URL" -X -A -t -q -v ON_ERROR_STOP=1 -c "select current_setting(\x27server_version_num\x27)"' \
+            postgres:17 sh -c 'exec psql "$OCS_BACKUP_DATABASE_URL" -X -A -t -q -v ON_ERROR_STOP=1 -c "SHOW server_version_num"' \
             2>"$err")"; then
             if grep -Eqi 'password authentication failed|authentication failed|tenant or user not found|FATAL:.*role' "$err"; then
               echo "::error::Preflight FAIL: authentication or pooler credentials rejected."
