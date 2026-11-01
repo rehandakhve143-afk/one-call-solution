@@ -63,8 +63,18 @@ jobs:
               echo "::error::Supabase rejected the database password. Update GitHub Actions secret OCS_BACKUP_DATABASE_URL with a valid Session pooler connection string and URL-encoded password. Do not reset the production database password or share it in logs."
             elif grep -qi 'could not translate host name\|connection timed out\|connection refused' "$error_file"; then
               echo "::error::Database host/network connection failed. Verify the host and port in OCS_BACKUP_DATABASE_URL."
+            elif grep -Eqi 'permission denied|must be owner|insufficient privilege' "$error_file"; then
+              echo "::error::Database export was denied by PostgreSQL permissions. Check backup role privileges without sharing credentials."
+            elif grep -Eqi 'server version mismatch|aborting because of server version mismatch' "$error_file"; then
+              echo "::error::PostgreSQL server/client version mismatch. Check the server major version before selecting a compatible pg_dump image."
+            elif grep -Eqi 'no pg_hba.conf entry|SSL off|certificate verify failed|SSL error' "$error_file"; then
+              echo "::error::Database TLS or access policy rejected the connection. Check the Supabase pooler SSL settings."
+            elif grep -Eqi 'invalid URI query parameter|invalid percent-encoded token|missing "=" after|could not parse|invalid connection option|invalid URI' "$error_file"; then
+              echo "::error::Database URL format is invalid. URL-encode reserved password characters and use a valid Session pooler URI."
+            elif grep -Eqi 'connection to server.*failed|network is unreachable|could not connect to server|server closed the connection|connection reset by peer' "$error_file"; then
+              echo "::error::Database connection failed before export. Check network reachability, pooler availability, and host/port."
             else
-              echo "::error::PostgreSQL backup export failed. Review private connection configuration; no backup artifact was uploaded."
+              echo "::error::PostgreSQL backup export failed (unclassified). Check the private connection configuration; credentials and raw stderr were deliberately not printed."
             fi
             exit 1
           fi
