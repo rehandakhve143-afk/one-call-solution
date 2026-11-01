@@ -1358,7 +1358,7 @@ async function ocsCreateLiveBooking(){
   const {data,error}=await ocsSupabase.rpc("create_customer_booking_v4",{
     p_category:S.category||"",
     p_service_name:S.service||S.serviceName||S.category||"Home Service",
-    p_booking_amount:Number(S.total ?? S.base ?? 0),
+    p_booking_amount:bookingAmount,
     p_payment_method:String(S.paymentChoice||"ONLINE").toLowerCase(),
     p_address:S.address||"",
     p_selected_items:items,
