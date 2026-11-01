@@ -209,11 +209,18 @@ jobs:
           rm -f "$error_file"
           test -s "$RUNNER_TEMP/ocs-backup/ocs-production.dump.enc"
           # Verify decryption and the custom archive table of contents without writing plaintext.
+          toc="$RUNNER_TEMP/ocs-backup/archive.toc"
+          trap 'rm -f "$toc"' EXIT
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 \
             -pass env:OCS_BACKUP_PASSPHRASE \
             -in "$RUNNER_TEMP/ocs-backup/ocs-production.dump.enc" \
-            | docker run --rm -i postgres:17 pg_restore --list >/dev/null
-          echo "Encrypted backup created and archive structure verified. Full restore remains untested."
+            | docker run --rm -i postgres:17 pg_restore --list >"$toc"
+          if ! grep -Eq '^[0-9]+; .* TABLE DATA ' "$toc"; then
+            echo "::error::Archive verification FAIL: no TABLE DATA entries found."
+            exit 1
+          fi
+          echo "PASS: encrypted backup decrypts and contains PostgreSQL table-data entries."
+          echo "PENDING: isolated full restore has not been tested."
       - name: Upload encrypted backup only
         uses: actions/upload-artifact@v4
         with:
