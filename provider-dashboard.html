@@ -256,7 +256,7 @@ async function loadDashboard(){
    if(!walletGate||!Number.isFinite(Number(walletGate.wallet_balance)))throw new Error('Wallet status unavailable. Refresh before accepting new jobs.');
    const walletBalance=Number(walletGate.wallet_balance);
    const walletBlocked=walletGate?.wallet_new_jobs_blocked===true||walletGate?.new_jobs_wallet_blocked===true;
-   const canReceiveNewJobs=profile.service_location_set===true&&profile.admin_paused!==true&&!walletBlocked;
+   const canReceiveNewJobs=profile.service_location_set===true&&profile.admin_paused!==true&&walletGate?.work_on===true&&!walletBlocked;
    const walletMessage=walletBlocked
      ?'Wallet Hold: Recharge to receive NEW jobs. After your first recharge, minimum ₹200 balance is required. Accepted jobs continue.'
      :'Wallet '+money(walletBalance)+': New-job wallet eligibility is clear. ₹100 welcome bonus permits initial jobs until exhausted; after first recharge maintain ₹200.';
@@ -274,7 +274,7 @@ async function loadDashboard(){
      const evidenceBtn=document.getElementById('ocsEvidenceQuickLink');
      if(evidenceBtn)evidenceBtn.hidden=true;
      currentJob=null;
-     setStableDashboardHtml(jb,'<div class="card empty"><div class="ico">🔒</div><h3>New Jobs On Hold</h3><div class="muted">Valid service-location pin and Admin clearance are required for new bookings. Wallet eligibility, valid location and Admin clearance are required.</div></div>');
+     setStableDashboardHtml(jb,'<div class="card empty"><div class="ico">🔒</div><h3>New Jobs On Hold</h3><div class="muted">New bookings require Work ON, valid service location, wallet eligibility and Admin clearance. Already accepted work continues.</div></div>');
      return;
    }
    if(!booking){
