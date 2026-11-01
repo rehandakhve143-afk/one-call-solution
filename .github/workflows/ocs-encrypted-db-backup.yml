@@ -59,6 +59,25 @@ jobs:
                 -pass env:OCS_BACKUP_PASSPHRASE \
                 -out "$RUNNER_TEMP/ocs-backup/ocs-production.dump.enc"); then
             rm -f "$RUNNER_TEMP/ocs-backup/ocs-production.dump.enc"
+            # Report only fixed diagnostic labels, never raw stderr or connection strings.
+            # A broad fallback distinguishes container/connection/export errors.
+            if [[ ! -s "$error_file" ]]; then
+              echo "::error::Diagnostic: pg_dump produced no stderr. Inspect Docker/container execution and runner termination."
+            elif grep -Eqi 'timeout|timed out|deadline exceeded|i/o timeout' "$error_file"; then
+              echo "::error::Diagnostic: timeout detected during PostgreSQL export."
+            elif grep -Eqi 'FATAL:|authentication|password|role .* does not exist|tenant or user not found' "$error_file"; then
+              echo "::error::Diagnostic: database authentication or pooler user/tenant rejection."
+            elif grep -Eqi 'pg_dump: error: query failed|pg_dump: error: query was|permission denied|must be owner' "$error_file"; then
+              echo "::error::Diagnostic: PostgreSQL rejected an export query or permission."
+            elif grep -Eqi 'pg_dump: error: connection|could not connect|connection .*failed|could not translate|network is unreachable|connection reset|connection refused|server closed|SSL|certificate' "$error_file"; then
+              echo "::error::Diagnostic: PostgreSQL connection, network or TLS failure."
+            elif grep -Eqi 'docker:|Cannot connect to the Docker daemon|Unable to find image|pull access denied|OCI runtime|exec format error' "$error_file"; then
+              echo "::error::Diagnostic: Docker image/container execution failure."
+            elif grep -Eqi 'pg_dump: error:|pg_dump: fatal:' "$error_file"; then
+              echo "::error::Diagnostic: pg_dump reported an export error not covered by the known categories."
+            else
+              echo "::error::Diagnostic: export pipeline failed with an unrecognized stderr category."
+            fi
             if grep -qi 'password authentication failed' "$error_file"; then
               echo "::error::Supabase rejected the database password. Update GitHub Actions secret OCS_BACKUP_DATABASE_URL with a valid Session pooler connection string and URL-encoded password. Do not reset the production database password or share it in logs."
             elif grep -qi 'could not translate host name\|connection timed out\|connection refused' "$error_file"; then
