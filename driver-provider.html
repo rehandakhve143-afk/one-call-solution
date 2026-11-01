@@ -172,15 +172,16 @@ let driverCashConfirmBusy=false;
 async function confirmDriverCash(){
  if(!current||String(current.status||'').toLowerCase()!=='cash_wait'||driverCashConfirmBusy)return;
  driverCashConfirmBusy=true;
+ const bookingId=current.id;
  try{
-  const {data:snap,error:se}=await sb.rpc('payment_snapshot_v1',{p_booking_id:current.id});if(se)throw se;
+  const {data:snap,error:se}=await sb.rpc('payment_snapshot_v1',{p_booking_id:bookingId});if(se)throw se;
   const payment=snap?.payment;
   if(!payment?.id||payment.method!=='cash'||payment.status!=='cash_marked'||payment.purpose!=='job')throw new Error('Pending cash payment record not found');
-  if(payment.booking_id&&payment.booking_id!==current.id)throw new Error('Payment booking mismatch. Reload.');
+  if(payment.booking_id&&String(payment.booking_id)!==String(bookingId))throw new Error('Payment booking mismatch. Reload.');
   if(!Number.isFinite(Number(payment.amount))||Number(payment.amount)<=0)throw new Error('Invalid payment amount. Contact OCS support.');
   if(!confirm('I confirm I have actually received ₹'+Number(payment.amount||0).toFixed(2)+' directly from the Customer by Cash or my own UPI app. This will complete the booking and record OCS 9% commission from the driver wallet, with any shortfall recorded as due. Continue?'))return;
   const {data:confirmed,error}=await sb.rpc('confirm_cash_received_v1',{p_payment_id:payment.id});if(error)throw error;
-  if(!confirmed||String(confirmed.status||'').toLowerCase()!=='cash_confirmed'||String(confirmed.id||'')!==String(payment.id)||String(confirmed.booking_id||'')!==String(current.id))throw new Error('Payment completion not confirmed by backend. Refresh before retrying.');
+  if(!confirmed||String(confirmed.status||'').toLowerCase()!=='cash_confirmed'||String(confirmed.id||'')!==String(payment.id)||String(confirmed.booking_id||'')!==String(bookingId))throw new Error('Payment completion not confirmed by backend. Refresh before retrying.');
   alert('Cash receipt confirmed. Driver booking completed; OCS platform fee recorded.');
   await load();
  }catch(e){alert('Cash receipt not confirmed: '+(e?.message||'Please retry'))}
