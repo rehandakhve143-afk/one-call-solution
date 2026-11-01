@@ -257,9 +257,11 @@ async function loadOcsOutstandingDues(){
   if(error)throw error;
   box.replaceChildren();
   const summary=document.createElement('div');summary.className='info';
-  summary.textContent='Outstanding commission: ₹'+Number(data?.total_due||0).toFixed(2)+' • Providers: '+Number(data?.providers_with_due||0);
+  if(!data||!Array.isArray(data.rows)||!Number.isFinite(Number(data.total_due))||!Number.isFinite(Number(data.providers_with_due)))throw new Error('Invalid commission ledger response.');
+  summary.textContent='Outstanding commission: ₹'+Number(data.total_due).toFixed(2)+' • Providers: '+Number(data.providers_with_due);
   box.appendChild(summary);
-  for(const item of (Array.isArray(data?.rows)?data.rows:[])){
+  if(!data.rows.length){const empty=document.createElement('p');empty.className='muted';empty.textContent='No outstanding provider commission in this report.';box.appendChild(empty);}
+  for(const item of data.rows){
    const row=document.createElement('div');row.className='row';
    const left=document.createElement('span');left.textContent=item.name||'Service Provider';
    const right=document.createElement('b');right.textContent='₹'+Number(item.due_amount||0).toFixed(2);
