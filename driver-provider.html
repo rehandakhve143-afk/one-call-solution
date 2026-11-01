@@ -52,7 +52,7 @@ async function load(){
   if(ge)throw ge;
   const {data:snap,error:pe}=await sb.rpc('provider_profile_snapshot_v1');if(pe)throw pe;
   driverEligible=!!gate?.can_work;
-  driverWalletBlocked=gate?.wallet_new_jobs_blocked===true;
+  driverWalletBlocked=gate?.wallet_new_jobs_blocked!==false;
   driverCategoryConflict=!!(gate?.current_category&&gate.current_category!=='Driver Service');
   $('driverSeparateAccountBtn').hidden=!driverCategoryConflict;
   $('driverAccountSeparateAccountBtn').hidden=!driverCategoryConflict;
@@ -84,7 +84,9 @@ async function load(){
   $('workState').textContent=workOn?'WORK ON':'WORK OFF';
   $('workBtn').textContent=workOn?'Turn Work OFF':'Turn Work ON';
   $('workBtn').disabled=false;
-  $('driverMeta').textContent='Wallet ₹'+Number(ps?.wallet_balance||0).toFixed(2);
+  const {data:walletGate,error:walletError}=await sb.rpc('ocs_sp_wallet_new_job_status_v1');
+  if(walletError||!walletGate||!Number.isFinite(Number(walletGate.wallet_balance))){driverWalletBlocked=true;$('driverMeta').textContent='Wallet status unavailable • New requests paused';}
+  else{driverWalletBlocked=driverWalletBlocked||walletGate.new_jobs_wallet_blocked!==false;$('driverMeta').textContent='Wallet ₹'+Number(walletGate.wallet_balance).toFixed(2)+(driverWalletBlocked?' • New requests on hold':'');}
   await loadCurrent();await loadOpenJobs();
  }catch(e){
   driverEligible=false;$('workBtn').hidden=true;
