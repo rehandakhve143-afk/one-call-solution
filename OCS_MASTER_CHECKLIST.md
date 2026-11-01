@@ -9,7 +9,7 @@ Updated: 2026-10-19. This file tracks verified evidence, not promises. Update ea
 - Before first verified recharge: eligible with positive bonus-backed balance; completed job can bring wallet negative. After first verified recharge: new jobs require wallet >= ₹200.
 - Wallet hold blocks only **new** jobs; already accepted work continues. Recharge auto-resume must not override KYC, admin or safety holds.
 - Rules apply consistently to SP, Driver and Goods Transport. Preserve audit logs and date-wise history.
-- 6-digit OTP, same account role switch, mobile-first interface, and self-service paid business listings.
+- **OTP target:** 4-digit Start OTP (arrival only) and 4-digit Login OTP per latest owner instruction; production/backend alignment is NOT VERIFIED. Require server-side expiry, attempt limits, and rate limiting before release. Same-account role switch, mobile-first interface, and self-service paid business listings remain required.
 - Pilot geography before all-India rollout. No launch approval without genuine end-to-end testing.
 
 ## Verified technical progress
