@@ -70,6 +70,37 @@ jobs:
             echo "::error::PostgreSQL 17 pg_dump cannot export a newer server major version."
             exit 1
           fi
+      - name: Verify backup session timeout override
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Never print or interpolate the database URL in the workflow log.
+          export PGOPTIONS="-c statement_timeout=0"
+          err="$RUNNER_TEMP/ocs-timeout-preflight.stderr"
+          trap 'rm -f "$err"' EXIT
+          if ! result="$(docker run --rm --network host \
+            -e OCS_BACKUP_DATABASE_URL -e PGOPTIONS -e PGCONNECT_TIMEOUT=15 \
+            postgres:17 sh -c 'exec psql "$OCS_BACKUP_DATABASE_URL" -X -A -t -q -v ON_ERROR_STOP=1 -c "SHOW statement_timeout"' \
+            2>"$err")"; then
+            echo "::error::Backup session timeout verification FAIL (details withheld)."
+            exit 1
+          fi
+          if [[ "$result" != "0" ]]; then
+            echo "::error::Backup session timeout override FAIL; nonzero timeout remains in effect."
+            exit 1
+          fi
+          echo "PASS: backup connection statement_timeout=0 (session only)."
+          # Transaction pooler connections are not suitable for this backup.
+          # Extract only the port and never print the URL, username, or password.
+          url_authority="${OCS_BACKUP_DATABASE_URL#*://}"
+          url_authority="${url_authority%%/*}"
+          host_port="${url_authority##*@}"
+          if [[ "$host_port" == *":6543" ]]; then
+            echo "::error::Backup URL uses transaction pooler port 6543; switch the GitHub secret to a session/direct 5432 connection."
+            exit 1
+          fi
+          echo "PASS: backup URL is not using known transaction pooler port 6543."
+
       - name: Create encrypted PostgreSQL 17 backup (no plaintext artifact)
         shell: bash
         run: |
