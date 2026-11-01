@@ -136,7 +136,7 @@ async function confirmTransportCash(){
    if(!Number.isFinite(Number(p.amount))||Number(p.amount)<=0)throw new Error('Invalid payment amount. Contact OCS support.');
    if(!confirm('Confirm karein: Customer se ₹'+Number(p.amount||0).toFixed(2)+' apne Cash ya personal UPI app mein sach mein receive hua hai? Bank link karna zaroori nahi. Isse booking complete hogi aur OCS 9% commission wallet/due ledger mein record hoga.'))return;
    const {data:confirmed,error}=await sb.rpc('confirm_cash_received_v1',{p_payment_id:p.id});if(error)throw error;
-  if(!confirmed||!['completed','paid'].includes(String(confirmed.status||'').toLowerCase())||String(confirmed.id||'')!==String(c.id))throw new Error('Payment completion not confirmed by backend. Refresh before retrying.');
+  if(!confirmed||String(confirmed.status||'').toLowerCase()!=='cash_confirmed'||String(confirmed.id||'')!==String(p.id)||String(confirmed.booking_id||'')!==String(c.id))throw new Error('Payment completion not confirmed by backend. Refresh before retrying.');
    alert('Cash received confirmed. Trip completed; OCS platform fee recorded.');
    await load();
  }catch(e){alert(e&&e.message?e.message:'Cash confirmation failed')}
