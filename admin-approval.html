@@ -802,6 +802,12 @@ async function loadAdminBookingsPage(page=0){
       (x.customer||'Customer')+' → '+(x.provider||'Not assigned')+
       ' • ₹'+Number(x.booking_amount||0).toLocaleString('en-IN',{maximumFractionDigits:2});
    card.append(name,status,info);
+   if(x.booking_id){
+    const actions=document.createElement('div');actions.style.marginTop='8px';
+    const paymentLookup=document.createElement('button');paymentLookup.type='button';paymentLookup.className='btn';paymentLookup.textContent='Find payment in Finance Ledger';
+    paymentLookup.onclick=()=>{setAdminView('finance');const search=document.getElementById('ocsFinanceSearch');if(search)search.value=String(x.booking_id);loadOcsFinanceLedger(0);};
+    actions.appendChild(paymentLookup);card.appendChild(actions);
+   }
    if(x.needs_review){
     const w=document.createElement('p');w.className='error';w.textContent='Old unassigned request • Admin review required';
     card.appendChild(w);
