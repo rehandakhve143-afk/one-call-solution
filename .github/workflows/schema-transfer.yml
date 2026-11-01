@@ -1,0 +1,84 @@
+name: OCS Schema-Only Transfer (Isolated Test)
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_test_project:
+        description: 'Type xykqqyufmauqrjbyvqva to authorize an EMPTY test project import'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  transfer:
+    if: ${{ inputs.confirm_test_project == 'xykqqyufmauqrjbyvqva' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+    steps:
+      - name: Validate configured secrets and distinct projects
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, sys
+          from urllib.parse import urlsplit, unquote
+          urls = [os.environ.get('PROD_DATABASE_URL',''), os.environ.get('TEST_DATABASE_URL','')]
+          refs = ['uipmkrsggpkupgbgoxkg', 'xykqqyufmauqrjbyvqva']
+          for url, ref in zip(urls, refs):
+              if not url:
+                  sys.exit('Missing database URL secret')
+              u = urlsplit(url)
+              # Direct DB hostname or session-pooler username postgres.<project-ref>.
+              if u.scheme not in ('postgres','postgresql') or not u.hostname or not (ref in u.hostname or ref in unquote(u.username or '')):
+                  sys.exit('Database URL does not identify the expected project; refusing transfer')
+          if urls[0] == urls[1]:
+              sys.exit('Source and target URLs match; refusing transfer')
+          PY
+      - name: Install PostgreSQL 17 client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+          echo /usr/lib/postgresql/17/bin >> "$GITHUB_PATH"
+      - name: Refuse nonempty test public schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          count="$(psql "$TEST_DATABASE_URL" -X -A -t -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p','v','m','S','f') AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid=c.oid AND d.deptype='e');")"
+          if [ "$count" != "0" ]; then
+            echo "Test public schema contains application objects; refusing destructive overwrite."
+            exit 1
+          fi
+      - name: Dump production public schema only (no rows)
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_dump --dbname="$PROD_DATABASE_URL" --schema-only --schema=public --no-owner --no-privileges --file=ocs_schema_only.sql
+          test -s ocs_schema_only.sql
+          echo "Schema-only dump created (contents not logged)."
+      - name: Restore into isolated test project (no DROP)
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$TEST_DATABASE_URL" -X -v ON_ERROR_STOP=1 --single-transaction --file=ocs_schema_only.sql
+          echo "Schema restore committed to isolated test project."
+      - name: Verify essential wallet objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$TEST_DATABASE_URL" -X -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF to_regclass('public.provider_status') IS NULL
+               OR to_regclass('public.wallet_transactions') IS NULL
+               OR to_regprocedure('public.ocs_sp_try_wallet_resume_v1(uuid)') IS NULL
+               OR to_regprocedure('public.ocs_sp_wallet_new_jobs_allowed_v1()') IS NULL THEN
+              RAISE EXCEPTION 'Required wallet schema objects missing';
+            END IF;
+          END $$;
+          SQL
