@@ -112,6 +112,26 @@ jobs:
             elif grep -Eqi 'invalid byte sequence|invalid input syntax|out of memory|no space left on device|disk full' "$error_file"; then
               echo "::error::Cause: export data, memory or disk issue."
             fi
+            # Safe pg_dump error categorization: print no raw SQL, table names, or credentials.
+            # PostgreSQL may report a failed COPY/table export using wording that
+            # does not match the generic pg_dump error patterns above.
+            if grep -Eqi 'COPY .* TO stdout failed|error while copying table|dumping the contents of table .* failed|pg_dump: error: Dumping the contents of table' "$error_file"; then
+              echo "::error::Diagnostic stage: table COPY/data export failed."
+            fi
+            if grep -Eqi 'pg_dump: error: query failed: ERROR:|pg_dump: error: query was:|ERROR: ' "$error_file"; then
+              echo "::error::Diagnostic class: PostgreSQL returned a SQL error during export."
+            fi
+            if grep -Eqi 'statement timeout|canceling statement|57014' "$error_file"; then
+              echo "::error::Diagnostic class: SQL query canceled or timed out."
+            elif grep -Eqi 'out of shared memory|53200|resource temporarily unavailable|too many connections|53300' "$error_file"; then
+              echo "::error::Diagnostic class: database resource limit."
+            elif grep -Eqi 'permission denied|42501|row-level security|RLS' "$error_file"; then
+              echo "::error::Diagnostic class: access policy or privilege restriction."
+            elif grep -Eqi 'invalid input syntax|22P02|invalid byte sequence|22021' "$error_file"; then
+              echo "::error::Diagnostic class: data encoding or format."
+            elif grep -Eqi 'could not read|could not write|broken pipe|unexpected EOF|08006|08003' "$error_file"; then
+              echo "::error::Diagnostic class: stream or connection interrupted."
+            fi
             # Report a nonreversible fingerprint for comparing repeated failures.
             echo "::notice::Diagnostic fingerprint: $(sha256sum "$error_file" | cut -c1-12); stderr bytes: $(wc -c < "$error_file" | tr -d ' ')"
             # Report only fixed diagnostic labels, never raw stderr or connection strings.
