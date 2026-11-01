@@ -251,9 +251,10 @@ async function loadDashboard(){
      currentJob=null;
      return;
    }
-   const walletBalance=Number(profile.wallet_balance||0);
    const {data:walletGate,error:walletGateError}=await sb.rpc('ocs_sp_wallet_new_job_status_v1');
    if(walletGateError)throw walletGateError;
+   if(!walletGate||!Number.isFinite(Number(walletGate.wallet_balance)))throw new Error('Wallet status unavailable. Refresh before accepting new jobs.');
+   const walletBalance=Number(walletGate.wallet_balance);
    const walletBlocked=walletGate?.wallet_new_jobs_blocked===true||walletGate?.new_jobs_wallet_blocked===true;
    const canReceiveNewJobs=profile.service_location_set===true&&profile.admin_paused!==true&&!walletBlocked;
    const walletMessage=walletBlocked
