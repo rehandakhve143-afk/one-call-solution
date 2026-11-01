@@ -177,7 +177,8 @@ async function confirmDriverCash(){
   if(payment.booking_id&&payment.booking_id!==current.id)throw new Error('Payment booking mismatch. Reload.');
   if(!Number.isFinite(Number(payment.amount))||Number(payment.amount)<=0)throw new Error('Invalid payment amount. Contact OCS support.');
   if(!confirm('I confirm I have actually received ₹'+Number(payment.amount||0).toFixed(2)+' directly from the Customer by Cash or my own UPI app. This will complete the booking and record OCS 9% commission from the driver wallet, with any shortfall recorded as due. Continue?'))return;
-  const {error}=await sb.rpc('confirm_cash_received_v1',{p_payment_id:payment.id});if(error)throw error;
+  const {data:confirmed,error}=await sb.rpc('confirm_cash_received_v1',{p_payment_id:payment.id});if(error)throw error;
+  if(!confirmed||!['completed','paid'].includes(String(confirmed.status||'').toLowerCase())||String(confirmed.id||'')!==String(current.id))throw new Error('Payment completion not confirmed by backend. Refresh before retrying.');
   alert('Cash receipt confirmed. Driver booking completed; OCS platform fee recorded.');
   await load();
  }catch(e){alert('Cash receipt not confirmed: '+(e?.message||'Please retry'))}
