@@ -776,7 +776,8 @@ async function loadAdminBookingsPage(page=0){
   if(request!==ocsAdminBookingRequestVersion)return;
   if(r.error)throw r.error;
   box.replaceChildren();
-  const list=Array.isArray(r.data?.records)?r.data.records:[],total=Number(r.data?.matching||0);
+  if(!r.data||!Array.isArray(r.data.records)||!Number.isSafeInteger(Number(r.data.matching))||Number(r.data.matching)<0)throw new Error('Invalid booking search response.');
+  const list=r.data.records,total=Number(r.data.matching);
   const title=document.createElement('p');
   title.textContent='Matching bookings: '+total+' • Page '+(page+1);
   box.appendChild(title);
