@@ -183,8 +183,8 @@ async function confirmDriverCash(){
   if(!current||String(current.id)!==String(bookingId))throw new Error('Booking changed. Reload before confirming payment.');
   const {data:confirmed,error}=await sb.rpc('confirm_cash_received_v1',{p_payment_id:payment.id});if(error)throw error;
   if(!confirmed||String(confirmed.status||'').toLowerCase()!=='cash_confirmed'||String(confirmed.id||'')!==String(payment.id)||String(confirmed.booking_id||'')!==String(bookingId))throw new Error('Payment completion not confirmed by backend. Refresh before retrying.');
-  alert('Cash receipt confirmed. Driver booking completed; OCS platform fee recorded.');
   await load();
+  alert('Cash receipt confirmed. Driver booking completed; OCS platform fee recorded.');
  }catch(e){alert('Cash receipt not confirmed: '+(e?.message||'Please retry'))}
  finally{driverCashConfirmBusy=false}
 }
