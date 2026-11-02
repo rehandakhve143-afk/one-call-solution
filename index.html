@@ -4383,6 +4383,7 @@ async function ocsPayPaidPost(opts){
    p_metadata:o.metadata||{}
  });
  if(ie)throw ie;
+ if(!intent?.id||!Number.isFinite(Number(intent.total_amount))||Number(intent.total_amount)<=0)throw new Error('Paid listing payment intent invalid. No bank payment should be sent.');
  const {data:bankStatus,error:bankStatusError}=await ocsSupabase.rpc('ocs_direct_payment_status_v1');
  if(bankStatusError)throw bankStatusError;
  if(!bankStatus?.manual_collection_available || !bankStatus?.business_upi_id){
@@ -4393,6 +4394,7 @@ async function ocsPayPaidPost(opts){
  });
  if(bankRequestError)throw bankRequestError;
  if(!bankRequest?.request_id)throw new Error('IDBI payment request unavailable; no payment should be sent.');
+ if(bankRequest.target_id&&String(bankRequest.target_id)!==String(intent.id))throw new Error('Bank payment request does not match this listing. Do not pay.');
  const msg='OCS IDBI Business Payment\\nPayee: '+String(bankStatus.account_display_name||'OCS Business')+
    '\\nUPI: '+String(bankStatus.business_upi_id)+
    '\\nAmount: ₹'+Number(intent.total_amount||0).toFixed(2)+
