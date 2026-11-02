@@ -4679,6 +4679,7 @@ async function submitBannerAd(){
    });
    if(!paid){renderBannerPendingState();return}
    if(paid.pending){renderBannerPendingState();alert('Slider Ad IDBI bank verification pending hai. Bank confirm hone tak ad LIVE nahi hogi.');closeBannerAd();return}
+   if(paid.verified!==true){renderBannerPendingState();alert('Verified bank payment confirmation missing. Banner cannot go LIVE.');return}
    lockBannerAfterPayment(currentId,paid.razorpayPaymentId||'');
    closeBannerAd();
    renderLivePaidBanners();
@@ -6756,6 +6757,7 @@ async function continueBiz(){
      });
      if(!paid)return;
      if(paid.pending){alert('Business listing bank verification pending hai. Payment verify hone tak LIVE nahi hogi.');closeBiz();return}
+     if(paid.verified!==true){alert('Verified bank payment confirmation missing. Business listing cannot go LIVE.');return}
      const latest=readBizDrafts();if(latest[cat]){
        latest[cat].status='LIVE';latest[cat].paymentStatus='VERIFIED';latest[cat].paymentRef=paid.razorpayPaymentId||'';
        latest[cat].invoiceEmailStatus='QUEUED';latest[cat].activatedAt=new Date().toISOString();
