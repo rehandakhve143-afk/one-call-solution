@@ -139,8 +139,8 @@ async function confirmTransportCash(){
    if(!D?.current||String(D.current.id)!==String(bookingId))throw new Error('Booking changed. Reload before confirming payment.');
    const {data:confirmed,error}=await sb.rpc('confirm_cash_received_v1',{p_payment_id:p.id});if(error)throw error;
   if(!confirmed||String(confirmed.status||'').toLowerCase()!=='cash_confirmed'||String(confirmed.id||'')!==String(p.id)||String(confirmed.booking_id||'')!==String(bookingId))throw new Error('Payment completion not confirmed by backend. Refresh before retrying.');
-   alert('Cash received confirmed. Trip completed; OCS platform fee recorded.');
    await load();
+   alert('Cash received confirmed. Trip completed; OCS platform fee recorded.');
  }catch(e){alert(e&&e.message?e.message:'Cash confirmation failed')}
  finally{transportCashConfirmBusy=false}
 }
