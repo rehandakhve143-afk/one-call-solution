@@ -989,6 +989,8 @@ document.querySelectorAll('.filters .pill').forEach(b=>b.onclick=()=>{
            metadata:publicMeta
          });
          if(!paid)return;
+         if(paid.pending===true){alert('IDBI payment verification pending hai. Property listing abhi LIVE nahi hogi. Draft saved rakhein; bank verification ke baad hi publish karein.');savePropertyDraft(true);return;}
+         if(paid.verified!==true){alert('Verified payment confirmation nahi mila. Property listing LIVE nahi hogi.');savePropertyDraft(true);return;}
        }catch(e){alert("Payment complete nahi hua: "+(e&&e.message?e.message:"Unknown error"));return}
      }
    }
