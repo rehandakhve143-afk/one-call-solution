@@ -40,6 +40,8 @@ jobs:
         run: node tests/booking-smoke.cjs
       - name: Verify provider Start OTP frontend safeguards (static only)
         run: node tests/otp-security-regression.cjs
+      - name: Verify login OTP identity and session safeguards (static only)
+        run: node tests/login-otp-regression.cjs
       - name: Verify direct-to-provider payment guidance and receipt wiring (static only)
         run: node tests/direct-payment-regression.cjs
       - name: Verify booking commission exactly once for SP Driver Transport (static only)
