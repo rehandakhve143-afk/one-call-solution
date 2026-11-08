@@ -21,6 +21,6 @@ for(const [file,rpc,actionCheck,statusCheck] of modules){
  assert(src.includes(rpc),file+': backend OTP RPC missing');
  assert(src.includes(actionCheck),file+': Start OTP action missing');
  assert(src.includes(statusCheck),file+': successful working status not checked');
- assert(src.includes('\\\\d{4}'),file+': four digit OTP validation missing');
+ assert(src.includes('\\d{4}'),file+': four digit OTP validation missing');
 }
 console.log('PASS: provider, Home Services, Driver and Transport Start OTP static safeguards; live authenticated E2E still required');
