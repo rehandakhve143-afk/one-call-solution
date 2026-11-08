@@ -1866,25 +1866,40 @@ async function resendSimpleOcsOtp(role){
     if(st)st.textContent=st.textContent.replace('sent','resent');
   }
 }
+const OCS_OTP_VERIFY_GUARD={};
 async function verifySimpleOcsOtp(role){
   if(!ocsSupabase)return false;
   const isProvider=role==='provider';
+  const roleKey=isProvider?'provider':'customer';
+  if(OCS_OTP_VERIFY_GUARD[roleKey])return false;
   const input=document.getElementById(isProvider?'paEmail':'caEmail');
   const raw=(input?.value||'').trim();
   const isEmail=raw.includes('@');
   const phone=!isEmail?ocsIndiaPhone(raw):'';
   const token=(document.getElementById(isProvider?'providerLoginOtp':'customerLoginOtp')?.value||'').trim();
-  const roleKey=isProvider?'provider':'customer';
   const requestValue=isEmail?raw.toLowerCase():phone;
-  try{const target=JSON.parse(localStorage.getItem('ocsLoginOtpTarget')||'null');
-    if(!target || target.role!==roleKey || target.value!==requestValue){alert('Email ya Mobile badal gaya. Continue dabakar naya OTP mangayein.');resetSimpleOcsOtp(roleKey);return false}
+  try{
+    const target=JSON.parse(localStorage.getItem('ocsLoginOtpTarget')||'null');
+    if(!target || target.role!==roleKey || target.type!==(isEmail?'email':'sms') || target.value!==requestValue){
+      alert('Email ya Mobile badal gaya. Continue dabakar naya OTP mangayein.');
+      resetSimpleOcsOtp(roleKey);return false;
+    }
   }catch(e){resetSimpleOcsOtp(roleKey);return false}
-  if(!/^\d{6}$/.test(token)){alert('6-digit OTP enter karein.');return false}
   if(!isEmail&&!phone){alert('Valid Email ID ya Mobile Number check karein.');return false}
+  if(!/^\d{6}$/.test(token)){alert('6-digit OTP enter karein.');return false}
+  const verifyBtn=document.querySelector(isProvider?'#providerLoginOtpWrap .ocs-login-otp-verify':'#customerLoginOtpWrap .ocs-login-otp-verify');
+  OCS_OTP_VERIFY_GUARD[roleKey]=true;
+  if(verifyBtn){verifyBtn.disabled=true;verifyBtn.textContent='Verifying...'}
   try{
     const payload=isEmail?{email:raw,token,type:'email'}:{phone,token,type:'sms'};
-    const {error}=await ocsSupabase.auth.verifyOtp(payload);
+    const {data,error}=await ocsSupabase.auth.verifyOtp(payload);
     if(error)throw error;
+    const verifiedUser=data&&data.user;
+    const verifiedIdentity=String(verifiedUser&&(isEmail?verifiedUser.email:verifiedUser.phone)||'').toLowerCase();
+    if(!data||!data.session||!verifiedUser||verifiedIdentity!==requestValue){
+      await ocsSupabase.auth.signOut({scope:'local'});
+      throw new Error('Verified account identity/session did not match this OTP request. Please request a fresh OTP.');
+    }
     try{localStorage.removeItem('ocsLoginOtpTarget')}catch(e){}
     await refreshOcsEmailStatus();
     const wrap=document.getElementById(isProvider?'providerLoginOtpWrap':'customerLoginOtpWrap');
@@ -1896,6 +1911,9 @@ async function verifySimpleOcsOtp(role){
   }catch(e){
     alert('OTP verify nahi hua: '+(e&&e.message?e.message:'Wrong / expired OTP'));
     return false;
+  }finally{
+    OCS_OTP_VERIFY_GUARD[roleKey]=false;
+    if(verifyBtn){verifyBtn.disabled=false;verifyBtn.textContent='Verify & Login'}
   }
 }
 async function settingsLoginAction(){
